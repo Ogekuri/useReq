@@ -1,0 +1,11 @@
+{
+    "chat.promptFilesRecommendations": {
+        "req.check": true,
+        "req.change": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".scripts/bash/": true,
+        ".scripts/powershell/": true
+    }
+}
+

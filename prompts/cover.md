@@ -1,0 +1,31 @@
+---
+description: Implement changes needed to cover the new requirements.
+---
+
+# Implement changes needed to cover the new requirements
+
+## Purpose
+- Perform the requirements check and report whether all items are correctly covered, then propose a source code change to cover all uncovered requirements.
+ 
+## Behavior
+ - Do not modify files that contain requirements.
+ - Always strictly respect requirements.
+ - Use technical documents to implement features and changes.
+ - Preserve the original language of documents, comments, and printed output.
+ - Do not make unrelated edits.
+ - Follow the ordered steps below exactly.
+
+## Steps (follow exactly)
+1. Read the file [%%REQ_DOC%%](%%REQ_DOC%%) and verify that the project's source code satisfies the requirements listed there.
+   - For each requirement, report `OK` if satisfied or `UNCOVERED` if not.
+   - For every `UNCOVERED`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
+2. Produce a clear change proposal describing edits to the source code that will cover all `UNCOVERED` requirements.
+3. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and confirm that no changes are needed in [%%REQ_DOC%%](%%REQ_DOC%%).
+4. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and ensure the proposed code changes conform to that document; adjust the proposal if needed.
+5. Implement the corresponding changes in the source code.
+6. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+   - For each requirement, report `OK` if satisfied or `FAIL` if not.
+   - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
+7. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
+   - Report any discrepancies with file paths and concise explanations.
+8. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).

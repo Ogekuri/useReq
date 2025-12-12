@@ -1,0 +1,35 @@
+---
+description: Fix a defect without changing the requirements.
+---
+
+# Fix a defect without changing the requirements
+
+## Purpose
+- Produce a clear bug/defect fix proposal and apply the approved changes to the source code.
+
+## Behavior
+ - Do not modify files that contain requirements.
+ - Always strictly respect requirements.
+ - Use technical documents to implement features and changes.
+ - Preserve the original language of documents, comments, and printed output.
+ - Do not make unrelated edits.
+ - Follow the ordered steps below exactly.
+
+## Steps (follow exactly)
+1. Read [%%REQ_DOC%%](%%REQ_DOC%%), all source files, and the [User Request](#users-request).
+2. Produce a clear change proposal describing edits to the source code that fix the bug/defect described by the [User Request](#users-request).
+3. Read [%%REQ_DOC%%](%%REQ_DOC%%) and confirm that no changes are needed in [%%REQ_DOC%%](%%REQ_DOC%%).
+4. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and ensure the proposed code changes conform to that document; adjust the proposal if needed.
+5. Implement the corresponding changes in the source code.
+6. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+   - For each requirement, report `OK` if satisfied or `FAIL` if not.
+   - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
+7. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
+   - Report any discrepancies with file paths and concise explanations.
+8. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+
+<h2 id="users-request">User's Request</h2>
+
+```text
+%%ARGS%%
+```
