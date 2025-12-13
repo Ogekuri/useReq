@@ -1,9 +1,9 @@
 # useReq (Req)
 
-Esegui il tool con `uvx --from git+https://github.com/Ogekuri/useReq.git req` per ricreare `.codex`, `.github`, `.gemini` e `.req` a partire dai prompt e dai template di questo repository:
+Esegui il tool con `uvx --from git+https://github.com/Ogekuri/useReq.git req` per ricreare `.codex`, `.github`, `.gemini` e `.req` a partire dai prompt e dai template di questo repository. Poiché `uvx` interpreta `--verbose` e altri flag come propri, inserisci `--` prima degli argomenti da passare a `usereq`.
 
 ```bash
-uvx --from git+https://github.com/Ogekuri/useReq.git req \
+uvx --from git+https://github.com/Ogekuri/useReq.git req -- \
   --base myproject/ \
   --doc myproject/docs/requirements.md \
   --dir myproject/tech_docs/ \
