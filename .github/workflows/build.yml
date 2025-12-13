@@ -17,6 +17,8 @@ jobs:
         run: python -m pip install --upgrade pip build wheel setuptools
       - name: Build wheel and sdist
         run: python -m build
+      - name: Install package wheel
+        run: python -m pip install dist/usereq-*.whl
       - name: Smoke test CLI
         run: python -m usereq --help
       - name: Upload artifacts
