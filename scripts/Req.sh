@@ -193,17 +193,17 @@ else
   SUB_TECH_DIR=""
 fi
 
-# Aggiungi prefisso ../../ per risalire dalla posizione dei prompt alla root del progetto
+# Aggiungi prefisso / per risalire dalla posizione dei prompt alla root del progetto
 if [ -n "$SUB_REQ_DOC" ]; then
   case "$SUB_REQ_DOC" in
-    ../*|../../* ) ;;
-    *) SUB_REQ_DOC="../../$SUB_REQ_DOC" ;;
+    ../*|/* ) ;;
+    *) SUB_REQ_DOC="/$SUB_REQ_DOC" ;;
   esac
 fi
 if [ -n "$SUB_TECH_DIR" ]; then
   case "$SUB_TECH_DIR" in
-    ../*|../../* ) ;;
-    *) SUB_TECH_DIR="../../$SUB_TECH_DIR" ;;
+    ../*|/* ) ;;
+    *) SUB_TECH_DIR="/$SUB_TECH_DIR" ;;
   esac
 fi
 
@@ -232,12 +232,21 @@ fi
 if [ -n "$REQ_DOC" ]; then
   target_req="$PROJECT_BASE/$REQ_DOC"
   if [ ! -f "$target_req" ]; then
-    vlog "Creazione di $target_req da $REPO_BASE/templates/requirements.md"
+    # Scegli la sorgente: preferisci templates, altrimenti templates
+    if [ -f "$REPO_BASE/templates/requirements.md" ]; then
+      src_template="$REPO_BASE/templates/requirements.md"
+    elif [ -f "$REPO_BASE/templates/requirements.md" ]; then
+      src_template="$REPO_BASE/templates/requirements.md"
+    else
+      echo "Errore: nessun template requirements.md trovato in templates o templates" >&2
+      exit 9
+    fi
+    vlog "Creazione di $target_req da $src_template"
     mkdir -p "$(dirname "$target_req")"
-    cp "$REPO_BASE/templates/requirements.md" "$target_req"
+    cp "$src_template" "$target_req"
     # Messaggio visibile solo in verbose
     if [ "$VERBOSE" -eq 1 ]; then
-      echo "Creato $target_req — modificare il file con i requisiti del progetto." 
+      echo "Creato $target_req — modificare il file con i requisiti del progetto. (sorgente: $src_template)" 
     fi
   fi
 fi
@@ -286,23 +295,47 @@ if [ -d "$REPO_BASE/prompts" ]; then
 
     # a) copia in .codex/prompts/req.$PROMPT.md
     dst1="$PROJECT_BASE/.codex/prompts/req.$PROMPT.md"
-    copy_and_replace "$file" "$dst1" "codex" 
-    if [ "$VERBOSE" -eq 1 ]; then echo "OK: scritto $dst1"; fi
+    existed=0
+    if [ -f "$dst1" ]; then existed=1; fi
+    copy_and_replace "$file" "$dst1" "codex"
+    if [ "$VERBOSE" -eq 1 ]; then
+      if [ $existed -eq 1 ]; then
+        echo "SOVRASCRITTO: $dst1"
+      else
+        echo "COPIATO: $dst1"
+      fi
+    fi
 
     # b) copia in .github/agents/req.$PROMPT.agent.md
     dst2="$PROJECT_BASE/.github/agents/req.$PROMPT.agent.md"
-    copy_and_replace "$file" "$dst2" "github" 
-    if [ "$VERBOSE" -eq 1 ]; then echo "OK: scritto $dst2"; fi
+    existed=0
+    if [ -f "$dst2" ]; then existed=1; fi
+    copy_and_replace "$file" "$dst2" "github"
+    if [ "$VERBOSE" -eq 1 ]; then
+      if [ $existed -eq 1 ]; then
+        echo "SOVRASCRITTO: $dst2"
+      else
+        echo "COPIATO: $dst2"
+      fi
+    fi
 
     # c) crea .github/prompts/req.$PROMPT.prompt.md con contenuto che rispecchia l'agente
     dst3="$PROJECT_BASE/.github/prompts/req.$PROMPT.prompt.md"
     mkdir -p "$(dirname "$dst3")"
+    existed=0
+    if [ -f "$dst3" ]; then existed=1; fi
     cat > "$dst3" <<EOF
 ---
 agent: req.$PROMPT.agent
 ---
 EOF
-    if [ "$VERBOSE" -eq 1 ]; then echo "OK: scritto $dst3"; fi
+    if [ "$VERBOSE" -eq 1 ]; then
+      if [ $existed -eq 1 ]; then
+        echo "SOVRASCRITTO: $dst3"
+      else
+        echo "COPIATO: $dst3"
+      fi
+    fi
 
     # d) genera file .gemini/commands/req.$PROMPT.toml usando md2toml/md2toml.sh
     dst4="$PROJECT_BASE/.gemini/commands/req.$PROMPT.toml"
@@ -315,7 +348,9 @@ EOF
       exit 6
     fi
     # esegui conversione: usa --force solo se il file di destinazione esiste
-    if [ -f "$dst4" ]; then
+    toml_existed=0
+    if [ -f "$dst4" ]; then toml_existed=1; fi
+    if [ $toml_existed -eq 1 ]; then
       out="$($converter --md "$file" --toml "$dst4" --force 2>&1)"
       rc=$?
     else
@@ -333,40 +368,36 @@ EOF
     fi
     # Quando verbose, segnala il successo dello step
     if [ "$VERBOSE" -eq 1 ]; then
-      echo "OK: generato $dst4"
+      if [ $toml_existed -eq 1 ]; then
+        echo "SOVRASCRITTO: $dst4"
+      else
+        echo "COPIATO: $dst4"
+      fi
     fi
     # sostituisci %%REQ_DOC%%, %%REQ_DIR%% e %%ARGS%% nel file generato
     sed -i "s|%%REQ_DOC%%|$SUB_REQ_DOC|g; s|%%REQ_DIR%%|$SUB_TECH_DIR|g; s|%%ARGS%%|{{args}}|g" "$dst4"
   done
 fi
 
-# Copia tutti gli script personalizzati presenti in req_scripts o usereq_scripts
-script_src=""
-if [ -d "$REPO_BASE/req_scripts" ]; then
-  script_src="$REPO_BASE/req_scripts"
-elif [ -d "$REPO_BASE/usereq_scripts" ]; then
-  script_src="$REPO_BASE/usereq_scripts"
-fi
-if [ -n "$script_src" ]; then
-  mkdir -p "$PROJECT_BASE/.req/scripts"
-  cp -r "$script_src/." "$PROJECT_BASE/.req/scripts/" || true
-  if [ "$VERBOSE" -eq 1 ]; then
-    echo "OK: copiati script da $script_src a $PROJECT_BASE/.req/scripts"
-  fi
-fi
-
-# Copia template (supporta sia req_templates che usereq_templates)
+# Copia template (supporta sia templates che usetemplates)
 template_src=""
-if [ -d "$REPO_BASE/req_templates" ]; then
-  template_src="$REPO_BASE/req_templates"
-elif [ -d "$REPO_BASE/usereq_templates" ]; then
-  template_src="$REPO_BASE/usereq_templates"
+if [ -d "$REPO_BASE/templates" ]; then
+  template_src="$REPO_BASE/templates"
+elif [ -d "$REPO_BASE/usetemplates" ]; then
+  template_src="$REPO_BASE/usetemplates"
 fi
 if [ -n "$template_src" ]; then
-  mkdir -p "$PROJECT_BASE/.req/templates"
-  cp -r "$template_src/." "$PROJECT_BASE/.req/templates/"
+  dst_templates="$PROJECT_BASE/.req/templates"
+  # Always remove previous content and recreate from source
+  rm -rf "$dst_templates" || true
+  mkdir -p "$dst_templates"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a "$template_src"/ "$dst_templates"/
+  else
+    cp -r "$template_src/." "$dst_templates/" || true
+  fi
   if [ "$VERBOSE" -eq 1 ]; then
-    echo "OK: copiati template da $template_src a $PROJECT_BASE/.req/templates"
+    echo "OK: ricreati $dst_templates da $template_src (contenuto precedente cancellato)"
   fi
 fi
 

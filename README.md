@@ -8,14 +8,29 @@ Scopo
 Cosa fa (in breve)
 - Copia i prompt Markdown da `prompts/` in tre destinazioni dentro il progetto: `.codex/prompts`, `.github/agents` e `.github/prompts`.
 - Converte i Markdown in file TOML per la cartella `.gemini/commands` usando `md2toml.sh`.
-- Copia script personalizzati (`usereq_scripts`) e template (`usereq_templates`) in `.usereq` del progetto.
+- Copia script personalizzati (`req_scripts`) e template (`templates`) in `.req` del progetto.
 - Integra il `vscode/settings.json` del repository con quello del progetto facendo un merge ricorsivo e atomico.
 - Sostituisce token nei file copiati: `%%REQ_DOC%%`, `%%TECH_DIR%%`, `%%ARGS%%` (con regole diverse per `.md` e `.toml`).
+```markdown
+useReq (Req)
+
+Strumento per inizializzare risorse di progetto a partire da template e prompt.
+
+Scopo
+`useReq` (alias `Req`) prepara una struttura di supporto del progetto a partire dai file presenti nel repository di `useReq`. Genera prompt, agent e comandi per integrazione con strumenti di AI, ricrea template locali, e integra impostazioni di editor.
+
+Cosa fa (in breve)
+- Copia i prompt Markdown da `prompts/` in queste destinazioni nel progetto: `.codex/prompts`, `.github/agents` e `.github/prompts`.
+- Converte i Markdown in file TOML per `.gemini/commands` usando `scripts/md2toml.sh`.
+- Ricrea la directory `.req/templates` nel progetto a partire da `templates/` o `usetemplates/` del repository; il contenuto precedente viene cancellato.
+- Non installa più automaticamente script personalizzati nel progetto: il supporto per `req_scripts` è stato rimosso.
+- Integra il `vscode/settings.json` del repository con quello del progetto facendo un merge atomico.
+- Sostituisce token nei file copiati: `%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%ARGS%%` (con regole diverse per `.md` e `.toml`).
 
 Requisiti
 - `bash` (script scritto in POSIX/Bash)
 - `readlink` (per normalizzare i percorsi)
-- `python3` (usato per la conversione md->toml e per il merge sicuro di settings.json)
+- `python3` (usato per `md2toml` e per il merge sicuro di `settings.json`)
 - Lo script `scripts/md2toml.sh` presente e eseguibile nel repository di `useReq`.
 
 Uso
@@ -33,29 +48,37 @@ Opzioni principali:
 - `--verbose` : stampa informazioni aggiuntive.
 - `--debug` : stampa informazioni di debug.
 
-Note sul comportamento delle sostituzioni
-- Nei file `.md` copiati (`.codex` e `.github/agents`) il token `%%ARGS%%` viene sostituito con la stringa letterale `$ARGUMENTS`.
-- Nei file `.gemini/*.toml` il token `%%ARGS%%` viene sostituito con `{{args}}`.
-- I token `%%REQ_DOC%%` e `%%TECH_DIR%%` vengono sostituiti con percorsi relativi calcolati rispetto alla root del progetto (il comportamento applica un prefisso `../../` nei prompt copiati per puntare dalla cartella dei prompt alla root del progetto).
+Dettagli operativi rilevanti
+- Pulizia/ricreazione `.req`: All'avvio lo script rimuove qualsiasi contenuto esistente in `PROJECT_BASE/.req` e ricrea la struttura. Questo garantisce che i template copiati siano freschi ma comporta la perdita di eventuali file modificati manualmente in `.req`.
+- Creazione di `REQ_DOC`: se il file specificato con `--doc` non esiste nel progetto, lo script lo crea copiando `templates/requirements.md` dal repository (cerca `templates/` o `usetemplates/`).
+- Copia dei prompt: per ogni file in `prompts/` lo script genera/aggiorna:
+  - `.codex/prompts/req.<name>.md` (sostituzioni token)
+  - `.github/agents/req.<name>.agent.md` (sostituzioni token)
+  - `.github/prompts/req.<name>.prompt.md` (file agente minimale)
+  - `.gemini/commands/req.<name>.toml` (generato tramite `md2toml.sh`)
+- Messaggi verbose: quando `--verbose` è attivo, lo script stampa per ciascun file se è stato `COPIATO` (creato) o `SOVRASCRITTO` (esisteva e aggiornato).
+- Sostituzioni token: la funzione `copy_and_replace` applica queste regole:
+  - `%%REQ_DOC%%` → percorso relativo calcolato (`SUB_REQ_DOC`).
+  - `%%REQ_DIR%%` → percorso relativo calcolato (`SUB_TECH_DIR`).
+  - `%%ARGS%%` → per `codex`/`github` viene sostituito con la stringa letterale `$ARGUMENTS`; per `gemini`/TOML viene sostituito con `{{args}}`.
+- Templates: la directory `.req/templates` nel progetto è ricreata a partire dal contenuto di `templates/` o `usetemplates/` del repository; l'operazione cancella il contenuto precedente nella destinazione.
+- `req_scripts`: lo script non copia più contenuti da `req_scripts` o `usereq_scripts` in `PROJECT_BASE/.req/scripts` (funzionalità rimossa).
+- `md2toml.sh`: lo script deve essere presente ed eseguibile in `scripts/` e viene chiamato per generare i `.toml`; eventuali errori del convertitore causano il fallimento di `Req.sh`.
+- `vscode` settings: se presente `vcode/settings.json` nel repository viene fatto un merge con il file del progetto (`.vscode/settings.json`) in modo sicuro.
 
 Protezioni e avvertenze
-- Lo script verifica che `TECH_DIR` esista all'interno del progetto e fallisce se manca (non crea la cartella automaticamente).
-- L'integrazione di `settings.json` è atomica: il file di destinazione viene sovrascritto con un merge ricorsivo ma scritto su file temporaneo e poi spostato per evitare corruzione.
-- `md2toml.sh` non sostituisce più `$ARGUMENTS`: la gestione dei token è affidata a `useReq`.
+- Verifica `--dir`: lo script verifica che la directory tecnica (`--dir`) esista sotto `PROJECT_BASE` e fallisce se non esiste.
+- Operazione distruttiva su `.req`: la pulizia iniziale di `.req` è intenzionale; eseguire lo script solo se si è d'accordo a ricreare i template.
+- Verbose: usare `--verbose` per vedere quali file sono stati creati o sovrascritti.
 
 Esempio rapido
-Supponendo un progetto con struttura minima:
 
 ```bash
 mkdir -p /tmp/myproj/docs /tmp/myproj/tech
-cp -r prompts /path/to/useReq/prompts
 bash /path/to/useReq/scripts/Req.sh --base /tmp/myproj --doc docs/requirements.md --dir tech --verbose
 ```
 
-Al termine troverai sotto `/tmp/myproj` le cartelle `.codex`, `.github`, `.gemini` e `.usereq` popolate.
-
-Domande frequenti
-- Q: Lo script modifica file esistenti nel progetto?
-  - A: Non sovrascrive i file dei prompt o dei template se non esplicitamente richiesto, ma copia e può sovrascrivere i file di template in `.usereq` e gli agent generati. Usare `--verbose` per vedere le azioni.
+Al termine troverai sotto `/tmp/myproj` le cartelle `.codex`, `.github`, `.gemini` e `.req` popolate.
 
 File sorgente: `scripts/Req.sh`
+````

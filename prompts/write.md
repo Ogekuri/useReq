@@ -1,0 +1,31 @@
+---
+description: "Write a requirement draft from the standard template. Usage: req.write <language>."
+---
+
+# Write a requirement's draft based on standard template
+
+## Purpose
+- Produce a requirement draft from the standard template using the project's source code.
+
+## Behavior
+- Create only the requirements draft and do not modify other project files.
+- Ignore/exclude all files in .*/** from the project file analysis.
+- Write the draft in the requested language.
+- Do not perform unrelated edits.
+- Follow the steps below in order.
+
+## Steps (follow exactly)
+1. Read the template at [/.req/templates/requirements.md](/.req/templates/requirements.md) and apply its guidelines to the requirement draft in %%ARGS%%.
+   - Translate template text into %%ARGS%% when necessary.
+2. Read the project's source code to determine software behavior and main features.
+   - Ignore/exclude all files in .*/** from the project's source code analysis.
+3. List used components and libraries.
+4. Create a Markdown file with the requirements draft at [%%REQ_DOC%%_DRAFT.md](%%REQ_DOC%%_DRAFT.md).
+   - Write requirements, section titles, tables, and other content in %%ARGS%%.
+   - Follow [/.req/templates/requirements.md](/.req/templates/requirements.md) translated into %%ARGS%%.
+   - Describe every project requirement clearly, succinctly, and unambiguously.
+   - Use bullet lists and express each requirement using the verb 'shall'. Translate 'shall' to the nearest equivalent in %%ARGS%%.
+5. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+   - For each requirement, report `OK` if satisfied or `FAIL` if not.
+   - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
+6. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).

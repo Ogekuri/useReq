@@ -1,5 +1,5 @@
 ---
-description: Run the requirements check.
+description: "Run the requirements check. Usage: req.check."
 ---
 
 # Run the requirements check

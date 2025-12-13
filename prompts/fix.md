@@ -1,5 +1,5 @@
 ---
-description: Fix a defect without changing the requirements.
+description: "Fix a defect without changing the requirements. Usage: req.fix <description>."
 ---
 
 # Fix a defect without changing the requirements
