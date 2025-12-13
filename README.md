@@ -1,28 +1,33 @@
 # useReq (Req)
 
-Esegui il tool con `uvx --from git+https://github.com/Ogekuri/useReq.git req` per ricreare `.codex`, `.github`, `.gemini` e `.req` a partire dai prompt e dai template di questo repository. Poiché `uvx` interpreta `--verbose` e altri flag come propri, inserisci `--` prima degli argomenti da passare a `usereq`.
+Esegui `uvx --from git+https://github.com/Ogekuri/useReq.git req` per ricreare `.codex`, `.github`, `.gemini` e `.req` a partire dai prompt e dai template inclusi in questo repository.
+
+## Uso con uvx
+
+- Avvia il comando dalla tua directory home (o da dove vuoi) e specifica `--base <cartella-progetto>` oppure `--here` per usare la directory corrente come base del progetto.
+- `--doc` deve essere un percorso relativo alla base del progetto e terminare con `.md`; se il file non esiste viene creato automaticamente dal template `requirements.md`.
+- `--dir` deve essere una directory esistente sotto la base del progetto usata come cartella tecnica.
+- Puoi aggiungere `--verbose` e `--debug` per avere messaggi di dettaglio e diagnostica.
+
+Esempio valido (non serve usare `--` prima dei flag):
 
 ```bash
-uvx --from git+https://github.com/Ogekuri/useReq.git req -- \
+uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
   --doc myproject/docs/requirements.md \
   --dir myproject/tech_docs/ \
   --verbose --debug
 ```
 
-Assicurati che `--doc` termini con `.md` e che `--dir` esista già sotto il progetto. Se usi `--here`, ometti `--base` e punta `--doc`/`--dir` a percorsi relativi alla directory corrente.
+## Prompt disponibili (Gemini / Codex / Copilot CLI)
 
-## Prompts disponibili (Gemini / Codex / Copilot CLI)
-
-Ogni prompt definito in `src/usereq/resources/prompts/` viene esposto come comando `req.<nome>` nelle CLI integrate da Google Gemini, OpenAI Codex e GitHub Copilot. Qui sotto i comandi principali e la descrizione tratta dal front-matter:
+I prompt definiti in `src/usereq/resources/prompts/` vengono esposti come comandi `req.<nome>` all'interno di Google Gemini CLI, OpenAI Codex CLI e GitHub Copilot CLI. Le descrizioni riportate nella tabella seguente provengono dal campo `description` del front matter di ciascun prompt:
 
 | Prompt | Descrizione |
 | --- | --- |
-| `req.change` | Update the requirements and implement the corresponding changes. |
-| `req.check` | Run the requirements check. |
-| `req.cover` | Implement changes needed to cover the new requirements. |
-| `req.fix` | Fix a defect without changing the requirements. |
-| `req.new` | Implement a new requirement and make the corresponding source code changes. |
-| `req.write` | Write a requirement draft from the standard template. |
-
-Ogni comando segue il procedimento descritto nel file Markdown corrispondente (passaggi numerati, controlli su `%%REQ_DOC%%` e `%%REQ_DIR%%`, reportistica). Le CLI mostrano lo stesso testo dei prompt (.codex, .github, .gemini) già elaborato da `useReq`.
+| `req.change` | Update the requirements and implement the corresponding changes. Usage: req.change <description>. |
+| `req.check` | Run the requirements check. Usage: req.check. |
+| `req.cover` | Implement changes needed to cover the new requirements. Usage: req.cover. |
+| `req.fix` | Fix a defect without changing the requirements. Usage: req.fix <description>. |
+| `req.new` | Implement a new requirement and make the corresponding source code changes. Usage: req.new <description>. |
+| `req.write` | Write a requirement draft from the standard template. Usage: req.write <language>. |

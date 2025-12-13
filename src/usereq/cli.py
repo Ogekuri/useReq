@@ -94,10 +94,7 @@ def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
 def format_substituted_path(value: str) -> str:
     if not value:
         return ""
-    normalized = value.replace(os.sep, "/")
-    if normalized.startswith("/") or normalized.startswith("../"):
-        return normalized
-    return f"/{normalized}"
+    return value.replace(os.sep, "/")
 
 
 def compute_sub_path(normalized: str, absolute: Optional[Path], project_base: Path) -> str:
@@ -110,6 +107,16 @@ def compute_sub_path(normalized: str, absolute: Optional[Path], project_base: Pa
         except ValueError:
             return format_substituted_path(normalized)
     return format_substituted_path(normalized)
+
+
+def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
+    if not raw:
+        return ""
+    normalized = raw.replace("\\", "/").strip("/")
+    if not normalized:
+        return ""
+    suffix = "/" if keep_trailing and raw.endswith("/") else ""
+    return f"../../{normalized}{suffix}"
 
 
 def ensure_relative(value: str, name: str, code: int) -> None:
@@ -157,11 +164,14 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def find_template_source() -> Optional[Path]:
+def find_template_source() -> Path:
     candidate = RESOURCE_ROOT / "templates"
     if (candidate / "requirements.md").is_file():
         return candidate
-    return None
+    raise ReqError(
+        "Errore: nessun template requirements.md trovato in templates o usetemplates",
+        9,
+    )
 
 
 def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
@@ -200,12 +210,16 @@ def run(args: Namespace) -> None:
     sub_tech_dir = compute_sub_path(normalized_dir, abs_dir, project_base)
     if dir_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
         sub_tech_dir += "/"
+    token_req_doc = make_relative_token(sub_req_doc)
+    token_req_dir = make_relative_token(sub_tech_dir, keep_trailing=True)
 
     dlog(f"project_base={project_base}")
     dlog(f"REQ_DOC={normalized_doc}")
     dlog(f"REQ_DIR={normalized_dir}")
     dlog(f"SUB_REQ_DOC={sub_req_doc}")
     dlog(f"SUB_TECH_DIR={sub_tech_dir}")
+    dlog(f"TOKEN_REQ_DOC={token_req_doc}")
+    dlog(f"TOKEN_REQ_DIR={token_req_dir}")
 
     tech_dest = project_base / normalized_dir
     if not tech_dest.is_dir():
@@ -224,15 +238,10 @@ def run(args: Namespace) -> None:
     if VERBOSE:
         log(f"OK: assicurata directory {req_root}")
 
+    templates_src = find_template_source()
     doc_target = project_base / normalized_doc
     if not doc_target.exists():
-        src_dir = find_template_source()
-        if not src_dir:
-            raise ReqError(
-                "Errore: nessun template requirements.md trovato in templates o usetemplates",
-                9,
-            )
-        src_file = src_dir / "requirements.md"
+        src_file = templates_src / "requirements.md"
         doc_target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(src_file, doc_target)
         if VERBOSE:
@@ -263,8 +272,8 @@ def run(args: Namespace) -> None:
                 prompt_path,
                 dst_codex,
                 {
-                    "%%REQ_DOC%%": sub_req_doc,
-                    "%%REQ_DIR%%": sub_tech_dir,
+                    "%%REQ_DOC%%": token_req_doc,
+                    "%%REQ_DIR%%": token_req_dir,
                     "%%ARGS%%": "$ARGUMENTS",
                 },
             )
@@ -277,8 +286,8 @@ def run(args: Namespace) -> None:
                 prompt_path,
                 dst_agent,
                 {
-                    "%%REQ_DOC%%": sub_req_doc,
-                    "%%REQ_DIR%%": sub_tech_dir,
+                    "%%REQ_DOC%%": token_req_doc,
+                    "%%REQ_DIR%%": token_req_dir,
                     "%%ARGS%%": "$ARGUMENTS",
                 },
             )
@@ -297,25 +306,23 @@ def run(args: Namespace) -> None:
             replace_tokens(
                 dst_toml,
                 {
-                    "%%REQ_DOC%%": sub_req_doc,
-                    "%%REQ_DIR%%": sub_tech_dir,
+                    "%%REQ_DOC%%": token_req_doc,
+                    "%%REQ_DIR%%": token_req_dir,
                     "%%ARGS%%": "{{args}}",
                 },
             )
             if VERBOSE:
                 log(f"{ 'SOVRASCRITTO' if existed else 'COPIATO' }: {dst_toml}")
 
-    templates_src = find_template_source()
-    if templates_src:
-        templates_target = req_root / "templates"
-        if templates_target.exists():
-            ensure_wrapped(templates_target, project_base, 10)
-            shutil.rmtree(templates_target)
-        shutil.copytree(templates_src, templates_target)
-        if VERBOSE:
-            log(
-                f"OK: ricreati {templates_target} da {templates_src} (contenuto precedente cancellato)"
-            )
+    templates_target = req_root / "templates"
+    if templates_target.exists():
+        ensure_wrapped(templates_target, project_base, 10)
+        shutil.rmtree(templates_target)
+    shutil.copytree(templates_src, templates_target)
+    if VERBOSE:
+        log(
+            f"OK: ricreati {templates_target} da {templates_src} (contenuto precedente cancellato)"
+        )
 
     vcode_settings = REPO_ROOT / "vcode" / "settings.json"
     if vcode_settings.is_file():
