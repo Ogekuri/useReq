@@ -14,7 +14,7 @@ Assicurati che `--doc` termini con `.md` e che `--dir` esista già sotto il prog
 
 ## Prompts disponibili (Gemini / Codex / Copilot CLI)
 
-Ogni prompt definito in `prompts/` viene esposto come comando `req.<nome>` nelle CLI integrate da Google Gemini, OpenAI Codex e GitHub Copilot. Qui sotto i comandi principali e la descrizione tratta dal front-matter:
+Ogni prompt definito in `src/usereq/resources/prompts/` viene esposto come comando `req.<nome>` nelle CLI integrate da Google Gemini, OpenAI Codex e GitHub Copilot. Qui sotto i comandi principali e la descrizione tratta dal front-matter:
 
 | Prompt | Descrizione |
 | --- | --- |

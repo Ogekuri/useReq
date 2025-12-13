@@ -34,6 +34,13 @@ usereq = "usereq.cli:main"
 [tool.setuptools]
 packages = ["usereq"]
 package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.package-data]
+usereq = [
+  "resources/prompts/*.md",
+  "resources/templates/*.md",
+]
 
 [tool.uv.forms.use-req-init]
 description = "Run the Req initialize workflow with uvx --form use-req-init."

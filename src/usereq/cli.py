@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Mapping, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+RESOURCE_ROOT = Path(__file__).resolve().parent / "resources"
 VERBOSE = False
 DEBUG = False
 
@@ -157,7 +158,13 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
 
 
 def find_template_source() -> Optional[Path]:
-    for candidate in (REPO_ROOT / "templates", REPO_ROOT / "usetemplates"):
+    candidates = [
+        REPO_ROOT / "templates",
+        REPO_ROOT / "usetemplates",
+        RESOURCE_ROOT / "templates",
+        RESOURCE_ROOT / "usetemplates",
+    ]
+    for candidate in candidates:
         if (candidate / "requirements.md").is_file():
             return candidate
     return None
@@ -250,6 +257,8 @@ def run(args: Namespace) -> None:
         log(f"OK: create/assicurate cartelle .codex, .github, .gemini sotto {project_base}")
 
     prompts_dir = REPO_ROOT / "prompts"
+    if not prompts_dir.is_dir():
+        prompts_dir = RESOURCE_ROOT / "prompts"
     if prompts_dir.is_dir():
         for prompt_path in sorted(prompts_dir.glob("*.md")):
             PROMPT = prompt_path.stem
