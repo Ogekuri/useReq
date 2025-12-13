@@ -60,6 +60,10 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
     if not path_value:
         return ""
     candidate = Path(path_value)
+    if not candidate.is_absolute():
+        parts = candidate.parts
+        if parts and parts[0] == project_base.name and len(parts) > 1:
+            candidate = Path(*parts[1:])
     if candidate.is_absolute():
         try:
             return str(candidate.relative_to(project_base))
