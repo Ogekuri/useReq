@@ -158,15 +158,9 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
 
 
 def find_template_source() -> Optional[Path]:
-    candidates = [
-        REPO_ROOT / "templates",
-        REPO_ROOT / "usetemplates",
-        RESOURCE_ROOT / "templates",
-        RESOURCE_ROOT / "usetemplates",
-    ]
-    for candidate in candidates:
-        if (candidate / "requirements.md").is_file():
-            return candidate
+    candidate = RESOURCE_ROOT / "templates"
+    if (candidate / "requirements.md").is_file():
+        return candidate
     return None
 
 
