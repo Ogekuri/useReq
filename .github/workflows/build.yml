@@ -3,13 +3,15 @@ name: Build package for uvx
 on:
   push:
     branches: [main, master]
+    tags: ['v*']
   pull_request:
-  release:
-    types: [published]
 
 jobs:
   build:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,34 +25,66 @@ jobs:
         run: python -m pip install dist/usereq-*.whl
       - name: Smoke test CLI
         run: python -m usereq --help
-      - name: Collect dist filenames
-        if: github.event_name == 'release'
-        id: dist-files
-        run: |
-          wheel=$(ls dist/*.whl)
-          sdist=$(ls dist/*.tar.gz)
-          echo "wheel_path=$wheel" >> $GITHUB_OUTPUT
-          echo "wheel_name=$(basename "$wheel")" >> $GITHUB_OUTPUT
-          echo "sdist_path=$sdist" >> $GITHUB_OUTPUT
-          echo "sdist_name=$(basename "$sdist")" >> $GITHUB_OUTPUT
-      - name: Upload wheel release asset
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.dist-files.outputs.wheel_path }}
-          asset_name: ${{ steps.dist-files.outputs.wheel_name }}
-          asset_content_type: application/octet-stream
-      - name: Upload sdist release asset
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.dist-files.outputs.sdist_path }}
-          asset_name: ${{ steps.dist-files.outputs.sdist_name }}
-          asset_content_type: application/octet-stream
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: useReq-dist
           path: dist
+
+  release:
+    name: Create GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      releases: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build wheel setuptools
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Install package wheel
+        run: python -m pip install dist/usereq-*.whl
+
+      - name: Smoke test CLI
+        run: python -m usereq --help
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: Build from commit ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload wheel release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: usereq-${{ github.ref_name }}.whl
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload sdist release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*.tar.gz
+          asset_name: usereq-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
