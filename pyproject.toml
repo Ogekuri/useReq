@@ -29,12 +29,11 @@ Repository = "https://github.com/ogekuri/useReq"
 [project.scripts]
 use-req = "usereq.cli:main"
 req = "usereq.cli:main"
+usereq = "usereq.cli:main"
 
 [tool.setuptools]
 packages = ["usereq"]
-
-[tool.setuptools.packages.find]
-where = ["src"]
+package-dir = {"" = "src"}
 
 [tool.uv.forms.use-req-init]
 description = "Run the Req initialize workflow with uvx --form use-req-init."
