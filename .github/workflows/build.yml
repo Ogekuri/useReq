@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, master]
   pull_request:
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -21,6 +23,32 @@ jobs:
         run: python -m pip install dist/usereq-*.whl
       - name: Smoke test CLI
         run: python -m usereq --help
+      - name: Collect dist filenames
+        if: github.event_name == 'release'
+        id: dist-files
+        run: |
+          wheel=$(ls dist/*.whl)
+          sdist=$(ls dist/*.tar.gz)
+          echo "wheel_path=$wheel" >> $GITHUB_OUTPUT
+          echo "wheel_name=$(basename "$wheel")" >> $GITHUB_OUTPUT
+          echo "sdist_path=$sdist" >> $GITHUB_OUTPUT
+          echo "sdist_name=$(basename "$sdist")" >> $GITHUB_OUTPUT
+      - name: Upload wheel release asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.dist-files.outputs.wheel_path }}
+          asset_name: ${{ steps.dist-files.outputs.wheel_name }}
+          asset_content_type: application/octet-stream
+      - name: Upload sdist release asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.dist-files.outputs.sdist_path }}
+          asset_name: ${{ steps.dist-files.outputs.sdist_name }}
+          asset_content_type: application/octet-stream
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
