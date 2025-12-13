@@ -15,7 +15,8 @@ description: "Fix a defect without changing the requirements. Usage: req.fix <de
  - Do not make unrelated edits.
  - Follow the ordered steps below exactly.
 
-## Steps (follow exactly)
+## Steps
+Create a TODO list and follow exactly this steps:
 1. Read [%%REQ_DOC%%](%%REQ_DOC%%), all source files, and the [User Request](#users-request).
 2. Produce a clear change proposal describing edits to the source code that fix the bug/defect described by the [User Request](#users-request).
 3. Read [%%REQ_DOC%%](%%REQ_DOC%%) and confirm that no changes are needed in [%%REQ_DOC%%](%%REQ_DOC%%).

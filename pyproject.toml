@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "usereq"
+version = "0.1.0"
+description = "Initialize a project with prompts, agents, and templates from the useReq repository."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Astral" }
+]
+keywords = ["astral", "uv", "project", "prompts", "templates"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Code Generators",
+]
+
+[project.urls]
+Homepage = "https://github.com/ogekuri/useReq"
+Repository = "https://github.com/ogekuri/useReq"
+
+[project.scripts]
+use-req = "usereq.cli:main"
+req = "usereq.cli:main"
+
+[tool.setuptools]
+packages = ["usereq"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.uv.forms.use-req-init]
+description = "Run the Req initialize workflow with uvx --form use-req-init."
+command = "use-req"

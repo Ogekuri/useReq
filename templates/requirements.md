@@ -20,7 +20,6 @@ tags: ["markdown", "requirements", "example"]
 **Version**: {{version}}
 **Author**: {{author}}  
 **Date**: {{date_modified}}
-
 <!-- Example:
 ---
 title: "Foo Bar Web Interface Requirements"
@@ -39,13 +38,12 @@ scope:
 visibility: "draft"
 tags: ["markdown", "requirements", "example"]
 ---
+
 # Foo Bar Web Interface Requirements
 **Version**: 1.0.0
 **Author**: Pinco Pallino
 **Date**: 2025-12-25
 -->
-
-
 
 ## Table of Contents
 <!-- TOC -->

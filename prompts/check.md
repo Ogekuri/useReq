@@ -13,7 +13,8 @@ description: "Run the requirements check. Usage: req.check."
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
  - Follow the ordered steps below exactly.
 
-## Steps (follow exactly)
+## Steps
+Create a TODO list and follow exactly this steps:
 1. Read the file [%%REQ_DOC%%](%%REQ_DOC%%) and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
