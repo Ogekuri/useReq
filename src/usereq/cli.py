@@ -116,7 +116,7 @@ def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
     if not normalized:
         return ""
     suffix = "/" if keep_trailing and raw.endswith("/") else ""
-    return f"../../{normalized}{suffix}"
+    return f"{normalized}{suffix}"
 
 
 def ensure_relative(value: str, name: str, code: int) -> None:

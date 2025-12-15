@@ -16,17 +16,17 @@ description: "Write a requirement draft from the standard template. Usage: req.w
 
 ## Steps
 Create and execute a TODO list following these steps strictly:
-1. Read the template at [.req/templates/requirements.md](.req/templates/requirements.md) and apply its guidelines to the requirement draft in %%ARGS%%.
-   - Translate template text into %%ARGS%% when necessary.
+1. Read the template at [/.req/templates/requirements.md](/.req/templates/requirements.md) and apply its guidelines to the requirement draft in $ARGUMENTS.
+   - Translate template text into $ARGUMENTS when necessary.
 2. Read the project's source code to determine software behavior and main features.
    - Ignore/exclude all files in .*/** from the project's source code analysis.
 3. List used components and libraries.
-4. Create a Markdown file with the requirements draft at [%%REQ_DOC%%_DRAFT.md](%%REQ_DOC%%_DRAFT.md).
-   - Write requirements, section titles, tables, and other content in %%ARGS%%.
-   - Follow [.req/templates/requirements.md](.req/templates/requirements.md) translated into %%ARGS%%.
+4. Create a Markdown file with the requirements draft at [../../docs/requirements.md_DRAFT.md](../../docs/requirements.md_DRAFT.md).
+   - Write requirements, section titles, tables, and other content in $ARGUMENTS.
+   - Follow [/.req/templates/requirements.md](/.req/templates/requirements.md) translated into $ARGUMENTS.
    - Describe every project requirement clearly, succinctly, and unambiguously.
-   - Use bullet lists and express each requirement using the verb 'shall'. Translate 'shall' to the nearest equivalent in %%ARGS%%.
-5. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+   - Use bullet lists and express each requirement using the verb 'shall'. Translate 'shall' to the nearest equivalent in $ARGUMENTS.
+5. Re-read [../../docs/requirements.md](../../docs/requirements.md) and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 6. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
