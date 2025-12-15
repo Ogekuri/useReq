@@ -15,7 +15,7 @@ description: "Update the requirements and implement the corresponding changes. U
  - Follow the ordered steps below exactly.
 
 ## Steps
-Create a TODO list and follow exactly this steps:
+Create and execute a TODO list following these steps strictly:
 1. Read [%%REQ_DOC%%](%%REQ_DOC%%), all source files, and the [User Request](#users-request).
 2. Produce a clear change proposal describing the edits to requirements and to source code needed to implement the changes described by the [User Request](#users-request).
 3. Present the requirements that will change in [%%REQ_DOC%%](%%REQ_DOC%%).

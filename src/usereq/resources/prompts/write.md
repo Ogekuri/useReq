@@ -15,7 +15,7 @@ description: "Write a requirement draft from the standard template. Usage: req.w
 - Follow the steps below in order.
 
 ## Steps
-Create a TODO list and follow exactly this steps:
+Create and execute a TODO list following these steps strictly:
 1. Read the template at [/.req/templates/requirements.md](/.req/templates/requirements.md) and apply its guidelines to the requirement draft in %%ARGS%%.
    - Translate template text into %%ARGS%% when necessary.
 2. Read the project's source code to determine software behavior and main features.
