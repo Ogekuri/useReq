@@ -25,7 +25,7 @@ Create and execute a TODO list following these steps strictly:
    - Write requirements, section titles, tables, and other content in %%ARGS%%.
    - Follow [.req/templates/requirements.md](.req/templates/requirements.md) translated into %%ARGS%%.
    - Describe every project requirement clearly, succinctly, and unambiguously.
-   - Use bullet lists and express each requirement using the verb 'shall'. Translate 'shall' to the nearest equivalent in %%ARGS%%.
+   - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate these terms into their closest %%ARGS%% equivalents.
 5. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.

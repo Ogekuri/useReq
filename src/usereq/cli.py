@@ -399,13 +399,24 @@ def run(args: Namespace) -> None:
         if VERBOSE:
             log(f"OK: integrato settings.json in {target_settings}")
 
-    log(f"Req: operazioni completate in {project_base}")
 
+def main(argv: Optional[list[str]] = None) -> int:
+    """CLI entry point suitable for console_scripts and `-m` execution.
 
-def main(argv: Optional[list[str]] = None) -> None:
-    args = parse_args(argv)
+    Returns an exit code (0 success, non-zero on error).
+    """
     try:
+        args = parse_args(argv)
         run(args)
-    except ReqError as exc:
-        print(exc.message, file=sys.stderr)
-        raise SystemExit(exc.code)
+    except ReqError as e:
+        print(e.message, file=sys.stderr)
+        return e.code
+    except Exception as e:  # unexpected
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        if DEBUG:
+            import traceback
+
+            traceback.print_exc()
+        return 1
+    return 0
+

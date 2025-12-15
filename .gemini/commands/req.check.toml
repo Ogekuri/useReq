@@ -14,10 +14,10 @@ prompt = """
 
 ## Steps
 Create and execute a TODO list following these steps strictly:
-1. Read the file [../../docs/requirements.md](../../docs/requirements.md) and verify that the project's source code satisfies the requirements listed there.
+1. Read the file [docs/requirements.md](docs/requirements.md) and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-2. If the technical document [../../tech/](../../tech/) exists, read it and verify that the application's code follows that documentation.
+2. If the technical document [tech/](tech/) exists, read it and verify that the application's code follows that documentation.
    - Report any discrepancies with file paths and concise explanations.
 3. Present results in a clear, structured way so an analytical system can process them without inferring intent.
 

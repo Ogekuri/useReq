@@ -76,6 +76,8 @@ tags: ["markdown", "requirements", "example"]
 
 ### 1.1 Document Rules
 This document shall always follow these rules:
+- This document must be written in English.
+- Format the requirements as a bulleted list, utilizing the keywords 'shall' or 'must' to denote mandatory actions.
 - Each requirement ID (for example, **PRJ-001**, **PRJ-002**,..  **CTN-001**, **CTN-002**,.. **DES-001**, **DES-002**,.. **REQ-001**, **REQ-002**,..) must be unique; do not assign the same ID to different requirements.
 - Each requirement ID start with string that identify the requirement's group:
   * All project function requirements start with **PRJ-**
