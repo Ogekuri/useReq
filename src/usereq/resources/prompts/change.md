@@ -20,14 +20,15 @@ Create and execute a TODO list following these steps strictly:
 2. Produce a clear change proposal describing the edits to requirements and to source code needed to implement the changes described by the [User Request](#users-request).
 3. Present the requirements that will change in [%%REQ_DOC%%](%%REQ_DOC%%).
 4. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and ensure the proposed code changes conform to that document; adjust the proposal if needed.
-5. Implement the approved changes in the requirements file [%%REQ_DOC%%](%%REQ_DOC%%), following its formatting, language, and the template at [/.req/templates/requirements.md](/.req/templates/requirements.md).
-6. Implement the corresponding changes in the source code.
-7. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+5. Wait for approval.
+6. Implement the approved changes in the requirements file [%%REQ_DOC%%](%%REQ_DOC%%), following its formatting, language, and the template at [/.req/templates/requirements.md](/.req/templates/requirements.md).
+7. Implement the corresponding changes in the source code.
+8. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-8. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
+9. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
-9. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+10. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 
 <h2 id="users-request">User's Request</h2>
 
