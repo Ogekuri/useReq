@@ -9,7 +9,7 @@ import shutil
 import sys
 from argparse import Namespace
 from pathlib import Path
-from typing import Mapping, Optional
+from typing import Any, Mapping, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RESOURCE_ROOT = Path(__file__).resolve().parent / "resources"
@@ -174,6 +174,64 @@ def find_template_source() -> Path:
     )
 
 
+def strip_json_comments(text: str) -> str:
+    """Remove leading // and /* */ comment lines so JSONC files can be parsed."""
+    cleaned: list[str] = []
+    in_block = False
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if in_block:
+            if "*/" in stripped:
+                in_block = False
+            continue
+        if stripped.startswith("/*"):
+            if "*/" not in stripped:
+                in_block = True
+            continue
+        if stripped.startswith("//"):
+            continue
+        cleaned.append(line)
+    return "\n".join(cleaned)
+
+
+def load_settings(path: Path) -> dict[str, Any]:
+    """Load JSON/JSONC settings, stripping comments when necessary."""
+    raw = path.read_text(encoding="utf-8")
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        cleaned = strip_json_comments(raw)
+        dlog(f"Parsed {path} after removing comments")
+        return json.loads(cleaned)
+
+
+def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+    """Recursively merge dicts, letting incoming values override base."""
+    for key, value in incoming.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            deep_merge_dict(base[key], value)  # type: ignore[arg-type]
+        else:
+            base[key] = value
+    return base
+
+
+def find_vscode_settings_source() -> Optional[Path]:
+    candidate = RESOURCE_ROOT / "vscode" / "settings.json"
+    if candidate.is_file():
+        return candidate
+    return None
+
+
+def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
+    """Produce chat.promptFilesRecommendations from available prompt files."""
+    recommendations: dict[str, bool] = {}
+    if not prompts_dir.is_dir():
+        return recommendations
+    for prompt_path in sorted(prompts_dir.glob("*.md")):
+        recommendations[f"req.{prompt_path.stem}"] = True
+    return recommendations
+
+
 def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
     if not target.resolve().is_relative_to(project_base):
         raise ReqError(
@@ -324,18 +382,20 @@ def run(args: Namespace) -> None:
             f"OK: ricreati {templates_target} da {templates_src} (contenuto precedente cancellato)"
         )
 
-    vcode_settings = REPO_ROOT / "vcode" / "settings.json"
-    if vcode_settings.is_file():
+    vscode_settings_src = find_vscode_settings_source()
+    if vscode_settings_src:
         vscode_dir = project_base / ".vscode"
         vscode_dir.mkdir(parents=True, exist_ok=True)
         target_settings = vscode_dir / "settings.json"
+        merged_settings: dict[str, Any] = {}
         if target_settings.exists():
-            base = json.loads(target_settings.read_text(encoding="utf-8"))
-            src = json.loads(vcode_settings.read_text(encoding="utf-8"))
-            base.update(src)
-            target_settings.write_text(json.dumps(base, indent=2, ensure_ascii=False), encoding="utf-8")
-        else:
-            shutil.copyfile(vcode_settings, target_settings)
+            merged_settings = load_settings(target_settings)
+        src_settings = load_settings(vscode_settings_src)
+        merged_settings = deep_merge_dict(merged_settings, src_settings)
+        prompt_recs = build_prompt_recommendations(prompts_dir)
+        if prompt_recs:
+            merged_settings["chat.promptFilesRecommendations"] = prompt_recs
+        target_settings.write_text(json.dumps(merged_settings, indent=2, ensure_ascii=False), encoding="utf-8")
         if VERBOSE:
             log(f"OK: integrato settings.json in {target_settings}")
 

@@ -1,0 +1,16 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        ".scripts/bash/": true,
+        ".scripts/powershell/": true
+    },
+    // Imposta la variabile d'ambiente per il terminale integrato
+    "terminal.integrated.env.linux": {
+        "CODEX_HOME": "${workspaceFolder}/.codex"
+    },
+    "terminal.integrated.env.osx": {
+        "CODEX_HOME": "${workspaceFolder}/.codex"
+    },
+    "terminal.integrated.env.windows": {
+        "CODEX_HOME": "${workspaceFolder}\\.codex"
+    }
+}

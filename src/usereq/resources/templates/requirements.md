@@ -40,7 +40,7 @@ tags: ["markdown", "requirements", "example"]
 ---
 
 # Foo Bar Web Interface Requirements
-**Version**: 1.0.0
+**Version**: 0.1
 **Author**: Pinco Pallino
 **Date**: 2025-12-25
 -->

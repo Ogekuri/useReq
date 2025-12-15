@@ -40,6 +40,7 @@ include-package-data = true
 usereq = [
   "resources/prompts/*.md",
   "resources/templates/*.md",
+  "resources/vscode/settings.json",
 ]
 
 [tool.uv.forms.use-req-init]
