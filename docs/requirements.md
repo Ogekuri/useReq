@@ -2,7 +2,7 @@
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
 date: "2025-12-15"
-author: "Astral"
+author: "Francesco Rolando"
 scope:
   paths:
     - "**/*.py"

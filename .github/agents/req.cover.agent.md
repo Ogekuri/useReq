@@ -23,10 +23,11 @@ Create and execute a TODO list following these steps strictly:
 2. Produce a clear change proposal describing edits to the source code that will cover all `UNCOVERED` requirements.
 3. Re-read [docs/requirements.md](docs/requirements.md) and confirm that no changes are needed in [docs/requirements.md](docs/requirements.md).
 4. If [tech/](tech/) exists, read it and ensure the proposed code changes conform to that document; adjust the proposal if needed.
-5. Implement the corresponding changes in the source code.
-6. Re-read [docs/requirements.md](docs/requirements.md) and verify the project's source code satisfies the listed requirements.
+5. Wait for approval.
+6. Implement the corresponding changes in the source code.
+7. Re-read [docs/requirements.md](docs/requirements.md) and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-7. If [tech/](tech/) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
+8. If [tech/](tech/) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
-8. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+9. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).

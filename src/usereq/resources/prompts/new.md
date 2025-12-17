@@ -31,7 +31,5 @@ Create and execute a TODO list following these steps strictly:
 10. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 
 <h2 id="users-request">User's Request</h2>
-
-```text
 %%ARGS%%
-```
+
