@@ -12,6 +12,7 @@ description: "Update the requirements and implement the corresponding changes. U
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
  - Do not make unrelated edits.
+ - Always update unit tests according new source code and new requirements.
  - Follow the ordered steps below exactly.
 
 ## Steps

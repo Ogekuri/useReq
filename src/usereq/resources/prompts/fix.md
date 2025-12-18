@@ -13,6 +13,7 @@ description: "Fix a defect without changing the requirements. Usage: req.fix <de
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
  - Do not make unrelated edits.
+ - Run unit tests after all source code implementations and requirments check.
  - Follow the ordered steps below exactly.
 
 ## Steps

@@ -13,6 +13,7 @@ description: "Implement changes needed to cover the new requirements. Usage: req
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
  - Do not make unrelated edits.
+ - Always update unit tests according new source code and requirements.
  - Follow the ordered steps below exactly.
 
 ## Steps

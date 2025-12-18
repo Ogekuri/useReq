@@ -11,6 +11,7 @@ description: "Run the requirements check. Usage: req.check."
  - Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
+ - Run unit tests.
  - Follow the ordered steps below exactly.
 
 ## Steps
