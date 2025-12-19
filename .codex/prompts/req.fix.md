@@ -13,6 +13,7 @@ description: "Fix a defect without changing the requirements. Usage: req.fix <de
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
  - Do not make unrelated edits.
+ - Run unit tests after all source code implementations and requirments check.
  - Follow the ordered steps below exactly.
 
 ## Steps
@@ -31,7 +32,5 @@ Create and execute a TODO list following these steps strictly:
 9. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 
 <h2 id="users-request">User's Request</h2>
-
-```text
 $ARGUMENTS
-```
+

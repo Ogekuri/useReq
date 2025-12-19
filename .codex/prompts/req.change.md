@@ -12,6 +12,7 @@ description: "Update the requirements and implement the corresponding changes. U
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
  - Do not make unrelated edits.
+ - Always update unit tests according new source code and new requirements.
  - Follow the ordered steps below exactly.
 
 ## Steps
@@ -31,7 +32,4 @@ Create and execute a TODO list following these steps strictly:
 10. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 
 <h2 id="users-request">User's Request</h2>
-
-```text
 $ARGUMENTS
-```
