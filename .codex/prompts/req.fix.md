@@ -13,7 +13,7 @@ description: "Fix a defect without changing the requirements. Usage: req.fix <de
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
  - Do not make unrelated edits.
- - Run unit tests after all source code implementations and requirments check.
+ - Where unit tests exist, strictly adhere to the associated specific instructions.
  - Follow the ordered steps below exactly.
 
 ## Steps
@@ -22,14 +22,15 @@ Create and execute a TODO list following these steps strictly:
 2. Produce a clear change proposal describing edits to the source code that fix the bug/defect described by the [User Request](#users-request).
 3. Read [docs/requirements.md](docs/requirements.md) and confirm that no changes are needed in [docs/requirements.md](docs/requirements.md).
 4. If [tech/](tech/) exists, read it and ensure the proposed code changes conform to that document; adjust the proposal if needed.
-5. Wait for approval.
-6. Implement the corresponding changes in the source code.
-7. Re-read [docs/requirements.md](docs/requirements.md) and verify the project's source code satisfies the listed requirements.
+5. Analyze the proposed source code changes and new requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
+6. Wait for approval.
+7. Implement the corresponding changes in the source code.
+8. Re-read [docs/requirements.md](docs/requirements.md) and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-8. If [tech/](tech/) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
+9. If [tech/](tech/) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
-9. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+10. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 
 <h2 id="users-request">User's Request</h2>
 $ARGUMENTS

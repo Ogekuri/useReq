@@ -10,7 +10,7 @@ prompt = """
  - Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
- - Run unit tests.
+ - Where unit tests exist, strictly adhere to the associated specific instructions.
  - Follow the ordered steps below exactly.
 
 ## Steps
@@ -20,6 +20,7 @@ Create and execute a TODO list following these steps strictly:
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 2. If the technical document [tech/](tech/) exists, read it and verify that the application's code follows that documentation.
    - Report any discrepancies with file paths and concise explanations.
-3. Present results in a clear, structured way so an analytical system can process them without inferring intent.
+3. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. The unit tests must remain exactly as they are.
+4. Present results in a clear, structured way so an analytical system can process them without inferring intent.
 
 """
