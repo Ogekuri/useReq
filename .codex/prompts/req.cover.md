@@ -12,6 +12,7 @@ description: "Implement changes needed to cover the new requirements. Usage: req
  - Always strictly respect requirements.
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
+ - Prioritize clean implementation over legacy support. Breaking changes are allowed. Do not add backward compatibility of any kind (no shims, adapters, fallbacks, legacy paths, deprecated formats, or transitional behavior) and do not implement migrations or auto-upgrades.
  - Do not make unrelated edits.
  - Where unit tests exist, strictly adhere to the associated specific instructions.
  - Follow the ordered steps below exactly.
