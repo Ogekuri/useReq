@@ -22,5 +22,5 @@ Create and execute a TODO list following these steps strictly:
 2. If the technical document [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and verify that the application's code follows that documentation.
    - Report any discrepancies with file paths and concise explanations.
 3. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. The unit tests must remain exactly as they are.
-   - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using that environment’s Python interpreter. Otherwise, run them using the system Python.
+   - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
 4. Present results in a clear, structured way so an analytical system can process them without inferring intent.
