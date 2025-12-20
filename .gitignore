@@ -30,6 +30,12 @@
 !tech/**/*
 !tests/
 !tests/**/*
+!dist/
+!dist/**/*
+!other-stuff/
+!other-stuff/**/*
+!scripts/
+!scripts/**/*
 
 ##########################################
 # Exlucde specific files and directories #
