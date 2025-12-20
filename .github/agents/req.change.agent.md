@@ -30,7 +30,8 @@ Create and execute a TODO list following these steps strictly:
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 10. If [tech/](tech/) exists, verify the application's code follows that document and report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
-11. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+11. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
+12. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 
 <h2 id="users-request">User's Request</h2>
 $ARGUMENTS
