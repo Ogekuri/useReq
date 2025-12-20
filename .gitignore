@@ -1,3 +1,40 @@
+##########################################
+# Exlude all files by default            #
+# (unignore rules will override this)    #
+##########################################
+/*
+*.*
+*/**
+
+##########################################
+# Include specific files and directories #
+##########################################
+!/.github/workflows/*.yml
+!/.github/workflows/*.yaml
+!/.gitignore
+!README.md
+!CHANGELOG.md
+!TODO.md
+!LICENSE
+!LICENSE.txt
+!setup.py
+!pyproject.toml
+!requirements.txt
+!.g.conf
+!/**/*.sh
+!src/
+!src/**/*
+!docs/
+!docs/**/*
+!tech/
+!tech/**/*
+!tests/
+!tests/**/*
+
+##########################################
+# Exlucde specific files and directories #
+##########################################
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -186,7 +223,7 @@ cython_debug/
 #  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
 #  and can be added to the global gitignore or merged into this file. However, if you prefer, 
 #  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
+.vscode/
 
 # Ruff stuff:
 .ruff_cache/
@@ -206,10 +243,3 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Local tooling/config
-.codex/
-.gemini/
-.github/
-.req/
-.venv/
-.vscode/
