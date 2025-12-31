@@ -17,18 +17,25 @@ description: "Write a requirement draft from the standard template. Usage: req.w
 
 ## Steps
 Create and execute a TODO list following these steps strictly:
-1. Read the template at [.req/templates/requirements.md](.req/templates/requirements.md) and apply its guidelines to the requirement draft in %%ARGS%%.
+1. If %%ARGS%% does not contain a language identifier (e.g., "language: <name>" or "<name>"), stop execution and return an error.
+2. Read the template at [.req/templates/requirements.md](.req/templates/requirements.md) and apply its guidelines to the requirement draft in %%ARGS%%.
    - Translate template text into %%ARGS%% when necessary.
-2. Read the project's source code to determine software behavior and main features.
-   - Ignore/exclude all files in .*/** from the project's source code analysis.
-3. List used components and libraries.
-4. Check the unit test suite. If tests are found, analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
-5. Create a Markdown file with the requirements draft at [%%REQ_DOC%%_DRAFT.md](%%REQ_DOC%%_DRAFT.md).
+3. Analyze the project's source code to infer the software’s behavior and main features, then produce a hierarchical requirements list.
+   - Requirements for the output:
+     - Include the project’s file/folder structure (tree view).
+     - Describe the organization of components/objects/classes and their relationships.
+     - Identify any in-place performance improvements or code optimizations present in the codebase.
+     - Describe any text-based UI and/or GUI functionality implemented.
+   - Scope rules:
+     - Exclude from analysis any files and directories matching the pattern .*/** (i.e., any path segment starting with a dot).
+4. List used components and libraries.
+5. Check the unit test suite. If tests are found, analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
+6. Create a Markdown file with the requirements draft at [%%REQ_DOC%%_DRAFT.md](%%REQ_DOC%%_DRAFT.md).
    - Write requirements, section titles, tables, and other content in %%ARGS%%.
    - Follow [.req/templates/requirements.md](.req/templates/requirements.md) translated into %%ARGS%%.
    - Describe every project requirement clearly, succinctly, and unambiguously.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate these terms into their closest %%ARGS%% equivalents.
-6. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+7. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-7. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+8. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).

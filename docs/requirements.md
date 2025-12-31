@@ -1,8 +1,8 @@
 ---
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
-date: "2025-12-15"
-author: "Francesco Rolando"
+date: "2025-12-31"
+author: "Astral"
 scope:
   paths:
     - "**/*.py"
@@ -13,15 +13,16 @@ scope:
   excludes:
     - ".*/**"
 visibility: "bozza"
-tags: ["markdown", "requisiti", "esempio"]
+tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
 **Versione**: 0.1.0
 **Autore**: Astral  
-**Data**: 2025-12-15
+**Data**: 2025-12-31
 
 ## Indice
+<!-- TOC -->
 - [Requisiti di useReq](#requisiti-di-usereq)
   - [Indice](#indice)
   - [Cronologia delle revisioni](#cronologia-delle-revisioni)
@@ -29,59 +30,132 @@ tags: ["markdown", "requisiti", "esempio"]
     - [1.1 Regole del documento](#11-regole-del-documento)
     - [1.2 Scopo del progetto](#12-scopo-del-progetto)
     - [1.3 Componenti e librerie utilizzati](#13-componenti-e-librerie-utilizzati)
+    - [1.4 Struttura del progetto](#14-struttura-del-progetto)
+    - [1.5 Componenti principali e relazioni](#15-componenti-principali-e-relazioni)
+    - [1.6 Ottimizzazioni e prestazioni](#16-ottimizzazioni-e-prestazioni)
+    - [1.7 Suite di test](#17-suite-di-test)
   - [2. Requisiti di progetto](#2-requisiti-di-progetto)
     - [2.1 Funzioni di progetto](#21-funzioni-di-progetto)
     - [2.2 Vincoli di progetto](#22-vincoli-di-progetto)
   - [3. Requisiti](#3-requisiti)
     - [3.1 Progettazione e implementazione](#31-progettazione-e-implementazione)
     - [3.2 Funzioni](#32-funzioni)
+<!-- TOC -->
 
 ## Cronologia delle revisioni
 | Data | Versione | Motivazione e descrizione della modifica |
 |------|----------|-------------------------------------------|
-| 2025-12-15 | 0.1.0 | Creazione iniziale del documento. |
+| 2025-12-31 | 0.1.0 | Creazione della bozza dei requisiti. |
 
 ## 1. Introduzione
-useReq è un'utilità da linea di comando che inizializza un progetto con i prompt, gli agenti e i template distribuiti nel repository useReq. Lo strumento automatizza la creazione dei file di requisiti, delle cartelle tecniche e delle risorse per agenti Codex, GitHub e Gemini in modo coerente rispetto al percorso del progetto specificato dall'utente.
+Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
 
 ### 1.1 Regole del documento
 Questo documento deve sempre seguire queste regole:
+- Questo documento deve essere scritto in italiano.
+- I requisiti devono essere formattati come elenco puntato, utilizzando il verbo "deve" per indicare azioni obbligatorie.
 - Ogni identificativo (**PRJ-001**, **PRJ-002**, **CTN-001**, **CTN-002**, **DES-001**, **DES-002**, **REQ-001**, **REQ-002**, …) deve essere univoco.
 - Ogni identificativo deve iniziare con il prefisso del proprio gruppo di requisiti (PRJ-, CTN-, DES-, REQ-).
 - Ogni requisito deve essere identificabile, verificabile e testabile.
 - Ad ogni modifica del documento si deve aggiornare il numero di versione e la cronologia delle revisioni.
 
 ### 1.2 Scopo del progetto
-Lo scopo del progetto è fornire un comando `req`/`use-req` che, partendo da un progetto esistente, imposti automaticamente il documento di requisiti, la struttura tecnica e le risorse dei prompt, garantendo percorsi coerenti e percorsi relativi sicuri per l'agente.
+Lo scopo del progetto e fornire un comando `use-req`/`req` che, dato un progetto, inizializzi file di requisiti, cartelle tecniche e risorse di prompt per strumenti di sviluppo, garantendo percorsi relativi sicuri e un setup ripetibile.
 
 ### 1.3 Componenti e librerie utilizzati
-- Python 3.11+: runtime richiesto dal pacchetto (`pyproject.toml`).
-- Librerie standard (`argparse`, `pathlib`, `json`, `shutil`, `os`, `re`, `sys`): gestiscono parsing CLI, I/O e manipolazione dei percorsi (`src/usereq/cli.py`).
-- `uvx` (strumento di esecuzione di Astral): fornisce il flusso di lavoro consigliato per distribuire il comando `req` (`README.md`).
+- Python 3.11+ come runtime del pacchetto.
+- Librerie standard (`argparse`, `json`, `pathlib`, `shutil`, `os`, `re`, `sys`) per parsing CLI, gestione file e percorsi.
+- `setuptools` e `wheel` per packaging e distribuzione.
+
+### 1.4 Struttura del progetto
+```
+.
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── TODO.md
+├── dist
+│   ├── usereq-0.1.0-py3-none-any.whl
+│   └── usereq-0.1.0.tar.gz
+├── docs
+│   └── requirements.md
+├── other-stuff
+│   └── templates
+│       ├── srs-template-bare.md
+│       └── srs-template.md
+├── pyproject.toml
+├── scripts
+│   └── version.sh
+└── src
+    └── usereq
+        ├── __init__.py
+        ├── __main__.py
+        ├── cli.py
+        ├── resources
+        │   ├── prompts
+        │   │   ├── analyze.md
+        │   │   ├── change.md
+        │   │   ├── check.md
+        │   │   ├── cover.md
+        │   │   ├── fix.md
+        │   │   ├── new.md
+        │   │   ├── optimize.md
+        │   │   └── write.md
+        │   ├── templates
+        │   │   └── requirements.md
+        │   └── vscode
+        │       └── settings.json
+        └── usereq.egg-info
+            ├── PKG-INFO
+            ├── SOURCES.txt
+            ├── dependency_links.txt
+            ├── entry_points.txt
+            └── top_level.txt
+```
+
+### 1.5 Componenti principali e relazioni
+- `usereq.cli` contiene la logica principale del comando, il parsing degli argomenti e il flusso di inizializzazione.
+- `usereq.__main__` espone l'esecuzione come modulo Python e delega a `usereq.cli.main`.
+- `usereq.__init__` fornisce metadati di versione e un re-export dell'entry point `main`.
+- `resources/prompts`, `resources/templates` e `resources/vscode` contengono i file sorgenti che il comando copia o integra nel progetto di destinazione.
+
+### 1.6 Ottimizzazioni e prestazioni
+Non sono presenti ottimizzazioni prestazionali esplicite; il codice si limita a elaborazioni lineari dei file e dei percorsi necessari all'inizializzazione.
+
+### 1.7 Suite di test
+Non sono stati trovati test unitari nel repository.
 
 ## 2. Requisiti di progetto
 ### 2.1 Funzioni di progetto
-- **PRJ-001**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here` assieme ai percorsi `--doc` e `--dir` per individuare la radice del progetto e i file da trattare.
-- **PRJ-002**: Il comando deve creare il documento di requisiti da template quando il percorso `--doc` non esiste e deve assicurare la directory tecnica `.req` ricreando i template locali.
-- **PRJ-003**: Il comando deve generare le risorse dei prompt (`.codex`, `.github`, `.gemini`) copiando i file disponibili e sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con i percorsi relativi calcolati.
+- **PRJ-001**: Il comando deve inizializzare un progetto creando o aggiornando documenti di requisiti, template tecnici e risorse di prompt in base alla radice indicata dall'utente.
+- **PRJ-002**: Il comando deve accettare esattamente una tra le opzioni `--base` o `--here` e i parametri `--doc` e `--dir` per determinare la radice del progetto e i percorsi da gestire.
+- **PRJ-003**: Il comando deve generare risorse di prompt per Codex, GitHub e Gemini sostituendo i token di percorso con valori relativi calcolati.
+- **PRJ-004**: Il comando deve aggiornare i template locali in `.req/templates` e integrare le impostazioni VS Code quando disponibili.
+- **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
 ### 2.2 Vincoli di progetto
-- **CTN-001**: L'opzione `--doc` deve indicare un file Markdown che termina con l'estensione `.md`.
-- **CTN-002**: I valori `--doc` e `--dir` devono essere normalizzati in percorsi relativi alla radice del progetto e deve essere generato un errore se rimangono percorsi assoluti.
-- **CTN-003**: Il percorso `--dir` deve esistere come directory reale sotto la radice del progetto prima di eseguire qualsiasi copia di risorse.
-- **CTN-004**: L'eventuale eliminazione della cartella `.req` esistente deve avvenire solo se la cartella si trova sotto `PROJECT_BASE`, prevenendo cancellazioni fuori dal perimetro.
+- **CTN-001**: L'opzione `--doc` deve indicare un file Markdown che termina con estensione `.md`.
+- **CTN-002**: I valori di `--doc` e `--dir` devono essere normalizzati in percorsi relativi alla radice del progetto; in caso contrario il comando deve terminare con errore.
+- **CTN-003**: Il percorso `--dir` deve esistere come directory reale sotto la radice del progetto prima della copia delle risorse.
+- **CTN-004**: La rimozione di directory `.req` o `.req/templates` preesistenti deve essere consentita solo se tali percorsi si trovano sotto la radice del progetto.
+- **CTN-005**: Il comando deve fallire se il progetto specificato non esiste sul filesystem.
 
 ## 3. Requisiti
 ### 3.1 Progettazione e implementazione
-- **DES-001**: La normalizzazione dei percorsi deve produrre token `../../...` consistenti per i sostituti `%%REQ_DOC%%` e `%%REQ_DIR%%`, preservando l'eventuale barra finale della directory tecnica.
-- **DES-002**: L'origine dei template `requirements.md` deve derivare dalla cartella `resources/templates` inclusa nel pacchetto e deve fallire se il file non esiste.
-- **DES-003**: Ogni prompt Markdown deve poter essere convertito in TOML con un blocco `description` estratto dal front matter e il corpo racchiuso in una stringa multilinea.
-- **DES-004**: Il merge delle impostazioni VS Code deve leggere JSON con o senza commenti, fondere ricorsivamente gli oggetti ed eseguire il salvataggio con indentazione leggibile, aggiungendo `chat.promptFilesRecommendations` dai prompt rilevati.
+- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` deve produrre percorsi relativi normalizzati e preservare l'eventuale barra finale di `--dir`.
+- **DES-002**: L'origine del template `requirements.md` deve essere la cartella `resources/templates` inclusa nel pacchetto e il comando deve fallire se il template non e disponibile.
+- **DES-003**: La conversione dei prompt Markdown in TOML deve estrarre il campo `description` dal front matter e salvare il corpo del prompt in una stringa multilinea.
+- **DES-004**: Il merge delle impostazioni VS Code deve supportare file JSONC rimuovendo i commenti e deve fondere ricorsivamente gli oggetti con priorita ai valori del template.
+- **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate a partire dai prompt Markdown disponibili.
+- **DES-006**: L'entry point del pacchetto deve esporre `usereq.cli:main` tramite `use-req`, `req` e `usereq`.
+- **DES-007**: Gli errori previsti devono essere gestiti tramite un'eccezione dedicata con codice di uscita non nullo.
 
 ### 3.2 Funzioni
-- **REQ-001**: Per ogni prompt disponibile, il comando deve copiare il file nella cartella `.codex/prompts` applicando i token sostitutivi calcolati.
-- **REQ-002**: Per ogni prompt disponibile, il comando deve copiare il file nella cartella `.github/agents` con le stesse sostituzioni per consentire la registrazione dell'agente.
-- **REQ-003**: Per ogni prompt disponibile, il comando deve creare un file `.github/prompts/req.<nome>.prompt.md` che referenzi l'agente `req.<nome>`.
-- **REQ-004**: Per ogni prompt disponibile, il comando deve generare un file `.gemini/commands/req.<nome>.toml` trasformando il Markdown, sovrascrivendo in modo controllato e sostituendo i token con i percorsi relativi a `{{args}}`.
-- **REQ-005**: Se è disponibile un template VS Code, il comando deve creare o aggiornare `.vscode/settings.json`, fondendo le impostazioni esistenti con quelle del template e aggiungendo i suggerimenti `chat.promptFilesRecommendations` per ogni prompt `req.*`.
-- **REQ-006**: Dopo avere assicurato i template `.req`, il comando deve concludere stampando un messaggio di completamento con il percorso della radice di progetto trattata.
+- **REQ-001**: Se il documento indicato da `--doc` non esiste, il comando deve copiarlo dal template `requirements.md`.
+- **REQ-002**: Il comando deve creare le cartelle `.codex/prompts`, `.github/agents`, `.github/prompts` e `.gemini/commands` sotto la radice del progetto.
+- **REQ-003**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.codex/prompts` e `.github/agents` sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con i valori calcolati.
+- **REQ-004**: Per ogni prompt Markdown disponibile, il comando deve creare un file `.github/prompts/req.<nome>.prompt.md` che referenzi l'agente `req.<nome>`.
+- **REQ-005**: Per ogni prompt Markdown disponibile, il comando deve generare un file TOML in `.gemini/commands` convertendo il Markdown e sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con valori appropriati per Gemini.
+- **REQ-006**: Il comando deve copiare i template in `.req/templates`, sostituendo eventuali template preesistenti.
+- **REQ-007**: Se il template VS Code e disponibile, il comando deve creare o aggiornare `.vscode/settings.json` fondendo le impostazioni con quelle esistenti e aggiungendo le raccomandazioni per i prompt.
+- **REQ-008**: Il comando deve creare la configurazione `.github/prompts` con front matter che referenzi l'agente in uso.
