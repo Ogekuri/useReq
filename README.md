@@ -1,4 +1,4 @@
-# useReq aka req (0.0.2)
+# useReq aka req (0.0.3)
 
 Run `uvx --from git+https://github.com/Ogekuri/useReq.git req` to recreate `.codex`, `.github`, `.gemini`, and `.req` from the prompts and templates shipped with this repository.
 
