@@ -25,9 +25,11 @@ The prompts defined in `src/usereq/resources/prompts/` are exposed as `req.<name
 
 | Prompt | Description |
 | --- | --- |
+| `req.analyze` | Produce an analysis report. Usage: req.analyze <description>. |
 | `req.change` | Update the requirements and implement the corresponding changes. Usage: req.change <description>. |
 | `req.check` | Run the requirements check. Usage: req.check. |
 | `req.cover` | Implement changes needed to cover the new requirements. Usage: req.cover. |
 | `req.fix` | Fix a defect without changing the requirements. Usage: req.fix <description>. |
 | `req.new` | Implement a new requirement and make the corresponding source code changes. Usage: req.new <description>. |
+| `req.optimize` | Perform an optimizazion without changing the requirements. Usage: req.optimize <description>. |
 | `req.write` | Write a requirement draft from the standard template. Usage: req.write <language>. |

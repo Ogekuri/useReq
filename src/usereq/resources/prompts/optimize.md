@@ -1,11 +1,11 @@
 ---
-description: "Fix a defect without changing the requirements. Usage: req.fix <description>."
+description: "Perform an optimizazion without changing the requirements. Usage: req.optimize <description>."
 ---
 
-# Fix a defect without changing the requirements
+# Perform an optimizazion without changing the requirements
 
 ## Purpose
-- Produce a clear bug/defect fix proposal and apply the approved changes to the source code.
+- Produce a clear optimization proposal and apply the approved changes to the source code.
 
 ## Behavior
  - Do not modify files that contain requirements.
@@ -20,7 +20,7 @@ description: "Fix a defect without changing the requirements. Usage: req.fix <de
 ## Steps
 Create and execute a TODO list following these steps strictly:
 1. Read [%%REQ_DOC%%](%%REQ_DOC%%), all source files, and the [User Request](#users-request).
-2. Produce a clear change proposal describing edits to the source code that fix the bug/defect described by the [User Request](#users-request).
+2. Produce a clear change proposal describing edits to the source code that implement the optimization described by the [User Request](#users-request).
 3. Ensure the proposed source code changes do NOT modify existing requirements.
 4. Read [%%REQ_DOC%%](%%REQ_DOC%%) and confirm that no changes are needed in [%%REQ_DOC%%](%%REQ_DOC%%).
 5. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and ensure the proposed code changes conform to that document; adjust the proposal if needed.
