@@ -30,12 +30,12 @@ Create and execute a TODO list following these steps strictly:
      - Exclude from analysis any files and directories matching the pattern .*/** (i.e., any path segment starting with a dot).
 4. List used components and libraries.
 5. Check the unit test suite. If tests are found, analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
-6. Create a Markdown file with the requirements draft at [%%REQ_DOC%%_DRAFT.md](%%REQ_DOC%%_DRAFT.md).
+6. Create a Markdown file with the requirements draft at [%%REQ_PATH%%/requirements_DRAFT.md](%%REQ_PATH%%/requirements_DRAFT.md).
    - Write requirements, section titles, tables, and other content in %%ARGS%%.
    - Follow [.req/templates/requirements.md](.req/templates/requirements.md) translated into %%ARGS%%.
    - Describe every project requirement clearly, succinctly, and unambiguously.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate these terms into their closest %%ARGS%% equivalents.
-7. Re-read [%%REQ_DOC%%](%%REQ_DOC%%) and verify the project's source code satisfies the listed requirements.
+7. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 8. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).

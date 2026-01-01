@@ -4,29 +4,13 @@
 
 # useReq aka req (0.0.5)
 
-Run `uvx --from git+https://github.com/Ogekuri/useReq.git req` to recreate `.codex`, `.github`, `.gemini`, and `.req` from the prompts and templates shipped with this repository.
-
-## Usage with uvx
-
-- Launch the command from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
-- `--doc` must be a path relative to the project base and must end with `.md`. If the file does not exist it is automatically created from the `requirements.md` template.
-- `--dir` must be an existing directory under the project base that serves as the technical folder.
-- Add `--verbose` and `--debug` to get detailed and diagnostic output.
-
-Valid example (no need to use `--` before the flags):
-
-```bash
-uvx --from git+https://github.com/Ogekuri/useReq.git req \
-  --base myproject/ \
-  --doc myproject/docs/requirements.md \
-  --dir myproject/tech_docs/ \
-  --verbose --debug
-```
+The `req` script provide CLI prompts to software develop by requirements.
 
 ## Available prompts
 
-The prompts defined in `src/usereq/resources/prompts/` are exposed as `req.<name>` commands inside Google Gemini CLI, OpenAI Codex CLI, and GitHub Copilot CLI. The descriptions in the following table come from the `description` field in each prompt’s front matter:
+The prompts defined are exposed as `req.<name>` commands inside Google Gemini CLI, OpenAI Codex CLI, GitHub Copilot CLI and Kiro CLI.
 
+The is the list of the prompts availabes:
 | Prompt | Description |
 | --- | --- |
 | `req.analyze` | Produce an analysis report. Usage: req.analyze <description>. |
@@ -39,12 +23,46 @@ The prompts defined in `src/usereq/resources/prompts/` are exposed as `req.<name
 | `req.write` | Write a requirement draft from the standard template. Usage: req.write <language>. |
 
 ## Supported CLI and Agents
+
+### CLI
 - ✅ Gemini CLI
 - ✅ OpeneIA Codex CLI
 - ✅ GitHub Copilot CLI
-- ✅ Kiro CLI
-- ✅ OpenIA Codex Agent Extension for Visual Studio Code
-- ✔️ GitHub Cipilot Agent Chat in Visual Stusio Code
-- ❌ Gemini Code Assist Extension for Visual Studio Code
-  
+- ✔️ Kiro CLI (not work as aspected)
 
+### Agents
+- ✅ OpenIA Codex Agent Extension for Visual Studio Code
+- ✔️ GitHub Cipilot Agent Chat in Visual Stusio Code (not work as aspected)
+- ❌ Gemini Code Assist Extension for Visual Studio Code
+
+## Usage
+
+Run `req` to create/re-create `.codex`, `.github`, `.gemini`, `.kiro`, and `.req` into your project repository.
+You need to run `req` again if you add/remove requirements files `.md` in `docs/` dir or any sub-folders in `tech/`.
+
+Common usage parameters:
+
+- Run `req` from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
+- `--doc` must be an existing directory under the project base and **shall** contain requirements `.md` files.  If the file does not exist it is automatically created from the `requirements.md` template.
+- `--dir` must be an existing directory under the project base and **can** contain technical folder.
+- Add `--verbose` and `--debug` to get detailed and diagnostic output.
+
+## Run live with uvx
+```bash
+uvx --from git+https://github.com/Ogekuri/useReq.git req \
+  --base myproject/ \
+  --doc myproject/docs/ \
+  --dir myproject/tech_docs/ \
+  --verbose --debug
+```
+## Install/remove with uv
+
+### Install
+```bash
+uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git
+```
+
+### Remove
+```bash
+uv tool uninstall usereq
+```

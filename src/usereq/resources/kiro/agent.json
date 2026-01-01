@@ -9,7 +9,7 @@
   "toolAliases": {},
   "allowedTools": [],
   "resources": [
-    "file://%%RESOURCE%%"
+%%RESOURCES%%
   ],
   "hooks": {},
   "toolsSettings": {},

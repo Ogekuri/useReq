@@ -16,7 +16,7 @@ description: "Produce an analysis report. Usage: req.analyze <description>."
 
 ## Steps
 Create and execute a TODO list following these steps strictly:
-1. Read [%%REQ_DOC%%](%%REQ_DOC%%), all source files, and the [User Request](#users-request) analysis request.
+1. Read file/files %%REQ_DOC%%, all source files, and the [User Request](#users-request) analysis request.
 2. Produce only an analysis report that answers the [User Request](#users-request). 
-3. If [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and ensure the report complies with its guidance; revise the report if necessary.
+3. If directory/directories %%REQ_DIR%% exists, read it and ensure the report complies with its guidance; revise the report if necessary.
 4.  Present the analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).

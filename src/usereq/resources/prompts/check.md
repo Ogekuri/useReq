@@ -16,10 +16,10 @@ description: "Run the requirements check. Usage: req.check."
 
 ## Steps
 Create and execute a TODO list following these steps strictly:
-1. Read the file [%%REQ_DOC%%](%%REQ_DOC%%) and verify that the project's source code satisfies the requirements listed there.
+1. Read file/files %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-2. If the technical document [%%REQ_DIR%%](%%REQ_DIR%%) exists, read it and verify that the application's code follows that documentation.
+2. If directory/directories %%REQ_DIR%% exists, read it and verify that the application's code follows that documentations.
    - Report any discrepancies with file paths and concise explanations.
 3. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. The unit tests must remain exactly as they are.
    - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.

@@ -33,7 +33,7 @@ if ! [ -d "${VENVDIR}/" ]; then
   source ${VENVDIR}/bin/activate
 
   echo -n "Install python requirements ..."
-  ${VENVDIR}/bin/pip install -r requirements.txt >/dev/null
+  ${VENVDIR}/bin/pip install -r "${SCRIPT_PATH}/requirements.txt" >/dev/null
   echo "done." 
 else
   # echo "Virtual environment found."

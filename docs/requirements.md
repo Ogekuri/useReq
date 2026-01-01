@@ -17,7 +17,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.1.6
+**Versione**: 0.1.9
 **Autore**: Astral  
 **Data**: 2026-01-01
 
@@ -52,6 +52,9 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-01 | 0.1.4 | Aggiunta versione e comando nella stringa di usage dell'help. |
 | 2026-01-01 | 0.1.5 | Aggiornata la generazione dei comandi Gemini in sottocartella dedicata. |
 | 2026-01-01 | 0.1.6 | Aggiunto supporto per la generazione delle risorse Kiro CLI. |
+| 2026-01-01 | 0.1.7 | Modificato il comando --doc per accettare directory e generare elenchi di file. |
+| 2026-01-01 | 0.1.8 | Ripristinata la relativizzazione dei percorsi e organizzazione test sotto temp/. |
+| 2026-01-01 | 0.1.9 | Modificato il comando --dir per processare sottocartelle e generare elenchi di directory. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -97,26 +100,22 @@ Lo scopo del progetto e fornire un comando `use-req`/`req` che, dato un progetto
         ├── __init__.py
         ├── __main__.py
         ├── cli.py
-        ├── resources
-        │   ├── prompts
-        │   │   ├── analyze.md
-        │   │   ├── change.md
-        │   │   ├── check.md
-        │   │   ├── cover.md
-        │   │   ├── fix.md
-        │   │   ├── new.md
-        │   │   ├── optimize.md
-        │   │   └── write.md
-        │   ├── templates
-        │   │   └── requirements.md
-        │   └── vscode
-        │       └── settings.json
-        └── usereq.egg-info
-            ├── PKG-INFO
-            ├── SOURCES.txt
-            ├── dependency_links.txt
-            ├── entry_points.txt
-            └── top_level.txt
+        ├── kiro
+        │   └── agent.json
+        └── resources
+            ├── prompts
+            │   ├── analyze.md
+            │   ├── change.md
+            │   ├── check.md
+            │   ├── cover.md
+            │   ├── fix.md
+            │   ├── new.md
+            │   ├── optimize.md
+            │   └── write.md
+            ├── templates
+            │   └── requirements.md
+            └── vscode
+                └── settings.json
 ```
 
 ### 1.5 Componenti principali e relazioni
@@ -140,7 +139,7 @@ Non sono stati trovati test unitari nel repository.
 - **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
 ### 2.2 Vincoli di progetto
-- **CTN-001**: L'opzione `--doc` deve indicare un file Markdown che termina con estensione `.md`.
+- **CTN-001**: L'opzione `--doc` deve indicare una directory che deve esistere.
 - **CTN-002**: I valori di `--doc` e `--dir` devono essere normalizzati in percorsi relativi alla radice del progetto; in caso contrario il comando deve terminare con errore.
 - **CTN-003**: Il percorso `--dir` deve esistere come directory reale sotto la radice del progetto prima della copia delle risorse.
 - **CTN-004**: La rimozione di directory `.req` o `.req/templates` preesistenti deve essere consentita solo se tali percorsi si trovano sotto la radice del progetto.
@@ -157,7 +156,7 @@ Non sono stati trovati test unitari nel repository.
 - **DES-007**: Gli errori previsti devono essere gestiti tramite un'eccezione dedicata con codice di uscita non nullo.
 
 ### 3.2 Funzioni
-- **REQ-001**: Se il documento indicato da `--doc` non esiste, il comando deve copiarlo dal template `requirements.md`.
+- **REQ-001**: Se la directory indicata da `--doc` è vuota, il comando deve generare un file `requirements.md` dal template.
 - **REQ-002**: Il comando deve creare le cartelle `.codex/prompts`, `.github/agents`, `.github/prompts`, `.gemini/commands` e `.gemini/commands/req` sotto la radice del progetto.
 - **REQ-003**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.codex/prompts` e `.github/agents` sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con i valori calcolati.
 - **REQ-004**: Per ogni prompt Markdown disponibile, il comando deve creare un file `.github/prompts/req.<nome>.prompt.md` che referenzi l'agente `req.<nome>`.
@@ -177,3 +176,11 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-018**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.kiro/prompts` con gli stessi contenuti generati per `.github/agents`.
 - **REQ-019**: Per ogni prompt Markdown disponibile, il comando deve generare un file JSON in `.kiro/agents` con nome `req.<nome>.json` utilizzando un template presente in `src/usereq/resources/kiro`.
 - **REQ-020**: Nei file JSON Kiro, i campi `name`, `description` e `prompt` devono essere valorizzati rispettivamente con `req-<nome>`, la `description` del front matter del prompt e il primo punto della sezione `## Purpose` del prompt.
+- **REQ-021**: Il comando deve verificare che il parametro `--doc` indichi una directory esistente, altrimenti deve terminare con errore.
+- **REQ-022**: Il comando deve esaminare tutti i file contenuti nella directory `--doc` in ordine alfabetico e sostituire la stringa `%%REQ_DOC%%` con un elenco dei file in formato markdown nella forma `[file1](file1), [file2](file2), [file3](file3)` separati da `", "` (virgola spazio).
+- **REQ-023**: L'elenco dei file per la sostituzione di `%%REQ_DOC%%` deve utilizzare percorsi relativi calcolati dallo script, al netto del percorso assoluto e relativi alla home del progetto.
+- **REQ-024**: I test devono essere eseguiti sotto la cartella temp/ e le cartelle temporanee devono essere cancellate al termine dell'esecuzione.
+- **REQ-025**: Lo script deve relativizzare i percorsi che contengono il percorso della home del progetto (es. temp/project_sample/docs/ diventa docs/).
+- **REQ-026**: Il comando deve esaminare tutti i sottofolder contenuti nella directory `--dir` in ordine alfabetico e sostituire la stringa `%%REQ_DIR%%` con un elenco delle directory in formato markdown nella forma `[dir1](dir1), [dir2](dir2), [dir3](dir3)` separati da `", "` (virgola spazio).
+- **REQ-027**: Se la directory indicata da `--dir` è vuota, deve utilizzare la directory stessa per la sostituzione di `%%REQ_DIR%%`.
+- **REQ-028**: L'elenco delle directory per la sostituzione di `%%REQ_DIR%%` deve utilizzare percorsi relativi calcolati dallo script.

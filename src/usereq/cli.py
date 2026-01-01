@@ -52,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--base", type=Path, help="Directory root of the project to update.")
     group.add_argument("--here", action="store_true", help="Use current working directory as the project root.")
-    parser.add_argument("--doc", required=True, help="Markdown requirements document relative to the project root.")
+    parser.add_argument("--doc", required=True, help="Directory containing documentation files relative to the project root.")
     parser.add_argument("--dir", required=True, help="Technical directory relative to the project root.")
     parser.add_argument("--verbose", action="store_true", help="Show verbose progress messages.")
     parser.add_argument("--debug", action="store_true", help="Show debug logs for diagnostics.")
@@ -79,9 +79,14 @@ def maybe_print_version(argv: list[str]) -> bool:
     return False
 
 
-def ensure_md_file(path: str) -> None:
-    if not path.lower().endswith(".md"):
-        raise ReqError("Errore: --doc richiede un file che termini con .md", 5)
+def ensure_doc_directory(path: str, project_base: Path) -> None:
+    # First normalize the path using existing logic
+    normalized = make_relative_if_contains_project(path, project_base)
+    doc_path = project_base / normalized
+    if not doc_path.exists():
+        raise ReqError(f"Errore: la directory --doc '{normalized}' non esiste sotto {project_base}", 5)
+    if not doc_path.is_dir():
+        raise ReqError(f"Errore: --doc deve indicare una directory, non un file", 5)
 
 
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
@@ -136,6 +141,58 @@ def compute_sub_path(normalized: str, absolute: Optional[Path], project_base: Pa
     return format_substituted_path(normalized)
 
 
+def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
+    """Generate markdown file list for %%REQ_DOC%% token replacement."""
+    if not doc_dir.is_dir():
+        return ""
+    
+    files = []
+    for file_path in sorted(doc_dir.iterdir()):
+        if file_path.is_file():
+            try:
+                rel_path = file_path.relative_to(project_base)
+                rel_str = str(rel_path).replace(os.sep, "/")
+                files.append(f"[{rel_str}]({rel_str})")
+            except ValueError:
+                continue
+    
+    return ", ".join(files)
+    if not raw:
+        return ""
+    normalized = raw.replace("\\", "/").strip("/")
+    if not normalized:
+        return ""
+    suffix = "/" if keep_trailing and raw.endswith("/") else ""
+    return f"{normalized}{suffix}"
+
+
+def generate_dir_list(dir_path: Path, project_base: Path) -> str:
+    """Generate markdown directory list for %%REQ_DIR%% token replacement."""
+    if not dir_path.is_dir():
+        return ""
+    
+    subdirs = []
+    for subdir_path in sorted(dir_path.iterdir()):
+        if subdir_path.is_dir():
+            try:
+                rel_path = subdir_path.relative_to(project_base)
+                rel_str = str(rel_path).replace(os.sep, "/") + "/"
+                subdirs.append(f"[{rel_str}]({rel_str})")
+            except ValueError:
+                continue
+    
+    # If no subdirectories, use the directory itself
+    if not subdirs:
+        try:
+            rel_path = dir_path.relative_to(project_base)
+            rel_str = str(rel_path).replace(os.sep, "/") + "/"
+            return f"[{rel_str}]({rel_str})"
+        except ValueError:
+            return ""
+    
+    return ", ".join(subdirs)
+
+
 def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
     if not raw:
         return ""
@@ -148,6 +205,10 @@ def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
 
 def ensure_relative(value: str, name: str, code: int) -> None:
     if Path(value).is_absolute():
+        raise ReqError(
+            f"Errore: {name} deve essere un percorso relativo rispetto a PROJECT_BASE",
+            code,
+        )
         raise ReqError(
             f"Errore: {name} deve essere un percorso relativo rispetto a PROJECT_BASE",
             code,
@@ -224,18 +285,36 @@ def json_escape(value: str) -> str:
     return json.dumps(value)[1:-1]
 
 
+def generate_kiro_resources(doc_dir: Path, project_base: Path) -> str:
+    """Generate JSON resources array for Kiro agent."""
+    if not doc_dir.is_dir():
+        return ""
+    
+    resources = []
+    for file_path in sorted(doc_dir.iterdir()):
+        if file_path.is_file():
+            try:
+                rel_path = file_path.relative_to(project_base)
+                rel_str = str(rel_path).replace(os.sep, "/")
+                resources.append(f'    "file://{rel_str}"')
+            except ValueError:
+                continue
+    
+    return ",\n".join(resources)
+
+
 def render_kiro_agent(
     template: str,
     name: str,
     description: str,
     prompt: str,
-    resource: str,
+    resources: str,
 ) -> str:
     replacements = {
         "%%NAME%%": json_escape(name),
         "%%DESCRIPTION%%": json_escape(description),
         "%%PROMPT%%": json_escape(prompt),
-        "%%RESOURCE%%": json_escape(resource),
+        "%%RESOURCES%%": resources,
     }
     for token, replacement in replacements.items():
         template = template.replace(token, replacement)
@@ -344,7 +423,7 @@ def run(args: Namespace) -> None:
     if not project_base.exists():
         raise ReqError(f"Errore: PROJECT_BASE '{project_base}' non esiste", 2)
 
-    ensure_md_file(args.doc)
+    ensure_doc_directory(args.doc, project_base)
 
     normalized_doc = make_relative_if_contains_project(args.doc, project_base)
     normalized_dir = make_relative_if_contains_project(args.dir, project_base)
@@ -356,6 +435,12 @@ def run(args: Namespace) -> None:
     abs_doc = resolve_absolute(normalized_doc, project_base)
     abs_dir = resolve_absolute(normalized_dir, project_base)
 
+    # Generate file list for %%REQ_DOC%% token
+    doc_file_list = generate_doc_file_list(project_base / normalized_doc, project_base)
+
+    # Generate directory list for %%REQ_DIR%% token  
+    dir_list = generate_dir_list(project_base / normalized_dir, project_base)
+
     sub_req_doc = compute_sub_path(normalized_doc, abs_doc, project_base)
     sub_tech_dir = compute_sub_path(normalized_dir, abs_dir, project_base)
     if dir_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
@@ -366,9 +451,9 @@ def run(args: Namespace) -> None:
     dlog(f"project_base={project_base}")
     dlog(f"REQ_DOC={normalized_doc}")
     dlog(f"REQ_DIR={normalized_dir}")
-    dlog(f"SUB_REQ_DOC={sub_req_doc}")
+    dlog(f"DOC_FILE_LIST={doc_file_list}")
+    dlog(f"DIR_LIST={dir_list}")
     dlog(f"SUB_TECH_DIR={sub_tech_dir}")
-    dlog(f"TOKEN_REQ_DOC={token_req_doc}")
     dlog(f"TOKEN_REQ_DIR={token_req_dir}")
 
     tech_dest = project_base / normalized_dir
@@ -389,7 +474,7 @@ def run(args: Namespace) -> None:
         log(f"OK: assicurata directory {req_root}")
 
     templates_src = find_template_source()
-    doc_target = project_base / normalized_doc
+    doc_target = project_base / normalized_doc / "requirements.md"
     if not doc_target.exists():
         src_file = templates_src / "requirements.md"
         doc_target.parent.mkdir(parents=True, exist_ok=True)
@@ -433,8 +518,9 @@ def run(args: Namespace) -> None:
                 prompt_path,
                 dst_codex,
                 {
-                    "%%REQ_DOC%%": token_req_doc,
-                    "%%REQ_DIR%%": token_req_dir,
+                    "%%REQ_DOC%%": doc_file_list,
+                    "%%REQ_DIR%%": dir_list,
+                    "%%REQ_PATH%%": normalized_doc,
                     "%%ARGS%%": "$ARGUMENTS",
                 },
             )
@@ -447,8 +533,9 @@ def run(args: Namespace) -> None:
                 prompt_path,
                 dst_agent,
                 {
-                    "%%REQ_DOC%%": token_req_doc,
-                    "%%REQ_DIR%%": token_req_dir,
+                    "%%REQ_DOC%%": doc_file_list,
+                    "%%REQ_DIR%%": dir_list,
+                    "%%REQ_PATH%%": normalized_doc,
                     "%%ARGS%%": "$ARGUMENTS",
                 },
             )
@@ -467,8 +554,9 @@ def run(args: Namespace) -> None:
             replace_tokens(
                 dst_toml,
                 {
-                    "%%REQ_DOC%%": token_req_doc,
-                    "%%REQ_DIR%%": token_req_dir,
+                    "%%REQ_DOC%%": doc_file_list,
+                    "%%REQ_DIR%%": dir_list,
+                    "%%REQ_PATH%%": normalized_doc,
                     "%%ARGS%%": "{{args}}",
                 },
             )
@@ -481,8 +569,9 @@ def run(args: Namespace) -> None:
                 prompt_path,
                 dst_kiro_prompt,
                 {
-                    "%%REQ_DOC%%": token_req_doc,
-                    "%%REQ_DIR%%": token_req_dir,
+                    "%%REQ_DOC%%": doc_file_list,
+                    "%%REQ_DIR%%": dir_list,
+                    "%%REQ_PATH%%": normalized_doc,
                     "%%ARGS%%": "$ARGUMENTS",
                 },
             )
@@ -491,12 +580,13 @@ def run(args: Namespace) -> None:
 
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()
+            kiro_resources = generate_kiro_resources(project_base / normalized_doc, project_base)
             agent_content = render_kiro_agent(
                 kiro_template,
                 name=f"req-{PROMPT}",
                 description=description,
                 prompt=purpose,
-                resource=f".kiro/prompts/req.{PROMPT}.md",
+                resources=kiro_resources,
             )
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
