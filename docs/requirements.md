@@ -17,9 +17,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.1.0
+**Versione**: 0.1.6
 **Autore**: Astral  
-**Data**: 2025-12-31
+**Data**: 2026-01-01
 
 ## Indice
 <!-- TOC -->
@@ -46,6 +46,12 @@ tags: ["markdown", "requisiti", "useReq"]
 | Data | Versione | Motivazione e descrizione della modifica |
 |------|----------|-------------------------------------------|
 | 2025-12-31 | 0.1.0 | Creazione della bozza dei requisiti. |
+| 2026-01-01 | 0.1.1 | Aggiunto script req.sh per eseguire la versione in-development con venv. |
+| 2026-01-01 | 0.1.2 | Aggiunta stampa della versione per invocazioni senza argomenti e con opzioni dedicate. |
+| 2026-01-01 | 0.1.3 | Aggiunta stampa help con versione per invocazioni senza argomenti e stampa versione-only per opzioni dedicate. |
+| 2026-01-01 | 0.1.4 | Aggiunta versione e comando nella stringa di usage dell'help. |
+| 2026-01-01 | 0.1.5 | Aggiornata la generazione dei comandi Gemini in sottocartella dedicata. |
+| 2026-01-01 | 0.1.6 | Aggiunto supporto per la generazione delle risorse Kiro CLI. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -152,10 +158,22 @@ Non sono stati trovati test unitari nel repository.
 
 ### 3.2 Funzioni
 - **REQ-001**: Se il documento indicato da `--doc` non esiste, il comando deve copiarlo dal template `requirements.md`.
-- **REQ-002**: Il comando deve creare le cartelle `.codex/prompts`, `.github/agents`, `.github/prompts` e `.gemini/commands` sotto la radice del progetto.
+- **REQ-002**: Il comando deve creare le cartelle `.codex/prompts`, `.github/agents`, `.github/prompts`, `.gemini/commands` e `.gemini/commands/req` sotto la radice del progetto.
 - **REQ-003**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.codex/prompts` e `.github/agents` sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con i valori calcolati.
 - **REQ-004**: Per ogni prompt Markdown disponibile, il comando deve creare un file `.github/prompts/req.<nome>.prompt.md` che referenzi l'agente `req.<nome>`.
-- **REQ-005**: Per ogni prompt Markdown disponibile, il comando deve generare un file TOML in `.gemini/commands` convertendo il Markdown e sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con valori appropriati per Gemini.
+- **REQ-005**: Per ogni prompt Markdown disponibile, il comando deve generare un file TOML in `.gemini/commands/req` con nome `<nome>.toml` (senza prefisso `req.`), convertendo il Markdown e sostituendo `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%` con valori appropriati per Gemini.
 - **REQ-006**: Il comando deve copiare i template in `.req/templates`, sostituendo eventuali template preesistenti.
 - **REQ-007**: Se il template VS Code e disponibile, il comando deve creare o aggiornare `.vscode/settings.json` fondendo le impostazioni con quelle esistenti e aggiungendo le raccomandazioni per i prompt.
 - **REQ-008**: Il comando deve creare la configurazione `.github/prompts` con front matter che referenzi l'agente in uso.
+- **REQ-009**: Il progetto deve includere uno script `req.sh` nella radice del repository per avviare la versione in-development del comando.
+- **REQ-010**: Lo script `req.sh` deve essere eseguibile da qualsiasi percorso, risolvere la propria directory, verificare la presenza di `.venv` in tale directory e, se assente, creare il venv e installare i pacchetti da `requirements.txt` prima dell'esecuzione.
+- **REQ-011**: Se `.venv` esiste, lo script `req.sh` deve eseguire il comando usando il Python del venv senza reinstallare i pacchetti, inoltrando gli argomenti ricevuti.
+- **REQ-012**: Quando il comando `req` viene invocato senza parametri, l'output deve includere il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
+- **REQ-013**: Quando il comando `req` viene invocato con l'opzione `--ver` o `--version`, l'output deve includere il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
+- **REQ-014**: Quando il comando `req` viene invocato senza parametri, l'output deve includere l'help e il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
+- **REQ-015**: Quando il comando `req` viene invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
+- **REQ-016**: La stringa di usage dell'help deve includere il comando `req` e la versione `__version__` nel formato `usage: req -c [-h] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] (x.y.z)`.
+- **REQ-017**: Il comando deve creare le cartelle `.kiro/agents` e `.kiro/prompts` sotto la radice del progetto.
+- **REQ-018**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.kiro/prompts` con gli stessi contenuti generati per `.github/agents`.
+- **REQ-019**: Per ogni prompt Markdown disponibile, il comando deve generare un file JSON in `.kiro/agents` con nome `req.<nome>.json` utilizzando un template presente in `src/usereq/resources/kiro`.
+- **REQ-020**: Nei file JSON Kiro, i campi `name`, `description` e `prompt` devono essere valorizzati rispettivamente con `req-<nome>`, la `description` del front matter del prompt e il primo punto della sezione `## Purpose` del prompt.

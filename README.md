@@ -23,7 +23,7 @@ uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --verbose --debug
 ```
 
-## Available prompts (Gemini / Codex / Copilot CLI)
+## Available prompts
 
 The prompts defined in `src/usereq/resources/prompts/` are exposed as `req.<name>` commands inside Google Gemini CLI, OpenAI Codex CLI, and GitHub Copilot CLI. The descriptions in the following table come from the `description` field in each prompt’s front matter:
 
@@ -37,3 +37,14 @@ The prompts defined in `src/usereq/resources/prompts/` are exposed as `req.<name
 | `req.new` | Implement a new requirement and make the corresponding source code changes. Usage: req.new <description>. |
 | `req.optimize` | Perform an optimizazion without changing the requirements. Usage: req.optimize <description>. |
 | `req.write` | Write a requirement draft from the standard template. Usage: req.write <language>. |
+
+## Supported CLI and Agents
+- ✅ Gemini CLI
+- ✅ OpeneIA Codex CLI
+- ✅ GitHub Copilot CLI
+- ✅ Kiro CLI
+- ✅ OpenIA Codex Agent Extension for Visual Studio Code
+- ✔️ GitHub Cipilot Agent Chat in Visual Stusio Code
+- ❌ Gemini Code Assist Extension for Visual Studio Code
+  
+

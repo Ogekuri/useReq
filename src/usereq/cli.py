@@ -38,9 +38,16 @@ def vlog(msg: str) -> None:
         print(msg)
 
 
-def parse_args(argv: Optional[list[str]] = None) -> Namespace:
+def build_parser() -> argparse.ArgumentParser:
+    version = load_package_version()
+    usage = (
+        "req -c [-h] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] "
+        f"({version})"
+    )
     parser = argparse.ArgumentParser(
-        description="Initialize a project with useReq resources."
+        description="Initialize a project with useReq resources.",
+        prog="req",
+        usage=usage,
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--base", type=Path, help="Directory root of the project to update.")
@@ -49,7 +56,27 @@ def parse_args(argv: Optional[list[str]] = None) -> Namespace:
     parser.add_argument("--dir", required=True, help="Technical directory relative to the project root.")
     parser.add_argument("--verbose", action="store_true", help="Show verbose progress messages.")
     parser.add_argument("--debug", action="store_true", help="Show debug logs for diagnostics.")
-    return parser.parse_args(argv)
+    return parser
+
+
+def parse_args(argv: Optional[list[str]] = None) -> Namespace:
+    return build_parser().parse_args(argv)
+
+
+def load_package_version() -> str:
+    init_path = Path(__file__).resolve().parent / "__init__.py"
+    text = init_path.read_text(encoding="utf-8")
+    match = re.search(r'^__version__\s*=\s*"([^"]+)"\s*$', text, re.M)
+    if not match:
+        raise ReqError("Errore: impossibile determinare la versione dal pacchetto", 6)
+    return match.group(1)
+
+
+def maybe_print_version(argv: list[str]) -> bool:
+    if "--ver" in argv or "--version" in argv:
+        print(load_package_version())
+        return True
+    return False
 
 
 def ensure_md_file(path: str) -> None:
@@ -135,6 +162,12 @@ def copy_with_replacements(src: Path, dst: Path, replacements: Mapping[str, str]
     dst.write_text(text, encoding="utf-8")
 
 
+def normalize_description(value: str) -> str:
+    if len(value) >= 2 and value.startswith('"') and value.endswith('"'):
+        return value[1:-1]
+    return value
+
+
 def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
     if toml_path.exists() and not force:
         raise ReqError(
@@ -145,16 +178,68 @@ def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
     if not match:
         raise ReqError("No leading '---' block found at start of Markdown file.", 4)
     frontmatter, rest = match.groups()
-    desc_match = re.search(r"^description:\s*(.*)$", frontmatter, re.M)
-    if not desc_match:
-        raise ReqError("No 'description:' field found inside the leading block.", 5)
-    desc = desc_match.group(1).strip()
+    desc = extract_description(frontmatter)
     desc_escaped = desc.replace("\\", "\\\\").replace('"', '\\"')
     rest_text = rest if rest.endswith("\n") else rest + "\n"
     toml_body = [f'description = "{desc_escaped}"', "", 'prompt = """', rest_text, '"""', ""]
     toml_path.parent.mkdir(parents=True, exist_ok=True)
     toml_path.write_text("\n".join(toml_body), encoding="utf-8")
     dlog(f"Wrote TOML to: {toml_path}")
+
+
+def extract_frontmatter(content: str) -> tuple[str, str]:
+    match = re.match(r"^\s*---\s*\n(.*?)\n---\s*\n(.*)$", content, re.S)
+    if not match:
+        raise ReqError("No leading '---' block found at start of Markdown file.", 4)
+    return match.groups()
+
+
+def extract_description(frontmatter: str) -> str:
+    desc_match = re.search(r"^description:\s*(.*)$", frontmatter, re.M)
+    if not desc_match:
+        raise ReqError("No 'description:' field found inside the leading block.", 5)
+    return normalize_description(desc_match.group(1).strip())
+
+
+def extract_purpose_first_bullet(body: str) -> str:
+    lines = body.splitlines()
+    start_idx = None
+    for idx, line in enumerate(lines):
+        if line.strip().lower() == "## purpose":
+            start_idx = idx + 1
+            break
+    if start_idx is None:
+        raise ReqError("Errore: sezione '## Purpose' mancante nel prompt.", 7)
+    for line in lines[start_idx:]:
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            break
+        match = re.match(r"^\s*-\s+(.*)$", line)
+        if match:
+            return match.group(1).strip()
+    raise ReqError("Errore: nessun punto trovato sotto la sezione '## Purpose'.", 7)
+
+
+def json_escape(value: str) -> str:
+    return json.dumps(value)[1:-1]
+
+
+def render_kiro_agent(
+    template: str,
+    name: str,
+    description: str,
+    prompt: str,
+    resource: str,
+) -> str:
+    replacements = {
+        "%%NAME%%": json_escape(name),
+        "%%DESCRIPTION%%": json_escape(description),
+        "%%PROMPT%%": json_escape(prompt),
+        "%%RESOURCE%%": json_escape(resource),
+    }
+    for token, replacement in replacements.items():
+        template = template.replace(token, replacement)
+    return template
 
 
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
@@ -172,6 +257,13 @@ def find_template_source() -> Path:
         "Errore: nessun template requirements.md trovato in templates o usetemplates",
         9,
     )
+
+
+def load_kiro_template() -> str:
+    candidate = RESOURCE_ROOT / "kiro" / "agent.json"
+    if candidate.is_file():
+        return candidate.read_text(encoding="utf-8")
+    raise ReqError("Errore: nessun template Kiro trovato in resources/kiro", 9)
 
 
 def strip_json_comments(text: str) -> str:
@@ -312,18 +404,29 @@ def run(args: Namespace) -> None:
         project_base / ".github" / "agents",
         project_base / ".github" / "prompts",
         project_base / ".gemini" / "commands",
+        project_base / ".gemini" / "commands" / "req",
+        project_base / ".kiro" / "agents",
+        project_base / ".kiro" / "prompts",
     ):
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
-        log(f"OK: create/assicurate cartelle .codex, .github, .gemini sotto {project_base}")
+        log(
+            "OK: create/assicurate cartelle .codex, .github, .gemini, .kiro sotto "
+            f"{project_base}"
+        )
 
     prompts_dir = REPO_ROOT / "prompts"
     if not prompts_dir.is_dir():
         prompts_dir = RESOURCE_ROOT / "prompts"
+    kiro_template = load_kiro_template()
     if prompts_dir.is_dir():
         for prompt_path in sorted(prompts_dir.glob("*.md")):
             PROMPT = prompt_path.stem
             vlog(f"Processo prompt: {PROMPT}")
+            prompt_content = prompt_path.read_text(encoding="utf-8")
+            frontmatter, body = extract_frontmatter(prompt_content)
+            description = extract_description(frontmatter)
+            purpose = extract_purpose_first_bullet(body)
             dst_codex = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_codex.exists()
             copy_with_replacements(
@@ -358,7 +461,7 @@ def run(args: Namespace) -> None:
             if VERBOSE:
                 log(f"{ 'SOVRASCRITTO' if existed else 'COPIATO' }: {dst_prompt}")
 
-            dst_toml = project_base / ".gemini" / "commands" / f"req.{PROMPT}.toml"
+            dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
             existed = dst_toml.exists()
             md_to_toml(prompt_path, dst_toml, force=existed)
             replace_tokens(
@@ -371,6 +474,33 @@ def run(args: Namespace) -> None:
             )
             if VERBOSE:
                 log(f"{ 'SOVRASCRITTO' if existed else 'COPIATO' }: {dst_toml}")
+
+            dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
+            existed = dst_kiro_prompt.exists()
+            copy_with_replacements(
+                prompt_path,
+                dst_kiro_prompt,
+                {
+                    "%%REQ_DOC%%": token_req_doc,
+                    "%%REQ_DIR%%": token_req_dir,
+                    "%%ARGS%%": "$ARGUMENTS",
+                },
+            )
+            if VERBOSE:
+                log(f"{ 'SOVRASCRITTO' if existed else 'COPIATO' }: {dst_kiro_prompt}")
+
+            dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
+            existed = dst_kiro_agent.exists()
+            agent_content = render_kiro_agent(
+                kiro_template,
+                name=f"req-{PROMPT}",
+                description=description,
+                prompt=purpose,
+                resource=f".kiro/prompts/req.{PROMPT}.md",
+            )
+            dst_kiro_agent.write_text(agent_content, encoding="utf-8")
+            if VERBOSE:
+                log(f"{ 'SOVRASCRITTO' if existed else 'COPIATO' }: {dst_kiro_agent}")
 
     templates_target = req_root / "templates"
     if templates_target.exists():
@@ -406,7 +536,13 @@ def main(argv: Optional[list[str]] = None) -> int:
     Returns an exit code (0 success, non-zero on error).
     """
     try:
-        args = parse_args(argv)
+        argv_list = sys.argv[1:] if argv is None else argv
+        if not argv_list:
+            build_parser().print_help()
+            return 0
+        if maybe_print_version(argv_list):
+            return 0
+        args = parse_args(argv_list)
         run(args)
     except ReqError as e:
         print(e.message, file=sys.stderr)
@@ -419,4 +555,3 @@ def main(argv: Optional[list[str]] = None) -> int:
             traceback.print_exc()
         return 1
     return 0
-
