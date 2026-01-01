@@ -6,7 +6,7 @@ re-export of the CLI entry `main` so callers can do
 behaviour unintentionally.
 """
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 from .cli import main  # re-export the CLI entry point
 
