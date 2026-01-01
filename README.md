@@ -37,15 +37,29 @@ The is the list of the prompts availabes:
 
 ## Usage
 
-Run `req` to create/re-create `.codex`, `.github`, `.gemini`, `.kiro`, and `.req` into your project repository.
-You need to run `req` again if you add/remove requirements files `.md` in `docs/` dir or any sub-folders in `tech/`.
-
-Common usage parameters:
-
+### Usage hints
+- Run `req` to create/re-create `.codex`, `.github`, `.gemini`, `.kiro`, and `.req` into your project repository.
+- You need to run `req` again if you add/remove requirements files `.md` in `docs/` dir or any sub-folders in `tech/`.
 - Run `req` from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
 - `--doc` must be an existing directory under the project base and **shall** contain requirements `.md` files.  If the file does not exist it is automatically created from the `requirements.md` template.
 - `--dir` must be an existing directory under the project base and **can** contain technical folder.
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
+
+### Usage help
+```bash
+usage: req -c [-h] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] (0.0.6)
+
+Initialize a project with useReq resources.
+
+options:
+  -h, --help   show this help message and exit
+  --base BASE  Directory root of the project to update.
+  --here       Use current working directory as the project root.
+  --doc DOC    Directory containing documentation files relative to the project root.
+  --dir DIR    Technical directory relative to the project root.
+  --verbose    Show verbose progress messages.
+  --debug      Show debug logs for diagnostics.
+```
 
 ## Run live with uvx
 ```bash
