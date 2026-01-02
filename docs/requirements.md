@@ -17,9 +17,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.1.9
+**Versione**: 0.1.17
 **Autore**: Astral  
-**Data**: 2026-01-01
+**Data**: 2026-01-02
 
 ## Indice
 <!-- TOC -->
@@ -55,6 +55,14 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-01 | 0.1.7 | Modificato il comando --doc per accettare directory e generare elenchi di file. |
 | 2026-01-01 | 0.1.8 | Ripristinata la relativizzazione dei percorsi e organizzazione test sotto temp/. |
 | 2026-01-01 | 0.1.9 | Modificato il comando --dir per processare sottocartelle e generare elenchi di directory. |
+| 2026-01-01 | 0.1.10 | Aggiornata la generazione dei prompt Kiro con il corpo completo del Markdown. |
+| 2026-01-01 | 0.1.11 | Aggiunto supporto per l'opzione --upgrade e aggiornato usage. |
+| 2026-01-01 | 0.1.12 | Aggiunto supporto per l'opzione --uninstall e aggiornato usage. |
+| 2026-01-01 | 0.1.13 | Aggiunta configurazione persistente per --doc e --dir. |
+| 2026-01-02 | 0.1.14 | Aggiunto supporto per l'opzione --update. |
+| 2026-01-02 | 0.1.15 | Aggiunto supporto per l'opzione --remove e ripristino impostazioni. |
+| 2026-01-02 | 0.1.16 | Aggiunto requisito per le stampe in lingua inglese. |
+| 2026-01-02 | 0.1.17 | Aggiunti requisiti per i commenti in lingua italiana nei sorgenti. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -139,9 +147,9 @@ Non sono stati trovati test unitari nel repository.
 - **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
 ### 2.2 Vincoli di progetto
-- **CTN-001**: L'opzione `--doc` deve indicare una directory che deve esistere.
-- **CTN-002**: I valori di `--doc` e `--dir` devono essere normalizzati in percorsi relativi alla radice del progetto; in caso contrario il comando deve terminare con errore.
-- **CTN-003**: Il percorso `--dir` deve esistere come directory reale sotto la radice del progetto prima della copia delle risorse.
+- **CTN-001**: I valori di `--doc` e `--dir` possono essere percosi assoluti o relativi. I percorsi devono essere normalizzati in percorsi relativi alla radice del progetto passata con `--base` verificando se questa è presente nei pecorsi passati con `--doc` e `--dir`.
+- **CTN-002**: Il percorso passato `--doc` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la radice del progetto prima della copia delle risorse.
+- **CTN-003**: Il percorso passato `--dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la radice del progetto prima della copia delle risorse.
 - **CTN-004**: La rimozione di directory `.req` o `.req/templates` preesistenti deve essere consentita solo se tali percorsi si trovano sotto la radice del progetto.
 - **CTN-005**: Il comando deve fallire se il progetto specificato non esiste sul filesystem.
 
@@ -154,6 +162,9 @@ Non sono stati trovati test unitari nel repository.
 - **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate a partire dai prompt Markdown disponibili.
 - **DES-006**: L'entry point del pacchetto deve esporre `usereq.cli:main` tramite `use-req`, `req` e `usereq`.
 - **DES-007**: Gli errori previsti devono essere gestiti tramite un'eccezione dedicata con codice di uscita non nullo.
+- **DES-008**: Tutti i commenti nei codici sorgenti devono essere scritti esclusivamente in lingua italiana.
+- **DES-009**: Ogni parte importante del codice (classi, funzioni complesse, logica di business, algoritmi critici) deve essere adeguatamente commentata.
+- **DES-010**: Ogni nuova funzionalita aggiunta deve includere commenti esplicativi e, in caso di modifica di codice esistente, i commenti preesistenti devono essere aggiornati per riflettere il nuovo comportamento.
 
 ### 3.2 Funzioni
 - **REQ-001**: Se la directory indicata da `--doc` è vuota, il comando deve generare un file `requirements.md` dal template.
@@ -171,16 +182,33 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-013**: Quando il comando `req` viene invocato con l'opzione `--ver` o `--version`, l'output deve includere il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
 - **REQ-014**: Quando il comando `req` viene invocato senza parametri, l'output deve includere l'help e il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
 - **REQ-015**: Quando il comando `req` viene invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero di versione definito in `src/usereq/__init__.py` (`__version__`).
-- **REQ-016**: La stringa di usage dell'help deve includere il comando `req` e la versione `__version__` nel formato `usage: req -c [-h] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] (x.y.z)`.
+- **REQ-016**: La stringa di usage dell'help deve includere il comando `req` e la versione `__version__` nel formato `req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] (x.y.z)`.
 - **REQ-017**: Il comando deve creare le cartelle `.kiro/agents` e `.kiro/prompts` sotto la radice del progetto.
 - **REQ-018**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.kiro/prompts` con gli stessi contenuti generati per `.github/agents`.
 - **REQ-019**: Per ogni prompt Markdown disponibile, il comando deve generare un file JSON in `.kiro/agents` con nome `req.<nome>.json` utilizzando un template presente in `src/usereq/resources/kiro`.
-- **REQ-020**: Nei file JSON Kiro, i campi `name`, `description` e `prompt` devono essere valorizzati rispettivamente con `req-<nome>`, la `description` del front matter del prompt e il primo punto della sezione `## Purpose` del prompt.
+- **REQ-020**: Nei file JSON Kiro, i campi `name`, `description` e `prompt` devono essere valorizzati rispettivamente con `req-<nome>`, la `description` del front matter del prompt e il corpo del prompt Markdown senza la sezione iniziale tra delimitatori `---`, con i doppi apici `"` escapati.
 - **REQ-021**: Il comando deve verificare che il parametro `--doc` indichi una directory esistente, altrimenti deve terminare con errore.
 - **REQ-022**: Il comando deve esaminare tutti i file contenuti nella directory `--doc` in ordine alfabetico e sostituire la stringa `%%REQ_DOC%%` con un elenco dei file in formato markdown nella forma `[file1](file1), [file2](file2), [file3](file3)` separati da `", "` (virgola spazio).
 - **REQ-023**: L'elenco dei file per la sostituzione di `%%REQ_DOC%%` deve utilizzare percorsi relativi calcolati dallo script, al netto del percorso assoluto e relativi alla home del progetto.
-- **REQ-024**: I test devono essere eseguiti sotto la cartella temp/ e le cartelle temporanee devono essere cancellate al termine dell'esecuzione.
+- **REQ-024**: Gli unit test, se implementati, devono essere eseguiti utilizzando la cartella temp/ e le cartelle temporanee devono essere cancellate al termine dell'esecuzione.
 - **REQ-025**: Lo script deve relativizzare i percorsi che contengono il percorso della home del progetto (es. temp/project_sample/docs/ diventa docs/).
 - **REQ-026**: Il comando deve esaminare tutti i sottofolder contenuti nella directory `--dir` in ordine alfabetico e sostituire la stringa `%%REQ_DIR%%` con un elenco delle directory in formato markdown nella forma `[dir1](dir1), [dir2](dir2), [dir3](dir3)` separati da `", "` (virgola spazio).
 - **REQ-027**: Se la directory indicata da `--dir` è vuota, deve utilizzare la directory stessa per la sostituzione di `%%REQ_DIR%%`.
 - **REQ-028**: L'elenco delle directory per la sostituzione di `%%REQ_DIR%%` deve utilizzare percorsi relativi calcolati dallo script.
+- **REQ-029**: L'opzione `--upgrade` deve eseguire il comando `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` e terminare con errore se il comando fallisce.
+- **REQ-030**: La stringa di usage dell'help deve includere il parametro `--upgrade` come opzione disponibile.
+- **REQ-031**: L'opzione `--uninstall` deve eseguire il comando `uv tool uninstall usereq` e terminare con errore se il comando fallisce.
+- **REQ-032**: La stringa di usage dell'help deve includere il parametro `--uninstall` come opzione disponibile.
+- **REQ-033**: Il comando deve salvare i valori di `--doc` e `--dir` in `.req/config.json` dopo la validazione e la normalizzazione in percorsi relativi alla root di progetto, e prima di selezionare i file presenti in `--doc` e le directory presenti in `--dir`.
+- **REQ-034**: Il file `.req/config.json` deve includere i campi `doc` e `dir` con i percorsi relativi e preservare l'eventuale slash finale di `--dir` per permettere il bypass dei parametri `--doc` e `--dir`.
+- **REQ-035**: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione utilizzando i parametri salvati in `.req/config.json`.
+- **REQ-036**: Quando `--update` e presente, il comando deve verificare la presenza del file `.req/config.json` nella root di progetto e terminare con errore se il file non esiste.
+- **REQ-037**: Quando `--update` e presente, il comando deve caricare i campi `doc` e `dir` da `.req/config.json` ed eseguire il flusso come se fossero stati passati `--doc` e `--dir` manualmente, senza riscrivere `.req/config.json`.
+- **REQ-038**: Il comando deve supportare l'opzione `--remove` per rimuovere le risorse create dall'installazione nella root di progetto indicata da `--base` o `--here`.
+- **REQ-039**: Quando `--remove` e presente, il comando deve richiedere obbligatoriamente `--base` o `--here` e deve rifiutare l'uso di `--doc`, `--dir` o `--update`.
+- **REQ-040**: Quando `--remove` e presente, il comando deve verificare l'esistenza del file `.req/config.json` nella root di progetto e terminare con errore se assente.
+- **REQ-041**: Prima di modificare `.vscode/settings.json`, il comando deve salvare lo stato originale in un file di backup sotto `.req/` per consentire il ripristino con `--remove`.
+- **REQ-042**: Quando `--remove` e presente, il comando deve ripristinare `.vscode/settings.json` allo stato originale usando il backup salvato o rimuovere il file se in origine non esisteva.
+- **REQ-043**: Quando `--remove` e presente, il comando deve rimuovere le risorse create: `.codex/prompts/req.*`, `.github/agents/req.*`, `.github/prompts/req.*`, `.gemini/commands/req/`, `.kiro/agents/req.*`, `.kiro/prompts/req.*`, `.req/templates/`, `.req/config.json` e la cartella `.req/` completa.
+- **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.
+- **REQ-045**: Tutte le stampe di usage, help, di informazione, verbose o di debug dello script devono essere in lingua inglese.

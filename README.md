@@ -4,7 +4,7 @@
 
 # useReq/req (0.0.7)
 
-The `req` script provides CLI prompts to software driven by requirements.
+The `req` script provides CLI prompts for requirements-driven software.
 The prompts defined are exposed as `req.<name>` commands inside various CLIs and Agents.
 This allows them to be run both as a Python package (installed as `req`,`usereq` or `use-req`) and directly using `uvx`.
 
@@ -23,16 +23,18 @@ This allows them to be run both as a Python package (installed as `req`,`usereq`
   | `new` | Implement a new requirement and make the corresponding source code changes |
   | `optimize` | Perform an optimization without changing the requirements |
   | `write` | Write a requirement draft from the standard template |
-- 
+ 
+
 
 ## Quick Start
 
 ### Prerequisites
 
+- Use supported environments: `linux`
 - Install the `uv` tool from: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 
 
-### Run live with uvx
+### Run useReq/req live with uvx
 ```bash
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
@@ -40,7 +42,7 @@ uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --dir myproject/tech_docs/ \
   --verbose --debug
 ```
-### Install/Uninstall with uv
+### Install/Uninstall useReq/req with uv
 
 #### Install
 ```bash
@@ -61,15 +63,14 @@ uv tool uninstall usereq
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 
 
-
 ## Supported CLI and Agents
 
 ### CLI
 - ✅ OpenAI Codex CLI [`/prompts:req.write italian`]
 - ✅ GitHub Copilot CLI [`/req.write italian`]
 - ✅ Gemini CLI [`/req:write italian`]
-- ⛔ Kiro CLI [`'@req.write italian'`] (not work as aspected)
-  - Prompt params `$ARGUMENTS` is not evaluted by Kiro CLI
+- ⛔ Kiro CLI [`'@req.write italian'`] (does not work as expected)
+  - Prompt params `$ARGUMENTS` are not evaluated by Kiro CLI
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
 
@@ -78,4 +79,3 @@ uv tool uninstall usereq
 - ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (not working as expected)
 - ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
 - ✅ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`]
-

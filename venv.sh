@@ -1,6 +1,6 @@
 #!/bin/bash
-# VERSION: 0.0.7
-# AUTHORS: Ogekuri
+# VERSIONE: 0.0.7
+# AUTORI: Ogekuri
 
 cd -- "$(dirname "$0")/"
 echo "Run on path: "$(pwd -P)
@@ -13,7 +13,7 @@ if [ -d "${VENVDIR}/" ]; then
     echo "done."
 fi
 
-# Se non c'è il ${VENVDIR} lo crea
+# Se non c'e il ${VENVDIR} lo crea
 if ! [ -d "${VENVDIR}/" ]; then
     echo -n "Create virtual environment ..."
     mkdir ${VENVDIR}/
@@ -21,7 +21,7 @@ if ! [ -d "${VENVDIR}/" ]; then
     echo "done."
 fi
 
-# Install requirements
+# Installa i requisiti Python
 source ${VENVDIR}/bin/activate
 
 echo -n "Install python requirements ..."

@@ -1,13 +1,12 @@
-"""Package entry point for the useReq automation.
+"""Punto di ingresso del pacchetto per l'automazione useReq.
 
-This file exposes light-weight package metadata and a convenience
-re-export of the CLI entry `main` so callers can do
-`from usereq import main` without importing the heavier package
-behaviour unintentionally.
+Questo file espone metadati leggeri e una riesportazione comoda del punto di ingresso CLI `main`,
+cosi i chiamanti possono usare `from usereq import main` senza importare
+involontariamente il comportamento completo del pacchetto.
 """
 
 __version__ = "0.0.7"
 
-from .cli import main  # re-export the CLI entry point
+from .cli import main  # riesportazione del punto di ingresso CLI
 
 __all__ = ["__version__", "main"]
