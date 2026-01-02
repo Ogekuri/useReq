@@ -1,6 +1,6 @@
 #!/bin/bash
-# VERSIONE: 0.0.7
-# AUTORI: Ogekuri
+# VERSION: 0.0.7
+# AUTHORS: Ogekuri
 
 cd -- "$(dirname "$0")/"
 echo "Run on path: "$(pwd -P)
