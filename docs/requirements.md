@@ -155,14 +155,14 @@ Non sono stati trovati test unitari nel repository.
 
 ## 3. Requisiti
 ### 3.1 Progettazione e implementazione
-- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` deve produrre percorsi relativi normalizzati e preservare l'eventuale barra finale di `--dir`.
+- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` devono essere sostituiti con la lista dei documenti e delle directory in formato markdown. I documenti e le directory sono ricercati all'interno dei folder specificati con `--doc` e `--dir`.
 - **DES-002**: L'origine del template `requirements.md` deve essere la cartella `resources/templates` inclusa nel pacchetto e il comando deve fallire se il template non e disponibile.
 - **DES-003**: La conversione dei prompt Markdown in TOML deve estrarre il campo `description` dal front matter e salvare il corpo del prompt in una stringa multilinea.
 - **DES-004**: Il merge delle impostazioni VS Code deve supportare file JSONC rimuovendo i commenti e deve fondere ricorsivamente gli oggetti con priorita ai valori del template.
 - **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate a partire dai prompt Markdown disponibili.
 - **DES-006**: L'entry point del pacchetto deve esporre `usereq.cli:main` tramite `use-req`, `req` e `usereq`.
 - **DES-007**: Gli errori previsti devono essere gestiti tramite un'eccezione dedicata con codice di uscita non nullo.
-- **DES-008**: Tutti i commenti nei codici sorgenti devono essere scritti esclusivamente in lingua italiana.
+- **DES-008**: Tutti i commenti nei codici sorgenti devono essere scritti esclusivamente in lingua italiana. Fanno eccezione i commenti di intestazioni dei file sorgenti. Ad esempio, i commenti che indicano versioni e/o autori come "# VERSION:" o "# AUTHORS:" che mantendono la formattazione standard in lingua inglese.
 - **DES-009**: Ogni parte importante del codice (classi, funzioni complesse, logica di business, algoritmi critici) deve essere adeguatamente commentata.
 - **DES-010**: Ogni nuova funzionalita aggiunta deve includere commenti esplicativi e, in caso di modifica di codice esistente, i commenti preesistenti devono essere aggiornati per riflettere il nuovo comportamento.
 

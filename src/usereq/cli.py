@@ -80,7 +80,7 @@ def load_package_version() -> str:
     text = init_path.read_text(encoding="utf-8")
     match = re.search(r'^__version__\s*=\s*"([^"]+)"\s*$', text, re.M)
     if not match:
-        raise ReqError("Errore: impossibile determinare la versione dal pacchetto", 6)
+        raise ReqError("Error: unable to determine package version", 6)
     return match.group(1)
 
 
@@ -106,10 +106,10 @@ def run_upgrade() -> None:
     try:
         result = subprocess.run(command, check=False)
     except FileNotFoundError as exc:
-        raise ReqError("Errore: comando 'uv' non trovato nel PATH", 12) from exc
+        raise ReqError("Error: 'uv' command not found in PATH", 12) from exc
     if result.returncode != 0:
         raise ReqError(
-            f"Errore: auto-aggiornamento fallito (codice {result.returncode})",
+            f"Error: auto-upgrade failed (code {result.returncode})",
             result.returncode,
         )
 
@@ -125,10 +125,10 @@ def run_uninstall() -> None:
     try:
         result = subprocess.run(command, check=False)
     except FileNotFoundError as exc:
-        raise ReqError("Errore: comando 'uv' non trovato nel PATH", 12) from exc
+        raise ReqError("Error: 'uv' command not found in PATH", 12) from exc
     if result.returncode != 0:
         raise ReqError(
-            f"Errore: disinstallazione fallita (codice {result.returncode})",
+            f"Error: uninstall failed (code {result.returncode})",
             result.returncode,
         )
 
@@ -137,10 +137,13 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
     # Prima normalizza il percorso usando la logica esistente.
     normalized = make_relative_if_contains_project(path, project_base)
     doc_path = project_base / normalized
+    resolved = doc_path.resolve(strict=False)
+    if not resolved.is_relative_to(project_base):
+        raise ReqError("Error: --doc must be under the project base", 5)
     if not doc_path.exists():
-        raise ReqError(f"Errore: la directory --doc '{normalized}' non esiste sotto {project_base}", 5)
+        raise ReqError(f"Error: the --doc directory '{normalized}' does not exist under {project_base}", 5)
     if not doc_path.is_dir():
-        raise ReqError(f"Errore: --doc deve indicare una directory, non un file", 5)
+        raise ReqError(f"Error: --doc must specify a directory, not a file", 5)
 
 
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
@@ -212,19 +215,19 @@ def load_config(project_base: Path) -> dict[str, str]:
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
         raise ReqError(
-            "Errore: file .req/config.json non trovato nella root del progetto",
+            "Error: .req/config.json not found in the project root",
             11,
         )
     try:
         payload = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise ReqError("Errore: .req/config.json non e valido", 11) from exc
+        raise ReqError("Error: .req/config.json is not valid", 11) from exc
     doc_value = payload.get("doc")
     dir_value = payload.get("dir")
     if not isinstance(doc_value, str) or not doc_value.strip():
-        raise ReqError("Errore: campo 'doc' mancante o non valido in .req/config.json", 11)
+        raise ReqError("Error: missing or invalid 'doc' field in .req/config.json", 11)
     if not isinstance(dir_value, str) or not dir_value.strip():
-        raise ReqError("Errore: campo 'dir' mancante o non valido in .req/config.json", 11)
+        raise ReqError("Error: missing or invalid 'dir' field in .req/config.json", 11)
     return {"doc": doc_value, "dir": dir_value}
 
 
@@ -295,11 +298,11 @@ def ensure_relative(value: str, name: str, code: int) -> None:
     """Valida che il percorso non sia assoluto e segnala errore in caso contrario."""
     if Path(value).is_absolute():
         raise ReqError(
-            f"Errore: {name} deve essere un percorso relativo rispetto a PROJECT_BASE",
+            f"Error: {name} must be a relative path under PROJECT_BASE",
             code,
         )
         raise ReqError(
-            f"Errore: {name} deve essere un percorso relativo rispetto a PROJECT_BASE",
+            f"Error: {name} must be a relative path under PROJECT_BASE",
             code,
         )
 
@@ -368,7 +371,7 @@ def extract_purpose_first_bullet(body: str) -> str:
             start_idx = idx + 1
             break
     if start_idx is None:
-        raise ReqError("Errore: sezione '## Purpose' mancante nel prompt.", 7)
+        raise ReqError("Error: missing '## Purpose' section in prompt.", 7)
     for line in lines[start_idx:]:
         stripped = line.strip()
         if stripped.startswith("#"):
@@ -376,7 +379,7 @@ def extract_purpose_first_bullet(body: str) -> str:
         match = re.match(r"^\s*-\s+(.*)$", line)
         if match:
             return match.group(1).strip()
-    raise ReqError("Errore: nessun punto trovato sotto la sezione '## Purpose'.", 7)
+    raise ReqError("Error: no bullet found under the '## Purpose' section.", 7)
 
 
 def json_escape(value: str) -> str:
@@ -435,7 +438,7 @@ def find_template_source() -> Path:
     if (candidate / "requirements.md").is_file():
         return candidate
     raise ReqError(
-        "Errore: nessun template requirements.md trovato in templates o usetemplates",
+        "Error: no requirements.md template found in templates or usetemplates",
         9,
     )
 
@@ -445,7 +448,7 @@ def load_kiro_template() -> str:
     candidate = RESOURCE_ROOT / "kiro" / "agent.json"
     if candidate.is_file():
         return candidate.read_text(encoding="utf-8")
-    raise ReqError("Errore: nessun template Kiro trovato in resources/kiro", 9)
+    raise ReqError("Error: no Kiro template found in resources/kiro", 9)
 
 
 def strip_json_comments(text: str) -> str:
@@ -510,7 +513,7 @@ def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
     """Verifica che il percorso sia sotto la root di progetto."""
     if not target.resolve().is_relative_to(project_base):
         raise ReqError(
-            f"Errore: rimozione sicura di {target} rifiutata (non sotto PROJECT_BASE)",
+            f"Error: safe removal of {target} refused (not under PROJECT_BASE)",
             code,
         )
 
@@ -586,17 +589,17 @@ def remove_generated_resources(project_base: Path) -> None:
 def run_remove(args: Namespace) -> None:
     """Gestisce la rimozione delle risorse generate."""
     if args.doc or args.dir or args.update:
-        raise ReqError("Errore: --remove non accetta --doc, --dir o --update", 4)
+        raise ReqError("Error: --remove does not accept --doc, --dir, or --update", 4)
     if args.base:
         project_base = args.base.resolve()
     else:
         project_base = Path.cwd().resolve()
     if not project_base.exists():
-        raise ReqError(f"Errore: PROJECT_BASE '{project_base}' non esiste", 2)
+        raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
         raise ReqError(
-            "Errore: file .req/config.json non trovato nella root del progetto",
+            "Error: .req/config.json not found in the project root",
             11,
         )
     restore_vscode_settings(project_base)
@@ -621,12 +624,12 @@ def run(args: Namespace) -> None:
     else:
         project_base = Path.cwd().resolve()
     if not project_base.exists():
-        raise ReqError(f"Errore: PROJECT_BASE '{project_base}' non esiste", 2)
+        raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
 
     if args.update and (args.doc or args.dir):
-        raise ReqError("Errore: --update non accetta --doc o --dir", 4)
+        raise ReqError("Error: --update does not accept --doc or --dir", 4)
     if not args.update and (not args.doc or not args.dir):
-        raise ReqError("Errore: --doc e --dir sono richiesti senza --update", 4)
+        raise ReqError("Error: --doc and --dir are required without --update", 4)
 
     if args.update:
         config = load_config(project_base)
@@ -650,6 +653,10 @@ def run(args: Namespace) -> None:
 
     abs_doc = resolve_absolute(normalized_doc, project_base)
     abs_dir = resolve_absolute(normalized_dir, project_base)
+    if abs_doc and not abs_doc.resolve().is_relative_to(project_base):
+        raise ReqError("Error: --doc must be under the project base", 5)
+    if abs_dir and not abs_dir.resolve().is_relative_to(project_base):
+        raise ReqError("Error: --dir must be under the project base", 8)
 
     config_doc = f"{normalized_doc}/" if doc_has_trailing_slash and normalized_doc else normalized_doc
     config_dir = f"{normalized_dir}/" if dir_has_trailing_slash and normalized_dir else normalized_dir
@@ -657,7 +664,7 @@ def run(args: Namespace) -> None:
     tech_dest = project_base / normalized_dir
     if not tech_dest.is_dir():
         raise ReqError(
-            f"Errore: la directory REQ_DIR '{normalized_dir}' non esiste sotto {project_base}",
+            f"Error: REQ_DIR directory '{normalized_dir}' does not exist under {project_base}",
             8,
         )
     if VERBOSE:
@@ -666,18 +673,37 @@ def run(args: Namespace) -> None:
     if not args.update:
         save_config(project_base, config_doc, config_dir)
 
-    # Genera l'elenco file per il token %%REQ_DOC%%.
-    doc_file_list = generate_doc_file_list(project_base / normalized_doc, project_base)
-
-    # Genera l'elenco directory per il token %%REQ_DIR%%.
-    dir_list = generate_dir_list(project_base / normalized_dir, project_base)
-
     sub_req_doc = compute_sub_path(normalized_doc, abs_doc, project_base)
     sub_tech_dir = compute_sub_path(normalized_dir, abs_dir, project_base)
     if dir_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
         sub_tech_dir += "/"
     token_req_doc = make_relative_token(sub_req_doc)
     token_req_dir = make_relative_token(sub_tech_dir, keep_trailing=True)
+
+    req_root = project_base / ".req"
+    req_root.mkdir(parents=True, exist_ok=True)
+    if VERBOSE:
+        log(f"OK: ensured directory {req_root}")
+
+    templates_src = find_template_source()
+    doc_dir_path = project_base / normalized_doc
+    doc_dir_empty = not any(doc_dir_path.iterdir())
+    doc_target = project_base / normalized_doc / "requirements.md"
+    # Crea requirements.md solo se la cartella --doc e' vuota.
+    if doc_dir_empty:
+        src_file = templates_src / "requirements.md"
+        doc_target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src_file, doc_target)
+        if VERBOSE:
+            log(
+                f"Created {doc_target} — update the file with the project requirements. (source: {src_file})"
+            )
+
+    # Genera l'elenco file per il token %%REQ_DOC%% dopo l'eventuale creazione.
+    doc_file_list = generate_doc_file_list(doc_dir_path, project_base)
+
+    # Genera l'elenco directory per il token %%REQ_DIR%%.
+    dir_list = generate_dir_list(project_base / normalized_dir, project_base)
 
     dlog(f"project_base={project_base}")
     dlog(f"REQ_DOC={normalized_doc}")
@@ -686,22 +712,6 @@ def run(args: Namespace) -> None:
     dlog(f"DIR_LIST={dir_list}")
     dlog(f"SUB_TECH_DIR={sub_tech_dir}")
     dlog(f"TOKEN_REQ_DIR={token_req_dir}")
-
-    req_root = project_base / ".req"
-    req_root.mkdir(parents=True, exist_ok=True)
-    if VERBOSE:
-        log(f"OK: ensured directory {req_root}")
-
-    templates_src = find_template_source()
-    doc_target = project_base / normalized_doc / "requirements.md"
-    if not doc_target.exists():
-        src_file = templates_src / "requirements.md"
-        doc_target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src_file, doc_target)
-        if VERBOSE:
-            log(
-                f"Created {doc_target} — update the file with the project requirements. (source: {src_file})"
-            )
 
     for folder in (
         project_base / ".codex" / "prompts",
