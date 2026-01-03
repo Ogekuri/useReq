@@ -49,7 +49,6 @@ tags: ["markdown", "requirements", "example"]
 <!-- TOC -->
 - [{{project name}} Requirements](#project-name-requirements)
   - [Table of Contents](#table-of-contents)
-  - [Revision History](#revision-history)
   - [1. Introduction](#1-introduction)
     - [1.1 Document Rules](#11-document-rules)
     - [1.2 Project Scope](#12-project-scope)
@@ -59,17 +58,9 @@ tags: ["markdown", "requirements", "example"]
   - [3. Requirements](#3-requirements)
     - [3.1 Design and Implementation](#31-design-and-implementation)
     - [3.2 Functions](#32-functions)
-<!-- if needed, add verification chapter
-* [4. Verification](#4-verification)
--->
+  - [4. Test Requirements](#4-test-requirements)
+  - [5. Revision History](#5-revision-history)
 <!-- TOC -->
-
-## Revision History
-<!-- On every change to this document, update the version number and add a new row to the revision history -->
-| Date | Version | Change reason and description |
-|------|---------|-------------------------------|
-|      |         |                               |
-|      |         |                               |
 
 ## 1. Introduction
 <!-- Overview of the SRS: purpose, scope, audience, and document organization. Avoid detailed requirements here. -->
@@ -78,12 +69,13 @@ tags: ["markdown", "requirements", "example"]
 This document shall always follow these rules:
 - This document must be written in English.
 - Format the requirements as a bulleted list, utilizing the keywords 'shall' or 'must' to denote mandatory actions.
-- Each requirement ID (for example, **PRJ-001**, **PRJ-002**,..  **CTN-001**, **CTN-002**,.. **DES-001**, **DES-002**,.. **REQ-001**, **REQ-002**,..) must be unique; do not assign the same ID to different requirements.
+- Each requirement ID (for example, **PRJ-001**, **PRJ-002**,..  **CTN-001**, **CTN-002**,.. **DES-001**, **DES-002**,.. **REQ-001**, **REQ-002**,.. **TST-001**, **TST-002**,..) must be unique; do not assign the same ID to different requirements.
 - Each requirement ID start with string that identify the requirement's group:
   * All project function requirements start with **PRJ-**
   * All project constraint requirements start with **CTN-**
   * All design and implementation requirements start with **DES-**
   * All function requirements start with **REQ-**
+  * All test requirements start with **TST-**
 - Every requirement shall be identifiable, verifiable, and testable.
 - On every change to this document, update the version number and add a new row to the revision history.
 
@@ -119,9 +111,17 @@ This document shall always follow these rules:
 - **REQ-002**: Requirement description of function 2
 <!-- add here other function requirements -->
 
-<!-- if needed, add verification chapter
-## 4. Verification
-| Requirement ID | Requirement brief descrition | Verification procedure |
-|----------------|------------------------------|------------------------|
-|                |                              |                        |
--->
+## 4. Test Requirements
+<!-- Define the test requirements linked to functional/non-functional requirements (or to a verification context) and specify a clear, reproducible test procedure with explicit pass/fail criteria.  -->
+
+| Test Requirement ID | Linked Requirement / Context | Test Procedure (clear + reproducible) |
+|---------------------|------------------------------|---------------------------------------|
+| **TST-001**         | Code execution               | Execute the code with the defined input(s). Verify the expected output(s) match the specification and that no runtime errors occur. |
+| **TST-002**         | **REQ-002**                  | Run the unit test suite covering REQ-002. Assert all expected behaviors and defined edge cases pass. |
+
+## 5. Revision History
+<!-- On every change to this document, update the version number and add a new row to the revision history -->
+| Date | Version | Change reason and description |
+|------|---------|-------------------------------|
+|      |         |                               |
+|      |         |                               |
