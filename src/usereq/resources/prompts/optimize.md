@@ -18,7 +18,7 @@ description: "Perform an optimizazion without changing the requirements. Usage: 
  - Follow the ordered steps below exactly.
 
 ## Steps
-Create and execute a TODO list following these steps strictly:
+Write and then execute a TODO list following these steps strictly:
 1. If %%ARGS%% does not contain a clear request, stop execution and return an error.
 2. Read file/files %%REQ_DOC%%, all source files, and the [User Request](#users-request).
 3. Produce a clear change proposal describing edits to the source code that implement the optimization described by the [User Request](#users-request).

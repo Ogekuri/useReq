@@ -15,7 +15,7 @@ description: "Run the requirements check. Usage: req.check."
  - Follow the ordered steps below exactly.
 
 ## Steps
-Create and execute a TODO list following these steps strictly:
+Write and then execute a TODO list following these steps strictly:
 1. Read file/files %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.

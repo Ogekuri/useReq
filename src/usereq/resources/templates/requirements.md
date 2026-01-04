@@ -78,6 +78,7 @@ This document shall always follow these rules:
   * All test requirements start with **TST-**
 - Every requirement shall be identifiable, verifiable, and testable.
 - On every change to this document, update the version number and add a new row to the revision history.
+- On every change to this document, update the header's date with change's date.
 
 ### 1.2 Project Scope
 <!-- The project (name/version), primary purpose, key capabilities, and boundaries. Keep brief and focus on the "what" and "why", not the "how". Avoid detailed requirements here. -->
