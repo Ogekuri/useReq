@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.11](https://github.com/Ogekuri/useReq/compare/v0.0.10..v0.0.11) - 2026-01-04
+### 🐛  Bug Fixes
+- *(core)* minor fixes on templates.
+
 ## [0.0.10](https://github.com/Ogekuri/useReq/compare/v0.0.9..v0.0.10) - 2026-01-03
 ### 🐛  Bug Fixes
 - *(core)* update templates/requirements.md.
@@ -59,6 +63,7 @@
 - \[0.0.8\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.8
 - \[0.0.9\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.9
 - \[0.0.10\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.10
+- \[0.0.11\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.11
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -70,3 +75,4 @@
 [0.0.8]: https://github.com/Ogekuri/useReq/compare/v0.0.7..v0.0.8
 [0.0.9]: https://github.com/Ogekuri/useReq/compare/v0.0.8..v0.0.9
 [0.0.10]: https://github.com/Ogekuri/useReq/compare/v0.0.9..v0.0.10
+[0.0.11]: https://github.com/Ogekuri/useReq/compare/v0.0.10..v0.0.11
