@@ -1,6 +1,7 @@
 ---
 title: "{{project name}} Requirements"
 description: Software requirements specification
+version: "{{version}}"
 date: "{{date_modified}}"
 author: "{{author}}"
 scope:
@@ -24,6 +25,7 @@ tags: ["markdown", "requirements", "example"]
 ---
 title: "Foo Bar Web Interface Requirements"
 description: Software requirements specification
+version: 0.1
 date: "2025-12-25"
 author: "Pinco Pallino"
 scope:
@@ -77,8 +79,10 @@ This document shall always follow these rules:
   * All function requirements start with **REQ-**
   * All test requirements start with **TST-**
 - Every requirement shall be identifiable, verifiable, and testable.
-- On every change to this document, update the version number and add a new row to the revision history.
-- On every change to this document, update the header's date and document's date with change's date.
+- On every change to this document:
+  - Update the date to today's date both in the document body and the header.
+  - Increment the version number both in the document body and the header.
+  - Append a new row to the Revision History table detailing the changes made.
 
 ### 1.2 Project Scope
 <!-- The project (name/version), primary purpose, key capabilities, and boundaries. Keep brief and focus on the "what" and "why", not the "how". Avoid detailed requirements here. -->
