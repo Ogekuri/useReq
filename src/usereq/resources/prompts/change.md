@@ -8,7 +8,8 @@ description: "Update the requirements and implement the corresponding changes. U
 - Produce a clear change proposal and apply the approved changes to the requirements and source code.
 
 ## Behavior
- - **CRITICAL**: The [User Request](#users-request) is provided via %%ARGS%% only in the first turn. You MUST save it to `.req/context/active_request.md` immediately in step 1. For all subsequent steps, refer to `.req/context/active_request.md`.
+ - **CRITICAL**: The [User Request](#users-request) is provided via `$ARGUMENTS` only in the first turn. You MUST persist it in step 1 to `.req/context/active_request.md`.
+ - **CRITICAL**: After step 1, you MUST treat `.req/context/active_request.md` as the single source of truth for the user request. Do NOT rely on `$ARGUMENTS` again.
  - Propose changes based only on the requirements, user's request and project's source code.
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
@@ -19,10 +20,15 @@ description: "Update the requirements and implement the corresponding changes. U
 
 ## Steps
 Write and then execute a TODO list following these steps strictly:
-1. **Context Persistence**:
-   - Check if the [User Request](#users-request) section contains text (from $ARGUMENTS).
-   - If it does, SAVE this content immediately to a new file: `.req/context/current_objective.md`.
-   - If the section is empty (subsequent turns), READ the content from `.req/context/current_objective.md` to restore the user intent.
+1. **Context Bootstrap & Persistence (MUST RUN FIRST, EVERY INVOCATION)**:
+   - Ensure the directory `.req/context/` exists.
+   - If the [User Request](#users-request) section contains non-empty text (from `$ARGUMENTS`):
+     - SAVE it immediately to `.req/context/active_request.md` (overwrite existing content).
+   - Otherwise (subsequent turns / reinvocations with empty `$ARGUMENTS`):
+     - READ `.req/context/active_request.md` and use it as the restored user request.
+   - If `$ARGUMENTS` is empty AND `.req/context/active_request.md` does not exist or is empty:
+     - STOP immediately and respond asking for the user request to be provided again via `req.change <description>`.
+   - From this point onward, refer only to `.req/context/active_request.md` for the user request.
 2. Read file/files %%REQ_DOC%%, all source files, and the [User Request](#users-request).
 3. Produce a clear change proposal describing the edits to requirements and to source code needed to implement the changes described by the [User Request](#users-request).
 4. Present the requirements that will change in %%REQ_DOC%%.
