@@ -80,6 +80,7 @@
 - \[0.0.12\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.12
 - \[0.0.13\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.13
 - \[0.0.14\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.14
+- \[0.0.15\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.15
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -95,3 +96,4 @@
 [0.0.12]: https://github.com/Ogekuri/useReq/compare/v0.0.11..v0.0.12
 [0.0.13]: https://github.com/Ogekuri/useReq/compare/v0.0.12..v0.0.13
 [0.0.14]: https://github.com/Ogekuri/useReq/compare/v0.0.13..v0.0.14
+[0.0.15]: https://github.com/Ogekuri/useReq/compare/v0.0.14..v0.0.15
