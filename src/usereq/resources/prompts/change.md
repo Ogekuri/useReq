@@ -8,7 +8,7 @@ description: "Update the requirements and implement the corresponding changes. U
 - Produce a clear change proposal and apply the approved changes to the requirements and source code.
 
 ## Behavior
- - **CRITICAL**: The User Request is provided via %%ARGS%% only in the first turn. You MUST save it to `.req/context/active_request.md` immediately in step 1. For all subsequent steps, refer to `.req/context/active_request.md`.
+ - **CRITICAL**: The [User Request](#users-request) is provided via %%ARGS%% only in the first turn. You MUST save it to `.req/context/active_request.md` immediately in step 1. For all subsequent steps, refer to `.req/context/active_request.md`.
  - Propose changes based only on the requirements, user's request and project's source code.
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
