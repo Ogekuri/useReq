@@ -8,6 +8,7 @@ description: "Run the requirements check. Usage: req.check."
 - Perform the requirements check and report whether all items are correctly covered without making any changes.
  
 ## Behavior
+ - **CRITICAL**: The User Request is provided via %%ARGS%% only in the first turn. You MUST save it to `.req/context/active_request.txt` immediately in step 1. For all subsequent steps, refer to `.req/context/active_request.txt`.
  - Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
