@@ -8,7 +8,7 @@ description: "Perform an optimizazion without changing the requirements. Usage: 
 - Produce a clear optimization proposal and apply the approved changes to the source code.
 
 ## Behavior
- - **CRITICAL**: The User Request is provided via %%ARGS%% only in the first turn. You MUST save it to `.req/context/active_request.txt` immediately in step 1. For all subsequent steps, refer to `.req/context/active_request.txt`.
+ - **CRITICAL**: The User Request is provided via %%ARGS%% only in the first turn. You MUST save it to `.req/context/active_request.md` immediately in step 1. For all subsequent steps, refer to `.req/context/active_request.md`.
  - Do not modify files that contain requirements.
  - Always strictly respect requirements.
  - Use technical documents to implement features and changes.
