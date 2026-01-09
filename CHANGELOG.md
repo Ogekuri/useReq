@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.21](https://github.com/Ogekuri/useReq/compare/v0.0.20..v0.0.21) - 2026-01-09
+### ⛰️  Features
+- *(core)* add OpenCode CLI support.
+
 ## [0.0.20](https://github.com/Ogekuri/useReq/compare/v0.0.19..v0.0.20) - 2026-01-09
 ### 🐛  Bug Fixes
 - *(core)* use python virtual environment.
@@ -102,6 +106,7 @@
 - \[0.0.18\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.18
 - \[0.0.19\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.19
 - \[0.0.20\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.20
+- \[0.0.21\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.21
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -123,3 +128,4 @@
 [0.0.18]: https://github.com/Ogekuri/useReq/compare/v0.0.17..v0.0.18
 [0.0.19]: https://github.com/Ogekuri/useReq/compare/v0.0.18..v0.0.19
 [0.0.20]: https://github.com/Ogekuri/useReq/compare/v0.0.19..v0.0.20
+[0.0.21]: https://github.com/Ogekuri/useReq/compare/v0.0.20..v0.0.21
