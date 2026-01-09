@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.19](https://github.com/Ogekuri/useReq/compare/v0.0.18..v0.0.19) - 2026-01-09
+### 📚  Documentation
+- *(core)* update Kiro CLI infos.
+
 ## [0.0.18](https://github.com/Ogekuri/useReq/compare/v0.0.17..v0.0.18) - 2026-01-09
 ### 🐛  Bug Fixes
 - *(core)* change kiro cli json files.
@@ -92,6 +96,7 @@
 - \[0.0.16\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.16
 - \[0.0.17\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.17
 - \[0.0.18\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.18
+- \[0.0.19\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.19
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -111,3 +116,4 @@
 [0.0.16]: https://github.com/Ogekuri/useReq/compare/v0.0.15..v0.0.16
 [0.0.17]: https://github.com/Ogekuri/useReq/compare/v0.0.16..v0.0.17
 [0.0.18]: https://github.com/Ogekuri/useReq/compare/v0.0.17..v0.0.18
+[0.0.19]: https://github.com/Ogekuri/useReq/compare/v0.0.18..v0.0.19
