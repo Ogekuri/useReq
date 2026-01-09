@@ -77,6 +77,7 @@ uv tool uninstall usereq
 ### Agents
 - ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
 - ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (not working as expected)
+  - Do **start new chat** on every prompts.
 - ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
-- ⛔ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
-  - Agent don't respect "prompt" field in json files.
+- ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
+  - Do **clear context** `/clear` on every prompts.
