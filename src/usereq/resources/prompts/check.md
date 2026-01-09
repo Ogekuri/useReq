@@ -8,7 +8,7 @@ description: "Run the requirements check. Usage: req.check."
 - Perform the requirements check and report whether all items are correctly covered without making any changes.
  
 ## Behavior
- - Do not modify any files in the project.
+ - **CRITICAL**: Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
  - Where unit tests exist, strictly adhere to the associated specific instructions.

@@ -8,7 +8,7 @@ description: "Write a requirement draft from the standard template. Usage: req.w
 - Produce a requirement draft from the standard template using the project's source code.
 
 ## Behavior
-- Create only the requirements draft and do not modify other project files.
+- **CRITICAL**: Create only the requirements draft and do not modify other project files.
 - Ignore/exclude all files in .*/** from the project file analysis.
 - Write the draft in the requested language.
 - Do not perform unrelated edits.
