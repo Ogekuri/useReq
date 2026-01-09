@@ -387,12 +387,16 @@ def json_escape(value: str) -> str:
     return json.dumps(value)[1:-1]
 
 
-def generate_kiro_resources(doc_dir: Path, project_base: Path) -> str:
+def generate_kiro_resources(
+    doc_dir: Path,
+    project_base: Path,
+    prompt_rel_path: str,
+) -> str:
     """Genera l'array JSON delle risorse per l'agente Kiro."""
+    resources = [f'    "file://{prompt_rel_path}"']
     if not doc_dir.is_dir():
-        return ""
-    
-    resources = []
+        return "\n".join(resources)
+
     for file_path in sorted(doc_dir.iterdir()):
         if file_path.is_file():
             try:
@@ -401,7 +405,7 @@ def generate_kiro_resources(doc_dir: Path, project_base: Path) -> str:
                 resources.append(f'    "file://{rel_str}"')
             except ValueError:
                 continue
-    
+
     return ",\n".join(resources)
 
 
@@ -809,7 +813,12 @@ def run(args: Namespace) -> None:
 
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()
-            kiro_resources = generate_kiro_resources(project_base / normalized_doc, project_base)
+            kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
+            kiro_resources = generate_kiro_resources(
+                project_base / normalized_doc,
+                project_base,
+                kiro_prompt_rel,
+            )
             agent_content = render_kiro_agent(
                 kiro_template,
                 name=f"req-{PROMPT}",

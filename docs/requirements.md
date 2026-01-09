@@ -1,7 +1,7 @@
 ---
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
-date: "2025-12-31"
+date: "2026-01-02"
 author: "Astral"
 scope:
   paths:
@@ -17,7 +17,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.1.17
+**Versione**: 0.18
 **Autore**: Astral  
 **Data**: 2026-01-02
 
@@ -45,24 +45,25 @@ tags: ["markdown", "requisiti", "useReq"]
 ## Cronologia delle revisioni
 | Data | Versione | Motivazione e descrizione della modifica |
 |------|----------|-------------------------------------------|
-| 2025-12-31 | 0.1.0 | Creazione della bozza dei requisiti. |
-| 2026-01-01 | 0.1.1 | Aggiunto script req.sh per eseguire la versione in-development con venv. |
-| 2026-01-01 | 0.1.2 | Aggiunta stampa della versione per invocazioni senza argomenti e con opzioni dedicate. |
-| 2026-01-01 | 0.1.3 | Aggiunta stampa help con versione per invocazioni senza argomenti e stampa versione-only per opzioni dedicate. |
-| 2026-01-01 | 0.1.4 | Aggiunta versione e comando nella stringa di usage dell'help. |
-| 2026-01-01 | 0.1.5 | Aggiornata la generazione dei comandi Gemini in sottocartella dedicata. |
-| 2026-01-01 | 0.1.6 | Aggiunto supporto per la generazione delle risorse Kiro CLI. |
-| 2026-01-01 | 0.1.7 | Modificato il comando --doc per accettare directory e generare elenchi di file. |
-| 2026-01-01 | 0.1.8 | Ripristinata la relativizzazione dei percorsi e organizzazione test sotto temp/. |
-| 2026-01-01 | 0.1.9 | Modificato il comando --dir per processare sottocartelle e generare elenchi di directory. |
-| 2026-01-01 | 0.1.10 | Aggiornata la generazione dei prompt Kiro con il corpo completo del Markdown. |
-| 2026-01-01 | 0.1.11 | Aggiunto supporto per l'opzione --upgrade e aggiornato usage. |
-| 2026-01-01 | 0.1.12 | Aggiunto supporto per l'opzione --uninstall e aggiornato usage. |
-| 2026-01-01 | 0.1.13 | Aggiunta configurazione persistente per --doc e --dir. |
-| 2026-01-02 | 0.1.14 | Aggiunto supporto per l'opzione --update. |
-| 2026-01-02 | 0.1.15 | Aggiunto supporto per l'opzione --remove e ripristino impostazioni. |
-| 2026-01-02 | 0.1.16 | Aggiunto requisito per le stampe in lingua inglese. |
-| 2026-01-02 | 0.1.17 | Aggiunti requisiti per i commenti in lingua italiana nei sorgenti. |
+| 2025-12-31 | 0.0 | Creazione della bozza dei requisiti. |
+| 2026-01-01 | 0.1 | Aggiunto script req.sh per eseguire la versione in-development con venv. |
+| 2026-01-01 | 0.2 | Aggiunta stampa della versione per invocazioni senza argomenti e con opzioni dedicate. |
+| 2026-01-01 | 0.3 | Aggiunta stampa help con versione per invocazioni senza argomenti e stampa versione-only per opzioni dedicate. |
+| 2026-01-01 | 0.4 | Aggiunta versione e comando nella stringa di usage dell'help. |
+| 2026-01-01 | 0.5 | Aggiornata la generazione dei comandi Gemini in sottocartella dedicata. |
+| 2026-01-01 | 0.6 | Aggiunto supporto per la generazione delle risorse Kiro CLI. |
+| 2026-01-01 | 0.7 | Modificato il comando --doc per accettare directory e generare elenchi di file. |
+| 2026-01-01 | 0.8 | Ripristinata la relativizzazione dei percorsi e organizzazione test sotto temp/. |
+| 2026-01-01 | 0.9 | Modificato il comando --dir per processare sottocartelle e generare elenchi di directory. |
+| 2026-01-01 | 0.10 | Aggiornata la generazione dei prompt Kiro con il corpo completo del Markdown. |
+| 2026-01-01 | 0.11 | Aggiunto supporto per l'opzione --upgrade e aggiornato usage. |
+| 2026-01-01 | 0.12 | Aggiunto supporto per l'opzione --uninstall e aggiornato usage. |
+| 2026-01-01 | 0.13 | Aggiunta configurazione persistente per --doc e --dir. |
+| 2026-01-02 | 0.14 | Aggiunto supporto per l'opzione --update. |
+| 2026-01-02 | 0.15 | Aggiunto supporto per l'opzione --remove e ripristino impostazioni. |
+| 2026-01-02 | 0.16 | Aggiunto requisito per le stampe in lingua inglese. |
+| 2026-01-02 | 0.17 | Aggiunti requisiti per i commenti in lingua italiana nei sorgenti. |
+| 2026-01-02 | 0.18 | Aggiunto requisito per l'ordine delle risorse Kiro. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -74,7 +75,7 @@ Questo documento deve sempre seguire queste regole:
 - Ogni identificativo (**PRJ-001**, **PRJ-002**, **CTN-001**, **CTN-002**, **DES-001**, **DES-002**, **REQ-001**, **REQ-002**, …) deve essere univoco.
 - Ogni identificativo deve iniziare con il prefisso del proprio gruppo di requisiti (PRJ-, CTN-, DES-, REQ-).
 - Ogni requisito deve essere identificabile, verificabile e testabile.
-- Ad ogni modifica del documento si deve aggiornare il numero di versione e la cronologia delle revisioni.
+- Ad ogni modifica del documento si deve aggiornare il numero di versione e la cronologia delle revisioni, aggiungendo una voce in fondo alla lista.
 
 ### 1.2 Scopo del progetto
 Lo scopo del progetto e fornire un comando `use-req`/`req` che, dato un progetto, inizializzi file di requisiti, cartelle tecniche e risorse di prompt per strumenti di sviluppo, garantendo percorsi relativi sicuri e un setup ripetibile.
@@ -91,9 +92,6 @@ Lo scopo del progetto e fornire un comando `use-req`/`req` che, dato un progetto
 ├── LICENSE
 ├── README.md
 ├── TODO.md
-├── dist
-│   ├── usereq-0.1.0-py3-none-any.whl
-│   └── usereq-0.1.0.tar.gz
 ├── docs
 │   └── requirements.md
 ├── other-stuff
@@ -101,8 +99,6 @@ Lo scopo del progetto e fornire un comando `use-req`/`req` che, dato un progetto
 │       ├── srs-template-bare.md
 │       └── srs-template.md
 ├── pyproject.toml
-├── scripts
-│   └── version.sh
 └── src
     └── usereq
         ├── __init__.py
@@ -212,3 +208,4 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-043**: Quando `--remove` e presente, il comando deve rimuovere le risorse create: `.codex/prompts/req.*`, `.github/agents/req.*`, `.github/prompts/req.*`, `.gemini/commands/req/`, `.kiro/agents/req.*`, `.kiro/prompts/req.*`, `.req/templates/`, `.req/config.json` e la cartella `.req/` completa.
 - **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.
 - **REQ-045**: Tutte le stampe di usage, help, di informazione, verbose o di debug dello script devono essere in lingua inglese.
+- **REQ-046**: Nei file JSON Kiro, il campo `resources` deve includere come prima voce il file prompt corrispondente in `.kiro/prompts/req.<nome>.md`, seguito dai link ai requirements.
