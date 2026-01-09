@@ -73,7 +73,8 @@ uv tool uninstall usereq
   - Prompt params `$ARGUMENTS` are not evaluated by Kiro CLI
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
-- ✔️ OpenCode CLI [`<TAB> ➡️ italian ↩️`]
+- ⛔ OpenCode CLI [`<TAB> ➡️ italian ↩️`]
+  - During steps CLI **not ask confirmation** on confim's step.
   - Do **start new session** `/new` on every prompts.
 
 ### Agents
@@ -83,5 +84,6 @@ uv tool uninstall usereq
 - ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
 - ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
   - Do **clear context** `/clear` on every prompts.
-- ✔️ OpenCode CLI Agent [`<TAB> ➡️ italian ↩️`]
+- ⛔ OpenCode CLI Agent [`<TAB> ➡️ italian ↩️`]
+  - During steps CLI Agent **not ask confirmation** on confim's step.
   - Do **start new session** `/new` on every prompts.

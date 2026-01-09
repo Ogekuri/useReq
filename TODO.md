@@ -10,9 +10,13 @@
 - [x] new: Develop GitHub Copilot CLI support
 - [x] new: Develop OpenAI Codex Agent Extension for VSCode support
 - [ ] new: Develop Kiro CLI support (not yet working as expected, does not pass $ARGUMENTS)
+- [ ] new: Develop OpenCode CLI support (not yet working as expected)
+- [ ] new: Develop Claude CLI support
 - [x] new: Develop GitHub Copilot Agent Chat in VSCode support
 - [ ] new: Develop Gemini Code Assist Extension for VSCode support
 - [x] new: Develop Kiro CLI Agent support
+- [ ] new: Develop OpenCode CLI Agent support (not yet working as expected)
+- [ ] new: Develop Claude CLI Agent support
 - [ ] test: Testing and bug fixes
 - [ ] new: Testing and bug fixes
 - [ ] new: Beta stage release
