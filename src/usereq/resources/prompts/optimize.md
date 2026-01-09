@@ -21,6 +21,7 @@ description: "Perform an optimizazion without changing the requirements. Usage: 
  - Preserve the original language of documents, comments, and printed output.
  - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. Do not implement migrations, auto-upgrades or any conversion logic.
  - Do not make unrelated edits.
+ - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
  - Where unit tests exist, strictly adhere to the associated specific instructions.
  - Follow the ordered steps below exactly.
 
@@ -49,7 +50,6 @@ Write and then execute a TODO list following these steps strictly:
 11. If directory/directories %%REQ_DIR%% exists, verify the application's code follows that documents and report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
 12. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
-    - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
 13. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 14. DELETE file `.req/context/active_request.md`.
 

@@ -12,6 +12,7 @@ description: "Write a requirement draft from the standard template. Usage: req.w
 - Ignore/exclude all files in .*/** from the project file analysis.
 - Write the draft in the requested language.
 - Do not perform unrelated edits.
+- If a .venv directory is detected in the project root, explicitly use the Python interpreter located within that virtual environment for all code execution.
 - Where unit tests exist, strictly adhere to the associated specific instructions.
 - Follow the steps below in order.
 

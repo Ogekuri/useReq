@@ -11,6 +11,7 @@ description: "Run the requirements check. Usage: req.check."
  - **CRITICAL**: Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
+ - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
  - Where unit tests exist, strictly adhere to the associated specific instructions.
  - Follow the ordered steps below exactly.
 
@@ -22,5 +23,4 @@ Write and then execute a TODO list following these steps strictly:
 2. If directory/directories %%REQ_DIR%% exists, read it and verify that the application's code follows that documentations.
    - Report any discrepancies with file paths and concise explanations.
 3. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. The unit tests must remain exactly as they are.
-   - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
 4. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
