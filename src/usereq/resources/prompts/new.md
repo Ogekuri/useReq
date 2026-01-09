@@ -40,7 +40,7 @@ Write and then execute a TODO list following these steps strictly:
 4. Ensure the proposed requirement changes do NOT modify existing requirements but only add new ones. Present the requirements that will be added in %%REQ_DOC%%.
 5. If directory/directories %%REQ_DIR%% exists, read it and ensure the proposed code changes conform to that documents; adjust the proposal if needed.
 6. Analyze the proposed source code changes and new requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
-7. Wait for approval.
+7. **CRITICAL**: Wait for approval.
 8. Implement the approved changes in the requirements file %%REQ_DOC%%, following its formatting, language, and the template at [/.req/templates/requirements.md](/.req/templates/requirements.md).
 9. Implement the corresponding changes in the source code.
 10. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.

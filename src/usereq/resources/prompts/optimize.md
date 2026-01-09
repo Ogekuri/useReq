@@ -42,7 +42,7 @@ Write and then execute a TODO list following these steps strictly:
 5. Read %%REQ_DOC%% and confirm that no changes are needed in %%REQ_DOC%%.
 6. If directory/directories %%REQ_DIR%% exists, read it and ensure the proposed code changes conform to that documents; adjust the proposal if needed.
 7. Analyze the proposed source code changes and original requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
-8. Wait for approval.
+8. **CRITICAL**: Wait for approval.
 9. Implement the corresponding changes in the source code.
 10. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
