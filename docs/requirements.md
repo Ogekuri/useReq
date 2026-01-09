@@ -1,7 +1,7 @@
 ---
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
-date: "2026-01-02"
+date: "2026-01-09"
 author: "Astral"
 scope:
   paths:
@@ -17,9 +17,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.18
+**Versione**: 0.19
 **Autore**: Astral  
-**Data**: 2026-01-02
+**Data**: 2026-01-09
 
 ## Indice
 <!-- TOC -->
@@ -64,6 +64,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-02 | 0.16 | Aggiunto requisito per le stampe in lingua inglese. |
 | 2026-01-02 | 0.17 | Aggiunti requisiti per i commenti in lingua italiana nei sorgenti. |
 | 2026-01-02 | 0.18 | Aggiunto requisito per l'ordine delle risorse Kiro. |
+| 2026-01-09 | 0.19 | Aggiunto supporto per la generazione delle risorse OpenCode. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -209,3 +210,5 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.
 - **REQ-045**: Tutte le stampe di usage, help, di informazione, verbose o di debug dello script devono essere in lingua inglese.
 - **REQ-046**: Nei file JSON Kiro, il campo `resources` deve includere come prima voce il file prompt corrispondente in `.kiro/prompts/req.<nome>.md`, seguito dai link ai requirements.
+- **REQ-047**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.opencode/prompts` con lo stesso contenuto generato per `.github/agents`, includendo le sostituzioni `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%`.
+- **REQ-048**: Il comando deve generare un file `opencode.json` nella root del progetto popolando la sezione `agent` con una entry per ciascun prompt disponibile, utilizzando il template `src/usereq/resources/opencode/opencode_agent.json` e valorizzando `prompt` con `{file:./opencode/prompts/req.<nome>.md}`.

@@ -428,6 +428,39 @@ def render_kiro_agent(
     return template
 
 
+def render_opencode_agent(
+    template: str,
+    name: str,
+    description: str,
+    resource: str,
+) -> str:
+    """Compone l'entry OpenCode sostituendo i token previsti."""
+    replacements = {
+        "%%NAME%%": json_escape(name),
+        "%%DESCRIPTION%%": json_escape(description),
+        "%%PROMPT%%": json_escape(resource),
+    }
+    for token, replacement in replacements.items():
+        template = template.replace(token, replacement)
+    return template
+
+
+def write_opencode_config(project_base: Path, entries: list[str]) -> None:
+    """Scrive il file opencode.json a partire dalle entry raccolte."""
+    target = project_base / "opencode.json"
+    lines: list[str] = [
+        "{",
+        '  "$schema": "https://opencode.ai/config.json",',
+        '  "agent": {',
+    ]
+    if entries:
+        block = ",\n".join("    " + entry.replace("\n", "\n    ") for entry in entries)
+        lines.append(block)
+    lines.append("  }")
+    lines.append("}")
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
     """Sostituisce i token nel file indicato."""
     text = path.read_text(encoding="utf-8")
@@ -453,6 +486,14 @@ def load_kiro_template() -> str:
     if candidate.is_file():
         return candidate.read_text(encoding="utf-8")
     raise ReqError("Error: no Kiro template found in resources/kiro", 9)
+
+
+def load_opencode_template() -> str:
+    """Carica il template JSON per le entry OpenCode."""
+    candidate = RESOURCE_ROOT / "opencode" / "opencode_agent.json"
+    if candidate.is_file():
+        return candidate.read_text(encoding="utf-8")
+    raise ReqError("Error: no OpenCode template found in resources/opencode", 9)
 
 
 def strip_json_comments(text: str) -> str:
@@ -568,6 +609,7 @@ def remove_generated_resources(project_base: Path) -> None:
         project_base / ".github" / "prompts",
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
+        project_base / ".opencode" / "prompts",
     ]
     for target in remove_dirs:
         if target.exists():
@@ -588,6 +630,10 @@ def remove_generated_resources(project_base: Path) -> None:
     if req_root.exists():
         ensure_wrapped(req_root, project_base, 10)
         shutil.rmtree(req_root)
+    opencode_file = project_base / "opencode.json"
+    if opencode_file.exists():
+        ensure_wrapped(opencode_file, project_base, 10)
+        opencode_file.unlink()
 
 
 def run_remove(args: Namespace) -> None:
@@ -608,7 +654,7 @@ def run_remove(args: Namespace) -> None:
         )
     restore_vscode_settings(project_base)
     remove_generated_resources(project_base)
-    for root_name in (".gemini", ".codex", ".kiro", ".github", ".vscode"):
+    for root_name in (".gemini", ".codex", ".kiro", ".github", ".vscode", ".opencode"):
         prune_empty_dirs(project_base / root_name)
 
 
@@ -725,6 +771,7 @@ def run(args: Namespace) -> None:
         project_base / ".gemini" / "commands" / "req",
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
+        project_base / ".opencode" / "prompts",
     ):
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -737,7 +784,9 @@ def run(args: Namespace) -> None:
     if not prompts_dir.is_dir():
         prompts_dir = RESOURCE_ROOT / "prompts"
     kiro_template = load_kiro_template()
+    opencode_entries: list[str] = []
     if prompts_dir.is_dir():
+        opencode_template = load_opencode_template()
         for prompt_path in sorted(prompts_dir.glob("*.md")):
             PROMPT = prompt_path.stem
             vlog(f"Processing prompt: {PROMPT}")
@@ -829,6 +878,33 @@ def run(args: Namespace) -> None:
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
                 log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_kiro_agent}")
+
+            dst_opencode_prompt = project_base / ".opencode" / "prompts" / f"req.{PROMPT}.md"
+            existed = dst_opencode_prompt.exists()
+            copy_with_replacements(
+                prompt_path,
+                dst_opencode_prompt,
+                {
+                    "%%REQ_DOC%%": doc_file_list,
+                    "%%REQ_DIR%%": dir_list,
+                    "%%REQ_PATH%%": normalized_doc,
+                    "%%ARGS%%": "$ARGUMENTS",
+                },
+            )
+            if VERBOSE:
+                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_opencode_prompt}")
+
+            resource_ref = f"{{file:.opencode/prompts/req.{PROMPT}.md}}"
+            opencode_entries.append(
+                render_opencode_agent(
+                    opencode_template,
+                    name=f"req.{PROMPT}",
+                    description=description,
+                    resource=resource_ref,
+                )
+            )
+
+        write_opencode_config(project_base, opencode_entries)
 
     templates_target = req_root / "templates"
     if templates_target.exists():
