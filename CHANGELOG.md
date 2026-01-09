@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.17](https://github.com/Ogekuri/useReq/compare/v0.0.16..v0.0.17) - 2026-01-09
+### 🐛  Bug Fixes
+- *(core)* block git write operations.
+
 ## [0.0.14](https://github.com/Ogekuri/useReq/compare/v0.0.13..v0.0.14) - 2026-01-07
 ### 🐛  Bug Fixes
 - *(core)* major fix on templates.
@@ -82,6 +86,7 @@
 - \[0.0.14\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.14
 - \[0.0.15\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.15
 - \[0.0.16\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.16
+- \[0.0.17\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.17
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -99,3 +104,4 @@
 [0.0.14]: https://github.com/Ogekuri/useReq/compare/v0.0.13..v0.0.14
 [0.0.15]: https://github.com/Ogekuri/useReq/compare/v0.0.14..v0.0.15
 [0.0.16]: https://github.com/Ogekuri/useReq/compare/v0.0.15..v0.0.16
+[0.0.17]: https://github.com/Ogekuri/useReq/compare/v0.0.16..v0.0.17
