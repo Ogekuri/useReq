@@ -5,7 +5,7 @@ cosi i chiamanti possono usare `from usereq import main` senza importare
 involontariamente il comportamento completo del pacchetto.
 """
 
-__version__ = "0.0.31"
+__version__ = "0.0.32"
 
 from .cli import main  # riesportazione del punto di ingresso CLI
 
