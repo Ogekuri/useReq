@@ -28,7 +28,7 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
  
 
 ## Flowchart
-<img src="https://ogekuri.github.io/useReq/flowchart.svg" width="100%">
+<img src="https://ogekuri.github.io/useReq/flowchart.svg" width="600">
 
 
 ## Quick Start
