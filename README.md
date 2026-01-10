@@ -30,7 +30,7 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
 ## Flowchart
 
 ![Flowchart](https://ogekuri.github.io/useReq/flowchart.svg)
-<img src="https://ogekuri.github.io/useReq/flowchart.png">
+<img src="https://ogekuri.github.io/useReq/flowchart.svg">
 
 
 ## Quick Start
