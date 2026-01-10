@@ -94,4 +94,5 @@ uv tool uninstall usereq
 - ⛔ OpenCode CLI Agent [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
   - The CLI Agent **does not ask for confirmation** during the confirmation step.
   - **Starts a new session** (`/new`) for every prompt.
-- ✅ Claude Code CLI [`@agent-req-check`]
+- ✅ Claude Code CLI Agent [`@agent-req-check`]
+- ✅ Claude Extension for Visual Studio Code [`@agent-req-check`]
