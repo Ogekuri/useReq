@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.27](https://github.com/Ogekuri/useReq/compare/v0.0.26..v0.0.27) - 2026-01-10
+### 📚  Documentation
+- *(core)* update flowchart.
+
 ## [0.0.26](https://github.com/Ogekuri/useReq/compare/v0.0.25..v0.0.26) - 2026-01-10
 ### 📚  Documentation
 - *(core)* update flowchart.
@@ -132,6 +136,7 @@
 - \[0.0.24\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.24
 - \[0.0.25\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.25
 - \[0.0.26\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.26
+- \[0.0.27\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.27
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -159,3 +164,4 @@
 [0.0.24]: https://github.com/Ogekuri/useReq/compare/v0.0.23..v0.0.24
 [0.0.25]: https://github.com/Ogekuri/useReq/compare/v0.0.24..v0.0.25
 [0.0.26]: https://github.com/Ogekuri/useReq/compare/v0.0.25..v0.0.26
+[0.0.27]: https://github.com/Ogekuri/useReq/compare/v0.0.26..v0.0.27
