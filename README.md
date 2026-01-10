@@ -28,7 +28,11 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
  
 
 ## Flowchart
-![Flowchart](https://ogekuri.github.io/useReq/flowchart.svg?sanitize=true)
+
+Click to zoom flowchart image.
+
+[![Flowchart](https://ogekuri.github.io/useReq/flowchart.png)](https://ogekuri.github.io/useReq/flowchart.svg?sanitize=true)
+
 
 ## Quick Start
 

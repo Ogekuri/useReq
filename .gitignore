@@ -22,6 +22,8 @@
 !requirements.txt
 !.g.conf
 !/**/*.sh
+!/**/*.svg
+!/**/*.png
 !src/
 !src/**/*
 !docs/
