@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.25](https://github.com/Ogekuri/useReq/compare/v0.0.24..v0.0.25) - 2026-01-10
+### 📚  Documentation
+- *(core)* update flowchart.
+
 ## [0.0.24](https://github.com/Ogekuri/useReq/compare/v0.0.23..v0.0.24) - 2026-01-10
 ### ⛰️  Features
 - *(core)* add Claude Code CLI support.
@@ -122,6 +126,7 @@
 - \[0.0.22\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.22
 - \[0.0.23\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.23
 - \[0.0.24\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.24
+- \[0.0.25\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.25
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -147,3 +152,4 @@
 [0.0.22]: https://github.com/Ogekuri/useReq/compare/v0.0.21..v0.0.22
 [0.0.23]: https://github.com/Ogekuri/useReq/compare/v0.0.22..v0.0.23
 [0.0.24]: https://github.com/Ogekuri/useReq/compare/v0.0.23..v0.0.24
+[0.0.25]: https://github.com/Ogekuri/useReq/compare/v0.0.24..v0.0.25
