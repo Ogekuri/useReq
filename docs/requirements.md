@@ -17,9 +17,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.19
+**Versione**: 0.20
 **Autore**: Astral  
-**Data**: 2026-01-09
+**Data**: 2026-01-10
 
 ## Indice
 <!-- TOC -->
@@ -65,6 +65,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-02 | 0.17 | Aggiunti requisiti per i commenti in lingua italiana nei sorgenti. |
 | 2026-01-02 | 0.18 | Aggiunto requisito per l'ordine delle risorse Kiro. |
 | 2026-01-09 | 0.19 | Aggiunto supporto per la generazione delle risorse OpenCode. |
+| 2026-01-10 | 0.20 | Aggiunto supporto per la generazione delle risorse Claude Code CLI. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -212,3 +213,7 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-046**: Nei file JSON Kiro, il campo `resources` deve includere come prima voce il file prompt corrispondente in `.kiro/prompts/req.<nome>.md`, seguito dai link ai requirements.
 - **REQ-047**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.opencode/prompts` con lo stesso contenuto generato per `.github/agents`, includendo le sostituzioni `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%`.
 - **REQ-048**: Il comando deve generare un file `opencode.json` nella root del progetto popolando la sezione `agent` con una entry per ciascun prompt disponibile, utilizzando il template `src/usereq/resources/opencode/opencode_agent.json` e valorizzando `prompt` con `{file:./opencode/prompts/req.<nome>.md}`.
+- **REQ-049**: Il comando deve creare la cartella `.claude/agents` sotto la radice del progetto.
+- **REQ-050**: Per ogni prompt Markdown disponibile, il comando deve generare un file `.claude/agents/req.<nome>.md` applicando le stesse sostituzioni di token usate per `.kiro/prompts`.
+- **REQ-051**: Nei file `.claude/agents/req.<nome>.md`, il front matter iniziale deve includere i campi `name` e `model`, dove `name` deve essere `req-<nome>` e `model` deve essere `inherit`, e deve preservare `description` valorizzandola dal prompt sorgente.
+- **REQ-052**: Quando `--remove` e presente, il comando deve rimuovere i file `.claude/agents/req.*` generati e rimuovere eventuali directory vuote sotto `.claude`.

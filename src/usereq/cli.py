@@ -469,6 +469,11 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def yaml_double_quote_escape(value: str) -> str:
+    """Esegue l'escape minimo per una stringa tra doppi apici in YAML."""
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def find_template_source() -> Path:
     """Restituisce la sorgente dei template o solleva errore."""
     candidate = RESOURCE_ROOT / "templates"
@@ -592,9 +597,13 @@ def prune_empty_dirs(root: Path) -> None:
     """Rimuove le directory vuote sotto la radice indicata."""
     if not root.is_dir():
         return
-    for current, dirs, files in os.walk(root, topdown=False):
-        if not dirs and not files:
-            Path(current).rmdir()
+    for current, _dirs, _files in os.walk(root, topdown=False):
+        current_path = Path(current)
+        try:
+            if not any(current_path.iterdir()):
+                current_path.rmdir()
+        except OSError:
+            continue
 
 
 def remove_generated_resources(project_base: Path) -> None:
@@ -609,6 +618,7 @@ def remove_generated_resources(project_base: Path) -> None:
         project_base / ".github" / "prompts",
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
+        project_base / ".claude" / "agents",
         project_base / ".opencode" / "prompts",
     ]
     for target in remove_dirs:
@@ -654,7 +664,15 @@ def run_remove(args: Namespace) -> None:
         )
     restore_vscode_settings(project_base)
     remove_generated_resources(project_base)
-    for root_name in (".gemini", ".codex", ".kiro", ".github", ".vscode", ".opencode"):
+    for root_name in (
+        ".gemini",
+        ".codex",
+        ".kiro",
+        ".github",
+        ".vscode",
+        ".opencode",
+        ".claude",
+    ):
         prune_empty_dirs(project_base / root_name)
 
 
@@ -771,6 +789,7 @@ def run(args: Namespace) -> None:
         project_base / ".gemini" / "commands" / "req",
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
+        project_base / ".claude" / "agents",
         project_base / ".opencode" / "prompts",
     ):
         folder.mkdir(parents=True, exist_ok=True)
@@ -859,6 +878,31 @@ def run(args: Namespace) -> None:
             )
             if VERBOSE:
                 log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_kiro_prompt}")
+
+            dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
+            existed = dst_claude_agent.exists()
+            desc_yaml = yaml_double_quote_escape(description)
+            claude_header = (
+                "---\n"
+                f"name: req-{PROMPT}\n"
+                f"description: \"{desc_yaml}\"\n"
+                "model: inherit\n"
+                "---\n\n"
+            )
+            claude_text = claude_header + prompt_body
+            for token, replacement in {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "$ARGUMENTS",
+            }.items():
+                claude_text = claude_text.replace(token, replacement)
+            dst_claude_agent.parent.mkdir(parents=True, exist_ok=True)
+            if not claude_text.endswith("\n"):
+                claude_text += "\n"
+            dst_claude_agent.write_text(claude_text, encoding="utf-8")
+            if VERBOSE:
+                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_claude_agent}")
 
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()

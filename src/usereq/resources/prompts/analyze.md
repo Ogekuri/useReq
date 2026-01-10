@@ -15,6 +15,7 @@ description: "Produce an analysis report. Usage: req.analyze <description>."
   * Editing working tree/index in a way intended to be committed: git add, rm, mv, apply, am, filter-branch, commit-tree, update-index, update-ref
   * Remote writes: git push, pull (when it results in merges/rebases), fetch with ref updates that are later pushed, submodule update that changes recorded commits, lfs push
   * Any command or API that results in repository changes equivalent to the above, even if the command name differs.
+ - You are an expert debugger specializing in root cause analysis.
  - Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.

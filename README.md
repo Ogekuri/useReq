@@ -4,26 +4,33 @@
 
 # useReq/req (0.0.23)
 
-The `req` script provides CLI prompts for requirements-driven software.
-The prompts defined are exposed as `req.<name>` commands inside various CLIs and Agents.
-This allows them to be run both as a Python package (installed as `req`,`usereq` or `use-req`) and directly using `uvx`.
+The `req` script provides CLI prompts for requirements-driven software development.
+The defined prompts are exposed as `req.<name>` commands within various CLIs and Agents.
+This allows them to be run both as a Python package (installed as `req`, `usereq`, or `use-req`) and directly using `uvx`.
 
 
 ## Feature Highlights
-- Create a common interface for different CLIs and Agents.
-- Create requirements files for existing projects.
-- Manage requirements files in different languages.
-- Drive development by requirement changes:
+- Lightweight customization
+- Keeps development under control
+- Creates a common interface for different CLIs and Agents.
+- Creates requirements files for existing projects.
+- Manages requirements files in different languages.
+- Drives development through requirement changes:
   | Prompt | Description |
   | --- | --- |
   | `change` | Update the requirements and implement the corresponding changes |
   | `check` | Run the requirements check |
-  | `cover` | Implement changes needed to cover the new requirements |
+  | `cover` | Implement changes to cover new requirements |
   | `fix` | Fix a defect without changing the requirements |
-  | `new` | Implement a new requirement and make the corresponding source code changes |
-  | `optimize` | Perform an optimization without changing the requirements |
-  | `write` | Write a requirement draft from the standard template |
+  | `new` | Implement a new requirement and the corresponding source code changes |
+  | `optimize` | Perform optimizations without changing the requirements |
+  | `write` | Write a draft requirement from a standard template |
  
+
+## Flowchart
+
+![Flowchart](https://ogekuri.github.io/useReq/flowchart.svg)
+<img src="https://ogekuri.github.io/useReq/flowchart.png">
 
 
 ## Quick Start
@@ -34,7 +41,7 @@ This allows them to be run both as a Python package (installed as `req`,`usereq`
 - Install the `uv` tool from: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 
 
-### Run useReq/req live with uvx
+### Run useReq/req with uvx
 ```bash
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
@@ -42,6 +49,7 @@ uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --dir myproject/tech_docs/ \
   --verbose --debug
 ```
+
 ### Install/Uninstall useReq/req with uv
 
 #### Install
@@ -54,36 +62,36 @@ uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git
 uv tool uninstall usereq
 ```
 
-### Usage hints
+### Usage
 - Run `req` to create/re-create `.codex`, `.github`, `.gemini`, `.kiro`, and `.req` in your project repository.
   - Launch `req` from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
-  - `--doc` must be an existing directory under the project base and **shall** contain requirements `.md` files.  If such a file does not exist, it is automatically created from the `requirements.md` template.
-  - `--dir` must be an existing directory under the project base and **can** contain technical folders.
-- You need to run `req` again if you add/remove requirements files `.md` in the `docs/` directory or any subfolders in the `tech/` directory.
+  - `--doc` must be an existing directory under the project base and **must** contain requirements `.md` files.  If one doesn't exist, it is automatically created from the `requirements.md` template.
+  - `--dir` must be an existing directory under the project base and **can** contain technical documentation folders.
+- You need to run `req` again if you add or remove `.md` requirement files in the `docs/` directory or any subfolders in the `tech/` directory.
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 
 
-## Supported CLI and Agents
+## Supported CLIs, Agents, and Extensions
 
-### CLI
+### CLI/prompts
 - ✅ OpenAI Codex CLI [`/prompts:req.write italian`]
 - ✅ GitHub Copilot CLI [`/req.write italian`]
 - ✅ Gemini CLI [`/req:write italian`]
 - ⛔ Kiro CLI [`'@req.write italian'`] (does not work as expected)
-  - Prompt params `$ARGUMENTS` are not evaluated by Kiro CLI
+  - Prompt parameters (`$ARGUMENTS`) are not evaluated by the Kiro CLI.
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
-- ⛔ OpenCode CLI [`<TAB> ➡️ italian ↩️`]
-  - During steps CLI **not ask confirmation** on confim's step.
-  - Do **start new session** `/new` on every prompts.
+- ⛔ OpenCode CLI [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
+  - The CLI **does not ask for confirmation** during the confirmation step.
+  - **Starts a new session** (`/new`) for every prompt.
 
-### Agents
+### CLI/Agents
 - ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
-- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (not working as expected)
-  - Do **start new chat** on every prompts.
+- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
+  - **Starts a new chat** for every prompt.
 - ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
 - ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
-  - Do **clear context** `/clear` on every prompts.
-- ⛔ OpenCode CLI Agent [`<TAB> ➡️ italian ↩️`]
-  - During steps CLI Agent **not ask confirmation** on confim's step.
-  - Do **start new session** `/new` on every prompts.
+  - **Clears the context** (`/clear`) for every prompt.
+- ⛔ OpenCode CLI Agent [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
+  - The CLI Agent **does not ask for confirmation** during the confirmation step.
+  - **Starts a new session** (`/new`) for every prompt.
