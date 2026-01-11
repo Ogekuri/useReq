@@ -78,38 +78,45 @@ uv tool uninstall usereq
 ## Supported CLIs, Agents, and Extensions
 
 ### Support
+
 - ✅ OpenAI Codex
 - ✅ Claude Code
-- ✔️ GitHub Copilot
-- ✔️ Kiro
-- ❌ Gemini Code Assist
-- ⛔ OpenCode
+- ✅ GitHub Copilot
+- ✅ OpenCode
+- ✔️ Gemini Code Assist
+- ✔️ Kiro CLI
+
+| ✅ supported | ✔️ partially supported | ❌ issues | ⛔ not supported |
 
 
 ### Support Details
 
 #### OpenAI Codex
-
-- ✅ OpenAI Codex CLI [`/prompts:req.write italian`]
+- ✅ OpenAI Codex CLI Prompt [`/prompts:req.write italian`]
 - ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
 
-
 #### Claude Code
-
-- ✅ Claude Code CLI Agent [`@agent-req-check`]
-- ✅ Claude Extension for Visual Studio Code [`@agent-req-check`] (does not hightlight agents commands like CLI)
-
+- ✅ Claude Code CLI Prompt [`/req.write italian`]
+- ✅ Claude Code CLI Agent [`@agent-req-write italian`]
+- ✅ Claude Extension for Visual Studio Code [`@agent-req-write italian`] (does not **hightlight** agent's commands like CLI)
 
 #### GitHub Copilot
-
-- ✅ GitHub Copilot CLI [`/req.write italian`]
-- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
+- ✅ GitHub Copilot CLI Prompt [`/req.write italian`]
+- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`]
   * **Starts a new chat** for every prompt.
 
+#### OpenCode
+- ✅ OpenCode CLI Prompt [`/req.write italian`]
+- ✔️ OpenCode CLI Agent [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
+  * **Starts a new session** (`/new`) for every prompt.
+
+#### Gemini Code Assist
+- ✅ Gemini CLI [`/req:write italian`]
+- ⛔ Gemini Code Assist Extension for Visual Studio Code [`???`]
+  * Prompts/Agents not supported by the vs code extension
 
 #### Kiro
-
-- ⛔ Kiro CLI Prompt [`'@req.write italian'`] (does not work as expected)
+- ❌ Kiro CLI Prompt [`'@req.write italian'`] (does not work as expected)
   - Prompt parameters (`$ARGUMENTS`) are not evaluated by the Kiro CLI.
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
@@ -117,14 +124,7 @@ uv tool uninstall usereq
   * **Clears the context** (`/clear`) for every prompt.
 
 
-#### Gemini Code Assist
+## Known Issues
 
-- ✅ Gemini CLI [`/req:write italian`]
-- ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
-
-
-#### OpenCode
-
-- ⛔ OpenCode CLI Agent [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
-  * The CLI Agent **does not ask for confirmation** during the confirmation step.
-  * **Starts a new session** (`/new`) for every prompt.
+- **Grok Code Fast 1** does not respect TODO list and not wait for approval 
+  * Defect #3180 → [Bug: Grok Code Fast 1 not update to do list correctly #3180](https://github.com/Kilo-Org/kilocode/issues/3180)

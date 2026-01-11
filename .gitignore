@@ -9,8 +9,11 @@
 ##########################################
 # Include specific files and directories #
 ##########################################
-!/.github/workflows/*.yml
-!/.github/workflows/*.yaml
+!/.github/
+!/.github/workflows/
+!/.github/workflows/**/*.yml
+!/.github/workflows/
+!/.github/workflows/**/*.yaml
 !/.gitignore
 !README.md
 !CHANGELOG.md
@@ -42,6 +45,10 @@
 ##########################################
 # Exlucde specific files and directories #
 ##########################################
+
+# Exlude github agents and prompts
+.github/agents/
+.github/prompts/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

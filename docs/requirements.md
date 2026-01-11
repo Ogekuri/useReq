@@ -1,8 +1,9 @@
 ---
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
-date: "2026-01-09"
-author: "Astral"
+date: "2026-01-11"
+version: 0.30
+author: "Ogekuri"
 scope:
   paths:
     - "**/*.py"
@@ -17,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.20
-**Autore**: Astral  
-**Data**: 2026-01-10
+**Versione**: 0.30
+**Autore**: Ogekuri  
+**Data**: 2026-01-11
 
 ## Indice
 <!-- TOC -->
@@ -66,6 +67,15 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-02 | 0.18 | Aggiunto requisito per l'ordine delle risorse Kiro. |
 | 2026-01-09 | 0.19 | Aggiunto supporto per la generazione delle risorse OpenCode. |
 | 2026-01-10 | 0.20 | Aggiunto supporto per la generazione delle risorse Claude Code CLI. |
+| 2026-01-11 | 0.21 | Modificato supporto OpenCode: rimossa generazione opencode.json, aggiunta generazione agenti individuali in .opencode/agent/ con mode "all". |
+| 2026-01-11 | 0.22 | Modificato generazione agenti OpenCode in .opencode/agent/ da JSON a Markdown con front matter. |
+| 2026-01-11 | 0.23 | Rimossa generazione della cartella .opencode/prompts. |
+| 2026-01-11 | 0.24 | Aggiunto requisito REQ-053: generazione front matter `name` per gli agenti in `.github/agents`. |
+| 2026-01-11 | 0.25 | Rimosso obbligo `model: inherit` per gli agenti in `.github/agents` (REQ-053 aggiornato). |
+| 2026-01-11 | 0.27 | Aggiunto output dettagliato negli unit test per mostrare lista test, esecuzione corrente, controllo e esito.
+| 2026-01-11 | 0.28 | Evitata la generazione di .req/settings.json.absent; --remove non modifica .vscode/settings.json; merge idempotente delle impostazioni VS Code.
+| 2026-01-11 | 0.29 | Chiarito comportamento di --remove: la cartella .req deve essere rimossa completamente; rimosso obbligo di ripristino delle impostazioni VS Code durante --remove.
+| 2026-01-11 | 0.30 | Aggiunti requisiti e workflow GitHub Actions per build su tag v* e generazione attestazioni per release.
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -160,7 +170,7 @@ Non sono stati trovati test unitari nel repository.
 - **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate a partire dai prompt Markdown disponibili.
 - **DES-006**: L'entry point del pacchetto deve esporre `usereq.cli:main` tramite `use-req`, `req` e `usereq`.
 - **DES-007**: Gli errori previsti devono essere gestiti tramite un'eccezione dedicata con codice di uscita non nullo.
-- **DES-008**: Tutti i commenti nei codici sorgenti devono essere scritti esclusivamente in lingua italiana. Fanno eccezione i commenti di intestazioni dei file sorgenti. Ad esempio, i commenti che indicano versioni e/o autori come "# VERSION:" o "# AUTHORS:" che mantendono la formattazione standard in lingua inglese.
+- **DES-008**: Tutti i commenti nei codici sorgenti devono essere scritti esclusivamente in lingua italiana. Fanno eccezione i commenti di intestazioni dei file sorgenti. Ad esempio, i commenti che indicano versioni e/o autori come "# VERSION:" o "# AUTHORS:" che mantengono la formattazione standard in lingua inglese.
 - **DES-009**: Ogni parte importante del codice (classi, funzioni complesse, logica di business, algoritmi critici) deve essere adeguatamente commentata.
 - **DES-010**: Ogni nuova funzionalita aggiunta deve includere commenti esplicativi e, in caso di modifica di codice esistente, i commenti preesistenti devono essere aggiornati per riflettere il nuovo comportamento.
 
@@ -206,14 +216,43 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-039**: Quando `--remove` e presente, il comando deve richiedere obbligatoriamente `--base` o `--here` e deve rifiutare l'uso di `--doc`, `--dir` o `--update`.
 - **REQ-040**: Quando `--remove` e presente, il comando deve verificare l'esistenza del file `.req/config.json` nella root di progetto e terminare con errore se assente.
 - **REQ-041**: Prima di modificare `.vscode/settings.json`, il comando deve salvare lo stato originale in un file di backup sotto `.req/` per consentire il ripristino con `--remove`.
-- **REQ-042**: Quando `--remove` e presente, il comando deve ripristinare `.vscode/settings.json` allo stato originale usando il backup salvato o rimuovere il file se in origine non esisteva.
-- **REQ-043**: Quando `--remove` e presente, il comando deve rimuovere le risorse create: `.codex/prompts/req.*`, `.github/agents/req.*`, `.github/prompts/req.*`, `.gemini/commands/req/`, `.kiro/agents/req.*`, `.kiro/prompts/req.*`, `.req/templates/`, `.req/config.json` e la cartella `.req/` completa.
+- **REQ-042**: Quando `--remove` è presente, il comando non deve ripristinare `.vscode/settings.json` dallo stato originale usando backup conservati in `.req/` (la directory `.req/` sarà rimossa quando l'opzione --remove è usata).
+- **REQ-043**: Quando `--remove` è presente, il comando deve rimuovere le risorse create: `.codex/prompts/req.*`, `.github/agents/req.*`, `.github/prompts/req.*`, `.gemini/commands/req/`, `.kiro/agents/req.*`, `.kiro/prompts/req.*`, `.req/templates/`, `.req/config.json` e la cartella `.req/` completa (tutti i file e le sottocartelle devono essere eliminati).
+- **REQ-055**: Il file `.req/settings.json.absent` non deve mai essere generato dal comando.
+- **REQ-056**: Quando `--remove` è presente, il comando non deve in alcun caso modificare o rimuovere il file `.vscode/settings.json` presente nella root del progetto, anche se in precedenza era stato creato da useReq.
+- **REQ-057**: Durante l'installazione o l'aggiornamento delle impostazioni VS Code (`.vscode/settings.json`), il comando deve calcolare il risultato del merge e verificare se il contenuto risultante differisce dal contenuto attualmente presente; se non vi sono differenze semantiche, il comando non deve riscrivere il file né creare backup. Se sono previste modifiche, il comando deve creare un backup solo se il file target già esiste, quindi applicare le modifiche.
 - **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.
 - **REQ-045**: Tutte le stampe di usage, help, di informazione, verbose o di debug dello script devono essere in lingua inglese.
 - **REQ-046**: Nei file JSON Kiro, il campo `resources` deve includere come prima voce il file prompt corrispondente in `.kiro/prompts/req.<nome>.md`, seguito dai link ai requirements.
-- **REQ-047**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.opencode/prompts` con lo stesso contenuto generato per `.github/agents`, includendo le sostituzioni `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%`.
-- **REQ-048**: Il comando deve generare un file `opencode.json` nella root del progetto popolando la sezione `agent` con una entry per ciascun prompt disponibile, utilizzando il template `src/usereq/resources/opencode/opencode_agent.json` e valorizzando `prompt` con `{file:./opencode/prompts/req.<nome>.md}`.
+- **REQ-047**: Per ogni prompt Markdown disponibile, il comando deve generare un file Markdown in `.opencode/agent` con nome `req.<nome>.md` con front matter contenente `description` dalla descrizione del front matter del prompt e `mode` impostato a "all", seguito dal corpo del prompt con le sostituzioni `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%`.
+- **REQ-048**: Il comando deve creare la cartella `.opencode/agent` sotto la radice del progetto.
 - **REQ-049**: Il comando deve creare la cartella `.claude/agents` sotto la radice del progetto.
 - **REQ-050**: Per ogni prompt Markdown disponibile, il comando deve generare un file `.claude/agents/req.<nome>.md` applicando le stesse sostituzioni di token usate per `.kiro/prompts`.
 - **REQ-051**: Nei file `.claude/agents/req.<nome>.md`, il front matter iniziale deve includere i campi `name` e `model`, dove `name` deve essere `req-<nome>` e `model` deve essere `inherit`, e deve preservare `description` valorizzandola dal prompt sorgente.
-- **REQ-052**: Quando `--remove` e presente, il comando deve rimuovere i file `.claude/agents/req.*` generati e rimuovere eventuali directory vuote sotto `.claude`.
+- **REQ-052**: Quando `--remove` e presente, il comando deve rimuovere i file `.claude/agents/req.*` generati e rimuovere eventuali directory vuote sotto `.claude`, e i file `.opencode/agent/req.*` generati.
+- **REQ-058**: Il comando deve creare la cartella `.opencode/command` sotto la radice del progetto.
+- **REQ-059**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.opencode/command` con nome `req.<nome>.md` utilizzando le stesse sostituzioni (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) applicate per `.kiro/prompts`. Quando `--remove` è presente, i file generati in `.opencode/command` devono essere rimossi e le directory vuote sotto `.opencode` eliminate.
+ - **REQ-053**: Per ogni prompt Markdown disponibile, il comando deve generare un file `.github/agents/req.<nome>.agent.md` con front matter che includa `name` impostato a `req-<nome>`, preservando `description` dal prompt sorgente.
+- **REQ-054**: Il progetto deve includere una suite di unit test (`tests/test_cli.py`) che verifichi il corretto funzionamento dello script CLI eseguendo le seguenti operazioni: (1) creare una directory di test vuota in `temp/project-test`, rimuovendola se già presente; (2) creare le sottocartelle `docs` e `tech`; (3) eseguire lo script con parametri `--base temp/project-test`, `--doc temp/project-test/docs` e `--dir temp/project-test/tech`; (4) verificare che la struttura dei file e directory generata e i relativi contenuti siano conformi ai requisiti documentati. Inoltre, la suite di test deve fornire output dettagliato durante l'esecuzione, mostrando la lista di tutti i test disponibili, quale test è in esecuzione in quel momento, cosa controllerà (basato sulla descrizione del metodo), e l'esito del test (PASS o FAIL).
+
+ - **REQ-060**: Il comando deve creare la cartella `.claude/commands` e la sua sottocartella `.claude/commands/req` sotto la radice del progetto.
+ - **REQ-061**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.claude/commands/req` con nome `<nome>.md` (senza il prefisso `req.`), applicando le stesse sostituzioni (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) usate per `.codex/prompts`.
+ - **REQ-062**: Quando `--remove` è presente, il comando deve rimuovere i file generati in `.claude/commands/req` e rimuovere eventuali directory vuote sotto `.claude`.
+- **REQ-063**: Il repository deve includere un workflow GitHub Actions sotto `.github/workflows/` che si attiva su push di tag che matchano `v*`.
+- **REQ-064**: Il workflow deve eseguire la build delle distribuzioni Python del pacchetto (sdist e wheel) producendo gli output sotto `dist/`.
+- **REQ-065**: Il workflow deve creare (o aggiornare) una GitHub Release per il tag e caricare come asset tutti i file prodotti in `dist/`.
+- **REQ-066**: Il workflow deve generare le artifact attestations (build provenance) per i file in `dist/` usando OIDC, in modo che le attestations risultino visibili nell’interfaccia web di GitHub per la release/asset.
+- **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.
+- **REQ-045**: Tutte le stampe di usage, help, di informazione, verbose o di debug dello script devono essere in lingua inglese.
+- **REQ-046**: Nei file JSON Kiro, il campo `resources` deve includere come prima voce il file prompt corrispondente in `.kiro/prompts/req.<nome>.md`, seguito dai link ai requirements.
+- **REQ-047**: Per ogni prompt Markdown disponibile, il comando deve generare un file Markdown in `.opencode/agent` con nome `req.<nome>.md` con front matter contenente `description` dalla descrizione del front matter del prompt e `mode` impostato a "all", seguito dal corpo del prompt con le sostituzioni `%%REQ_DOC%%`, `%%REQ_DIR%%` e `%%ARGS%%`.
+- **REQ-048**: Il comando deve creare la cartella `.opencode/agent` sotto la radice del progetto.
+- **REQ-049**: Il comando deve creare la cartella `.claude/agents` sotto la radice del progetto.
+- **REQ-050**: Per ogni prompt Markdown disponibile, il comando deve generare un file `.claude/agents/req.<nome>.md` applicando le stesse sostituzioni di token usate per `.kiro/prompts`.
+- **REQ-051**: Nei file `.claude/agents/req.<nome>.md`, il front matter iniziale deve includere i campi `name` e `model`, dove `name` deve essere `req-<nome>` e `model` deve essere `inherit`, e deve preservare `description` valorizzandola dal prompt sorgente.
+- **REQ-052**: Quando `--remove` e presente, il comando deve rimuovere i file `.claude/agents/req.*` generati e rimuovere eventuali directory vuote sotto `.claude`, e i file `.opencode/agent/req.*` generati.
+- **REQ-058**: Il comando deve creare la cartella `.opencode/command` sotto la radice del progetto.
+- **REQ-059**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.opencode/command` con nome `req.<nome>.md` utilizzando le stesse sostituzioni (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) applicate per `.kiro/prompts`. Quando `--remove` è presente, i file generati in `.opencode/command` devono essere rimossi e le directory vuote sotto `.opencode` eliminate.
+ - **REQ-053**: Per ogni prompt Markdown disponibile, il comando deve generare un file `.github/agents/req.<nome>.agent.md` con front matter che includa `name` impostato a `req-<nome>`, preservando `description` dal prompt sorgente.
+- **REQ-054**: Il progetto deve includere una suite di unit test (`tests/test_cli.py`) che verifichi il corretto funzionamento dello script CLI eseguendo le seguenti operazioni: (1) creare una directory di test vuota in `temp/project-test`, rimuovendola se già presente; (2) creare le sottocartelle `docs` e `tech`; (3) eseguire lo script con parametri `--base temp/project-test`, `--doc temp/project-test/docs` e `--dir temp/project-test/tech`; (4) verificare che la struttura dei file e directory generata e i relativi contenuti siano conformi ai requisiti documentati. Inoltre, la suite di test deve fornire output dettagliato durante l'esecuzione, mostrando la lista di tutti i test disponibili, quale test è in esecuzione in quel momento, cosa controllerà (basato sulla descrizione del metodo), e l'esito del test (PASS o FAIL).
+

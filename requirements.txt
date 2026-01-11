@@ -1,1 +1,5 @@
-
+# Runtime CLI uses only the Python stdlib; the packages listed here support builds and tests.
+build>=1.0.0
+setuptools>=68.0.0
+wheel>=0.41.0
+pytest>=8.0.0

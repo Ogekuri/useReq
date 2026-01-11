@@ -1,4 +1,5 @@
 """Punto di ingresso CLI che implementa il flusso di inizializzazione di useReq."""
+
 from __future__ import annotations
 
 import argparse
@@ -20,6 +21,7 @@ DEBUG = False
 
 class ReqError(Exception):
     """Eccezione dedicata per errori previsti della CLI."""
+
     def __init__(self, message: str, code: int = 1) -> None:
         super().__init__(message)
         self.message = message
@@ -57,16 +59,41 @@ def build_parser() -> argparse.ArgumentParser:
         usage=usage,
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--base", type=Path, help="Directory root of the project to update.")
-    group.add_argument("--here", action="store_true", help="Use current working directory as the project root.")
-    parser.add_argument("--doc", help="Directory containing documentation files relative to the project root.")
-    parser.add_argument("--dir", help="Technical directory relative to the project root.")
-    parser.add_argument("--upgrade", action="store_true", help="Upgrade the tool with uv.")
-    parser.add_argument("--uninstall", action="store_true", help="Uninstall the tool with uv.")
-    parser.add_argument("--update", action="store_true", help="Re-run the command using .req/config.json.")
-    parser.add_argument("--remove", action="store_true", help="Remove resources created by the tool.")
-    parser.add_argument("--verbose", action="store_true", help="Show verbose progress messages.")
-    parser.add_argument("--debug", action="store_true", help="Show debug logs for diagnostics.")
+    group.add_argument(
+        "--base", type=Path, help="Directory root of the project to update."
+    )
+    group.add_argument(
+        "--here",
+        action="store_true",
+        help="Use current working directory as the project root.",
+    )
+    parser.add_argument(
+        "--doc",
+        help="Directory containing documentation files relative to the project root.",
+    )
+    parser.add_argument(
+        "--dir", help="Technical directory relative to the project root."
+    )
+    parser.add_argument(
+        "--upgrade", action="store_true", help="Upgrade the tool with uv."
+    )
+    parser.add_argument(
+        "--uninstall", action="store_true", help="Uninstall the tool with uv."
+    )
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Re-run the command using .req/config.json.",
+    )
+    parser.add_argument(
+        "--remove", action="store_true", help="Remove resources created by the tool."
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="Show verbose progress messages."
+    )
+    parser.add_argument(
+        "--debug", action="store_true", help="Show debug logs for diagnostics."
+    )
     return parser
 
 
@@ -141,7 +168,10 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
     if not resolved.is_relative_to(project_base):
         raise ReqError("Error: --doc must be under the project base", 5)
     if not doc_path.exists():
-        raise ReqError(f"Error: the --doc directory '{normalized}' does not exist under {project_base}", 5)
+        raise ReqError(
+            f"Error: the --doc directory '{normalized}' does not exist under {project_base}",
+            5,
+        )
     if not doc_path.is_dir():
         raise ReqError(f"Error: --doc must specify a directory, not a file", 5)
 
@@ -189,7 +219,9 @@ def format_substituted_path(value: str) -> str:
     return value.replace(os.sep, "/")
 
 
-def compute_sub_path(normalized: str, absolute: Optional[Path], project_base: Path) -> str:
+def compute_sub_path(
+    normalized: str, absolute: Optional[Path], project_base: Path
+) -> str:
     """Calcola il percorso relativo da usare nei token."""
     if not normalized:
         return ""
@@ -207,7 +239,9 @@ def save_config(project_base: Path, doc_value: str, dir_value: str) -> None:
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"doc": doc_value, "dir": dir_value}
-    config_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    config_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def load_config(project_base: Path) -> dict[str, str]:
@@ -235,7 +269,7 @@ def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
     """Genera l'elenco markdown dei file per la sostituzione di %%REQ_DOC%%."""
     if not doc_dir.is_dir():
         return ""
-    
+
     files = []
     for file_path in sorted(doc_dir.iterdir()):
         if file_path.is_file():
@@ -245,22 +279,15 @@ def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
                 files.append(f"[{rel_str}]({rel_str})")
             except ValueError:
                 continue
-    
+
     return ", ".join(files)
-    if not raw:
-        return ""
-    normalized = raw.replace("\\", "/").strip("/")
-    if not normalized:
-        return ""
-    suffix = "/" if keep_trailing and raw.endswith("/") else ""
-    return f"{normalized}{suffix}"
 
 
 def generate_dir_list(dir_path: Path, project_base: Path) -> str:
     """Genera l'elenco markdown delle directory per la sostituzione di %%REQ_DIR%%."""
     if not dir_path.is_dir():
         return ""
-    
+
     subdirs = []
     for subdir_path in sorted(dir_path.iterdir()):
         if subdir_path.is_dir():
@@ -270,7 +297,7 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
                 subdirs.append(f"[{rel_str}]({rel_str})")
             except ValueError:
                 continue
-    
+
     # Se non ci sono sottodirectory, usa la directory stessa.
     if not subdirs:
         try:
@@ -279,7 +306,7 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
             return f"[{rel_str}]({rel_str})"
         except ValueError:
             return ""
-    
+
     return ", ".join(subdirs)
 
 
@@ -307,7 +334,9 @@ def ensure_relative(value: str, name: str, code: int) -> None:
         )
 
 
-def copy_with_replacements(src: Path, dst: Path, replacements: Mapping[str, str]) -> None:
+def copy_with_replacements(
+    src: Path, dst: Path, replacements: Mapping[str, str]
+) -> None:
     """Copia un file sostituendo i token indicati con i relativi valori."""
     text = src.read_text(encoding="utf-8")
     for token, replacement in replacements.items():
@@ -330,7 +359,8 @@ def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
     """Converte un prompt Markdown in TOML per Gemini."""
     if toml_path.exists() and not force:
         raise ReqError(
-            f"Destination TOML already exists (use --force to overwrite): {toml_path}", 3
+            f"Destination TOML already exists (use --force to overwrite): {toml_path}",
+            3,
         )
     content = md_path.read_text(encoding="utf-8")
     match = re.match(r"^\s*---\s*\n(.*?)\n---\s*\n(.*)$", content, re.S)
@@ -340,7 +370,14 @@ def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
     desc = extract_description(frontmatter)
     desc_escaped = desc.replace("\\", "\\\\").replace('"', '\\"')
     rest_text = rest if rest.endswith("\n") else rest + "\n"
-    toml_body = [f'description = "{desc_escaped}"', "", 'prompt = """', rest_text, '"""', ""]
+    toml_body = [
+        f'description = "{desc_escaped}"',
+        "",
+        'prompt = """',
+        rest_text,
+        '"""',
+        "",
+    ]
     toml_path.parent.mkdir(parents=True, exist_ok=True)
     toml_path.write_text("\n".join(toml_body), encoding="utf-8")
     dlog(f"Wrote TOML to: {toml_path}")
@@ -351,7 +388,8 @@ def extract_frontmatter(content: str) -> tuple[str, str]:
     match = re.match(r"^\s*---\s*\n(.*?)\n---\s*\n(.*)$", content, re.S)
     if not match:
         raise ReqError("No leading '---' block found at start of Markdown file.", 4)
-    return match.groups()
+    # Explicitamente ritorniamo due stringhe per soddisfare l'annotazione di tipo.
+    return match.group(1), match.group(2)
 
 
 def extract_description(frontmatter: str) -> str:
@@ -428,39 +466,6 @@ def render_kiro_agent(
     return template
 
 
-def render_opencode_agent(
-    template: str,
-    name: str,
-    description: str,
-    resource: str,
-) -> str:
-    """Compone l'entry OpenCode sostituendo i token previsti."""
-    replacements = {
-        "%%NAME%%": json_escape(name),
-        "%%DESCRIPTION%%": json_escape(description),
-        "%%PROMPT%%": json_escape(resource),
-    }
-    for token, replacement in replacements.items():
-        template = template.replace(token, replacement)
-    return template
-
-
-def write_opencode_config(project_base: Path, entries: list[str]) -> None:
-    """Scrive il file opencode.json a partire dalle entry raccolte."""
-    target = project_base / "opencode.json"
-    lines: list[str] = [
-        "{",
-        '  "$schema": "https://opencode.ai/config.json",',
-        '  "agent": {',
-    ]
-    if entries:
-        block = ",\n".join("    " + entry.replace("\n", "\n    ") for entry in entries)
-        lines.append(block)
-    lines.append("  }")
-    lines.append("}")
-    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
     """Sostituisce i token nel file indicato."""
     text = path.read_text(encoding="utf-8")
@@ -491,14 +496,6 @@ def load_kiro_template() -> str:
     if candidate.is_file():
         return candidate.read_text(encoding="utf-8")
     raise ReqError("Error: no Kiro template found in resources/kiro", 9)
-
-
-def load_opencode_template() -> str:
-    """Carica il template JSON per le entry OpenCode."""
-    candidate = RESOURCE_ROOT / "opencode" / "opencode_agent.json"
-    if candidate.is_file():
-        return candidate.read_text(encoding="utf-8")
-    raise ReqError("Error: no OpenCode template found in resources/opencode", 9)
 
 
 def strip_json_comments(text: str) -> str:
@@ -569,28 +566,23 @@ def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
 
 
 def save_vscode_backup(req_root: Path, settings_path: Path) -> None:
-    """Salva un backup delle impostazioni VS Code."""
+    """Salva un backup delle impostazioni VS Code se il file esiste."""
     backup_path = req_root / "settings.json.backup"
-    absent_marker = req_root / "settings.json.absent"
+    # Non creare mai un marker di assenza. Creiamo il backup solo se il file esiste.
     if settings_path.exists():
+        req_root.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(settings_path, backup_path)
-        if absent_marker.exists():
-            absent_marker.unlink()
-    else:
-        absent_marker.write_text("", encoding="utf-8")
 
 
 def restore_vscode_settings(project_base: Path) -> None:
-    """Ripristina le impostazioni VS Code dal backup."""
+    """Ripristina le impostazioni VS Code dal backup, se presente."""
     req_root = project_base / ".req"
     backup_path = req_root / "settings.json.backup"
-    absent_marker = req_root / "settings.json.absent"
     target_settings = project_base / ".vscode" / "settings.json"
     if backup_path.exists():
         target_settings.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(backup_path, target_settings)
-    elif absent_marker.exists() and target_settings.exists():
-        target_settings.unlink()
+    # Non rimuovere il file target se non esiste backup: comportamento di ripristino disabilitato altrimenti.
 
 
 def prune_empty_dirs(root: Path) -> None:
@@ -610,6 +602,7 @@ def remove_generated_resources(project_base: Path) -> None:
     """Rimuove risorse generate dallo strumento nella root di progetto."""
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
+        project_base / ".claude" / "commands" / "req",
         project_base / ".req" / "templates",
     ]
     remove_globs = [
@@ -619,7 +612,9 @@ def remove_generated_resources(project_base: Path) -> None:
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
         project_base / ".claude" / "agents",
-        project_base / ".opencode" / "prompts",
+        project_base / ".claude" / "commands",
+        project_base / ".opencode" / "agent",
+        project_base / ".opencode" / "command",
     ]
     for target in remove_dirs:
         if target.exists():
@@ -640,10 +635,6 @@ def remove_generated_resources(project_base: Path) -> None:
     if req_root.exists():
         ensure_wrapped(req_root, project_base, 10)
         shutil.rmtree(req_root)
-    opencode_file = project_base / "opencode.json"
-    if opencode_file.exists():
-        ensure_wrapped(opencode_file, project_base, 10)
-        opencode_file.unlink()
 
 
 def run_remove(args: Namespace) -> None:
@@ -662,7 +653,7 @@ def run_remove(args: Namespace) -> None:
             "Error: .req/config.json not found in the project root",
             11,
         )
-    restore_vscode_settings(project_base)
+    # Non eseguire alcun ripristino o rimozione di .vscode/settings.json durante la rimozione.
     remove_generated_resources(project_base)
     for root_name in (
         ".gemini",
@@ -726,8 +717,16 @@ def run(args: Namespace) -> None:
     if abs_dir and not abs_dir.resolve().is_relative_to(project_base):
         raise ReqError("Error: --dir must be under the project base", 8)
 
-    config_doc = f"{normalized_doc}/" if doc_has_trailing_slash and normalized_doc else normalized_doc
-    config_dir = f"{normalized_dir}/" if dir_has_trailing_slash and normalized_dir else normalized_dir
+    config_doc = (
+        f"{normalized_doc}/"
+        if doc_has_trailing_slash and normalized_doc
+        else normalized_doc
+    )
+    config_dir = (
+        f"{normalized_dir}/"
+        if dir_has_trailing_slash and normalized_dir
+        else normalized_dir
+    )
 
     tech_dest = project_base / normalized_dir
     if not tech_dest.is_dir():
@@ -790,7 +789,10 @@ def run(args: Namespace) -> None:
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
         project_base / ".claude" / "agents",
-        project_base / ".opencode" / "prompts",
+        project_base / ".claude" / "commands",
+        project_base / ".claude" / "commands" / "req",
+        project_base / ".opencode" / "agent",
+        project_base / ".opencode" / "command",
     ):
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -803,9 +805,7 @@ def run(args: Namespace) -> None:
     if not prompts_dir.is_dir():
         prompts_dir = RESOURCE_ROOT / "prompts"
     kiro_template = load_kiro_template()
-    opencode_entries: list[str] = []
     if prompts_dir.is_dir():
-        opencode_template = load_opencode_template()
         for prompt_path in sorted(prompts_dir.glob("*.md")):
             PROMPT = prompt_path.stem
             vlog(f"Processing prompt: {PROMPT}")
@@ -826,28 +826,36 @@ def run(args: Namespace) -> None:
                 },
             )
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_codex}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex}")
 
             dst_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
             existed = dst_agent.exists()
-            copy_with_replacements(
-                prompt_path,
-                dst_agent,
-                {
-                    "%%REQ_DOC%%": doc_file_list,
-                    "%%REQ_DIR%%": dir_list,
-                    "%%REQ_PATH%%": normalized_doc,
-                    "%%ARGS%%": "$ARGUMENTS",
-                },
+            desc_yaml = yaml_double_quote_escape(description)
+            github_header = (
+                f'---\nname: req.{PROMPT}\ndescription: "{desc_yaml}"\n---\n\n'
             )
+            github_text = github_header + prompt_body
+            for token, replacement in {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "$ARGUMENTS",
+            }.items():
+                github_text = github_text.replace(token, replacement)
+            dst_agent.parent.mkdir(parents=True, exist_ok=True)
+            if not github_text.endswith("\n"):
+                github_text += "\n"
+            dst_agent.write_text(github_text, encoding="utf-8")
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_agent}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_agent}")
 
-            dst_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
+            dst_prompt = (
+                project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
+            )
             existed = dst_prompt.exists()
             dst_prompt.write_text(f"---\nagent: req.{PROMPT}\n---\n", encoding="utf-8")
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_prompt}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_prompt}")
 
             dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
             existed = dst_toml.exists()
@@ -862,7 +870,7 @@ def run(args: Namespace) -> None:
                 },
             )
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_toml}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
 
             dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
@@ -877,7 +885,7 @@ def run(args: Namespace) -> None:
                 },
             )
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_kiro_prompt}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
 
             dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
             existed = dst_claude_agent.exists()
@@ -885,7 +893,7 @@ def run(args: Namespace) -> None:
             claude_header = (
                 "---\n"
                 f"name: req-{PROMPT}\n"
-                f"description: \"{desc_yaml}\"\n"
+                f'description: "{desc_yaml}"\n'
                 "model: inherit\n"
                 "---\n\n"
             )
@@ -902,7 +910,7 @@ def run(args: Namespace) -> None:
                 claude_text += "\n"
             dst_claude_agent.write_text(claude_text, encoding="utf-8")
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_claude_agent}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
 
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()
@@ -921,13 +929,37 @@ def run(args: Namespace) -> None:
             )
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_kiro_agent}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
 
-            dst_opencode_prompt = project_base / ".opencode" / "prompts" / f"req.{PROMPT}.md"
-            existed = dst_opencode_prompt.exists()
+            dst_opencode_agent = (
+                project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
+            )
+            existed = dst_opencode_agent.exists()
+            desc_yaml = yaml_double_quote_escape(description)
+            opencode_header = f'---\ndescription: "{desc_yaml}"\nmode: all\n---\n\n'
+            opencode_text = opencode_header + prompt_body
+            for token, replacement in {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "$ARGUMENTS",
+            }.items():
+                opencode_text = opencode_text.replace(token, replacement)
+            dst_opencode_agent.parent.mkdir(parents=True, exist_ok=True)
+            if not opencode_text.endswith("\n"):
+                opencode_text += "\n"
+            dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
+
+            # Also copy prompt into .opencode/command as plain markdown with same substitutions
+            dst_opencode_command = (
+                project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
+            )
+            existed = dst_opencode_command.exists()
             copy_with_replacements(
                 prompt_path,
-                dst_opencode_prompt,
+                dst_opencode_command,
                 {
                     "%%REQ_DOC%%": doc_file_list,
                     "%%REQ_DIR%%": dir_list,
@@ -936,19 +968,25 @@ def run(args: Namespace) -> None:
                 },
             )
             if VERBOSE:
-                log(f"{ 'OVERWROTE' if existed else 'COPIED' }: {dst_opencode_prompt}")
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
 
-            resource_ref = f"{{file:.opencode/prompts/req.{PROMPT}.md}}"
-            opencode_entries.append(
-                render_opencode_agent(
-                    opencode_template,
-                    name=f"req.{PROMPT}",
-                    description=description,
-                    resource=resource_ref,
-                )
+            # Also copy prompt into .claude/commands/req mirroring .codex/prompts behavior
+            dst_claude_command = (
+                project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
             )
-
-        write_opencode_config(project_base, opencode_entries)
+            existed = dst_claude_command.exists()
+            copy_with_replacements(
+                prompt_path,
+                dst_claude_command,
+                {
+                    "%%REQ_DOC%%": doc_file_list,
+                    "%%REQ_DIR%%": dir_list,
+                    "%%REQ_PATH%%": normalized_doc,
+                    "%%ARGS%%": "$ARGUMENTS",
+                },
+            )
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
 
     templates_target = req_root / "templates"
     if templates_target.exists():
@@ -965,18 +1003,43 @@ def run(args: Namespace) -> None:
         vscode_dir = project_base / ".vscode"
         vscode_dir.mkdir(parents=True, exist_ok=True)
         target_settings = vscode_dir / "settings.json"
-        save_vscode_backup(req_root, target_settings)
-        merged_settings: dict[str, Any] = {}
+
+        # Carichiamo le impostazioni esistenti (se presenti) e quelle del template.
+        existing_settings: dict[str, Any] = {}
         if target_settings.exists():
-            merged_settings = load_settings(target_settings)
+            try:
+                existing_settings = load_settings(target_settings)
+            except Exception:
+                # Se non siamo in grado di caricare le impostazioni esistenti, consideriamo il file come non presente
+                existing_settings = {}
+
         src_settings = load_settings(vscode_settings_src)
-        merged_settings = deep_merge_dict(merged_settings, src_settings)
+
+        # Calcoliamo il merge semantico senza modificare l'originale finché non siamo sicuri.
+        import copy
+
+        final_settings = copy.deepcopy(existing_settings)
+        final_settings = deep_merge_dict(final_settings, src_settings)
+
         prompt_recs = build_prompt_recommendations(prompts_dir)
         if prompt_recs:
-            merged_settings["chat.promptFilesRecommendations"] = prompt_recs
-        target_settings.write_text(json.dumps(merged_settings, indent=2, ensure_ascii=False), encoding="utf-8")
-        if VERBOSE:
-            log(f"OK: merged settings.json in {target_settings}")
+            final_settings["chat.promptFilesRecommendations"] = prompt_recs
+
+        # Se il risultato finale è identico a quanto già presente, non riscriviamo il file né creiamo backup.
+        if existing_settings == final_settings:
+            if VERBOSE:
+                log(f"OK: settings.json already up-to-date in {target_settings}")
+        else:
+            # Se sono previste modifiche, creiamo backup solo se il file esiste.
+            if target_settings.exists():
+                save_vscode_backup(req_root, target_settings)
+            # Scriviamo le impostazioni finali sul file target.
+            target_settings.write_text(
+                json.dumps(final_settings, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            if VERBOSE:
+                log(f"OK: merged settings.json in {target_settings}")
 
 
 def main(argv: Optional[list[str]] = None) -> int:
