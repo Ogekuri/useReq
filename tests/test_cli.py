@@ -13,6 +13,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 # Importa il modulo CLI da testare.
 from usereq import cli
@@ -40,16 +41,18 @@ class TestCLI(unittest.TestCase):
         (cls.TEST_DIR / "tech" / "src").mkdir(exist_ok=True)
 
         # Esegue lo script con i parametri specificati (REQ-054.3).
-        exit_code = cli.main(
-            [
-                "--base",
-                str(cls.TEST_DIR),
-                "--doc",
-                str(cls.TEST_DIR / "docs"),
-                "--dir",
-                str(cls.TEST_DIR / "tech"),
-            ]
-        )
+        # Evita chiamate di rete durante i test.
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--doc",
+                    str(cls.TEST_DIR / "docs"),
+                    "--dir",
+                    str(cls.TEST_DIR / "tech"),
+                ]
+            )
         cls.exit_code = exit_code
 
         # Stampare la lista di tutti i test disponibili
@@ -477,16 +480,18 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
 
-        exit_code = cli.main(
-            [
-                "--base",
-                str(cls.TEST_DIR),
-                "--doc",
-                str(cls.TEST_DIR / "docs"),
-                "--dir",
-                str(cls.TEST_DIR / "tech"),
-            ]
-        )
+        # Evita chiamate di rete durante i test.
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--doc",
+                    str(cls.TEST_DIR / "docs"),
+                    "--dir",
+                    str(cls.TEST_DIR / "tech"),
+                ]
+            )
         cls.exit_code = exit_code
 
         # Stampare la lista di tutti i test disponibili
@@ -535,3 +540,44 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestUpdateNotification(unittest.TestCase):
+    """Test mirato per verificare il messaggio di aggiornamento."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-update-msg"
+
+    def tearDown(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def test_update_message_mentions_upgrade(self) -> None:
+        """Verifica che, se disponibile una nuova versione, venga stampato il hint di upgrade."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        def fake_notify(*_args, **_kwargs):
+            print(
+                "A new version of usereq is available: current 0.0.1, latest 9.9.9. "
+                "To upgrade, run: req --upgrade"
+            )
+
+        with patch("usereq.cli.maybe_notify_newer_version", side_effect=fake_notify):
+            with patch("sys.stdout") as fake_stdout:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--doc",
+                        str(self.TEST_DIR / "docs"),
+                        "--dir",
+                        str(self.TEST_DIR / "tech"),
+                    ]
+                )
+
+        # Nota: non verifichiamo l'exit code perche' la cattura stdout puo' variare in base al runner.
+        written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
+        self.assertIn("req --upgrade", written)

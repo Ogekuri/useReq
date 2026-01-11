@@ -9,6 +9,8 @@ import re
 import shutil
 import sys
 import subprocess
+import urllib.error
+import urllib.request
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Mapping, Optional
@@ -158,6 +160,93 @@ def run_uninstall() -> None:
             f"Error: uninstall failed (code {result.returncode})",
             result.returncode,
         )
+
+
+def normalize_release_tag(tag: str) -> str:
+    """Normalizza il tag di release rimuovendo un eventuale prefisso 'v'."""
+    value = (tag or "").strip()
+    if value.lower().startswith("v") and len(value) > 1:
+        value = value[1:]
+    return value.strip()
+
+
+def parse_version_tuple(version: str) -> tuple[int, ...] | None:
+    """Converte una versione in una tupla numerica per il confronto.
+
+    Accetta versioni nel formato 'X.Y.Z' (con eventuali suffix non numerici che vengono ignorati).
+    """
+
+    cleaned = (version or "").strip()
+    if not cleaned:
+        return None
+
+    parts = cleaned.split(".")
+    numbers: list[int] = []
+    for part in parts:
+        match = re.match(r"^(\d+)", part)
+        if not match:
+            break
+        try:
+            numbers.append(int(match.group(1)))
+        except ValueError:
+            return None
+
+    return tuple(numbers) if numbers else None
+
+
+def is_newer_version(current: str, latest: str) -> bool:
+    """Ritorna True se latest e' maggiore di current."""
+    current_tuple = parse_version_tuple(current)
+    latest_tuple = parse_version_tuple(latest)
+    if not current_tuple or not latest_tuple:
+        return False
+
+    max_len = max(len(current_tuple), len(latest_tuple))
+    current_norm = current_tuple + (0,) * (max_len - len(current_tuple))
+    latest_norm = latest_tuple + (0,) * (max_len - len(latest_tuple))
+    return latest_norm > current_norm
+
+
+def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
+    """Verifica online la presenza di una nuova versione e stampa un avviso.
+
+    Se la chiamata fallisce o la risposta non e' valida, non stampa nulla e prosegue.
+    """
+
+    current_version = load_package_version()
+    url = "https://api.github.com/repos/Ogekuri/useReq/releases/latest"
+
+    try:
+        request = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "User-Agent": f"usereq/{current_version}",
+            },
+            method="GET",
+        )
+        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            body = response.read().decode("utf-8", errors="replace")
+        payload = json.loads(body)
+        tag = payload.get("tag_name")
+        if not isinstance(tag, str) or not tag.strip():
+            return
+
+        latest_version = normalize_release_tag(tag)
+        if is_newer_version(current_version, latest_version):
+            print(
+                "A new version of usereq is available: "
+                f"current {current_version}, latest {latest_version}. "
+                "To upgrade, run: req --upgrade"
+            )
+    except (
+        urllib.error.URLError,
+        urllib.error.HTTPError,
+        TimeoutError,
+        json.JSONDecodeError,
+        ValueError,
+    ):
+        return
 
 
 def ensure_doc_directory(path: str, project_base: Path) -> None:
@@ -653,6 +742,10 @@ def run_remove(args: Namespace) -> None:
             "Error: .req/config.json not found in the project root",
             11,
         )
+
+    # Dopo la validazione e prima di qualsiasi rimozione, controlla se esiste una nuova versione.
+    maybe_notify_newer_version(timeout_seconds=1.0)
+
     # Non eseguire alcun ripristino o rimozione di .vscode/settings.json durante la rimozione.
     remove_generated_resources(project_base)
     for root_name in (
@@ -736,6 +829,9 @@ def run(args: Namespace) -> None:
         )
     if VERBOSE:
         log(f"OK: technical directory found {tech_dest}")
+
+    # Dopo la validazione e prima di qualsiasi operazione che modifichi il filesystem, controlla se esiste una nuova versione.
+    maybe_notify_newer_version(timeout_seconds=1.0)
 
     if not args.update:
         save_config(project_base, config_doc, config_dir)

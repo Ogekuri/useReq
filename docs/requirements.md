@@ -2,7 +2,7 @@
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
 date: "2026-01-11"
-version: 0.30
+version: 0.31
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti di useReq
-**Versione**: 0.30
+**Versione**: 0.31
 **Autore**: Ogekuri  
 **Data**: 2026-01-11
 
@@ -76,6 +76,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-11 | 0.28 | Evitata la generazione di .req/settings.json.absent; --remove non modifica .vscode/settings.json; merge idempotente delle impostazioni VS Code.
 | 2026-01-11 | 0.29 | Chiarito comportamento di --remove: la cartella .req deve essere rimossa completamente; rimosso obbligo di ripristino delle impostazioni VS Code durante --remove.
 | 2026-01-11 | 0.30 | Aggiunti requisiti e workflow GitHub Actions per build su tag v* e generazione attestazioni per release.
+| 2026-01-11 | 0.31 | Aggiunto controllo online disponibilità nuova versione (GitHub releases latest).
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -242,6 +243,8 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-064**: Il workflow deve eseguire la build delle distribuzioni Python del pacchetto (sdist e wheel) producendo gli output sotto `dist/`.
 - **REQ-065**: Il workflow deve creare (o aggiornare) una GitHub Release per il tag e caricare come asset tutti i file prodotti in `dist/`.
 - **REQ-066**: Il workflow deve generare le artifact attestations (build provenance) per i file in `dist/` usando OIDC, in modo che le attestations risultino visibili nell’interfaccia web di GitHub per la release/asset.
+- **REQ-067**: Il comando, dopo aver validato con successo gli input e prima di eseguire qualsiasi operazione che modifichi il filesystem, deve verificare online la disponibilità di una nuova versione effettuando una chiamata HTTP GET a `https://api.github.com/repos/Ogekuri/useReq/releases/latest` con timeout di 1 secondo.
+- **REQ-068**: Se la chiamata fallisce (timeout/errore di rete/risposta non valida), il comando deve proseguire senza stampare nulla. Se la chiamata ha successo e la versione remota (letta dal campo `tag_name` del JSON e normalizzata rimuovendo un eventuale prefisso `v`) è maggiore di `__version__`, il comando deve stampare un messaggio in inglese indicando versione attuale e versione disponibile e deve indicare come aggiornare usando `req --upgrade`.
 - **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.
 - **REQ-045**: Tutte le stampe di usage, help, di informazione, verbose o di debug dello script devono essere in lingua inglese.
 - **REQ-046**: Nei file JSON Kiro, il campo `resources` deve includere come prima voce il file prompt corrispondente in `.kiro/prompts/req.<nome>.md`, seguito dai link ai requirements.
