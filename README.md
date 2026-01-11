@@ -10,12 +10,15 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
 
 
 ## Feature Highlights
-- Lightweight customization
-- Keeps development under control
+- Drives development through requirement changes.
+- Keeps development under control.
 - Creates a common interface for different CLIs and Agents.
 - Creates requirements files for existing projects.
 - Manages requirements files in different languages.
-- Drives development through requirement changes:
+- Lightweight customization.
+
+
+## Prompts/Agents
   | Prompt | Description |
   | --- | --- |
   | `change` | Update the requirements and implement the corresponding changes |
