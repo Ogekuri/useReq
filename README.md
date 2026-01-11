@@ -27,7 +27,7 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
   | `write` | Write a draft requirement from a standard template |
  
 
-## Flowchart
+## Default Workflow
 
 Click to zoom flowchart image.
 
