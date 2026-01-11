@@ -22,8 +22,6 @@
 !requirements.txt
 !.g.conf
 !/**/*.sh
-!/**/*.svg
-!/**/*.png
 !src/
 !src/**/*
 !docs/
@@ -38,6 +36,8 @@
 !other-stuff/**/*
 !scripts/
 !scripts/**/*
+!images/
+!images/**/*
 
 ##########################################
 # Exlucde specific files and directories #
