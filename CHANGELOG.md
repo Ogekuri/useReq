@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.34](https://github.com/Ogekuri/useReq/compare/v0.0.33..v0.0.34) - 2026-01-11
+### 🐛  Bug Fixes
+- *(core)* add images folder.
+
 ## [0.0.33](https://github.com/Ogekuri/useReq/compare/v0.0.32..v0.0.33) - 2026-01-10
 ### 📚  Documentation
 - *(core)* update README.md.
@@ -167,6 +171,7 @@
 - \[0.0.31\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.31
 - \[0.0.32\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.32
 - \[0.0.33\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.33
+- \[0.0.34\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.34
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -201,3 +206,4 @@
 [0.0.31]: https://github.com/Ogekuri/useReq/compare/v0.0.30..v0.0.31
 [0.0.32]: https://github.com/Ogekuri/useReq/compare/v0.0.31..v0.0.32
 [0.0.33]: https://github.com/Ogekuri/useReq/compare/v0.0.32..v0.0.33
+[0.0.34]: https://github.com/Ogekuri/useReq/compare/v0.0.33..v0.0.34
