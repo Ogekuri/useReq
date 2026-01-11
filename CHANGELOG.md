@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.39](https://github.com/Ogekuri/useReq/compare/v0.0.38..v0.0.39) - 2026-01-11
+### 🐛  Bug Fixes
+- *(core)* major fix opencode.
+
 ## [0.0.38](https://github.com/Ogekuri/useReq/compare/v0.0.37..v0.0.38) - 2026-01-11
 ### 📚  Documentation
 - *(core)* update README.md.
@@ -192,6 +196,7 @@
 - \[0.0.36\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.36
 - \[0.0.37\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.37
 - \[0.0.38\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.38
+- \[0.0.39\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.39
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -231,3 +236,4 @@
 [0.0.36]: https://github.com/Ogekuri/useReq/compare/v0.0.35..v0.0.36
 [0.0.37]: https://github.com/Ogekuri/useReq/compare/v0.0.36..v0.0.37
 [0.0.38]: https://github.com/Ogekuri/useReq/compare/v0.0.37..v0.0.38
+[0.0.39]: https://github.com/Ogekuri/useReq/compare/v0.0.38..v0.0.39
