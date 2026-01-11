@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.37](https://github.com/Ogekuri/useReq/compare/v0.0.36..v0.0.37) - 2026-01-11
+### 📚  Documentation
+- *(core)* update README.md.
+
 ## [0.0.36](https://github.com/Ogekuri/useReq/compare/v0.0.35..v0.0.36) - 2026-01-11
 ### 📚  Documentation
 - *(core)* update README.md.
@@ -182,6 +186,7 @@
 - \[0.0.34\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.34
 - \[0.0.35\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.35
 - \[0.0.36\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.36
+- \[0.0.37\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.37
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -219,3 +224,4 @@
 [0.0.34]: https://github.com/Ogekuri/useReq/compare/v0.0.33..v0.0.34
 [0.0.35]: https://github.com/Ogekuri/useReq/compare/v0.0.34..v0.0.35
 [0.0.36]: https://github.com/Ogekuri/useReq/compare/v0.0.35..v0.0.36
+[0.0.37]: https://github.com/Ogekuri/useReq/compare/v0.0.36..v0.0.37
