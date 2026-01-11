@@ -74,25 +74,54 @@ uv tool uninstall usereq
 
 ## Supported CLIs, Agents, and Extensions
 
-### CLI/prompts
+### Support
+- ✅ OpenAI Codex
+- ✅ Claude Code
+- ✔️ GitHub Copilot
+- ✔️ Kiro
+- ❌ Gemini Code Assist
+- ⛔ OpenCode
+
+
+### Support Details
+
+#### OpenAI Codex
+
 - ✅ OpenAI Codex CLI [`/prompts:req.write italian`]
+- ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
+
+
+#### Claude Code
+
+- ✅ Claude Code CLI Agent [`@agent-req-check`]
+- ✅ Claude Extension for Visual Studio Code [`@agent-req-check`] (does not hightlight agents commands like CLI)
+
+
+#### GitHub Copilot
+
 - ✅ GitHub Copilot CLI [`/req.write italian`]
-- ✅ Gemini CLI [`/req:write italian`]
+- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
+  * **Starts a new chat** for every prompt.
+
+
+#### Kiro
+
 - ⛔ Kiro CLI Prompt [`'@req.write italian'`] (does not work as expected)
   - Prompt parameters (`$ARGUMENTS`) are not evaluated by the Kiro CLI.
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
-
-
-### CLI/Agents Extensions/Prompts Extensions/Agents
-- ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
-- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
-  - **Starts a new chat** for every prompt.
-- ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
 - ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
-  - **Clears the context** (`/clear`) for every prompt.
+  * **Clears the context** (`/clear`) for every prompt.
+
+
+#### Gemini Code Assist
+
+- ✅ Gemini CLI [`/req:write italian`]
+- ❌ Gemini Code Assist Extension for Visual Studio Code [`???`]
+
+
+#### OpenCode
+
 - ⛔ OpenCode CLI Agent [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
-  - The CLI Agent **does not ask for confirmation** during the confirmation step.
-  - **Starts a new session** (`/new`) for every prompt.
-- ✅ Claude Code CLI Agent [`@agent-req-check`]
-- ✅ Claude Extension for Visual Studio Code [`@agent-req-check`]
+  * The CLI Agent **does not ask for confirmation** during the confirmation step.
+  * **Starts a new session** (`/new`) for every prompt.
