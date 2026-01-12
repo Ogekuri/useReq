@@ -27,7 +27,8 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
   | `fix` | Fix a defect without changing the requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
   | `optimize` | Perform optimizations without changing the requirements |
-  | `write` | Write a draft requirement from a standard template |
+  | `write` | Write a draft requirement following a standard template and the prompt's input |
+  | `create` | Write a draft requirement following a standard template and the current project |
  
 
 ## Default Workflow
@@ -92,37 +93,37 @@ uv tool uninstall usereq
 ### Support Details
 
 #### OpenAI Codex
-- ✅ OpenAI Codex CLI Prompt [`/prompts:req.write italian`]
+- ✅ OpenAI Codex CLI Prompt [`/prompts:req.create italian`]
   * set environment variable **CODEX_HOME** to project's home before run codex CLI
-- ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
+- ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.create italian`]
   * set environment variable **CODEX_HOME** to project's home before run VS Code
 
 #### Claude Code
-- ✅ Claude Code CLI Prompt [`/req.write italian`]
-- ✅ Claude Code CLI Agent [`@agent-req-write italian`]
-- ✅ Claude Extension for Visual Studio Code [`@agent-req-write italian`] (does not **hightlight** agent's commands like CLI)
+- ✅ Claude Code CLI Prompt [`/req.create italian`]
+- ✅ Claude Code CLI Agent [`@agent-req-create italian`]
+- ✅ Claude Extension for Visual Studio Code [`@agent-req-create italian`] (does not **hightlight** agent's commands like CLI)
 
 #### GitHub Copilot
-- ✅ GitHub Copilot CLI Prompt [`/req.write italian`]
-- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.write; italian ↩️`]
+- ✅ GitHub Copilot CLI Prompt [`/req.create italian`]
+- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.create; italian ↩️`]
   * **Starts a new chat** for every prompt.
 
 #### OpenCode
-- ✅ OpenCode CLI Prompt [`/req.write italian`]
-- ✔️ OpenCode CLI Agent [`<TAB> ➡️ Req.Write ➡️ italian ↩️`]
+- ✅ OpenCode CLI Prompt [`/req.create italian`]
+- ✔️ OpenCode CLI Agent [`<TAB> ➡️ Req.Create ➡️ italian ↩️`]
   * **Starts a new session** (`/new`) for every prompt.
 
 #### Gemini Code Assist
-- ✅ Gemini CLI [`/req:write italian`]
+- ✅ Gemini CLI [`/req:create italian`]
 - ⛔ Gemini Code Assist Extension for Visual Studio Code [`???`]
   * Prompts/Agents not supported by the vs code extension
 
 #### Kiro
-- ❌ Kiro CLI Prompt [`'@req.write italian'`] (does not work as expected)
+- ❌ Kiro CLI Prompt [`'@req.create italian'`] (does not work as expected)
   - Prompt parameters (`$ARGUMENTS`) are not evaluated by the Kiro CLI.
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
-- ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.write; italian ↩️`] (does not work as expected)
+- ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.create; italian ↩️`] (does not work as expected)
   * **Clears the context** (`/clear`) for every prompt.
 
 
