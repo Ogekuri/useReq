@@ -79,7 +79,7 @@ uv tool uninstall usereq
 
 ### Support
 
-- ✅ OpenAI Codex
+- ✅ OpenAI Codex (set environment variable **CODEX_HOME** to project's home)
 - ✅ Claude Code
 - ✅ GitHub Copilot
 - ✅ OpenCode
@@ -93,7 +93,9 @@ uv tool uninstall usereq
 
 #### OpenAI Codex
 - ✅ OpenAI Codex CLI Prompt [`/prompts:req.write italian`]
+  * set environment variable **CODEX_HOME** to project's home before run codex CLI
 - ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.write italian`]
+  * set environment variable **CODEX_HOME** to project's home before run VS Code
 
 #### Claude Code
 - ✅ Claude Code CLI Prompt [`/req.write italian`]
