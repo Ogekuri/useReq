@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.43](https://github.com/Ogekuri/useReq/compare/v0.0.42..v0.0.43) - 2026-01-13
+### 🐛  Bug Fixes
+- *(core)* change prioritize for change, optimize, new and cover.
+
 ## [0.0.42](https://github.com/Ogekuri/useReq/compare/v0.0.41..v0.0.42) - 2026-01-12
 ### ⛰️  Features
 - *(core)* rename write into create, implement write.
@@ -212,6 +216,7 @@
 - \[0.0.40\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.40
 - \[0.0.41\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.41
 - \[0.0.42\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.42
+- \[0.0.43\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.43
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -255,3 +260,4 @@
 [0.0.40]: https://github.com/Ogekuri/useReq/compare/v0.0.39..v0.0.40
 [0.0.41]: https://github.com/Ogekuri/useReq/compare/v0.0.40..v0.0.41
 [0.0.42]: https://github.com/Ogekuri/useReq/compare/v0.0.41..v0.0.42
+[0.0.43]: https://github.com/Ogekuri/useReq/compare/v0.0.42..v0.0.43
