@@ -18,7 +18,7 @@ description: "Implement changes needed to cover the new requirements. Usage: req
  - Always strictly respect requirements.
  - Use technical documents to implement features and changes.
  - Preserve the original language of documents, comments, and printed output.
- - Prioritize clean implementation over legacy support. Breaking changes are allowed. Do not add backward compatibility of any kind (no shims, adapters, fallbacks, legacy paths, deprecated formats, or transitional behavior) and do not implement migrations or auto-upgrades.
+ - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. Do not implement migrations, auto-upgrades or any conversion logic.
  - Do not make unrelated edits.
  - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
  - Where unit tests exist, strictly adhere to the associated specific instructions.
