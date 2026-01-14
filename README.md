@@ -21,15 +21,16 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
 ## Prompts/Agents
   | Prompt | Description |
   | --- | --- |
+  | `analyze` | Produce an analysis report |
   | `change` | Update the requirements and implement the corresponding changes |
   | `check` | Run the requirements check |
   | `cover` | Implement changes to cover new requirements |
+  | `create` | Write a draft requirement following a standard template and the current project |
   | `fix` | Fix a defect without changing the requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
   | `optimize` | Perform optimizations without changing the requirements |
   | `write` | Write a draft requirement following a standard template and the prompt's input |
-  | `create` | Write a draft requirement following a standard template and the current project |
- 
+
 
 ## Default Workflow
 
@@ -131,3 +132,44 @@ uv tool uninstall usereq
 
 - **Grok Code Fast 1** does not respect TODO list and not wait for approval 
   * Defect #3180 → [Bug: Grok Code Fast 1 not update to do list correctly #3180](https://github.com/Kilo-Org/kilocode/issues/3180)
+
+
+## Enable model and tools on prompts/agents
+
+The --enable-tools switch include "tools:" specification on prompts according read/write needs.
+
+The --enable-models switch include "model:" specification on prompts according below tables.
+
+### GitHub Copilot
+
+#### Available Models, Costs, Context Lenght, Reasoning [1]
+
+  | Model | Cost | Context Lenght | Reasoning [1] |
+  | --- | --- | --- | --- |
+| Grok Code Fast 0 (copilot) | 0x | 256K | |
+| Claude Haiku 4.5 (copilot) | 0.33 | 200K | |
+| Claude Sonnet 4.5 (copilot) | 1x | 1M | |
+| Claude Opus 4.5 (copilot) | 3x | 200K | Yes |
+| Gemini 3 Flash (Preview) (copilot) | 0.33 | 1,05M | |
+| Gemini 3 Pro (Preview) (copilot) | 1x | 1,05M | **Yes** |
+| GPT-5 mini (copilot) | 0x | 400K | **Yes** |
+| GPT-5.1 (copilot) | 1x | 400K | **Yes** |
+| GPT-5.1-Codex-Mini (Preview) (copilot) | 0.33 | 400K | |
+| GPT-5.1-Codex (copilot) | 1x | 400K | |
+| GPT-5.1-Codex-Max (copilot) | 1x | 400K | |
+| GPT-5.2 (copilot) | 1x | 400K | Yes |
+
+[1] *reasoning usage according openrouter.ai*
+
+#### Configured Models
+
+  | Prompt | Model |
+  | --- | --- |
+  | `change` | GPT-5 mini (copilot) |
+  | `check` | Gemini 3 Flash (Preview) (copilot) |
+  | `cover` | GPT-5.1-Codex-Max  (copilot) |
+  | `fix` | GPT-5.1-Codex-Max (copilot) |
+  | `new` | GPT-5 mini (copilot) |
+  | `optimize` | GPT-5.2 (copilot) |
+  | `write` | Gemini 3 Pro (Preview) (copilot) |
+  | `create` | Gemini 3 Pro (Preview) (copilot) |

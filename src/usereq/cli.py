@@ -96,6 +96,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--debug", action="store_true", help="Show debug logs for diagnostics."
     )
+    parser.add_argument(
+        "--enable-models",
+        action="store_true",
+        help="Include 'model' in generated prompts/agents when available from CLI configs.",
+    )
+    parser.add_argument(
+        "--enable-tools",
+        action="store_true",
+        help="Include 'tools' in generated prompts/agents when available from CLI configs.",
+    )
     return parser
 
 
@@ -552,7 +562,17 @@ def render_kiro_agent(
     }
     for token, replacement in replacements.items():
         template = template.replace(token, replacement)
-    return template
+    # Try to parse resulting template as JSON and inject model/tools if present markers exist
+    try:
+        parsed = json.loads(template)
+        # Normalize resources format if it's a string block
+        if isinstance(parsed.get("resources"), str):
+            # leave as-is
+            pass
+        return json.dumps(parsed, indent=2, ensure_ascii=False) + "\n"
+    except Exception:
+        # If parsing fails, return raw template to preserve previous behavior
+        return template
 
 
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
@@ -616,6 +636,56 @@ def load_settings(path: Path) -> dict[str, Any]:
         cleaned = strip_json_comments(raw)
         dlog(f"Parsed {path} after removing comments")
         return json.loads(cleaned)
+
+
+def load_cli_configs(resource_root: Path) -> dict[str, dict[str, Any] | None]:
+    """Carica i file config.json per le CLI supportate se presenti.
+
+    Restituisce una mappa nome_cli -> parsed_json o None se non presente.
+    """
+    result: dict[str, dict[str, Any] | None] = {}
+    for name in ("claude", "copilot", "opencode", "kiro", "gemini"):
+        candidate = resource_root / name / "config.json"
+        if candidate.is_file():
+            try:
+                result[name] = load_settings(candidate)
+            except Exception:
+                dlog(f"Failed loading config for {name}: {candidate}")
+                result[name] = None
+        else:
+            result[name] = None
+    return result
+
+
+def get_model_tools_for_prompt(
+    config: dict[str, Any] | None, prompt_name: str
+) -> tuple[Optional[str], Optional[list[str]]]:
+    """Estrae model e tools per il prompt dal config della CLI.
+
+    Ritorna (model, tools) dove ogni valore puo' essere None se non disponibile.
+    """
+    if not config:
+        return None, None
+    prompts = config.get("prompts") or {}
+    entry = prompts.get(prompt_name) if isinstance(prompts, dict) else None
+    model = None
+    tools: Optional[list[str]] = None
+    if isinstance(entry, dict):
+        model = entry.get("model")
+        mode = entry.get("mode")
+        if mode:
+            usage = config.get("usage_modes") or {}
+            mode_entry = usage.get(mode) if isinstance(usage, dict) else None
+            if isinstance(mode_entry, dict):
+                tools = mode_entry.get("tools")
+    return model, tools
+
+
+def format_tools_inline_list(tools: list[str]) -> str:
+    """Formatta la lista tools come inline YAML/TOML/MD: ['a', 'b']."""
+    safe = [t.replace("'", "\\'") for t in tools]
+    quoted = ", ".join(f"'{s}'" for s in safe)
+    return f"[{quoted}]"
 
 
 def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
@@ -901,6 +971,17 @@ def run(args: Namespace) -> None:
     if not prompts_dir.is_dir():
         prompts_dir = RESOURCE_ROOT / "prompts"
     kiro_template = load_kiro_template()
+    # Load CLI configs only if requested to include model/tools
+    configs: dict[str, dict[str, Any] | None] = {}
+    try:
+        include_models = args.enable_models
+        include_tools = args.enable_tools
+    except Exception:
+        include_models = False
+        include_tools = False
+    if include_models or include_tools:
+        configs = load_cli_configs(RESOURCE_ROOT)
+
     if prompts_dir.is_dir():
         for prompt_path in sorted(prompts_dir.glob("*.md")):
             PROMPT = prompt_path.stem
@@ -927,9 +1008,18 @@ def run(args: Namespace) -> None:
             dst_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
             existed = dst_agent.exists()
             desc_yaml = yaml_double_quote_escape(description)
-            github_header = (
-                f'---\nname: req.{PROMPT}\ndescription: "{desc_yaml}"\n---\n\n'
-            )
+            # Determine model/tools for GitHub agent from copilot config
+            gh_model = None
+            gh_tools = None
+            if configs:
+                gh_model, gh_tools = get_model_tools_for_prompt(configs.get("copilot"), PROMPT)
+
+            github_header_lines = ["---", f"name: req.{PROMPT}", f'description: "{desc_yaml}"']
+            if include_models and gh_model:
+                github_header_lines.append(f"model: {gh_model}")
+            if include_tools and gh_tools:
+                github_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
+            github_header = "\n".join(github_header_lines) + "\n---\n\n"
             github_text = github_header + prompt_body
             for token, replacement in {
                 "%%REQ_DOC%%": doc_file_list,
@@ -965,6 +1055,23 @@ def run(args: Namespace) -> None:
                     "%%ARGS%%": "{{args}}",
                 },
             )
+            # Optionally inject model/tools into the TOML for Gemini
+            if configs and (include_models or include_tools):
+                gem_model, gem_tools = get_model_tools_for_prompt(configs.get("gemini"), PROMPT)
+                if gem_model or gem_tools:
+                    content = dst_toml.read_text(encoding="utf-8")
+                    # Insert after the first line (description = ...)
+                    parts = content.split("\n", 1)
+                    if len(parts) == 2:
+                        first, rest = parts
+                        inject_lines: list[str] = []
+                        if include_models and gem_model:
+                            inject_lines.append(f'model = "{gem_model}"')
+                        if include_tools and gem_tools:
+                            inject_lines.append(f"tools = {format_tools_inline_list(gem_tools)}")
+                        if inject_lines:
+                            content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
+                            dst_toml.write_text(content, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
 
@@ -990,9 +1097,25 @@ def run(args: Namespace) -> None:
                 "---\n"
                 f"name: req-{PROMPT}\n"
                 f'description: "{desc_yaml}"\n'
+                # default model: inherit — may be overridden below
                 "model: inherit\n"
                 "---\n\n"
             )
+            # Optionally override model/tools for Claude using its config
+            claude_model = None
+            claude_tools = None
+            if configs:
+                claude_model, claude_tools = get_model_tools_for_prompt(configs.get("claude"), PROMPT)
+
+            claude_header_lines = ["---", f"name: req-{PROMPT}", f'description: "{desc_yaml}"']
+            # If user asked to include model and we have one, use it; otherwise keep inherit
+            if include_models and claude_model:
+                claude_header_lines.append(f"model: {claude_model}")
+            else:
+                claude_header_lines.append("model: inherit")
+            if include_tools and claude_tools:
+                claude_header_lines.append(f"tools: {format_tools_inline_list(claude_tools)}")
+            claude_header = "\n".join(claude_header_lines) + "\n---\n\n"
             claude_text = claude_header + prompt_body
             for token, replacement in {
                 "%%REQ_DOC%%": doc_file_list,
@@ -1023,6 +1146,18 @@ def run(args: Namespace) -> None:
                 prompt=prompt_body,
                 resources=kiro_resources,
             )
+            # Optionally inject model/tools into Kiro agent JSON
+            if configs and (include_models or include_tools):
+                try:
+                    parsed = json.loads(agent_content)
+                    kiro_model, kiro_tools = get_model_tools_for_prompt(configs.get("kiro"), PROMPT)
+                    if include_models and kiro_model is not None:
+                        parsed["model"] = kiro_model
+                    if include_tools and isinstance(kiro_tools, list):
+                        parsed["tools"] = kiro_tools
+                    agent_content = json.dumps(parsed, indent=2, ensure_ascii=False) + "\n"
+                except Exception:
+                    dlog(f"Unable to inject model/tools into Kiro agent for {PROMPT}")
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
@@ -1032,7 +1167,15 @@ def run(args: Namespace) -> None:
             )
             existed = dst_opencode_agent.exists()
             desc_yaml = yaml_double_quote_escape(description)
-            opencode_header = f'---\ndescription: "{desc_yaml}"\nmode: all\n---\n\n'
+            # Optionally include model/tools for OpenCode
+            opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
+            if configs:
+                oc_model, oc_tools = get_model_tools_for_prompt(configs.get("opencode"), PROMPT)
+                if include_models and oc_model:
+                    opencode_header_lines.append(f"model: {oc_model}")
+                if include_tools and oc_tools:
+                    opencode_header_lines.append(f"tools: {format_tools_inline_list(oc_tools)}")
+            opencode_header = "\n".join(opencode_header_lines) + "\n---\n\n"
             opencode_text = opencode_header + prompt_body
             for token, replacement in {
                 "%%REQ_DOC%%": doc_file_list,

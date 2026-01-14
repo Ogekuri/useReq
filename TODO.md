@@ -17,6 +17,8 @@
 - [x] new: Develop Kiro CLI Agent support
 - [x] new: Develop OpenCode CLI Agent support
 - [x] new: Develop Claude CLI Agent support
+- [x] new: Add --enable-models to GitHub Copilot
+- [x] new: Add --enable-tools to GitHub Copilot
 - [ ] test: Testing and bug fixes
 - [ ] new: Testing and bug fixes
 - [ ] new: Beta stage release

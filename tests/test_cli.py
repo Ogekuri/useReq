@@ -459,6 +459,135 @@ class TestCLI(unittest.TestCase):
         )
 
 
+class TestModelsAndTools(unittest.TestCase):
+    """Verifica l'inclusione condizionale di model e tools nei file generati."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-models"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Prepara progetto di test
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        # Crea risorse di config temporanee sotto una cartella resources temporanea
+        tmp_resources = Path(__file__).resolve().parents[1] / "temp" / "resources"
+        if tmp_resources.exists():
+            shutil.rmtree(tmp_resources)
+        (tmp_resources / "copilot").mkdir(parents=True, exist_ok=True)
+        (tmp_resources / "claude").mkdir(parents=True, exist_ok=True)
+        (tmp_resources / "gemini").mkdir(parents=True, exist_ok=True)
+        (tmp_resources / "kiro").mkdir(parents=True, exist_ok=True)
+        (tmp_resources / "opencode").mkdir(parents=True, exist_ok=True)
+
+        sample_config = {
+            "settings": {"version": "1.0.0"},
+            "prompts": {"analyze": {"model": "GPT-5 mini (copilot)", "mode": "read_write"}},
+            "usage_modes": {"read_write": {"tools": ["vscode", "execute", "read"]}}
+        }
+
+        for name in ("copilot", "claude", "gemini", "kiro", "opencode"):
+            cfg_path = tmp_resources / name / "config.json"
+            cfg_path.write_text(json.dumps(sample_config, indent=2), encoding="utf-8")
+
+        # Copy existing prompts and templates into tmp_resources so CLI finds them
+        repo_root = Path(__file__).resolve().parents[1]
+        orig_resources = repo_root / "src" / "usereq" / "resources"
+        if (orig_resources / "prompts").is_dir():
+            shutil.copytree(orig_resources / "prompts", tmp_resources / "prompts")
+        if (orig_resources / "templates").is_dir():
+            (tmp_resources / "templates").mkdir(parents=True, exist_ok=True)
+            tmpl = orig_resources / "templates" / "requirements.md"
+            if tmpl.exists():
+                shutil.copyfile(tmpl, tmp_resources / "templates" / "requirements.md")
+        # Copy Kiro agent template from package kiro folder
+        orig_kiro_template = repo_root / "src" / "usereq" / "kiro" / "agent.json"
+        if orig_kiro_template.exists():
+            shutil.copyfile(orig_kiro_template, tmp_resources / "kiro" / "agent.json")
+
+        # Write configs into the real resources folder so CLI can find them
+        repo_root = Path(__file__).resolve().parents[1]
+        real_resources = repo_root / "src" / "usereq" / "resources"
+        cls._created_configs: list[Path] = []
+        for name in ("copilot", "claude", "gemini", "kiro", "opencode"):
+            target_dir = real_resources / name
+            target_dir.mkdir(parents=True, exist_ok=True)
+            cfg_path = target_dir / "config.json"
+            cfg_path.write_text(json.dumps(sample_config, indent=2), encoding="utf-8")
+            cls._created_configs.append(cfg_path)
+
+        # Run CLI with flags enabled
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--doc",
+                    str(cls.TEST_DIR / "docs"),
+                    "--dir",
+                    str(cls.TEST_DIR / "tech"),
+                    "--enable-models",
+                    "--enable-tools",
+                ]
+            )
+        cls.exit_code = exit_code
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        # Cleanup created test project and remove temporary config files
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        for p in getattr(cls, "_created_configs", []):
+            try:
+                p.unlink()
+            except Exception:
+                pass
+
+    def test_generated_files_include_model_and_tools(self) -> None:
+        """Verifica che i file generati contengano model e tools quando i config esistono e i flag sono attivi."""
+        gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        self.assertTrue(gha.exists(), "GitHub agent should exist")
+        content = gha.read_text(encoding="utf-8")
+        self.assertIn("model:", content)
+        self.assertIn("tools:", content)
+
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        self.assertTrue(kiro_agent.exists(), "Kiro agent should exist")
+        data = json.loads(kiro_agent.read_text(encoding="utf-8"))
+        self.assertIn("model", data)
+        self.assertIn("tools", data)
+
+        gemini_toml = self.TEST_DIR / ".gemini" / "commands" / "req" / "analyze.toml"
+        self.assertTrue(gemini_toml.exists(), "Gemini toml should exist")
+        toml_content = gemini_toml.read_text(encoding="utf-8")
+        self.assertIn("model =", toml_content)
+        self.assertIn("tools =", toml_content)
+
+    def test_without_flags_no_model_tools(self) -> None:
+        """Eseguire CLI senza flags non deve aggiungere model/tools (salvo comportamenti previsti)."""
+        # Run again without flags
+        from unittest.mock import patch
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    str(self.TEST_DIR / "docs"),
+                    "--dir",
+                    str(self.TEST_DIR / "tech"),
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        content = gha.read_text(encoding="utf-8")
+        # model/tools should not be present in GitHub agent when flags are off
+        self.assertNotIn("tools:", content)
+
+
 class TestCLIWithExistingDocs(unittest.TestCase):
     """Test per verificare il comportamento quando docs contiene già dei file."""
 
