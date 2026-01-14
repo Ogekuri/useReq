@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.45](https://github.com/Ogekuri/useReq/compare/v0.0.44..v0.0.45) - 2026-01-14
+### 📚  Documentation
+- *(core)* update README.md
+
 ## [0.0.44](https://github.com/Ogekuri/useReq/compare/v0.0.43..v0.0.44) - 2026-01-14
 ### ⛰️  Features
 - *(core)* add --enable-model and --enable-tools for GitHub Copilot.
@@ -222,6 +226,7 @@
 - \[0.0.42\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.42
 - \[0.0.43\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.43
 - \[0.0.44\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.44
+- \[0.0.45\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.45
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -267,3 +272,4 @@
 [0.0.42]: https://github.com/Ogekuri/useReq/compare/v0.0.41..v0.0.42
 [0.0.43]: https://github.com/Ogekuri/useReq/compare/v0.0.42..v0.0.43
 [0.0.44]: https://github.com/Ogekuri/useReq/compare/v0.0.43..v0.0.44
+[0.0.45]: https://github.com/Ogekuri/useReq/compare/v0.0.44..v0.0.45
