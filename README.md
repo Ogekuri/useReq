@@ -182,9 +182,9 @@ The --enable-models switch include "model:" specification on prompts according b
 
   | Prompt | Model |
   | --- | --- |
-  | `analyze` | Gemini 3 Pro (Preview) (copilot) |
+  | `analyze` | Gemini 3 Flash (Preview) (copilot) |
   | `change` | GPT-5 mini (copilot) |
-  | `check` | Gemini 3 Flash (Preview) (copilot) |
+  | `check` | Gemini 3 Pro (Preview) (copilot) |
   | `cover` | GPT-5.1-Codex-Max  (copilot) |
   | `create` | Gemini 3 Pro (Preview) (copilot) |
   | `fix` | GPT-5.1-Codex-Max (copilot) |
