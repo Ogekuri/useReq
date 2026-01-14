@@ -140,36 +140,54 @@ The --enable-tools switch include "tools:" specification on prompts according re
 
 The --enable-models switch include "model:" specification on prompts according below tables.
 
+### Models Specs
+
+  | Model | Context Lenght | Reasoning [1] |
+  | --- | --- | --- |
+  | Grok Code Fast 0 | 256K | |
+  | Claude Haiku 4.5 | 200K | |
+  | Claude Sonnet 4.5 | 1M | |
+  | Claude Opus 4.5 | 200K | Yes |
+  | Gemini 3 Flash (Preview) | 1,05M | |
+  | Gemini 3 Pro (Preview) | 1,05M | **Yes** |
+  | GPT-5 mini | 400K | **Yes** |
+  | GPT-5.1 | 400K | **Yes** |
+  | GPT-5.1-Codex-Mini (Preview) |  400K | |
+  | GPT-5.1-Codex | 400K | |
+  | GPT-5.1-Codex-Max | 400K | |
+  | GPT-5.2 | 400K | Yes | 
+
+  [1] *reasoning usage according openrouter.ai*
+
 ### GitHub Copilot
 
-#### Available Models, Costs, Context Lenght, Reasoning [1]
+#### Available Models and Costs
 
-  | Model | Cost | Context Lenght | Reasoning [1] |
-  | --- | --- | --- | --- |
-| Grok Code Fast 0 (copilot) | 0x | 256K | |
-| Claude Haiku 4.5 (copilot) | 0.33 | 200K | |
-| Claude Sonnet 4.5 (copilot) | 1x | 1M | |
-| Claude Opus 4.5 (copilot) | 3x | 200K | Yes |
-| Gemini 3 Flash (Preview) (copilot) | 0.33 | 1,05M | |
-| Gemini 3 Pro (Preview) (copilot) | 1x | 1,05M | **Yes** |
-| GPT-5 mini (copilot) | 0x | 400K | **Yes** |
-| GPT-5.1 (copilot) | 1x | 400K | **Yes** |
-| GPT-5.1-Codex-Mini (Preview) (copilot) | 0.33 | 400K | |
-| GPT-5.1-Codex (copilot) | 1x | 400K | |
-| GPT-5.1-Codex-Max (copilot) | 1x | 400K | |
-| GPT-5.2 (copilot) | 1x | 400K | Yes |
-
-[1] *reasoning usage according openrouter.ai*
+  | Model | Cost |
+  | --- | --- |
+  | Grok Code Fast 0 | **0x** |
+  | Claude Haiku 4.5 | 0.33x |
+  | Claude Sonnet 4.5 | 1x |
+  | *Claude Opus 4.5* | *3x* |
+  | Gemini 3 Flash (Preview) | 0.33x |
+  | Gemini 3 Pro (Preview) | 1x |
+  | GPT-5 mini | **0x** |
+  | GPT-5.1 | 1x |
+  | GPT-5.1-Codex-Mini (Preview) | 0.33x |
+  | GPT-5.1-Codex | 1x |
+  | GPT-5.1-Codex-Max | 1x |
+  | GPT-5.2 | 1x |
 
 #### Configured Models
 
   | Prompt | Model |
   | --- | --- |
+  | `analyze` | Gemini 3 Pro (Preview) (copilot) |
   | `change` | GPT-5 mini (copilot) |
   | `check` | Gemini 3 Flash (Preview) (copilot) |
   | `cover` | GPT-5.1-Codex-Max  (copilot) |
+  | `create` | Gemini 3 Pro (Preview) (copilot) |
   | `fix` | GPT-5.1-Codex-Max (copilot) |
   | `new` | GPT-5 mini (copilot) |
   | `optimize` | GPT-5.2 (copilot) |
   | `write` | Gemini 3 Pro (Preview) (copilot) |
-  | `create` | Gemini 3 Pro (Preview) (copilot) |
