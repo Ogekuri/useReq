@@ -1,0 +1,25 @@
+{
+  "settings": {
+    "version": "0.0.46",
+    "default_mode": "read_only"
+  },
+  "prompts": {
+    "analyze":  { "model": "claude-haiku-4-5", "mode": "read_only" },
+    "change":   { "model": "claude-sonnet-4-5", "mode": "read_write" },
+    "check":    { "model": "claude-sonnet-4-5", "mode": "read_only" },
+    "cover":    { "model": "claude-opus-4-5", "mode": "read_write" },
+    "create":   { "model": "claude-sonnet-4-5", "mode": "read_write" },
+    "fix":      { "model": "claude-opus-4-5", "mode": "read_write" },
+    "new":      { "model": "claude-sonnet-4-5", "mode": "read_write" },
+    "optimize": { "model": "claude-opus-4-5", "mode": "read_write" },
+    "write":    { "model": "claude-sonnet-4-5", "mode": "read_write" }
+  },
+  "usage_modes": {
+    "read_write": {
+      "tools": "Read, Grep, Glob, ReadFile, Edit, WriteFile, DeleteFile, Pytest"
+    },
+    "read_only": {
+      "tools": "Read, Grep, Glob, ReadFile, Pytest"
+    }
+  }
+}

@@ -52,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--doc DOC --dir DIR [--verbose] [--debug] "
+        "--doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -528,22 +528,22 @@ def generate_kiro_resources(
     doc_dir: Path,
     project_base: Path,
     prompt_rel_path: str,
-) -> str:
-    """Genera l'array JSON delle risorse per l'agente Kiro."""
-    resources = [f'    "file://{prompt_rel_path}"']
+) -> list[str]:
+    """Genera la lista delle risorse per l'agente Kiro."""
+    resources = [f"file://{prompt_rel_path}"]
     if not doc_dir.is_dir():
-        return "\n".join(resources)
+        return resources
 
     for file_path in sorted(doc_dir.iterdir()):
         if file_path.is_file():
             try:
                 rel_path = file_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/")
-                resources.append(f'    "file://{rel_str}"')
+                resources.append(f"file://{rel_str}")
             except ValueError:
                 continue
 
-    return ",\n".join(resources)
+    return resources
 
 
 def render_kiro_agent(
@@ -551,24 +551,29 @@ def render_kiro_agent(
     name: str,
     description: str,
     prompt: str,
-    resources: str,
+    resources: list[str],
+    tools: list[str] | None = None,
 ) -> str:
-    """Rende il JSON dell'agente Kiro con i token sostituiti."""
+    """Rende il JSON dell'agente Kiro e popola i campi principali."""
     replacements = {
         "%%NAME%%": json_escape(name),
         "%%DESCRIPTION%%": json_escape(description),
         "%%PROMPT%%": json_escape(prompt),
-        "%%RESOURCES%%": resources,
     }
+    if "%%RESOURCES%%" in template:
+        resources_block = ",\n".join(
+            f'    "{json_escape(item)}"' for item in resources
+        )
+        replacements["%%RESOURCES%%"] = resources_block
     for token, replacement in replacements.items():
         template = template.replace(token, replacement)
     # Try to parse resulting template as JSON and inject model/tools if present markers exist
+    selected_tools = tools if isinstance(tools, list) else []
     try:
         parsed = json.loads(template)
-        # Normalize resources format if it's a string block
-        if isinstance(parsed.get("resources"), str):
-            # leave as-is
-            pass
+        parsed["resources"] = resources
+        parsed["tools"] = selected_tools
+        parsed["allowedTools"] = selected_tools
         return json.dumps(parsed, indent=2, ensure_ascii=False) + "\n"
     except Exception:
         # If parsing fails, return raw template to preserve previous behavior
@@ -599,12 +604,44 @@ def find_template_source() -> Path:
     )
 
 
-def load_kiro_template() -> str:
-    """Carica il template JSON per gli agenti Kiro."""
-    candidate = RESOURCE_ROOT / "kiro" / "agent.json"
-    if candidate.is_file():
-        return candidate.read_text(encoding="utf-8")
-    raise ReqError("Error: no Kiro template found in resources/kiro", 9)
+def load_kiro_template() -> tuple[str, dict[str, Any]]:
+    """Carica il template e la configurazione Kiro necessari per gli agenti."""
+    roots = [RESOURCE_ROOT]
+    builtin_root = Path(__file__).resolve().parent / "resources"
+    if builtin_root != RESOURCE_ROOT:
+        roots.append(builtin_root)
+
+    for root in roots:
+        candidate = root / "kiro" / "config.json"
+        if candidate.is_file():
+            try:
+                cfg = load_settings(candidate)
+            except Exception as exc:
+                dlog(f"Failed parsing kiro/config.json at {candidate}: {exc}")
+                cfg = {}
+            agent_template = cfg.get("agent_template") if isinstance(cfg, dict) else None
+            if isinstance(agent_template, str) and agent_template.strip():
+                return agent_template, cfg
+            if isinstance(agent_template, dict):
+                try:
+                    return (
+                        json.dumps(agent_template, indent=2, ensure_ascii=False),
+                        cfg,
+                    )
+                except Exception:
+                    pass
+
+        legacy = root / "kiro" / "agent.json"
+        if legacy.is_file():
+            try:
+                return legacy.read_text(encoding="utf-8"), {}
+            except Exception as exc:
+                dlog(f"Failed reading legacy kiro agent template {legacy}: {exc}")
+
+    raise ReqError(
+        "Error: no Kiro config with 'agent_template' found in resources/kiro",
+        9,
+    )
 
 
 def strip_json_comments(text: str) -> str:
@@ -658,7 +695,7 @@ def load_cli_configs(resource_root: Path) -> dict[str, dict[str, Any] | None]:
 
 
 def get_model_tools_for_prompt(
-    config: dict[str, Any] | None, prompt_name: str
+    config: dict[str, Any] | None, prompt_name: str, source_name: Optional[str] = None
 ) -> tuple[Optional[str], Optional[list[str]]]:
     """Estrae model e tools per il prompt dal config della CLI.
 
@@ -677,7 +714,20 @@ def get_model_tools_for_prompt(
             usage = config.get("usage_modes") or {}
             mode_entry = usage.get(mode) if isinstance(usage, dict) else None
             if isinstance(mode_entry, dict):
-                tools = mode_entry.get("tools")
+                # Use the unified key name 'tools' across all CLI configs.
+                # Accept either a list of strings or a CSV string in the config.json.
+                key_name = "tools"
+                raw = mode_entry.get(key_name)
+                if raw is None:
+                    tools = None
+                elif isinstance(raw, list):
+                    tools = [str(t) for t in raw]
+                elif isinstance(raw, str):
+                    # Parse comma-separated string into list
+                    items = [p.strip() for p in raw.split(",") if p.strip()]
+                    tools = items if items else None
+                else:
+                    tools = None
     return model, tools
 
 
@@ -970,7 +1020,7 @@ def run(args: Namespace) -> None:
     prompts_dir = REPO_ROOT / "prompts"
     if not prompts_dir.is_dir():
         prompts_dir = RESOURCE_ROOT / "prompts"
-    kiro_template = load_kiro_template()
+    kiro_template, kiro_config = load_kiro_template()
     # Load CLI configs only if requested to include model/tools
     configs: dict[str, dict[str, Any] | None] = {}
     try:
@@ -1012,9 +1062,11 @@ def run(args: Namespace) -> None:
             gh_model = None
             gh_tools = None
             if configs:
-                gh_model, gh_tools = get_model_tools_for_prompt(configs.get("copilot"), PROMPT)
+                gh_model, gh_tools = get_model_tools_for_prompt(
+                    configs.get("copilot"), PROMPT, "copilot"
+                )
 
-            github_header_lines = ["---", f"name: req.{PROMPT}", f'description: "{desc_yaml}"']
+            github_header_lines = ["---", f"name: req-{PROMPT}", f'description: "{desc_yaml}"']
             if include_models and gh_model:
                 github_header_lines.append(f"model: {gh_model}")
             if include_tools and gh_tools:
@@ -1039,7 +1091,7 @@ def run(args: Namespace) -> None:
                 project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
             )
             existed = dst_prompt.exists()
-            dst_prompt.write_text(f"---\nagent: req.{PROMPT}\n---\n", encoding="utf-8")
+            dst_prompt.write_text(f"---\nagent: req-{PROMPT}\n---\n", encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_prompt}")
 
@@ -1057,10 +1109,11 @@ def run(args: Namespace) -> None:
             )
             # Optionally inject model/tools into the TOML for Gemini
             if configs and (include_models or include_tools):
-                gem_model, gem_tools = get_model_tools_for_prompt(configs.get("gemini"), PROMPT)
+                gem_model, gem_tools = get_model_tools_for_prompt(
+                    configs.get("gemini"), PROMPT, "gemini"
+                )
                 if gem_model or gem_tools:
                     content = dst_toml.read_text(encoding="utf-8")
-                    # Insert after the first line (description = ...)
                     parts = content.split("\n", 1)
                     if len(parts) == 2:
                         first, rest = parts
@@ -1068,7 +1121,9 @@ def run(args: Namespace) -> None:
                         if include_models and gem_model:
                             inject_lines.append(f'model = "{gem_model}"')
                         if include_tools and gem_tools:
-                            inject_lines.append(f"tools = {format_tools_inline_list(gem_tools)}")
+                            inject_lines.append(
+                                f"tools = {format_tools_inline_list(gem_tools)}"
+                            )
                         if inject_lines:
                             content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
                             dst_toml.write_text(content, encoding="utf-8")
@@ -1093,26 +1148,19 @@ def run(args: Namespace) -> None:
             dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
             existed = dst_claude_agent.exists()
             desc_yaml = yaml_double_quote_escape(description)
-            claude_header = (
-                "---\n"
-                f"name: req-{PROMPT}\n"
-                f'description: "{desc_yaml}"\n'
-                # default model: inherit — may be overridden below
-                "model: inherit\n"
-                "---\n\n"
-            )
-            # Optionally override model/tools for Claude using its config
+            # Optionally include model/tools for Claude based on flags and config
             claude_model = None
             claude_tools = None
             if configs:
-                claude_model, claude_tools = get_model_tools_for_prompt(configs.get("claude"), PROMPT)
+                claude_model, claude_tools = get_model_tools_for_prompt(
+                    configs.get("claude"), PROMPT, "claude"
+                )
 
             claude_header_lines = ["---", f"name: req-{PROMPT}", f'description: "{desc_yaml}"']
-            # If user asked to include model and we have one, use it; otherwise keep inherit
+            # Include 'model' only when the user enabled models and a value is available.
             if include_models and claude_model:
                 claude_header_lines.append(f"model: {claude_model}")
-            else:
-                claude_header_lines.append("model: inherit")
+            # Do NOT insert a default 'model: inherit' anymore.
             if include_tools and claude_tools:
                 claude_header_lines.append(f"tools: {format_tools_inline_list(claude_tools)}")
             claude_header = "\n".join(claude_header_lines) + "\n---\n\n"
@@ -1139,22 +1187,29 @@ def run(args: Namespace) -> None:
                 project_base,
                 kiro_prompt_rel,
             )
+            kiro_model, kiro_tools = get_model_tools_for_prompt(
+                kiro_config, PROMPT, "kiro"
+            )
+            kiro_tools_list = list(kiro_tools) if isinstance(kiro_tools, list) else []
             agent_content = render_kiro_agent(
                 kiro_template,
                 name=f"req-{PROMPT}",
                 description=description,
                 prompt=prompt_body,
                 resources=kiro_resources,
+                tools=kiro_tools_list,
             )
             # Optionally inject model/tools into Kiro agent JSON
-            if configs and (include_models or include_tools):
+            if include_models or include_tools:
                 try:
                     parsed = json.loads(agent_content)
-                    kiro_model, kiro_tools = get_model_tools_for_prompt(configs.get("kiro"), PROMPT)
                     if include_models and kiro_model is not None:
                         parsed["model"] = kiro_model
-                    if include_tools and isinstance(kiro_tools, list):
-                        parsed["tools"] = kiro_tools
+                    else:
+                        parsed.pop("model", None)
+                    if include_tools:
+                        parsed["tools"] = kiro_tools_list
+                        parsed["allowedTools"] = kiro_tools_list
                     agent_content = json.dumps(parsed, indent=2, ensure_ascii=False) + "\n"
                 except Exception:
                     dlog(f"Unable to inject model/tools into Kiro agent for {PROMPT}")
@@ -1170,7 +1225,9 @@ def run(args: Namespace) -> None:
             # Optionally include model/tools for OpenCode
             opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
             if configs:
-                oc_model, oc_tools = get_model_tools_for_prompt(configs.get("opencode"), PROMPT)
+                oc_model, oc_tools = get_model_tools_for_prompt(
+                    configs.get("opencode"), PROMPT, "opencode"
+                )
                 if include_models and oc_model:
                     opencode_header_lines.append(f"model: {oc_model}")
                 if include_tools and oc_tools:

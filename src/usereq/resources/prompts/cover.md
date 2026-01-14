@@ -26,19 +26,29 @@ description: "Implement changes needed to cover the new requirements. Usage: req
 
 ## Steps
 Write and then execute a TODO list following these steps strictly:
-1. Read file/files %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
+1. **Context Bootstrap & Persistence (MUST RUN FIRST, EVERY INVOCATION)**:
+   - Ensure the directory `.req/context/` exists.
+   - If the [User Request](#users-request) section contains non-empty text (from `$ARGUMENTS`):
+     - SAVE it immediately to `.req/context/active_request.md` overwriting existing content.
+   - Otherwise (subsequent turns / reinvocations with empty `$ARGUMENTS`):
+     - READ `.req/context/active_request.md` and use it as the restored user request.
+   - If `$ARGUMENTS` is empty AND `.req/context/active_request.md` does not exist or is empty:
+     - STOP immediately and respond asking for the user request to be provided again via `req.fix <description>`.
+   - From this point onward, refer only to `.req/context/active_request.md` for the user request.
+2. Read file/files %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `UNCOVERED` if not.
    - For every `UNCOVERED`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-2. Produce a clear change proposal describing edits to the source code that will cover all `UNCOVERED` requirements.
-3. Re-read %%REQ_DOC%% and confirm that no changes are needed in %%REQ_DOC%%.
-4. If directory/directories %%REQ_DIR%% exists, read it and ensure the proposed code changes conform to that documents; adjust the proposal if needed.
-5. Analyze the proposed source code changes and new requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
-6. **CRITICAL**: Wait for approval.
-7. Implement the corresponding changes in the source code.
-8. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.
+3. Produce a clear change proposal describing edits to the source code that will cover all `UNCOVERED` requirements.
+4. Re-read %%REQ_DOC%% and confirm that no changes are needed in %%REQ_DOC%%.
+5. If directory/directories %%REQ_DIR%% exists, read it and ensure the proposed code changes conform to that documents; adjust the proposal if needed.
+6. Analyze the proposed source code changes and new requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
+7. **CRITICAL**: Wait for approval.
+8. Implement the corresponding changes in the source code.
+9. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-9. If directory/directories %%REQ_DIR%% exists, verify the application's code follows that documents and report discrepancies with file paths and concise explanations.
+10. If directory/directories %%REQ_DIR%% exists, verify the application's code follows that documents and report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
-10. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
-11. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+11. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
+12. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+13. **CRITICAL**: delete file `.req/context/active_request.md`.

@@ -146,7 +146,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | --- | --- | --- |
   | Grok Code Fast 0 | 256K | |
   | Claude Haiku 4.5 | 200K | |
-  | Claude Sonnet 4.5 | 1M | |
+  | Claude Sonnet 4.5 | 1M | | [2]
   | Claude Opus 4.5 | 200K | Yes |
   | Gemini 3 Flash (Preview) | 1,05M | |
   | Gemini 3 Pro (Preview) | 1,05M | **Yes** |
@@ -158,6 +158,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | GPT-5.2 | 400K | Yes | 
 
   [1] *reasoning usage according openrouter.ai*
+  [2] *Claude Sonnet 4.5 supports a 1M token context window when using the context-1m-2025-08-07 beta header. Long context pricing applies to requests exceeding 200K tokens.*
 
 ### GitHub Copilot
 
@@ -191,3 +192,53 @@ The --enable-models switch include "model:" specification on prompts according b
   | `new` | GPT-5 mini (copilot) |
   | `optimize` | GPT-5.2 (copilot) |
   | `write` | Gemini 3 Pro (Preview) (copilot) |
+
+### Claude Code
+
+#### Available Models and Costs
+
+  | Model | Cost |
+  | --- | --- |
+  | Claude Haiku 4.5 | **low** |
+  | Claude Sonnet 4.5 | mid |
+  | *Claude Opus 4.5* | *hight* |
+  
+#### Configured Models
+
+  | Prompt | Model |
+  | --- | --- |
+  | `analyze` | claude-haiku-4-5 |
+  | `change` | claude-sonnet-4-5 |
+  | `check` | claude-sonnet-4-5 |
+  | `cover` | claude-opus-4-5 |
+  | `create` | claude-sonnet-4-5 |
+  | `fix` | claude-opus-4-5 |
+  | `new` | claude-sonnet-4-5 |
+  | `optimize` | claude-opus-4-5 |
+  | `write` | claude-sonnet-4-5 |
+
+### Kiro CLI
+
+#### Available Models and Costs
+
+  | Model | Cost |
+  | --- | --- |
+  | Claude Sonnet 4.5 | 1.3x credit |
+  | Claude Sonnet 4 | 1.3x credit |
+  | Claude Haiku 4.5 | 0.4x credit |
+  | Claude Opus 4.5 | 2.2x credit |
+
+
+#### Configured Models
+
+  | Prompt | Model |
+  | --- | --- |
+  | `analyze` | claude-haiku-4.5 |
+  | `change` | claude-sonnet-4.5 |
+  | `check` | claude-sonnet-4.5 |
+  | `cover` | claude-opus-4.5 |
+  | `create` | claude-sonnet-4.5 |
+  | `fix` | claude-opus-4.5 |
+  | `new` | claude-sonnet-4.5 |
+  | `optimize` | claude-opus-4.5 |
+  | `write` | claude-sonnet-4.5 |

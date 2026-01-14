@@ -19,6 +19,16 @@
 - [x] new: Develop Claude CLI Agent support
 - [x] new: Add --enable-models to GitHub Copilot
 - [x] new: Add --enable-tools to GitHub Copilot
+- [x] new: Add --enable-models to Claude Code
+- [x] new: Add --enable-tools to Claude Code 
+- [x] new: Add --enable-models to Kiro CLI
+- [x] new: Add --enable-tools to Kiro CLI
+- [ ] new: Add --enable-models to Open Code CLI
+- [ ] new: Add --enable-tools to Open Code CLI
+- [ ] new: Add --enable-models to Codex CLI
+- [ ] new: Add --enable-tools to Codex CLI
+- [ ] new: Add --enable-models to Gemini CLI
+- [ ] new: Add --enable-tools to Gemini CLI
 - [ ] test: Testing and bug fixes
 - [ ] new: Testing and bug fixes
 - [ ] new: Beta stage release

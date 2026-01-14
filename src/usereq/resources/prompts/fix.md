@@ -31,7 +31,7 @@ Write and then execute a TODO list following these steps strictly:
 1. **Context Bootstrap & Persistence (MUST RUN FIRST, EVERY INVOCATION)**:
    - Ensure the directory `.req/context/` exists.
    - If the [User Request](#users-request) section contains non-empty text (from `$ARGUMENTS`):
-     - SAVE it immediately to `.req/context/active_request.md` (overwrite existing content).
+     - SAVE it immediately to `.req/context/active_request.md` overwriting existing content.
    - Otherwise (subsequent turns / reinvocations with empty `$ARGUMENTS`):
      - READ `.req/context/active_request.md` and use it as the restored user request.
    - If `$ARGUMENTS` is empty AND `.req/context/active_request.md` does not exist or is empty:
@@ -52,7 +52,7 @@ Write and then execute a TODO list following these steps strictly:
    - Report any discrepancies with file paths and concise explanations.
 12. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
 13. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-14. DELETE file `.req/context/active_request.md`.
+14. **CRITICAL**: delete file `.req/context/active_request.md`.
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

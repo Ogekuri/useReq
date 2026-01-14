@@ -18,6 +18,26 @@ from unittest.mock import patch
 # Importa il modulo CLI da testare.
 from usereq import cli
 
+KIRO_READ_ONLY_TOOLS = [
+    "read",
+    "glob",
+    "grep",
+    "shell",
+    "todo",
+    "todo_list",
+    "thinking",
+]
+KIRO_READ_WRITE_TOOLS = [
+    "read",
+    "glob",
+    "grep",
+    "write",
+    "shell",
+    "todo",
+    "todo_list",
+    "thinking",
+]
+
 
 class TestCLI(unittest.TestCase):
     """Suite di test per il comando CLI useReq."""
@@ -181,8 +201,8 @@ class TestCLI(unittest.TestCase):
             content = agent_path.read_text(encoding="utf-8")
             self.assertIn("---", content, f"{agent} deve contenere front matter")
             prompt_name = agent.replace(".agent.md", "").replace(".", "-")
-            # Il nome nel front matter deve essere req.<nome>.
-            expected_name_pattern = agent.replace(".agent.md", "")
+            # Il nome nel front matter deve essere req-<nome>.
+            expected_name_pattern = agent.replace(".agent.md", "").replace(".", "-")
             self.assertIn(
                 f"name: {expected_name_pattern}",
                 content,
@@ -192,6 +212,11 @@ class TestCLI(unittest.TestCase):
                 "description:",
                 content,
                 f"{agent} deve contenere 'description:' nel front matter",
+            )
+            self.assertNotIn(
+                "model:",
+                content,
+                "Il front matter Claude non deve includere 'model' senza flag abilitati",
             )
 
     def test_github_prompt_files_created(self) -> None:
@@ -215,7 +240,7 @@ class TestCLI(unittest.TestCase):
             )
             # Verifica il contenuto del file.
             content = prompt_path.read_text(encoding="utf-8")
-            agent_name = prompt.replace(".prompt.md", "")
+            agent_name = prompt.replace(".prompt.md", "").replace(".", "-")
             self.assertIn(
                 f"agent: {agent_name}",
                 content,
@@ -317,6 +342,59 @@ class TestCLI(unittest.TestCase):
                 expected_name,
                 f"Il nome in {agent} deve essere '{expected_name}'",
             )
+            self.assertIn(
+                "tools",
+                data,
+                f"{agent} deve contenere il campo 'tools'",
+            )
+            self.assertIn(
+                "allowedTools",
+                data,
+                f"{agent} deve contenere il campo 'allowedTools'",
+            )
+            self.assertEqual(
+                data["tools"],
+                data["allowedTools"],
+                f"{agent} deve avere 'allowedTools' identico a 'tools'",
+            )
+
+    def test_kiro_change_tools_match_read_write_mode(self) -> None:
+        """REQ-075: Verifica che il prompt "change" usi la modalità read_write nei tools."""
+        change_agent = self.TEST_DIR / ".kiro" / "agents" / "req.change.json"
+        self.assertTrue(
+            change_agent.exists(),
+            "Il file req.change.json deve essere presente",
+        )
+        data = json.loads(change_agent.read_text(encoding="utf-8"))
+        self.assertEqual(
+            data.get("tools"),
+            KIRO_READ_WRITE_TOOLS,
+            "Req.change deve avere la lista read_write di tools",
+        )
+        self.assertEqual(
+            data.get("allowedTools"),
+            KIRO_READ_WRITE_TOOLS,
+            "Req.change deve avere allowedTools identica a tools",
+        )
+
+    def test_kiro_analyze_tools_match_read_only_mode(self) -> None:
+        """REQ-075: Verifica che il prompt "analyze" usi la modalità read_only nei tools."""
+        analyze_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        self.assertTrue(
+            analyze_agent.exists(),
+            "Il file req.analyze.json deve essere presente",
+        )
+        data = json.loads(analyze_agent.read_text(encoding="utf-8"))
+        self.assertEqual(
+            data.get("tools"),
+            KIRO_READ_ONLY_TOOLS,
+            "Req.analyze deve avere la lista read_only di tools",
+        )
+        self.assertEqual(
+            data.get("allowedTools"),
+            KIRO_READ_ONLY_TOOLS,
+            "Req.analyze deve avere allowedTools identica a tools",
+        )
 
     def test_req_doc_replacement(self) -> None:
         """REQ-022: Verifica la sostituzione di %%REQ_DOC%%."""
@@ -407,11 +485,7 @@ class TestCLI(unittest.TestCase):
             )
 
             # Verifica il campo model: inherit.
-            self.assertIn(
-                "model: inherit",
-                content,
-                f"{agent} deve contenere 'model: inherit' nel front matter",
-            )
+            # The 'model' field is no longer required by default (only when --enable-models).
 
             # Verifica il campo description.
             self.assertIn(
@@ -483,13 +557,21 @@ class TestModelsAndTools(unittest.TestCase):
         (tmp_resources / "kiro").mkdir(parents=True, exist_ok=True)
         (tmp_resources / "opencode").mkdir(parents=True, exist_ok=True)
 
-        sample_config = {
-            "settings": {"version": "1.0.0"},
-            "prompts": {"analyze": {"model": "GPT-5 mini (copilot)", "mode": "read_write"}},
-            "usage_modes": {"read_write": {"tools": ["vscode", "execute", "read"]}}
-        }
+        cls._tmp_resources = tmp_resources
+        cls._orig_resource_root = cli.RESOURCE_ROOT
+
+        base_usage = {"read_write": {"tools": ["vscode", "execute", "read"]}}
+        claude_usage = {"read_write": {"tools": ["Read", "Grep", "Glob"]}}
 
         for name in ("copilot", "claude", "gemini", "kiro", "opencode"):
+            sample_config = {
+                "settings": {"version": "1.0.0"},
+                "prompts": {"analyze": {"model": "GPT-5 mini (copilot)", "mode": "read_write"}},
+            }
+            if name == "claude":
+                sample_config["usage_modes"] = claude_usage
+            else:
+                sample_config["usage_modes"] = base_usage
             cfg_path = tmp_resources / name / "config.json"
             cfg_path.write_text(json.dumps(sample_config, indent=2), encoding="utf-8")
 
@@ -504,20 +586,12 @@ class TestModelsAndTools(unittest.TestCase):
             if tmpl.exists():
                 shutil.copyfile(tmpl, tmp_resources / "templates" / "requirements.md")
         # Copy Kiro agent template from package kiro folder
-        orig_kiro_template = repo_root / "src" / "usereq" / "kiro" / "agent.json"
+        orig_kiro_template = repo_root / "src" / "usereq" / "resources" / "kiro" / "agent.json"
         if orig_kiro_template.exists():
             shutil.copyfile(orig_kiro_template, tmp_resources / "kiro" / "agent.json")
 
-        # Write configs into the real resources folder so CLI can find them
-        repo_root = Path(__file__).resolve().parents[1]
-        real_resources = repo_root / "src" / "usereq" / "resources"
-        cls._created_configs: list[Path] = []
-        for name in ("copilot", "claude", "gemini", "kiro", "opencode"):
-            target_dir = real_resources / name
-            target_dir.mkdir(parents=True, exist_ok=True)
-            cfg_path = target_dir / "config.json"
-            cfg_path.write_text(json.dumps(sample_config, indent=2), encoding="utf-8")
-            cls._created_configs.append(cfg_path)
+        # Usa le risorse temporanee come radice per il CLI, senza toccare i file del progetto.
+        cli.RESOURCE_ROOT = tmp_resources
 
         # Run CLI with flags enabled
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -540,11 +614,10 @@ class TestModelsAndTools(unittest.TestCase):
         # Cleanup created test project and remove temporary config files
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
-        for p in getattr(cls, "_created_configs", []):
-            try:
-                p.unlink()
-            except Exception:
-                pass
+        if getattr(cls, "_tmp_resources", None) and cls._tmp_resources.exists():
+            shutil.rmtree(cls._tmp_resources)
+        if getattr(cls, "_orig_resource_root", None) is not None:
+            cli.RESOURCE_ROOT = cls._orig_resource_root
 
     def test_generated_files_include_model_and_tools(self) -> None:
         """Verifica che i file generati contengano model e tools quando i config esistono e i flag sono attivi."""
@@ -559,6 +632,21 @@ class TestModelsAndTools(unittest.TestCase):
         data = json.loads(kiro_agent.read_text(encoding="utf-8"))
         self.assertIn("model", data)
         self.assertIn("tools", data)
+        self.assertIn(
+            "allowedTools",
+            data,
+            "Kiro agent deve contenere il campo allowedTools",
+        )
+        self.assertEqual(
+            data["allowedTools"],
+            data["tools"],
+            "allowedTools deve corrispondere a tools",
+        )
+        self.assertListEqual(
+            data["tools"],
+            KIRO_READ_ONLY_TOOLS,
+            "Kiro agent deve usare la lista tools definita per il modo corrente",
+        )
 
         gemini_toml = self.TEST_DIR / ".gemini" / "commands" / "req" / "analyze.toml"
         self.assertTrue(gemini_toml.exists(), "Gemini toml should exist")
@@ -586,6 +674,40 @@ class TestModelsAndTools(unittest.TestCase):
         content = gha.read_text(encoding="utf-8")
         # model/tools should not be present in GitHub agent when flags are off
         self.assertNotIn("tools:", content)
+        self.assertNotIn("model:", content)
+
+    def test_tools_only_adds_tools_without_models(self) -> None:
+        """Con solo --enable-tools, devono comparire i tools ma non i model."""
+        from unittest.mock import patch
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    str(self.TEST_DIR / "docs"),
+                    "--dir",
+                    str(self.TEST_DIR / "tech"),
+                    "--enable-tools",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        content = gha.read_text(encoding="utf-8")
+        self.assertIn("tools:", content)
+        self.assertNotIn("model:", content)
+
+        gemini_toml = self.TEST_DIR / ".gemini" / "commands" / "req" / "analyze.toml"
+        gemini_content = gemini_toml.read_text(encoding="utf-8")
+        self.assertIn("tools =", gemini_content)
+        self.assertNotIn("model =", gemini_content)
+
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        kiro_data = json.loads(kiro_agent.read_text(encoding="utf-8"))
+        self.assertIn("tools", kiro_data)
+        self.assertNotIn("model", kiro_data)
 
 
 class TestCLIWithExistingDocs(unittest.TestCase):
