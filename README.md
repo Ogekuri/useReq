@@ -81,12 +81,12 @@ uv tool uninstall usereq
 
 ### High-Level Assessment
 
-- 🌟 **GitHub Copilot** 🌟 - Outstanding - Many models available
-- 👍 **OpenCode** 👍 - Good - Many models available, Does not support "`tools:`" on agents/prompts.
-- ⚖️ **Claude Code** ⚖️ - Average - Only support Claude/Anthropic models.
-- 🆗 **OpenAI Codex** 🆗 - Acceptable - Only support OpenIA models. Does not support agents. Does not suppot `model:` and `tools:` on prompts.
-- 👎 **Kiro CLI** 👎 - Poor - Only support Claude/Anthropic models. Does not support `$ARGUMENTS` on prompts.
-- ☢️ **Gemini Code Assist** ☢️ - Very Poor - Only Google models.  Does not support agent or prompts on Extension. Does not support agents, `model:` and `tools:`.
+- 🌟 **GitHub Copilot** 🌟 - Many models available
+- 👍 **OpenCode** 👍 - Many models available, Does not support "`tools:`" on agents/prompts.
+- ⚖️ **Claude Code** ⚖️ - Only support Claude/Anthropic models.
+- 🆗 **OpenAI Codex** 🆗 - Only support OpenIA models. Does not support agents. Does not suppot `model:` and `tools:` on prompts.
+- 👎 **Kiro CLI** 👎 - Only support Claude/Anthropic models. Does not support `$ARGUMENTS` on prompts.
+- ☢️ **Gemini Code Assist** ☢️ - Only Google models.  Does not support agent or prompts on Extension. Does not support agents, `model:` and `tools:`.
 
 
 ### useReq/req Support
@@ -157,17 +157,17 @@ The --enable-models switch include "model:" specification on prompts according b
   | Grok Code Fast 0 | 256K | |
   | Claude Haiku 4.5 | 200K | |
   | Claude Sonnet 4.5 | 1M | | [2]
-  | Claude Opus 4.5 | 200K | Yes |
+  | Claude Opus 4.5 | 200K | *Yes* |
   | Gemini 3 Flash (Preview) | 1,05M | |
-  | Gemini 3 Pro (Preview) | 1,05M | **Yes** |
+  | Gemini 3 Pro (Preview) | 1,05M | Yes |
   | GPT-4.1 | 1,05MK | **No** |
-  | GPT-5 mini | 400K | **Yes** |
-  | GPT-5.1 | 400K | **Yes** |
+  | GPT-5 mini | 400K | Yes |
+  | GPT-5.1 | 400K | Yes |
   | GPT-5.1-Codex-Mini (Preview) |  400K | |
   | GPT-5.1-Codex | 400K | |
   | GPT-5.1-Codex-Max | 400K | |
-  | GPT-5.2 | 400K | Yes | 
-  | GPT-5.2-Codex | 400K | Yes | 
+  | GPT-5.2 | 400K | *Yes* | 
+  | GPT-5.2-Codex | 400K | *Yes* | 
 
   [1] *reasoning usage according openrouter.ai*
   [2] *Claude Sonnet 4.5 supports a 1M token context window when using the context-1m-2025-08-07 beta header. Long context pricing applies to requests exceeding 200K tokens.*
