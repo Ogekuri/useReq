@@ -11,7 +11,7 @@
     "create":   { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
     "fix":      { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
     "new":      { "model": "GPT-5 mini (copilot)", "mode": "read_write" },
-    "optimize": { "model": "GPT-5.2 (copilot)", "mode": "read_write" },
+    "optimize": { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
     "write":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" }
   },
   "usage_modes": {

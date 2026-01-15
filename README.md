@@ -79,7 +79,17 @@ uv tool uninstall usereq
 
 ## Supported CLIs, Agents, and Extensions
 
-### Support
+### High-Level Assessment
+
+- 🌟 **GitHub Copilot** 🌟 - Outstanding - Many models available
+- 👍 **OpenCode** 👍 - Good - Many models available, Does not support "`tools:`" on agents/prompts.
+- ⚖️ **Claude Code** ⚖️ - Average - Only support Claude/Anthropic models.
+- 🆗 **OpenAI Codex** 🆗 - Acceptable - Only support OpenIA models. Does not support agents. Does not suppot `model:` and `tools:` on prompts.
+- ❌ **Kiro CLI** ❌ - Poor - Only support Claude/Anthropic models. Does not support `$ARGUMENTS` on prompts.
+- ⛔ **Gemini Code Assist** ⛔ - Poor - Only Google models.  Does not support agent or prompts on Extension. Does not support agents, `model:` and `tools:`.
+
+
+### useReq/req Support
 
 - ✅ OpenAI Codex (set environment variable **CODEX_HOME** to project's home)
 - ✅ Claude Code
@@ -91,7 +101,7 @@ uv tool uninstall usereq
 | ✅ supported | ✔️ partially supported | ❌ issues | ⛔ not supported |
 
 
-### Support Details
+### useReq/req Support Details
 
 #### OpenAI Codex
 - ✅ OpenAI Codex CLI Prompt [`/prompts:req.create italian`]
@@ -150,12 +160,14 @@ The --enable-models switch include "model:" specification on prompts according b
   | Claude Opus 4.5 | 200K | Yes |
   | Gemini 3 Flash (Preview) | 1,05M | |
   | Gemini 3 Pro (Preview) | 1,05M | **Yes** |
+  | GPT-4.1 | 1,05MK | **No** |
   | GPT-5 mini | 400K | **Yes** |
   | GPT-5.1 | 400K | **Yes** |
   | GPT-5.1-Codex-Mini (Preview) |  400K | |
   | GPT-5.1-Codex | 400K | |
   | GPT-5.1-Codex-Max | 400K | |
   | GPT-5.2 | 400K | Yes | 
+  | GPT-5.2-Codex | 400K | Yes | 
 
   [1] *reasoning usage according openrouter.ai*
   [2] *Claude Sonnet 4.5 supports a 1M token context window when using the context-1m-2025-08-07 beta header. Long context pricing applies to requests exceeding 200K tokens.*
@@ -178,6 +190,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | GPT-5.1-Codex | 1x |
   | GPT-5.1-Codex-Max | 1x |
   | GPT-5.2 | 1x |
+  | GPT-5.2-Codex | 1x |
 
 #### Configured Models
 
@@ -190,7 +203,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | `create` | Gemini 3 Pro (Preview) (copilot) |
   | `fix` | GPT-5.1-Codex-Max (copilot) |
   | `new` | GPT-5 mini (copilot) |
-  | `optimize` | GPT-5.2 (copilot) |
+  | `optimize` | GPT-5.2-Codex (copilot) |
   | `write` | Gemini 3 Pro (Preview) (copilot) |
 
 ### Claude Code
@@ -202,7 +215,18 @@ The --enable-models switch include "model:" specification on prompts according b
   | Claude Haiku 4.5 | **low** |
   | Claude Sonnet 4.5 | mid |
   | *Claude Opus 4.5* | *hight* |
-  
+
+#### Long Context Pricing
+
+When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enabled, requests that exceed 200K input tokens are automatically charged at premium long context rates. [3]
+
+```bash
+# Example of using a full model name with the [1m] suffix
+/model anthropic.claude-sonnet-4-5-20250929-v1:0[1m]
+```
+
+[3] *The 1M token context window is currently in beta for organizations in usage tier 4 and organizations with custom rate limits. The 1M token context window is only available for Claude Sonnet 4 and Sonnet 4.5.*
+
 #### Configured Models
 
   | Prompt | Model |
@@ -242,3 +266,62 @@ The --enable-models switch include "model:" specification on prompts according b
   | `new` | claude-sonnet-4.5 |
   | `optimize` | claude-opus-4.5 |
   | `write` | claude-sonnet-4.5 |
+
+### OpenCode CLI
+
+Model depend by the user's provider, useReq config use GitHub provider.
+OpenCode CLI does not support "tools:" on agents/prompts.
+
+#### Available GitHub Models
+
+- github-copilot/claude-haiku-4.5
+- github-copilot/claude-opus-4.5
+- github-copilot/claude-opus-41
+- github-copilot/claude-sonnet-4
+- github-copilot/claude-sonnet-4.5
+- github-copilot/gemini-3-flash-preview
+- github-copilot/gpt-5-mini
+- github-copilot/gpt-5.1
+- github-copilot/gpt-5.1-codex
+- github-copilot/gpt-5.1-codex-max
+- github-copilot/gpt-5.2
+- github-copilot/gpt-5.2-codex
+
+##### Not Working GitHub Models
+
+- github-copilot/gemini-2.5-pro
+- github-copilot/gemini-3-pro-preview
+- github-copilot/gpt-5.1-codex-mini
+
+##### Not Tested GitHub Models
+
+- github-copilot/gpt-4.1
+- github-copilot/gpt-4o
+- github-copilot/gpt-5
+- github-copilot/gpt-5-codex
+- github-copilot/grok-code-fast-1
+- github-copilot/oswe-vscode-prime
+
+#### Configured Models
+
+  | Prompt | Model |
+  | --- | --- |
+  | `analyze` | github-copilot/gemini-3-flash-preview |
+  | `change` | github-copilot/gpt-5-mini |
+  | `check` | github-copilot/gemini-3-flash-preview |
+  | `cover` | github-copilot/gpt-5.1-codex-max |
+  | `create` | github-copilot/gpt-5.1 |
+  | `fix` | github-copilot/gpt-5.1-codex-max |
+  | `new` | github-copilot/gpt-5-mini |
+  | `optimize` | github-copilot/gpt-5.2-codex |
+  | `write` | github-copilot/gpt-5.1 |
+
+
+### Gemini CLI
+
+Gemini CLI does not support "model:" or "tools:" on prompts.
+
+
+### OpenIA Codex CLI
+
+OpenIA Codex CLI does not support "model:" or "tools:" on prompts.

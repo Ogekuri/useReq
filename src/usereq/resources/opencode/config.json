@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "version": "0.0.47",
+    "default_mode": "read_only"
+  },
+  "prompts": {
+    "analyze":  { "model": "github-copilot/gemini-3-flash-preview", "mode": "read_only" },
+    "change":   { "model": "github-copilot/gpt-5-mini", "mode": "read_write" },
+    "check":    { "model": "github-copilot/gemini-3-flash-preview", "mode": "read_only" },
+    "cover":    { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
+    "create":   { "model": "github-copilot/gpt-5.1", "mode": "read_write" },
+    "fix":      { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
+    "new":      { "model": "github-copilot/gpt-5-mini", "mode": "read_write" },
+    "optimize": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+    "write":    { "model": "github-copilot/gpt-5.1", "mode": "read_write" }
+  }
+}

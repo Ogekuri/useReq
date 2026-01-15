@@ -9,10 +9,10 @@
 - [x] new: Develop Google Gemini CLI support
 - [x] new: Develop GitHub Copilot CLI support
 - [x] new: Develop OpenAI Codex Agent Extension for VSCode support
-- [ ] new: Develop Kiro CLI support (not yet working as expected, does not pass $ARGUMENTS)
+- [ ] new: Develop Kiro CLI support **(not yet feasible)**
 - [x] new: Develop OpenCode CLI support
 - [x] new: Develop Claude CLI support
-- [x] new: Develop GitHub Copilot Agent Chat in VSCode support
+- [x] new: Develop GitHub Copilot Agent Chat in VSCode support **(not yet feasible)**
 - [ ] new: Develop Gemini Code Assist Extension for VSCode support
 - [x] new: Develop Kiro CLI Agent support
 - [x] new: Develop OpenCode CLI Agent support
@@ -23,14 +23,14 @@
 - [x] new: Add --enable-tools to Claude Code 
 - [x] new: Add --enable-models to Kiro CLI
 - [x] new: Add --enable-tools to Kiro CLI
-- [ ] new: Add --enable-models to Open Code CLI
-- [ ] new: Add --enable-tools to Open Code CLI
-- [ ] new: Add --enable-models to Codex CLI
-- [ ] new: Add --enable-tools to Codex CLI
-- [ ] new: Add --enable-models to Gemini CLI
-- [ ] new: Add --enable-tools to Gemini CLI
-- [ ] test: Testing and bug fixes
-- [ ] new: Testing and bug fixes
+- [x] new: Add --enable-models to Open Code CLI
+- [x] new: Add --enable-tools to Open Code CLI
+- [ ] new: Add --enable-models to Codex CLI **(not yet feasible)**
+- [ ] new: Add --enable-tools to Codex CLI **(not yet feasible)**
+- [ ] new: Add --enable-models to Gemini CLI **(not yet feasible)**
+- [ ] new: Add --enable-tools to Gemini CLI **(not yet feasible)**
+- [x] test: Testing and bug fixes
+- [x] new: Testing and bug fixes
 - [ ] new: Beta stage release
 
 ### Beta Stage

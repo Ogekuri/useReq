@@ -2,7 +2,7 @@
 title: "Requisiti di useReq"
 description: "Specifica dei requisiti software"
 date: "2026-01-14"
-version: 0.34
+version: 0.36
 author: "Ogekuri"
 scope:
   paths:
@@ -81,6 +81,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-14 | 0.33 | Vietata qualsiasi scrittura dei test fuori da `temp/`; aggiornati requisiti e suite di test. |
 | 2026-01-14 | 0.34 | Corretto il popolamento del campo `resources` negli agenti Kiro da template `config.json` mantenendo il formato originale. |
 | 2026-01-14 | 0.35 | Aggiornato il requisito Kiro in modo che `tools` e `allowedTools` siano valorizzati con gli array dichiarati in `usage_modes` per ogni prompt. |
+| 2026-01-15 | 0.36 | Aggiunta generazione front matter per i comandi Claude in `.claude/commands/req` con i campi `agent`, `model` (opzionale) e `allowed-tools` (opzionale, CSV). |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, assicurando percorsi relativi coerenti rispetto alla radice del progetto.
@@ -237,7 +238,11 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-051**: Nei file `.claude/agents/req.<nome>.md`, il front matter iniziale deve includere i campi `name` e `description` valorizzati dal prompt sorgente. Il campo `model` non deve essere aggiunto automaticamente dall'applicazione: il campo `model` può essere incluso solo se il parametro `--enable-models` viene passato e il file `src/usereq/resources/claude/config.json` contiene una voce valida per il prompt corrispondente. Analogamente, il campo `tools` può essere incluso solo se il parametro `--enable-tools` viene passato e il `config.json` fornisce `usage_modes[mode]["tools"]` per il `mode` del prompt. In assenza di questi flag o di valori validi nel `config.json`, i campi `model` e `tools` non devono essere presenti nei file generati.
 - **REQ-052**: Quando `--remove` e presente, il comando deve rimuovere i file `.claude/agents/req.*` generati e rimuovere eventuali directory vuote sotto `.claude`, e i file `.opencode/agent/req.*` generati.
 - **REQ-058**: Il comando deve creare la cartella `.opencode/command` sotto la radice del progetto.
-- **REQ-059**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.opencode/command` con nome `req.<nome>.md` utilizzando le stesse sostituzioni (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) applicate per `.kiro/prompts`. Quando `--remove` è presente, i file generati in `.opencode/command` devono essere rimossi e le directory vuote sotto `.opencode` eliminate.
+ - **REQ-059**: Per ogni prompt Markdown disponibile, il comando deve generare un file in `.opencode/command` con nome `req.<nome>.md` che includa front matter YAML contenente:
+  - `agent:` valorizzato con il nome del file corrispondente in `.opencode/agent` (es. `req.analyze`),
+  - opzionalmente `model:` e `tools:` quando i flag `--enable-models` e/o `--enable-tools` sono attivi e i relativi valori sono presenti nei `config.json` delle risorse CLI,
+  - seguito da una riga separatrice e dal corpo del prompt con le stesse sostituzioni (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) applicate per `.kiro/prompts`.
+Quando `--remove` è presente, i file generati in `.opencode/command` devono essere rimossi e le directory vuote sotto `.opencode` eliminate.
  - **REQ-053**: Per ogni prompt Markdown disponibile, il comando deve generare un file `.github/agents/req.<nome>.agent.md` con front matter che includa `name` impostato a `req-<nome>`, preservando `description` dal prompt sorgente.
 - **REQ-054**: Il progetto deve includere una suite di unit test (`tests/test_cli.py`) che verifichi il corretto funzionamento dello script CLI eseguendo le seguenti operazioni: (1) creare una directory di test vuota in `temp/project-test`, rimuovendola se già presente; (2) creare le sottocartelle `docs` e `tech`; (3) eseguire lo script con parametri `--base temp/project-test`, `--doc temp/project-test/docs` e `--dir temp/project-test/tech`; (4) verificare che la struttura dei file e directory generata e i relativi contenuti siano conformi ai requisiti documentati. La suite di test deve utilizzare esclusivamente cartelle sotto `temp/` (o `tests/temp/`) per qualunque creazione, modifica o cancellazione di file/directory e non deve toccare altri percorsi del repository. Inoltre, deve fornire output dettagliato durante l'esecuzione, mostrando la lista di tutti i test disponibili, quale test è in esecuzione in quel momento, cosa controllerà (basato sulla descrizione del metodo), e l'esito del test (PASS o FAIL).
 
@@ -246,6 +251,11 @@ Non sono stati trovati test unitari nel repository.
  - **REQ-060**: Il comando deve creare la cartella `.claude/commands` e la sua sottocartella `.claude/commands/req` sotto la radice del progetto.
  - **REQ-061**: Per ogni prompt Markdown disponibile, il comando deve copiare il file in `.claude/commands/req` con nome `<nome>.md` (senza il prefisso `req.`), applicando le stesse sostituzioni (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) usate per `.codex/prompts`.
  - **REQ-062**: Quando `--remove` è presente, il comando deve rimuovere i file generati in `.claude/commands/req` e rimuovere eventuali directory vuote sotto `.claude`.
+ - **REQ-076**: Per ogni prompt Markdown disponibile, il comando deve generare un file in `.claude/commands/req` con nome `<nome>.md` che includa un front matter YAML iniziale contenente:
+  - `agent`: valorizzato con lo stesso identificatore `name` presente in `.claude/agents/req.<nome>.md` (es. `req-<nome>`).
+  - opzionalmente `model`: incluso solo se l'opzione `--enable-models` è passata e `src/usereq/resources/claude/config.json` contiene una voce `model` per il prompt corrispondente; il valore deve essere copiato così com'è dal `config.json`.
+  - opzionalmente `allowed-tools`: incluso solo se l'opzione `--enable-tools` è passata e il `config.json` fornisce `usage_modes[mode]["tools"]` per il `mode` del prompt; il campo deve essere una stringa CSV tra doppi apici, formattata come `"Read, Grep, Glob"`.
+  - Segue una riga separatrice `---` e quindi il corpo del prompt Markdown con le stesse sostituzioni token (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`).
 - **REQ-063**: Il repository deve includere un workflow GitHub Actions sotto `.github/workflows/` che si attiva su push di tag che matchano `v*`.
 - **REQ-064**: Il workflow deve eseguire la build delle distribuzioni Python del pacchetto (sdist e wheel) producendo gli output sotto `dist/`.
 - **REQ-065**: Il workflow deve creare (o aggiornare) una GitHub Release per il tag e caricare come asset tutti i file prodotti in `dist/`.
@@ -254,7 +264,7 @@ Non sono stati trovati test unitari nel repository.
 - **REQ-068**: Se la chiamata fallisce (timeout/errore di rete/risposta non valida), il comando deve proseguire senza stampare nulla. Se la chiamata ha successo e la versione remota (letta dal campo `tag_name` del JSON e normalizzata rimuovendo un eventuale prefisso `v`) è maggiore di `__version__`, il comando deve stampare un messaggio in inglese indicando versione attuale e versione disponibile e deve indicare come aggiornare usando `req --upgrade`.
  - **REQ-070**: Il comando deve supportare le opzioni `--enable-models` e `--enable-tools` (opzionali) per includere rispettivamente i campi `model` e `tools` nei file di agenti/prompts generati quando disponibili.
  - **REQ-071**: Se `--enable-models` è presente, per ogni prompt generato il comando deve cercare, nelle cartelle `src/usereq/resources/{claude,copilot,opencode,kiro,gemini}`, i file `config.json` e, se il file esiste e contiene una voce per il prompt, includere `model: <value>` nel front matter o nel JSON/TOML dell'agente generato.
- - **REQ-072**: Se `--enable-tools` è presente, per ogni prompt generato il comando deve, se disponibile nel `config.json`, includere `tools: [...]` ricavata da `usage_modes[mode]["tools"]` per il `mode` specificato nella voce del prompt. Il campo `tools` nel `config.json` può essere una lista di stringhe o una stringa separata da virgole; il CLI deve accettare entrambe le forme e, se riceve una stringa, deve parsarla come CSV separando sugli `,` e rimuovendo gli spazi attorno agli elementi.
+ - **REQ-072**: Se `--enable-tools` è presente, per ogni prompt generato il comando deve, se disponibile nel `config.json`, includere il campo `tools` ricavato da `usage_modes[mode]["tools"]` per il `mode` specificato nella voce del prompt. Il `config.json` può specificare `tools` come lista di stringhe o come stringa separata da virgole; il CLI deve accettare entrambe le forme. Quando genera file per OpenCode (`.opencode/agent` e `.opencode/command`), il CLI deve preservare il tipo originale definito nel `config.json`: se il valore è una stringa, deve essere inserito nei file come stringa (senza convertirla in array); se è una lista, deve essere inserito come array. Per gli altri target (es. Gemini, Kiro, GitHub, Claude) il comportamento esistente (normalizzazione in lista quando richiesto) rimane invariato.
  - **REQ-073**: L'inclusione di `model` e `tools` è condizionata all'esistenza e validità del file `config.json` per la relativa CLI; in assenza della chiave corrispondente non sarà aggiunto alcun campo (non sono previsti comportamenti di retro-compatibilità aggiuntivi).
 
 - **REQ-044**: Dopo la rimozione, il comando deve eliminare le sottocartelle vuote sotto `.gemini`, `.codex`, `.kiro` e `.github` iterando dal basso verso l'alto.

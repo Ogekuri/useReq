@@ -731,6 +731,27 @@ def get_model_tools_for_prompt(
     return model, tools
 
 
+def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any:
+    """Ritorna il valore raw di `usage_modes[mode]['tools']` per il prompt.
+
+    Può ritornare una lista di stringhe, una stringa o None a seconda di come
+    e' definito nel `config.json`. Non effettua parsing CSV: restituisce il valore
+    esattamente come presente nel file di configurazione.
+    """
+    if not config:
+        return None
+    prompts = config.get("prompts") or {}
+    entry = prompts.get(prompt_name) if isinstance(prompts, dict) else None
+    if isinstance(entry, dict):
+        mode = entry.get("mode")
+        if mode:
+            usage = config.get("usage_modes") or {}
+            mode_entry = usage.get(mode) if isinstance(usage, dict) else None
+            if isinstance(mode_entry, dict):
+                return mode_entry.get("tools")
+    return None
+
+
 def format_tools_inline_list(tools: list[str]) -> str:
     """Formatta la lista tools come inline YAML/TOML/MD: ['a', 'b']."""
     safe = [t.replace("'", "\\'") for t in tools]
@@ -1225,13 +1246,17 @@ def run(args: Namespace) -> None:
             # Optionally include model/tools for OpenCode
             opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
             if configs:
-                oc_model, oc_tools = get_model_tools_for_prompt(
+                oc_model, _ = get_model_tools_for_prompt(
                     configs.get("opencode"), PROMPT, "opencode"
                 )
+                oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
                 if include_models and oc_model:
                     opencode_header_lines.append(f"model: {oc_model}")
-                if include_tools and oc_tools:
-                    opencode_header_lines.append(f"tools: {format_tools_inline_list(oc_tools)}")
+                if include_tools and oc_tools_raw is not None:
+                    if isinstance(oc_tools_raw, list):
+                        opencode_header_lines.append(f"tools: {format_tools_inline_list(oc_tools_raw)}")
+                    elif isinstance(oc_tools_raw, str):
+                        opencode_header_lines.append(f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"')
             opencode_header = "\n".join(opencode_header_lines) + "\n---\n\n"
             opencode_text = opencode_header + prompt_body
             for token, replacement in {
@@ -1248,39 +1273,79 @@ def run(args: Namespace) -> None:
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
 
-            # Also copy prompt into .opencode/command as plain markdown with same substitutions
+            # Also create .opencode/command file with front matter referencing the agent
             dst_opencode_command = (
                 project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
             )
             existed = dst_opencode_command.exists()
-            copy_with_replacements(
-                prompt_path,
-                dst_opencode_command,
-                {
-                    "%%REQ_DOC%%": doc_file_list,
-                    "%%REQ_DIR%%": dir_list,
-                    "%%REQ_PATH%%": normalized_doc,
-                    "%%ARGS%%": "$ARGUMENTS",
-                },
-            )
+            # Build header: agent name plus optional model/tools when enabled and available
+            command_header_lines = ["---", f"agent: req.{PROMPT}"]
+            if configs:
+                oc_model, _ = get_model_tools_for_prompt(
+                    configs.get("opencode"), PROMPT, "opencode"
+                )
+                oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
+                if include_models and oc_model:
+                    command_header_lines.append(f"model: {oc_model}")
+                if include_tools and oc_tools_raw is not None:
+                    if isinstance(oc_tools_raw, list):
+                        command_header_lines.append(f"tools: {format_tools_inline_list(oc_tools_raw)}")
+                    elif isinstance(oc_tools_raw, str):
+                        command_header_lines.append(f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"')
+            command_header = "\n".join(command_header_lines) + "\n---\n\n"
+            command_text = command_header + prompt_body
+            for token, replacement in {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "$ARGUMENTS",
+            }.items():
+                command_text = command_text.replace(token, replacement)
+            dst_opencode_command.parent.mkdir(parents=True, exist_ok=True)
+            if not command_text.endswith("\n"):
+                command_text += "\n"
+            dst_opencode_command.write_text(command_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
 
-            # Also copy prompt into .claude/commands/req mirroring .codex/prompts behavior
+            # Also create .claude/commands/req entry mirroring .codex/prompts behavior
+            # Include front matter: agent (must match the 'name' in .claude/agents/req.<prompt>.md),
+            # optional model (when enabled and available) and allowed-tools as CSV string.
             dst_claude_command = (
                 project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
             )
             existed = dst_claude_command.exists()
-            copy_with_replacements(
-                prompt_path,
-                dst_claude_command,
-                {
-                    "%%REQ_DOC%%": doc_file_list,
-                    "%%REQ_DIR%%": dir_list,
-                    "%%REQ_PATH%%": normalized_doc,
-                    "%%ARGS%%": "$ARGUMENTS",
-                },
-            )
+
+            # Build front matter header for claude command file
+            command_header_lines = ["---", f"agent: req-{PROMPT}"]
+            if include_models and claude_model:
+                command_header_lines.append(
+                    f'model: "{yaml_double_quote_escape(str(claude_model))}"'
+                )
+            # allowed-tools: populate as a comma-separated quoted string when tools available
+            if include_tools and claude_tools:
+                try:
+                    allowed_csv = ", ".join(str(t) for t in claude_tools)
+                except Exception:
+                    allowed_csv = str(claude_tools)
+                command_header_lines.append(
+                    f'allowed-tools: "{yaml_double_quote_escape(allowed_csv)}"'
+                )
+
+            command_header = "\n".join(command_header_lines) + "\n---\n\n"
+            command_text = command_header + prompt_body
+            for token, replacement in {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "$ARGUMENTS",
+            }.items():
+                command_text = command_text.replace(token, replacement)
+
+            dst_claude_command.parent.mkdir(parents=True, exist_ok=True)
+            if not command_text.endswith("\n"):
+                command_text += "\n"
+            dst_claude_command.write_text(command_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
 
