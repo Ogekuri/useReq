@@ -85,8 +85,8 @@ uv tool uninstall usereq
 - 👍 **OpenCode** 👍 - Good - Many models available, Does not support "`tools:`" on agents/prompts.
 - ⚖️ **Claude Code** ⚖️ - Average - Only support Claude/Anthropic models.
 - 🆗 **OpenAI Codex** 🆗 - Acceptable - Only support OpenIA models. Does not support agents. Does not suppot `model:` and `tools:` on prompts.
-- ❌ **Kiro CLI** ❌ - Poor - Only support Claude/Anthropic models. Does not support `$ARGUMENTS` on prompts.
-- ⛔ **Gemini Code Assist** ⛔ - Poor - Only Google models.  Does not support agent or prompts on Extension. Does not support agents, `model:` and `tools:`.
+- 👎 **Kiro CLI** 👎 - Poor - Only support Claude/Anthropic models. Does not support `$ARGUMENTS` on prompts.
+- ☢️ **Gemini Code Assist** ☢️ - Very Poor - Only Google models.  Does not support agent or prompts on Extension. Does not support agents, `model:` and `tools:`.
 
 
 ### useReq/req Support
