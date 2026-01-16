@@ -160,7 +160,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | Claude Opus 4.5 | 200K | *Yes* |
   | Gemini 3 Flash (Preview) | 1,05M | |
   | Gemini 3 Pro (Preview) | 1,05M | Yes |
-  | GPT-4.1 | 1,05MK | **No** |
+  | GPT-4.1 | 1,05M | **No** |
   | GPT-5 mini | 400K | Yes |
   | GPT-5.1 | 400K | Yes |
   | GPT-5.1-Codex-Mini (Preview) |  400K | |
