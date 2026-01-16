@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.51](https://github.com/Ogekuri/useReq/compare/v0.0.50..v0.0.51) - 2026-01-16
+### 📚  Documentation
+- *(core)* add WORKFLOW.md.
+
 ## [0.0.50](https://github.com/Ogekuri/useReq/compare/v0.0.49..v0.0.50) - 2026-01-15
 ### 📚  Documentation
 - *(core)* update README.md.
@@ -252,6 +256,7 @@
 - \[0.0.48\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.48
 - \[0.0.49\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.49
 - \[0.0.50\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.50
+- \[0.0.51\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.51
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -303,3 +308,4 @@
 [0.0.48]: https://github.com/Ogekuri/useReq/compare/v0.0.47..v0.0.48
 [0.0.49]: https://github.com/Ogekuri/useReq/compare/v0.0.48..v0.0.49
 [0.0.50]: https://github.com/Ogekuri/useReq/compare/v0.0.49..v0.0.50
+[0.0.51]: https://github.com/Ogekuri/useReq/compare/v0.0.50..v0.0.51
