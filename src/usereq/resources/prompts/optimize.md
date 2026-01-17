@@ -52,7 +52,8 @@ Write and then execute a TODO list following these steps strictly:
    - Report any discrepancies with file paths and concise explanations.
 12. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
 13. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-14. **CRITICAL**: delete file `.req/context/active_request.md`.
+14. If [WORKFLOW.md](WORKFLOW.md) file exist, analyze the recently implemented code changes, identify new features and behavioral updates, then update [WORKFLOW.md](WORKFLOW.md) by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure).
+15. **CRITICAL**: delete file `.req/context/active_request.md`.
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%
