@@ -27,7 +27,7 @@ title: "Foo Bar Web Interface Requirements"
 description: Software requirements specification
 version: 0.1
 date: "2025-12-25"
-author: "Pinco Pallino"
+author: "John Doe"
 scope:
   paths:
     - "**/*.py"
@@ -43,7 +43,7 @@ tags: ["markdown", "requirements", "example"]
 
 # Foo Bar Web Interface Requirements
 **Version**: 0.1
-**Author**: Pinco Pallino
+**Author**: John Doe
 **Date**: 2025-12-25
 -->
 

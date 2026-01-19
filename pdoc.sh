@@ -40,6 +40,19 @@ else
   source ${VENVDIR}/bin/activate
 fi
 
-# Execute the application:
-PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
-    exec ${VENVDIR}/bin/python3 -c 'from usereq.cli import main; raise SystemExit(main())' "$@"
+REPO_ROOT="${SCRIPT_PATH}" \
+  PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
+  ${VENVDIR}/bin/python3 - <<'PY'
+from os import environ
+from pathlib import Path
+
+from usereq.pdoc_utils import generate_pdoc_docs
+
+repo_root = Path(environ["REPO_ROOT"])
+generate_pdoc_docs(
+    repo_root / "pdoc",
+    modules=("usereq", "usereq.cli", "usereq.pdoc_utils", "usereq.__main__"),
+    all_submodules=True,
+)
+print("pdoc documentation generated in", repo_root / "pdoc")
+PY

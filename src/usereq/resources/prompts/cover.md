@@ -1,5 +1,6 @@
 ---
-description: "Implement changes needed to cover the new requirements. Usage: req.cover."
+description: "Implement changes needed to cover the new requirements"
+argument-hint: "req.cover"
 ---
 
 # Implement changes needed to cover the new requirements

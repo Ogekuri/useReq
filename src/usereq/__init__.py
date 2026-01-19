@@ -1,12 +1,15 @@
-"""Punto di ingresso del pacchetto per l'automazione useReq.
+"""Package entry point for useReq automation.
 
-Questo file espone metadati leggeri e una riesportazione comoda del punto di ingresso CLI `main`,
-cosi i chiamanti possono usare `from usereq import main` senza importare
-involontariamente il comportamento completo del pacchetto.
+This file exposes lightweight metadata and a convenient re-export of the `main` CLI entry point,
+so callers can use `from usereq import main` without unintentionally importing
+the full package behavior.
 """
 
 __version__ = "0.0.52"
+"""The current version of the package."""
 
-from .cli import main  # riesportazione del punto di ingresso CLI
+from . import cli  # usereq.cli submodule
+from . import pdoc_utils  # usereq.pdoc_utils submodule
+from .cli import main  # re-export of CLI entry point
 
-__all__ = ["__version__", "main"]
+__all__ = ["__version__", "main", "cli", "pdoc_utils"]

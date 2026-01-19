@@ -1,8 +1,8 @@
 """
-Test suite per il comando CLI useReq.
+Test suite for the useReq CLI command.
 
-Questo modulo implementa i test unitari per verificare il corretto funzionamento
-dello script CLI, secondo il requisito REQ-054.
+This module implements unit tests to verify the correct operation
+of the CLI script, according to requirement REQ-054.
 
 # REQ-054
 """
@@ -15,8 +15,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-# Importa il modulo CLI da testare.
+# Imports the CLI module to test.
 from usereq import cli
+from usereq.pdoc_utils import generate_pdoc_docs
 
 KIRO_READ_ONLY_TOOLS = [
     "read",
@@ -27,6 +28,8 @@ KIRO_READ_ONLY_TOOLS = [
     "todo_list",
     "thinking",
 ]
+"""List of read-only tools allowed for Kiro."""
+
 KIRO_READ_WRITE_TOOLS = [
     "read",
     "glob",
@@ -37,31 +40,31 @@ KIRO_READ_WRITE_TOOLS = [
     "todo_list",
     "thinking",
 ]
+"""List of read-write tools allowed for Kiro."""
 
 
 class TestCLI(unittest.TestCase):
-    """Suite di test per il comando CLI useReq."""
-
-    # Percorso della directory di test sotto temp/.
+    """Test suite for the useReq CLI command."""
+    # Test directory path under temp/.
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test"
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Prepara l'ambiente di test creando le directory necessarie."""
-        # Rimuove la directory di test se presente (REQ-054.1).
+        """Prepares the test environment by creating necessary directories."""
+        # Removes the test directory if present (REQ-054.1).
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
 
-        # Crea la directory di test e le sottocartelle docs e tech (REQ-054.2).
+        # Creates the test directory and docs/tech subfolders (REQ-054.2).
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
 
-        # Crea una sottocartella in tech per verificare REQ-026.
+        # Creates a subfolder in tech to verify REQ-026.
         (cls.TEST_DIR / "tech" / "src").mkdir(exist_ok=True)
 
-        # Esegue lo script con i parametri specificati (REQ-054.3).
-        # Evita chiamate di rete durante i test.
+        # Executes the script with specified parameters (REQ-054.3).
+        # Avoids network calls during tests.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 [
@@ -75,92 +78,92 @@ class TestCLI(unittest.TestCase):
             )
         cls.exit_code = exit_code
 
-        # Stampare la lista di tutti i test disponibili
+        # Print the list of all available tests
         test_methods = [method for method in dir(cls) if method.startswith("test_")]
-        print(f"Tutti i test disponibili: {', '.join(test_methods)}")
+        print(f"All available tests: {', '.join(test_methods)}")
 
     def setUp(self) -> None:
-        """Stampa l'inizio del test."""
-        print(f"Eseguendo test: {self._testMethodName} - {self.__doc__}")
+        """Prints the start of the test."""
+        print(f"Running test: {self._testMethodName} - {self.__doc__}")
 
     def tearDown(self) -> None:
-        """Stampa l'esito del test."""
+        """Prints the outcome of the test."""
         print("PASS")
 
     @classmethod
     def tearDownClass(cls) -> None:
-        """Pulisce l'ambiente di test rimuovendo le directory temporanee (REQ-024)."""
+        """Cleans up the test environment by removing temporary directories (REQ-024)."""
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
 
     def test_exit_code_is_zero(self) -> None:
-        """Verifica che lo script termini con codice di uscita 0."""
-        self.assertEqual(self.exit_code, 0, "Lo script deve terminare con exit code 0")
+        """Verifies that the script ends with exit code 0."""
+        self.assertEqual(self.exit_code, 0, "The script must end with exit code 0")
 
     def test_requirements_md_generated(self) -> None:
-        """REQ-001: Verifica che requirements.md venga generato nella directory docs vuota."""
+        """REQ-001: Verifies that requirements.md is generated in the empty docs directory."""
         requirements_path = self.TEST_DIR / "docs" / "requirements.md"
         self.assertTrue(
             requirements_path.exists(),
-            "Il file requirements.md deve essere generato in docs/",
+            "The file requirements.md must be generated in docs/",
         )
         content = requirements_path.read_text(encoding="utf-8")
-        self.assertIn("---", content, "requirements.md deve contenere front matter")
+        self.assertIn("---", content, "requirements.md must contain front matter")
 
     def test_codex_directory_created(self) -> None:
-        """REQ-002: Verifica la creazione della cartella .codex/prompts."""
+        """REQ-002: Verifies the creation of the .codex/prompts directory."""
         codex_prompts = self.TEST_DIR / ".codex" / "prompts"
         self.assertTrue(
-            codex_prompts.is_dir(), "La directory .codex/prompts deve esistere"
+            codex_prompts.is_dir(), "The directory .codex/prompts must exist"
         )
 
     def test_github_directories_created(self) -> None:
-        """REQ-002: Verifica la creazione delle cartelle .github/agents e .github/prompts."""
+        """REQ-002: Verifies the creation of .github/agents and .github/prompts directories."""
         github_agents = self.TEST_DIR / ".github" / "agents"
         github_prompts = self.TEST_DIR / ".github" / "prompts"
         self.assertTrue(
-            github_agents.is_dir(), "La directory .github/agents deve esistere"
+            github_agents.is_dir(), "The directory .github/agents must exist"
         )
         self.assertTrue(
-            github_prompts.is_dir(), "La directory .github/prompts deve esistere"
+            github_prompts.is_dir(), "The directory .github/prompts must exist"
         )
 
     def test_gemini_directories_created(self) -> None:
-        """REQ-002: Verifica la creazione delle cartelle .gemini/commands e .gemini/commands/req."""
+        """REQ-002: Verifies the creation of .gemini/commands and .gemini/commands/req directories."""
         gemini_commands = self.TEST_DIR / ".gemini" / "commands"
         gemini_req = gemini_commands / "req"
         self.assertTrue(
-            gemini_commands.is_dir(), "La directory .gemini/commands deve esistere"
+            gemini_commands.is_dir(), "The directory .gemini/commands must exist"
         )
         self.assertTrue(
-            gemini_req.is_dir(), "La directory .gemini/commands/req deve esistere"
+            gemini_req.is_dir(), "The directory .gemini/commands/req must exist"
         )
 
     def test_kiro_directories_created(self) -> None:
-        """REQ-017: Verifica la creazione delle cartelle .kiro/agents e .kiro/prompts."""
+        """REQ-017: Verifies the creation of .kiro/agents and .kiro/prompts directories."""
         kiro_agents = self.TEST_DIR / ".kiro" / "agents"
         kiro_prompts = self.TEST_DIR / ".kiro" / "prompts"
-        self.assertTrue(kiro_agents.is_dir(), "La directory .kiro/agents deve esistere")
+        self.assertTrue(kiro_agents.is_dir(), "The directory .kiro/agents must exist")
         self.assertTrue(
-            kiro_prompts.is_dir(), "La directory .kiro/prompts deve esistere"
+            kiro_prompts.is_dir(), "The directory .kiro/prompts must exist"
         )
 
     def test_opencode_directory_created(self) -> None:
-        """REQ-048: Verifica la creazione della cartella .opencode/agent."""
+        """REQ-048: Verifies the creation of the .opencode/agent directory."""
         opencode_agent = self.TEST_DIR / ".opencode" / "agent"
         self.assertTrue(
-            opencode_agent.is_dir(), "La directory .opencode/agent deve esistere"
+            opencode_agent.is_dir(), "The directory .opencode/agent must exist"
         )
 
     def test_claude_directory_created(self) -> None:
-        """REQ-049: Verifica la creazione della cartella .claude/agents."""
+        """REQ-049: Verifies the creation of the .claude/agents directory."""
         claude_agents = self.TEST_DIR / ".claude" / "agents"
         self.assertTrue(
-            claude_agents.is_dir(), "La directory .claude/agents deve esistere"
+            claude_agents.is_dir(), "The directory .claude/agents must exist"
         )
 
     def test_codex_prompt_files_created(self) -> None:
-        """REQ-003: Verifica la copia dei file prompt in .codex/prompts."""
+        """REQ-003: Verifies copy of prompt files into .codex/prompts."""
         codex_prompts = self.TEST_DIR / ".codex" / "prompts"
         expected_prompts = [
             "req.analyze.md",
@@ -176,11 +179,11 @@ class TestCLI(unittest.TestCase):
             prompt_path = codex_prompts / prompt
             self.assertTrue(
                 prompt_path.exists(),
-                f"Il file {prompt} deve esistere in .codex/prompts",
+                f"The file {prompt} must exist in .codex/prompts",
             )
 
     def test_github_agent_files_created(self) -> None:
-        """REQ-003, REQ-053: Verifica la copia dei file in .github/agents con front matter name."""
+        """REQ-003, REQ-053: Verifies copy of files into .github/agents with front matter name."""
         github_agents = self.TEST_DIR / ".github" / "agents"
         expected_agents = [
             "req.analyze.agent.md",
@@ -195,32 +198,32 @@ class TestCLI(unittest.TestCase):
         for agent in expected_agents:
             agent_path = github_agents / agent
             self.assertTrue(
-                agent_path.exists(), f"Il file {agent} deve esistere in .github/agents"
+                agent_path.exists(), f"The file {agent} must exist in .github/agents"
             )
-            # Verifica il front matter con name (REQ-053).
+            # Verify front matter with name (REQ-053).
             content = agent_path.read_text(encoding="utf-8")
-            self.assertIn("---", content, f"{agent} deve contenere front matter")
+            self.assertIn("---", content, f"{agent} must contain front matter")
             prompt_name = agent.replace(".agent.md", "").replace(".", "-")
-            # Il nome nel front matter deve essere req-<nome>.
+            # The name in front matter must be req-<name>.
             expected_name_pattern = agent.replace(".agent.md", "").replace(".", "-")
             self.assertIn(
                 f"name: {expected_name_pattern}",
                 content,
-                f"{agent} deve contenere 'name: {expected_name_pattern}' nel front matter",
+                f"{agent} must contain 'name: {expected_name_pattern}' in front matter",
             )
             self.assertIn(
                 "description:",
                 content,
-                f"{agent} deve contenere 'description:' nel front matter",
+                f"{agent} must contain 'description:' in front matter",
             )
             self.assertNotIn(
                 "model:",
                 content,
-                "Il front matter Claude non deve includere 'model' senza flag abilitati",
+                "Claude front matter must not include 'model' without enabled flags",
             )
 
     def test_github_prompt_files_created(self) -> None:
-        """REQ-004: Verifica la creazione dei file .github/prompts/req.<nome>.prompt.md."""
+        """REQ-004: Verifies the creation of .github/prompts/req.<name>.prompt.md files."""
         github_prompts = self.TEST_DIR / ".github" / "prompts"
         expected_prompts = [
             "req.analyze.prompt.md",
@@ -236,19 +239,19 @@ class TestCLI(unittest.TestCase):
             prompt_path = github_prompts / prompt
             self.assertTrue(
                 prompt_path.exists(),
-                f"Il file {prompt} deve esistere in .github/prompts",
+                f"The file {prompt} must exist in .github/prompts",
             )
-            # Verifica il contenuto del file.
+            # Verify file content.
             content = prompt_path.read_text(encoding="utf-8")
-            agent_name = prompt.replace(".prompt.md", "").replace(".", "-")
-            self.assertIn(
-                f"agent: {agent_name}",
-                content,
-                f"{prompt} deve referenziare l'agente {agent_name}",
-            )
+            # With default (no --prompts-use-agents) the file must contain prompt body
+            # and not just a reference to the agent.
+            self.assertNotIn("agent:", content, "The prompt must not be just an agent reference")
+            self.assertIn("description:", content, "The prompt must include description in front matter")
+            self.assertIn("argument-hint:", content, "The prompt must include argument-hint in front matter")
+            self.assertIn("##", content, "The prompt body must be present")
 
     def test_gemini_toml_files_created(self) -> None:
-        """REQ-005: Verifica la generazione dei file TOML in .gemini/commands/req."""
+        """REQ-005: Verifies TOML files generation in .gemini/commands/req."""
         gemini_req = self.TEST_DIR / ".gemini" / "commands" / "req"
         expected_toml = [
             "analyze.toml",
@@ -264,28 +267,28 @@ class TestCLI(unittest.TestCase):
             toml_path = gemini_req / toml
             self.assertTrue(
                 toml_path.exists(),
-                f"Il file {toml} deve esistere in .gemini/commands/req",
+                f"The file {toml} must exist in .gemini/commands/req",
             )
             content = toml_path.read_text(encoding="utf-8")
             self.assertIn(
-                "description", content, f"{toml} deve contenere 'description'"
+                "description", content, f"{toml} must contain 'description'"
             )
-            self.assertIn("prompt", content, f"{toml} deve contenere 'prompt'")
+            self.assertIn("prompt", content, f"{toml} must contain 'prompt'")
 
     def test_templates_copied(self) -> None:
-        """REQ-006: Verifica la copia dei template in .req/templates."""
+        """REQ-006: Verifies copy of templates into .req/templates."""
         templates_dir = self.TEST_DIR / ".req" / "templates"
         self.assertTrue(
-            templates_dir.is_dir(), "La directory .req/templates deve esistere"
+            templates_dir.is_dir(), "The directory .req/templates must exist"
         )
         requirements_template = templates_dir / "requirements.md"
         self.assertTrue(
             requirements_template.exists(),
-            "Il template requirements.md deve esistere in .req/templates",
+            "The template requirements.md must exist in .req/templates",
         )
 
     def test_kiro_prompt_files_created(self) -> None:
-        """REQ-018: Verifica la copia dei file in .kiro/prompts."""
+        """REQ-018: Verifies copy of files into .kiro/prompts."""
         kiro_prompts = self.TEST_DIR / ".kiro" / "prompts"
         expected_prompts = [
             "req.analyze.md",
@@ -300,11 +303,23 @@ class TestCLI(unittest.TestCase):
         for prompt in expected_prompts:
             prompt_path = kiro_prompts / prompt
             self.assertTrue(
-                prompt_path.exists(), f"Il file {prompt} deve esistere in .kiro/prompts"
+                prompt_path.exists(), f"The file {prompt} must exist in .kiro/prompts"
             )
 
+    def test_codex_kiro_prompt_contents_match(self) -> None:
+        """Verifies that Codex and Kiro prompt contents match after replacement."""
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
+        kiro_prompt = self.TEST_DIR / ".kiro" / "prompts" / "req.analyze.md"
+        codex_content = codex_prompt.read_text(encoding="utf-8")
+        kiro_content = kiro_prompt.read_text(encoding="utf-8")
+        self.assertEqual(
+            codex_content,
+            kiro_content,
+            "Codex and Kiro prompt files must have identical contents",
+        )
+
     def test_kiro_agent_json_files_created(self) -> None:
-        """REQ-019, REQ-020: Verifica la generazione dei file JSON in .kiro/agents."""
+        """REQ-019, REQ-020: Verifies JSON files generation in .kiro/agents."""
         kiro_agents = self.TEST_DIR / ".kiro" / "agents"
         expected_agents = [
             "req.analyze.json",
@@ -319,117 +334,126 @@ class TestCLI(unittest.TestCase):
         for agent in expected_agents:
             agent_path = kiro_agents / agent
             self.assertTrue(
-                agent_path.exists(), f"Il file {agent} deve esistere in .kiro/agents"
+                agent_path.exists(), f"The file {agent} must exist in .kiro/agents"
             )
-            # Verifica la struttura JSON (REQ-020).
+            # Verify JSON structure (REQ-020).
             content = agent_path.read_text(encoding="utf-8")
             try:
                 data = json.loads(content)
             except json.JSONDecodeError:
-                self.fail(f"Il file {agent} deve essere un JSON valido")
+                self.fail(f"The file {agent} must be a valid JSON")
 
-            # Verifica i campi obbligatori.
-            self.assertIn("name", data, f"{agent} deve contenere il campo 'name'")
+            # Verify mandatory fields.
+            self.assertIn("name", data, f"{agent} must contain 'name' field")
             self.assertIn(
-                "description", data, f"{agent} deve contenere il campo 'description'"
+                "description", data, f"{agent} must contain 'description' field"
             )
-            self.assertIn("prompt", data, f"{agent} deve contenere il campo 'prompt'")
+            self.assertIn("prompt", data, f"{agent} must contain 'prompt' field")
 
-            # Verifica il formato del nome (req-<nome>).
+            # Verify name format (req-<name>).
             expected_name = agent.replace(".json", "").replace(".", "-")
             self.assertEqual(
                 data["name"],
                 expected_name,
-                f"Il nome in {agent} deve essere '{expected_name}'",
+                f"The name in {agent} must be '{expected_name}'",
             )
-            self.assertIn(
+            self.assertNotIn(
                 "tools",
                 data,
-                f"{agent} deve contenere il campo 'tools'",
+                f"{agent} must not contain 'tools' field without --enable-tools",
             )
-            self.assertIn(
+            self.assertNotIn(
                 "allowedTools",
                 data,
-                f"{agent} deve contenere il campo 'allowedTools'",
-            )
-            self.assertEqual(
-                data["tools"],
-                data["allowedTools"],
-                f"{agent} deve avere 'allowedTools' identico a 'tools'",
+                f"{agent} must not contain 'allowedTools' field without --enable-tools",
             )
 
-    def test_kiro_change_tools_match_read_write_mode(self) -> None:
-        """REQ-075: Verifica che il prompt "change" usi la modalità read_write nei tools."""
-        change_agent = self.TEST_DIR / ".kiro" / "agents" / "req.change.json"
-        self.assertTrue(
-            change_agent.exists(),
-            "Il file req.change.json deve essere presente",
+    def test_render_kiro_agent_includes_model_tools(self) -> None:
+        """Verifies render_kiro_agent handles model/tools flags consistently."""
+        template = (
+            "{\n"
+            '  "name": "%%NAME%%",\n'
+            '  "description": "%%DESCRIPTION%%",\n'
+            '  "prompt": "%%PROMPT%%",\n'
+            '  "resources": [\n'
+            "%%RESOURCES%%\n"
+            "  ],\n"
+            '  "model": "legacy",\n'
+            '  "tools": ["legacy"],\n'
+            '  "allowedTools": ["legacy"]\n'
+            "}\n"
         )
-        data = json.loads(change_agent.read_text(encoding="utf-8"))
-        self.assertEqual(
-            data.get("tools"),
-            KIRO_READ_WRITE_TOOLS,
-            "Req.change deve avere la lista read_write di tools",
+        rendered = cli.render_kiro_agent(
+            template,
+            name="req-test",
+            description="Desc",
+            prompt="Body",
+            resources=["file://docs/requirements.md"],
+            tools=["tool-one"],
+            model="model-one",
+            include_tools=True,
+            include_model=True,
         )
+        data = json.loads(rendered)
+        self.assertEqual(data.get("model"), "model-one")
+        self.assertEqual(data.get("tools"), ["tool-one"])
+        self.assertEqual(data.get("allowedTools"), ["tool-one"])
         self.assertEqual(
-            data.get("allowedTools"),
-            KIRO_READ_WRITE_TOOLS,
-            "Req.change deve avere allowedTools identica a tools",
+            data.get("resources"),
+            ["file://docs/requirements.md"],
+            "Resources must be preserved in the rendered agent",
         )
 
-    def test_kiro_analyze_tools_match_read_only_mode(self) -> None:
-        """REQ-075: Verifica che il prompt "analyze" usi la modalità read_only nei tools."""
-        analyze_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
-        self.assertTrue(
-            analyze_agent.exists(),
-            "Il file req.analyze.json deve essere presente",
+        rendered_without_flags = cli.render_kiro_agent(
+            template,
+            name="req-test",
+            description="Desc",
+            prompt="Body",
+            resources=["file://docs/requirements.md"],
+            tools=["tool-one"],
+            model="model-one",
+            include_tools=False,
+            include_model=False,
         )
-        data = json.loads(analyze_agent.read_text(encoding="utf-8"))
-        self.assertEqual(
-            data.get("tools"),
-            KIRO_READ_ONLY_TOOLS,
-            "Req.analyze deve avere la lista read_only di tools",
-        )
-        self.assertEqual(
-            data.get("allowedTools"),
-            KIRO_READ_ONLY_TOOLS,
-            "Req.analyze deve avere allowedTools identica a tools",
-        )
+        data_without_flags = json.loads(rendered_without_flags)
+        self.assertNotIn("model", data_without_flags)
+        self.assertNotIn("tools", data_without_flags)
+        self.assertNotIn("allowedTools", data_without_flags)
 
     def test_req_doc_replacement(self) -> None:
-        """REQ-022: Verifica la sostituzione di %%REQ_DOC%%."""
-        # Dopo l'esecuzione, i file devono contenere il link al requirements.md.
+        """REQ-022: Verifies %%REQ_DOC%% replacement."""
+        # After execution, files must contain link to requirements.md.
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
-        # Verifica che %%REQ_DOC%% sia stato sostituito.
+        # Verify that %%REQ_DOC%% has been replaced.
         self.assertNotIn(
-            "%%REQ_DOC%%", content, "Il token %%REQ_DOC%% deve essere sostituito"
+            "%%REQ_DOC%%", content, "The token %%REQ_DOC%% must be replaced"
         )
-        # Verifica che contenga il riferimento al file docs/requirements.md.
+        # Verify that it contains reference to docs/requirements.md.
         self.assertIn(
             "docs/requirements.md",
             content,
-            "Il file deve contenere il riferimento a docs/requirements.md",
+            "The file must contain reference to docs/requirements.md",
         )
 
     def test_config_json_saved(self) -> None:
-        """REQ-033: Verifica il salvataggio di .req/config.json."""
+        """REQ-033: Verifies saving of .req/config.json."""
         config_path = self.TEST_DIR / ".req" / "config.json"
-        self.assertTrue(config_path.exists(), "Il file .req/config.json deve esistere")
+        self.assertTrue(config_path.exists(), "The file .req/config.json must exist")
         content = config_path.read_text(encoding="utf-8")
         try:
             data = json.loads(content)
         except json.JSONDecodeError:
-            self.fail(".req/config.json deve essere un JSON valido")
+            self.fail(".req/config.json must be a valid JSON")
 
-        # Verifica i campi doc e dir.
-        self.assertIn("doc", data, "config.json deve contenere il campo 'doc'")
-        self.assertIn("dir", data, "config.json deve contenere il campo 'dir'")
-        self.assertEqual(data["doc"], "docs", "Il campo 'doc' deve essere 'docs'")
-        self.assertEqual(data["dir"], "tech", "Il campo 'dir' deve essere 'tech'")
+        # Verify fields doc and dir.
+        self.assertIn("doc", data, "config.json must contain 'doc' field")
+        self.assertIn("dir", data, "config.json must contain 'dir' field")
+        self.assertEqual(data["doc"], "docs", "The 'doc' field must be 'docs'")
+        self.assertEqual(data["dir"], "tech", "The 'dir' field must be 'tech'")
 
     def test_opencode_agent_files_created(self) -> None:
-        """REQ-047: Verifica la generazione degli agenti OpenCode in .opencode/agent."""
+        """REQ-047: Verifies OpenCode agents generation in .opencode/agent."""
         opencode_agent = self.TEST_DIR / ".opencode" / "agent"
         expected_agents = [
             "req.analyze.md",
@@ -444,18 +468,34 @@ class TestCLI(unittest.TestCase):
         for agent in expected_agents:
             agent_path = opencode_agent / agent
             self.assertTrue(
-                agent_path.exists(), f"Il file {agent} deve esistere in .opencode/agent"
+                agent_path.exists(), f"The file {agent} must exist in .opencode/agent"
             )
             content = agent_path.read_text(encoding="utf-8")
-            # Verifica il front matter con description e mode.
-            self.assertIn("---", content, f"{agent} deve contenere front matter")
+            # Verify front matter with description and mode.
+            self.assertIn("---", content, f"{agent} must contain front matter")
             self.assertIn(
-                "description:", content, f"{agent} deve contenere 'description:'"
+                "description:", content, f"{agent} must contain 'description:'"
             )
-            self.assertIn("mode: all", content, f"{agent} deve contenere 'mode: all'")
+            self.assertIn("mode: all", content, f"{agent} must contain 'mode: all'")
+
+    def test_pdoc_documentation_generated(self) -> None:
+        """REQ-081: Verifies pdoc documentation is generated in the pdoc/ folder."""
+        output_dir = self.TEST_DIR / "pdoc"
+        generate_pdoc_docs(output_dir)
+        self.assertTrue(output_dir.exists(), "The pdoc/ directory must be created")
+        html_files = list(output_dir.glob("*.html"))
+        self.assertTrue(html_files, "The pdoc/ directory must contain HTML files")
+
+    def test_opencode_command_contains_metadata(self) -> None:
+        """Verifies that .opencode/command files include description and argument-hint."""
+        cmd_path = self.TEST_DIR / ".opencode" / "command" / "req.analyze.md"
+        self.assertTrue(cmd_path.exists(), "The opencode command must exist")
+        content = cmd_path.read_text(encoding="utf-8")
+        self.assertIn("description:", content, "Must include description in front matter")
+        self.assertIn("argument-hint:", content, "Must include argument-hint in front matter")
 
     def test_claude_agent_files_created(self) -> None:
-        """REQ-050, REQ-051: Verifica la generazione dei file Claude Code."""
+        """REQ-050, REQ-051: Verifies Claude Code files generation."""
         claude_agents = self.TEST_DIR / ".claude" / "agents"
         expected_agents = [
             "req.analyze.md",
@@ -470,84 +510,92 @@ class TestCLI(unittest.TestCase):
         for agent in expected_agents:
             agent_path = claude_agents / agent
             self.assertTrue(
-                agent_path.exists(), f"Il file {agent} deve esistere in .claude/agents"
+                agent_path.exists(), f"The file {agent} must exist in .claude/agents"
             )
             content = agent_path.read_text(encoding="utf-8")
-            # Verifica il front matter (REQ-051).
-            self.assertIn("---", content, f"{agent} deve contenere front matter")
+            # Verify front matter (REQ-051).
+            self.assertIn("---", content, f"{agent} must contain front matter")
 
-            # Verifica il campo name (req-<nome>).
+            # Verify name field (req-<name>).
             expected_name = agent.replace(".md", "").replace(".", "-")
             self.assertIn(
                 f"name: {expected_name}",
                 content,
-                f"{agent} deve contenere 'name: {expected_name}' nel front matter",
+                f"{agent} must contain 'name: {expected_name}' in front matter",
             )
 
-            # Verifica il campo model: inherit.
+            # verify model field: inherit.
             # The 'model' field is no longer required by default (only when --enable-models).
 
-            # Verifica il campo description.
+            # Verify description field.
             self.assertIn(
                 "description:",
                 content,
-                f"{agent} deve contenere 'description:' nel front matter",
+                f"{agent} must contain 'description:' in front matter",
             )
 
+    def test_claude_command_has_argument_hint_and_no_agent(self) -> None:
+        """Verifies that full Claude commands include argument-hint and not the agent when no stubs are used."""
+        cmd_path = self.TEST_DIR / ".claude" / "commands" / "req" / "analyze.md"
+        self.assertTrue(cmd_path.exists(), "The Claude command must exist")
+        content = cmd_path.read_text(encoding="utf-8")
+        self.assertIn("argument-hint:", content, "The command must contain argument-hint")
+        self.assertNotIn("agent:", content, "The command must not contain agent without stubs")
+
     def test_req_dir_replacement(self) -> None:
-        """REQ-026, REQ-027: Verifica la sostituzione di %%REQ_DIR%%."""
+        """REQ-026, REQ-027: Verifies %%REQ_DIR%% replacement."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
-        # Verifica che %%REQ_DIR%% sia stato sostituito.
+        # Verify that %%REQ_DIR%% has been replaced.
         self.assertNotIn(
-            "%%REQ_DIR%%", content, "Il token %%REQ_DIR%% deve essere sostituito"
+            "%%REQ_DIR%%", content, "The token %%REQ_DIR%% must be replaced"
         )
-        # Verifica che contenga il riferimento alla sottodirectory tech/src/.
+        # Verify that it contains reference to subdirectory tech/src/.
         self.assertIn(
-            "tech/src/", content, "Il file deve contenere il riferimento a tech/src/"
+            "tech/src/", content, "The file must contain reference to tech/src/"
         )
 
     def test_kiro_resources_include_prompt(self) -> None:
-        """REQ-046: Verifica che il campo resources dei file Kiro includa il prompt."""
+        """REQ-046: Verifies that Kiro resources field includes the prompt."""
         kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
         content = kiro_agent.read_text(encoding="utf-8")
         data = json.loads(content)
 
         self.assertIn(
-            "resources", data, "Il file JSON deve contenere il campo 'resources'"
+            "resources", data, "The JSON file must contain 'resources' field"
         )
         resources = data["resources"]
         self.assertIsInstance(
-            resources, list, "Il campo 'resources' deve essere una lista"
+            resources, list, "The 'resources' field must be a list"
         )
         self.assertGreater(
-            len(resources), 0, "La lista 'resources' non deve essere vuota"
+            len(resources), 0, "The 'resources' list must not be empty"
         )
 
-        # Verifica che la prima voce sia il prompt.
+        # Verify that the first entry is the prompt.
         first_resource = resources[0]
         self.assertIn(
             ".kiro/prompts/req.analyze.md",
             first_resource,
-            "La prima risorsa deve essere il prompt .kiro/prompts/req.analyze.md",
+            "The first resource must be the prompt .kiro/prompts/req.analyze.md",
         )
 
 
 class TestModelsAndTools(unittest.TestCase):
-    """Verifica l'inclusione condizionale di model e tools nei file generati."""
+    """Verifies conditional inclusion of model and tools in generated files."""
 
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-models"
 
     @classmethod
     def setUpClass(cls) -> None:
-        # Prepara progetto di test
+        # Prepare test project
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
 
-        # Crea risorse di config temporanee sotto una cartella resources temporanea
+        # Create temporary config resources under a temporary resources folder
         tmp_resources = Path(__file__).resolve().parents[1] / "temp" / "resources"
         if tmp_resources.exists():
             shutil.rmtree(tmp_resources)
@@ -585,12 +633,8 @@ class TestModelsAndTools(unittest.TestCase):
             tmpl = orig_resources / "templates" / "requirements.md"
             if tmpl.exists():
                 shutil.copyfile(tmpl, tmp_resources / "templates" / "requirements.md")
-        # Copy Kiro agent template from package kiro folder
-        orig_kiro_template = repo_root / "src" / "usereq" / "resources" / "kiro" / "agent.json"
-        if orig_kiro_template.exists():
-            shutil.copyfile(orig_kiro_template, tmp_resources / "kiro" / "agent.json")
 
-        # Usa le risorse temporanee come radice per il CLI, senza toccare i file del progetto.
+        # Use temporary resources as CLI root, without touching project files.
         cli.RESOURCE_ROOT = tmp_resources
 
         # Run CLI with flags enabled
@@ -620,12 +664,19 @@ class TestModelsAndTools(unittest.TestCase):
             cli.RESOURCE_ROOT = cls._orig_resource_root
 
     def test_generated_files_include_model_and_tools(self) -> None:
-        """Verifica che i file generati contengano model e tools quando i config esistono e i flag sono attivi."""
+        """Verifies that generated files contain model and tools when configs exist and flags are active."""
         gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
         self.assertTrue(gha.exists(), "GitHub agent should exist")
         content = gha.read_text(encoding="utf-8")
         self.assertIn("model:", content)
         self.assertIn("tools:", content)
+
+        ghp = self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md"
+        self.assertTrue(ghp.exists(), "GitHub prompt should exist")
+        ghp_content = ghp.read_text(encoding="utf-8")
+        self.assertIn("model:", ghp_content)
+        self.assertIn("tools:", ghp_content)
+        self.assertIn("argument-hint:", ghp_content)
 
         kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
         self.assertTrue(kiro_agent.exists(), "Kiro agent should exist")
@@ -635,17 +686,17 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn(
             "allowedTools",
             data,
-            "Kiro agent deve contenere il campo allowedTools",
+            "Kiro agent must contain 'allowedTools' field",
         )
         self.assertEqual(
             data["allowedTools"],
             data["tools"],
-            "allowedTools deve corrispondere a tools",
+            "allowedTools must match tools",
         )
         self.assertListEqual(
             data["tools"],
             KIRO_READ_ONLY_TOOLS,
-            "Kiro agent deve usare la lista tools definita per il modo corrente",
+            "Kiro agent must use the tools list defined for the current mode",
         )
 
         gemini_toml = self.TEST_DIR / ".gemini" / "commands" / "req" / "analyze.toml"
@@ -655,7 +706,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn("tools =", toml_content)
 
     def test_without_flags_no_model_tools(self) -> None:
-        """Eseguire CLI senza flags non deve aggiungere model/tools (salvo comportamenti previsti)."""
+        """Running CLI without flags should not add model/tools (unless expected behavior)."""
         # Run again without flags
         from unittest.mock import patch
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -677,7 +728,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertNotIn("model:", content)
 
     def test_tools_only_adds_tools_without_models(self) -> None:
-        """Con solo --enable-tools, devono comparire i tools ma non i model."""
+        """With only --enable-tools, tools should appear but not models."""
         from unittest.mock import patch
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -711,13 +762,13 @@ class TestModelsAndTools(unittest.TestCase):
 
 
 class TestCLIWithExistingDocs(unittest.TestCase):
-    """Test per verificare il comportamento quando docs contiene già dei file."""
+    """Tests to verify behavior when docs already contains files."""
 
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-existing"
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Prepara l'ambiente di test con un file esistente in docs."""
+        """Prepares test environment with an existing file in docs."""
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
 
@@ -725,13 +776,13 @@ class TestCLIWithExistingDocs(unittest.TestCase):
         docs_dir = cls.TEST_DIR / "docs"
         docs_dir.mkdir(exist_ok=True)
 
-        # Crea un file esistente in docs.
+        # Create an existing file in docs.
         existing_file = docs_dir / "existing.md"
         existing_file.write_text("# Existing file\n", encoding="utf-8")
 
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
 
-        # Evita chiamate di rete durante i test.
+        # Prevent network calls during tests.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 [
@@ -745,47 +796,193 @@ class TestCLIWithExistingDocs(unittest.TestCase):
             )
         cls.exit_code = exit_code
 
-        # Stampare la lista di tutti i test disponibili
+        # Print list of all available tests
         test_methods = [method for method in dir(cls) if method.startswith("test_")]
-        print(f"Tutti i test disponibili: {', '.join(test_methods)}")
+        print(f"All available tests: {', '.join(test_methods)}")
 
     def setUp(self) -> None:
-        """Stampa l'inizio del test."""
-        print(f"Eseguendo test: {self._testMethodName} - {self.__doc__}")
+        """Prints test start."""
+        print(f"Running test: {self._testMethodName} - {self.__doc__}")
 
     def tearDown(self) -> None:
-        """Stampa l'esito del test."""
+        """Prints test result."""
         print("PASS")
 
     @classmethod
     def tearDownClass(cls) -> None:
-        """Pulisce l'ambiente di test (REQ-024)."""
+        """Cleans up test environment (REQ-024)."""
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
 
     def test_requirements_md_not_generated_when_docs_not_empty(self) -> None:
-        """REQ-001: Verifica che requirements.md NON venga generato se docs non è vuota."""
+        """REQ-001: Verifies that requirements.md is NOT generated if docs is not empty."""
         requirements_path = self.TEST_DIR / "docs" / "requirements.md"
         self.assertFalse(
             requirements_path.exists(),
-            "Il file requirements.md NON deve essere generato se docs contiene già file",
+            "The file requirements.md must NOT be generated if docs already contains files",
         )
 
     def test_existing_file_preserved(self) -> None:
-        """Verifica che il file esistente in docs sia preservato."""
+        """Verifies that the existing file in docs is preserved."""
         existing_file = self.TEST_DIR / "docs" / "existing.md"
         self.assertTrue(
-            existing_file.exists(), "Il file esistente deve essere preservato"
+            existing_file.exists(), "The existing file must be preserved"
         )
 
     def test_req_doc_contains_existing_file(self) -> None:
-        """REQ-022: Verifica che %%REQ_DOC%% contenga il file esistente."""
+        """REQ-022: Verifies that %%REQ_DOC%% contains the existing file."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertIn(
             "docs/existing.md",
             content,
-            "Il file deve contenere il riferimento a docs/existing.md",
+            "The file must contain reference to docs/existing.md",
+        )
+
+
+class TestPromptsUseAgents(unittest.TestCase):
+    """Verifies behavior with --prompts-use-agents enabled."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-prompts-agents"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        from unittest.mock import patch
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--doc",
+                    str(cls.TEST_DIR / "docs"),
+                    "--dir",
+                    str(cls.TEST_DIR / "tech"),
+                    "--prompts-use-agents",
+                    "--enable-models",
+                    "--enable-tools",
+                ]
+            )
+        cls.exit_code = exit_code
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+
+    def test_github_prompts_are_agent_stubs(self) -> None:
+        """With the flag enabled, .github/prompts files must be agent stubs."""
+        prompt_path = self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md"
+        self.assertTrue(prompt_path.exists())
+        content = prompt_path.read_text(encoding="utf-8").strip()
+        self.assertEqual(content, "---\nagent: req-analyze\n---", "The prompt must be a stub with only agent")
+
+    def test_claude_commands_are_agent_stubs(self) -> None:
+        """With the flag enabled, .claude/commands/req files must contain only the agent."""
+        cmd_path = self.TEST_DIR / ".claude" / "commands" / "req" / "analyze.md"
+        self.assertTrue(cmd_path.exists())
+        content = cmd_path.read_text(encoding="utf-8").strip()
+        # With the flag enabled, Claude commands must include the 'agent:' line.
+        self.assertIn("agent: req-analyze", content, "The command must contain 'agent:' line when --prompts-use-agents is active")
+        # The file should be a YAML front matter block.
+        self.assertTrue(content.startswith("---"))
+        self.assertTrue(content.endswith("---"))
+
+    def test_claude_commands_stub_has_no_models_or_tools(self) -> None:
+        """Even with model/tools flags active, stubs must remain only agent."""
+        cmd_path = self.TEST_DIR / ".claude" / "commands" / "req" / "analyze.md"
+        content = cmd_path.read_text(encoding="utf-8")
+        self.assertIn("agent: req-analyze", content)
+        self.assertNotIn("model:", content, "The stub must not include model")
+        self.assertNotIn("allowed-tools:", content, "The stub must not include allowed-tools")
+
+    def test_opencode_commands_are_agent_stubs(self) -> None:
+        """With the flag enabled, .opencode/command files must contain only the agent (agent: req.<name>)."""
+        cmd_path = self.TEST_DIR / ".opencode" / "command" / "req.analyze.md"
+        self.assertTrue(cmd_path.exists())
+        content = cmd_path.read_text(encoding="utf-8").strip()
+        # With the flag enabled, OpenCode commands must include the 'agent:' line.
+        self.assertIn("agent: req.analyze", content, "The opencode command must contain 'agent:' line when --prompts-use-agents is active")
+        self.assertTrue(content.startswith("---"))
+        self.assertTrue(content.endswith("---"))
+
+
+class TestKiroToolsEnabled(unittest.TestCase):
+    """Verifies that Kiro populates tools/allowedTools only with --enable-tools."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-kiro-tools"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        from unittest.mock import patch
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--doc",
+                    str(cls.TEST_DIR / "docs"),
+                    "--dir",
+                    str(cls.TEST_DIR / "tech"),
+                    "--enable-tools",
+                ]
+            )
+        cls.exit_code = exit_code
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+
+    def test_kiro_change_tools_match_read_write_mode(self) -> None:
+        """REQ-075: with enable-tools, change prompt uses read_write tools."""
+        change_agent = self.TEST_DIR / ".kiro" / "agents" / "req.change.json"
+        self.assertTrue(
+            change_agent.exists(),
+            "The file req.change.json must be present",
+        )
+        data = json.loads(change_agent.read_text(encoding="utf-8"))
+        self.assertEqual(
+            data.get("tools"),
+            KIRO_READ_WRITE_TOOLS,
+            "Req.change must have the read_write list of tools",
+        )
+        self.assertEqual(
+            data.get("allowedTools"),
+            KIRO_READ_WRITE_TOOLS,
+            "Req.change must have allowedTools identical to tools",
+        )
+
+    def test_kiro_analyze_tools_match_read_only_mode(self) -> None:
+        """REQ-075: with enable-tools, analyze prompt uses read_only tools."""
+        analyze_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        self.assertTrue(
+            analyze_agent.exists(),
+            "The file req.analyze.json must be present",
+        )
+        data = json.loads(analyze_agent.read_text(encoding="utf-8"))
+        self.assertEqual(
+            data.get("tools"),
+            KIRO_READ_ONLY_TOOLS,
+            "Req.analyze must have the read_only list of tools",
+        )
+        self.assertEqual(
+            data.get("allowedTools"),
+            KIRO_READ_ONLY_TOOLS,
+            "Req.analyze must have allowedTools identical to tools",
         )
 
 
@@ -794,7 +991,7 @@ if __name__ == "__main__":
 
 
 class TestUpdateNotification(unittest.TestCase):
-    """Test mirato per verificare il messaggio di aggiornamento."""
+    """Targeted test to verify update message."""
 
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-update-msg"
 
@@ -803,7 +1000,7 @@ class TestUpdateNotification(unittest.TestCase):
             shutil.rmtree(self.TEST_DIR)
 
     def test_update_message_mentions_upgrade(self) -> None:
-        """Verifica che, se disponibile una nuova versione, venga stampato il hint di upgrade."""
+        """Verifies that if a new version is available, the upgrade hint is printed."""
         if self.TEST_DIR.exists():
             shutil.rmtree(self.TEST_DIR)
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -829,6 +1026,6 @@ class TestUpdateNotification(unittest.TestCase):
                     ]
                 )
 
-        # Nota: non verifichiamo l'exit code perche' la cattura stdout puo' variare in base al runner.
+        # Note: we do not check exit code because stdout capture might vary based on runner.
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         self.assertIn("req --upgrade", written)

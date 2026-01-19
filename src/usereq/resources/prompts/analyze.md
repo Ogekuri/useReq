@@ -1,5 +1,6 @@
 ---
-description: "Produce an analysis report. Usage: req.analyze <description>."
+description: "Produce an analysis report"
+argument-hint: "req.analyze <description>"
 ---
 
 # Produce an analysis report

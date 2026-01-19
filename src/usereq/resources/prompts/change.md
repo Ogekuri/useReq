@@ -1,5 +1,6 @@
 ---
-description: "Update the requirements and implement the corresponding changes. Usage: req.change <description>."
+description: "Update the requirements and implement the corresponding changes"
+argument-hint: "req.change <description>"
 ---
 
 # Update the requirements and implement the corresponding changes

@@ -1,5 +1,6 @@
 ---
-description: "Implement a new requirement and make the corresponding source code changes. Usage: req.new <description>."
+description: "Implement a new requirement and make the corresponding source code changes"
+argument-hint: "req.new <description>"
 ---
 
 # Implement a new requirement and make the corresponding source code changes

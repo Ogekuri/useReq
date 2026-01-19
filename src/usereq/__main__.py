@@ -1,4 +1,4 @@
-"""Consente l'esecuzione dello strumento come modulo."""
+"""Allows execution of the tool as a module."""
 from .cli import main
 import sys
 

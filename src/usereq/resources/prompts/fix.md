@@ -1,5 +1,6 @@
 ---
-description: "Fix a defect without changing the requirements. Usage: req.fix <description>."
+description: "Fix a defect without changing the requirements"
+argument-hint: "req.fix <description>"
 ---
 
 # Fix a defect without changing the requirements

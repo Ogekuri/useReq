@@ -34,6 +34,8 @@
 !tech/**/*
 !tests/
 !tests/**/*
+!pdoc/
+!pdoc/**/*
 !other-stuff/
 !other-stuff/**/*
 !scripts/

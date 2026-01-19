@@ -1,4 +1,4 @@
-"""Punto di ingresso CLI che implementa il flusso di inizializzazione di useReq."""
+"""CLI entry point implementing the useReq initialization flow."""
 
 from __future__ import annotations
 
@@ -16,13 +16,20 @@ from pathlib import Path
 from typing import Any, Mapping, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+"""The absolute path to the repository root."""
+
 RESOURCE_ROOT = Path(__file__).resolve().parent / "resources"
+"""The absolute path to the resources directory."""
+
 VERBOSE = False
+"""Whether verbose output is enabled."""
+
 DEBUG = False
+"""Whether debug output is enabled."""
 
 
 class ReqError(Exception):
-    """Eccezione dedicata per errori previsti della CLI."""
+    """Dedicated exception for expected CLI errors."""
 
     def __init__(self, message: str, code: int = 1) -> None:
         super().__init__(message)
@@ -31,24 +38,24 @@ class ReqError(Exception):
 
 
 def log(msg: str) -> None:
-    """Stampa un messaggio informativo."""
+    """Prints an informational message."""
     print(msg)
 
 
 def dlog(msg: str) -> None:
-    """Stampa un messaggio di debug se attivo."""
+    """Prints a debug message if debugging is active."""
     if DEBUG:
         print("DEBUG:", msg)
 
 
 def vlog(msg: str) -> None:
-    """Stampa un messaggio verboso se attivo."""
+    """Prints a verbose message if verbose mode is active."""
     if VERBOSE:
         print(msg)
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Costruisce il parser degli argomenti CLI."""
+    """Builds the CLI argument parser."""
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
@@ -106,15 +113,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Include 'tools' in generated prompts/agents when available from CLI configs.",
     )
+    parser.add_argument(
+        "--prompts-use-agents",
+        action="store_true",
+        help="When set, generate .github and .claude prompt files as agent-only references (agent: req-<name>).",
+    )
     return parser
 
 
 def parse_args(argv: Optional[list[str]] = None) -> Namespace:
+    """Parses command-line arguments into a namespace."""
     return build_parser().parse_args(argv)
 
 
 def load_package_version() -> str:
-    """Legge la versione del pacchetto da __init__.py."""
+    """Reads the package version from __init__.py."""
     init_path = Path(__file__).resolve().parent / "__init__.py"
     text = init_path.read_text(encoding="utf-8")
     match = re.search(r'^__version__\s*=\s*"([^"]+)"\s*$', text, re.M)
@@ -124,7 +137,7 @@ def load_package_version() -> str:
 
 
 def maybe_print_version(argv: list[str]) -> bool:
-    """Gestisce --ver/--version stampando la versione."""
+    """Handles --ver/--version by printing the version."""
     if "--ver" in argv or "--version" in argv:
         print(load_package_version())
         return True
@@ -132,7 +145,7 @@ def maybe_print_version(argv: list[str]) -> bool:
 
 
 def run_upgrade() -> None:
-    """Esegue l'aggiornamento con uv."""
+    """Executes the upgrade using uv."""
     command = [
         "uv",
         "tool",
@@ -154,7 +167,7 @@ def run_upgrade() -> None:
 
 
 def run_uninstall() -> None:
-    """Esegue la disinstallazione con uv."""
+    """Executes the uninstallation using uv."""
     command = [
         "uv",
         "tool",
@@ -173,7 +186,7 @@ def run_uninstall() -> None:
 
 
 def normalize_release_tag(tag: str) -> str:
-    """Normalizza il tag di release rimuovendo un eventuale prefisso 'v'."""
+    """Normalizes the release tag by removing a 'v' prefix if present."""
     value = (tag or "").strip()
     if value.lower().startswith("v") and len(value) > 1:
         value = value[1:]
@@ -181,9 +194,9 @@ def normalize_release_tag(tag: str) -> str:
 
 
 def parse_version_tuple(version: str) -> tuple[int, ...] | None:
-    """Converte una versione in una tupla numerica per il confronto.
+    """Converts a version into a numeric tuple for comparison.
 
-    Accetta versioni nel formato 'X.Y.Z' (con eventuali suffix non numerici che vengono ignorati).
+    Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
     """
 
     cleaned = (version or "").strip()
@@ -205,7 +218,7 @@ def parse_version_tuple(version: str) -> tuple[int, ...] | None:
 
 
 def is_newer_version(current: str, latest: str) -> bool:
-    """Ritorna True se latest e' maggiore di current."""
+    """Returns True if latest is greater than current."""
     current_tuple = parse_version_tuple(current)
     latest_tuple = parse_version_tuple(latest)
     if not current_tuple or not latest_tuple:
@@ -218,9 +231,9 @@ def is_newer_version(current: str, latest: str) -> bool:
 
 
 def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
-    """Verifica online la presenza di una nuova versione e stampa un avviso.
+    """Checks online for a new version and prints a warning.
 
-    Se la chiamata fallisce o la risposta non e' valida, non stampa nulla e prosegue.
+    If the call fails or the response is invalid, it prints nothing and proceeds.
     """
 
     current_version = load_package_version()
@@ -260,7 +273,8 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
 
 
 def ensure_doc_directory(path: str, project_base: Path) -> None:
-    # Prima normalizza il percorso usando la logica esistente.
+    """Ensures the documentation directory exists under the project base."""
+    # First normalize the path using existing logic.
     normalized = make_relative_if_contains_project(path, project_base)
     doc_path = project_base / normalized
     resolved = doc_path.resolve(strict=False)
@@ -276,7 +290,7 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
 
 
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
-    """Normalizza il percorso rispetto alla root di progetto quando possibile."""
+    """Normalizes the path relative to the project root when possible."""
     if not path_value:
         return ""
     candidate = Path(path_value)
@@ -302,7 +316,7 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
 
 
 def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
-    """Risoluzione del percorso assoluto a partire da un valore normalizzato."""
+    """Resolves the absolute path starting from a normalized value."""
     if not normalized:
         return None
     candidate = Path(normalized)
@@ -312,7 +326,7 @@ def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
 
 
 def format_substituted_path(value: str) -> str:
-    """Uniforma i separatori di percorso per le sostituzioni."""
+    """Uniforms path separators for substitutions."""
     if not value:
         return ""
     return value.replace(os.sep, "/")
@@ -321,7 +335,7 @@ def format_substituted_path(value: str) -> str:
 def compute_sub_path(
     normalized: str, absolute: Optional[Path], project_base: Path
 ) -> str:
-    """Calcola il percorso relativo da usare nei token."""
+    """Calculates the relative path to use in tokens."""
     if not normalized:
         return ""
     if absolute:
@@ -334,7 +348,7 @@ def compute_sub_path(
 
 
 def save_config(project_base: Path, doc_value: str, dir_value: str) -> None:
-    """Salva i parametri normalizzati in .req/config.json."""
+    """Saves normalized parameters to .req/config.json."""
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"doc": doc_value, "dir": dir_value}
@@ -344,7 +358,7 @@ def save_config(project_base: Path, doc_value: str, dir_value: str) -> None:
 
 
 def load_config(project_base: Path) -> dict[str, str]:
-    """Carica i parametri salvati da .req/config.json."""
+    """Loads parameters saved in .req/config.json."""
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
         raise ReqError(
@@ -365,7 +379,7 @@ def load_config(project_base: Path) -> dict[str, str]:
 
 
 def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
-    """Genera l'elenco markdown dei file per la sostituzione di %%REQ_DOC%%."""
+    """Generates the markdown file list for %%REQ_DOC%% replacement."""
     if not doc_dir.is_dir():
         return ""
 
@@ -383,7 +397,7 @@ def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
 
 
 def generate_dir_list(dir_path: Path, project_base: Path) -> str:
-    """Genera l'elenco markdown delle directory per la sostituzione di %%REQ_DIR%%."""
+    """Generates the markdown directory list for %%REQ_DIR%% replacement."""
     if not dir_path.is_dir():
         return ""
 
@@ -397,7 +411,7 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
             except ValueError:
                 continue
 
-    # Se non ci sono sottodirectory, usa la directory stessa.
+    # If there are no subdirectories, use the directory itself.
     if not subdirs:
         try:
             rel_path = dir_path.relative_to(project_base)
@@ -410,7 +424,7 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
 
 
 def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
-    """Normalizza il token di percorso preservando opzionalmente lo slash finale."""
+    """Normalizes the path token optionally preserving the trailing slash."""
     if not raw:
         return ""
     normalized = raw.replace("\\", "/").strip("/")
@@ -421,31 +435,38 @@ def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
 
 
 def ensure_relative(value: str, name: str, code: int) -> None:
-    """Valida che il percorso non sia assoluto e segnala errore in caso contrario."""
+    """Validates that the path is not absolute and raises an error otherwise."""
     if Path(value).is_absolute():
         raise ReqError(
             f"Error: {name} must be a relative path under PROJECT_BASE",
             code,
         )
-        raise ReqError(
-            f"Error: {name} must be a relative path under PROJECT_BASE",
-            code,
-        )
+
+
+def apply_replacements(text: str, replacements: Mapping[str, str]) -> str:
+    """Returns text with token replacements applied."""
+    for token, replacement in replacements.items():
+        text = text.replace(token, replacement)
+    return text
+
+
+def write_text_file(dst: Path, text: str) -> None:
+    """Writes text to disk, ensuring the destination folder exists."""
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_text(text, encoding="utf-8")
 
 
 def copy_with_replacements(
     src: Path, dst: Path, replacements: Mapping[str, str]
 ) -> None:
-    """Copia un file sostituendo i token indicati con i relativi valori."""
+    """Copies a file substituting the indicated tokens with their values."""
     text = src.read_text(encoding="utf-8")
-    for token, replacement in replacements.items():
-        text = text.replace(token, replacement)
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.write_text(text, encoding="utf-8")
+    updated = apply_replacements(text, replacements)
+    write_text_file(dst, updated)
 
 
 def normalize_description(value: str) -> str:
-    """Normalizza una descrizione rimuovendo virgolette superflue ed escape."""
+    """Normalizes a description by removing superfluous quotes and escapes."""
     trimmed = value.strip()
     if len(trimmed) >= 2 and trimmed.startswith('"') and trimmed.endswith('"'):
         trimmed = trimmed[1:-1]
@@ -455,7 +476,7 @@ def normalize_description(value: str) -> str:
 
 
 def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
-    """Converte un prompt Markdown in TOML per Gemini."""
+    """Converts a Markdown prompt to TOML for Gemini."""
     if toml_path.exists() and not force:
         raise ReqError(
             f"Destination TOML already exists (use --force to overwrite): {toml_path}",
@@ -483,24 +504,32 @@ def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
 
 
 def extract_frontmatter(content: str) -> tuple[str, str]:
-    """Estrae front matter e corpo dal Markdown."""
+    """Extracts front matter and body from Markdown."""
     match = re.match(r"^\s*---\s*\n(.*?)\n---\s*\n(.*)$", content, re.S)
     if not match:
         raise ReqError("No leading '---' block found at start of Markdown file.", 4)
-    # Explicitamente ritorniamo due stringhe per soddisfare l'annotazione di tipo.
+    # Explicitly return two strings to satisfy type annotation.
     return match.group(1), match.group(2)
 
 
 def extract_description(frontmatter: str) -> str:
-    """Estrae la descrizione dal front matter."""
+    """Extracts the description from front matter."""
     desc_match = re.search(r"^description:\s*(.*)$", frontmatter, re.M)
     if not desc_match:
         raise ReqError("No 'description:' field found inside the leading block.", 5)
     return normalize_description(desc_match.group(1).strip())
 
 
+def extract_argument_hint(frontmatter: str) -> str:
+    """Extracts the argument-hint from front matter, if present."""
+    match = re.search(r"^argument-hint:\s*(.*)$", frontmatter, re.M)
+    if not match:
+        return ""
+    return normalize_description(match.group(1).strip())
+
+
 def extract_purpose_first_bullet(body: str) -> str:
-    """Ritorna il primo bullet della sezione Purpose."""
+    """Returns the first bullet of the Purpose section."""
     lines = body.splitlines()
     start_idx = None
     for idx, line in enumerate(lines):
@@ -520,7 +549,7 @@ def extract_purpose_first_bullet(body: str) -> str:
 
 
 def json_escape(value: str) -> str:
-    """Esegue l'escape JSON di una stringa senza delimitatori esterni."""
+    """Escapes a string for JSON without external delimiters."""
     return json.dumps(value)[1:-1]
 
 
@@ -529,7 +558,7 @@ def generate_kiro_resources(
     project_base: Path,
     prompt_rel_path: str,
 ) -> list[str]:
-    """Genera la lista delle risorse per l'agente Kiro."""
+    """Generates the resource list for the Kiro agent."""
     resources = [f"file://{prompt_rel_path}"]
     if not doc_dir.is_dir():
         return resources
@@ -553,27 +582,35 @@ def render_kiro_agent(
     prompt: str,
     resources: list[str],
     tools: list[str] | None = None,
+    model: Optional[str] = None,
+    include_tools: bool = False,
+    include_model: bool = False,
 ) -> str:
-    """Rende il JSON dell'agente Kiro e popola i campi principali."""
+    """Renders the Kiro agent JSON and populates main fields."""
     replacements = {
         "%%NAME%%": json_escape(name),
         "%%DESCRIPTION%%": json_escape(description),
         "%%PROMPT%%": json_escape(prompt),
     }
     if "%%RESOURCES%%" in template:
-        resources_block = ",\n".join(
-            f'    "{json_escape(item)}"' for item in resources
-        )
+        resources_block = ",\n".join(f'    "{json_escape(item)}"' for item in resources)
         replacements["%%RESOURCES%%"] = resources_block
     for token, replacement in replacements.items():
         template = template.replace(token, replacement)
-    # Try to parse resulting template as JSON and inject model/tools if present markers exist
-    selected_tools = tools if isinstance(tools, list) else []
     try:
         parsed = json.loads(template)
         parsed["resources"] = resources
-        parsed["tools"] = selected_tools
-        parsed["allowedTools"] = selected_tools
+        if include_model and model is not None:
+            parsed["model"] = model
+        else:
+            parsed.pop("model", None)
+        if include_tools:
+            parsed_tools = tools if isinstance(tools, list) else []
+            parsed["tools"] = parsed_tools
+            parsed["allowedTools"] = parsed_tools
+        else:
+            parsed.pop("tools", None)
+            parsed.pop("allowedTools", None)
         return json.dumps(parsed, indent=2, ensure_ascii=False) + "\n"
     except Exception:
         # If parsing fails, return raw template to preserve previous behavior
@@ -581,7 +618,7 @@ def render_kiro_agent(
 
 
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
-    """Sostituisce i token nel file indicato."""
+    """Replaces tokens in the specified file."""
     text = path.read_text(encoding="utf-8")
     for token, replacement in replacements.items():
         text = text.replace(token, replacement)
@@ -589,12 +626,12 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
 
 
 def yaml_double_quote_escape(value: str) -> str:
-    """Esegue l'escape minimo per una stringa tra doppi apici in YAML."""
+    """Minimal escape for a double-quoted string in YAML."""
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def find_template_source() -> Path:
-    """Restituisce la sorgente dei template o solleva errore."""
+    """Returns the template source or raises an error."""
     candidate = RESOURCE_ROOT / "templates"
     if (candidate / "requirements.md").is_file():
         return candidate
@@ -605,7 +642,7 @@ def find_template_source() -> Path:
 
 
 def load_kiro_template() -> tuple[str, dict[str, Any]]:
-    """Carica il template e la configurazione Kiro necessari per gli agenti."""
+    """Loads the Kiro template and configuration needed for agents."""
     roots = [RESOURCE_ROOT]
     builtin_root = Path(__file__).resolve().parent / "resources"
     if builtin_root != RESOURCE_ROOT:
@@ -619,7 +656,9 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
             except Exception as exc:
                 dlog(f"Failed parsing kiro/config.json at {candidate}: {exc}")
                 cfg = {}
-            agent_template = cfg.get("agent_template") if isinstance(cfg, dict) else None
+            agent_template = (
+                cfg.get("agent_template") if isinstance(cfg, dict) else None
+            )
             if isinstance(agent_template, str) and agent_template.strip():
                 return agent_template, cfg
             if isinstance(agent_template, dict):
@@ -631,13 +670,6 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
                 except Exception:
                     pass
 
-        legacy = root / "kiro" / "agent.json"
-        if legacy.is_file():
-            try:
-                return legacy.read_text(encoding="utf-8"), {}
-            except Exception as exc:
-                dlog(f"Failed reading legacy kiro agent template {legacy}: {exc}")
-
     raise ReqError(
         "Error: no Kiro config with 'agent_template' found in resources/kiro",
         9,
@@ -645,7 +677,7 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
 
 
 def strip_json_comments(text: str) -> str:
-    """Rimuove commenti // e /* */ per consentire il parsing di JSONC."""
+    """Removes // and /* */ comments to allow JSONC parsing."""
     cleaned: list[str] = []
     in_block = False
     for line in text.splitlines():
@@ -665,7 +697,7 @@ def strip_json_comments(text: str) -> str:
 
 
 def load_settings(path: Path) -> dict[str, Any]:
-    """Carica impostazioni JSON/JSONC, rimuovendo i commenti quando necessario."""
+    """Loads JSON/JSONC settings, removing comments when necessary."""
     raw = path.read_text(encoding="utf-8")
     try:
         return json.loads(raw)
@@ -676,9 +708,9 @@ def load_settings(path: Path) -> dict[str, Any]:
 
 
 def load_cli_configs(resource_root: Path) -> dict[str, dict[str, Any] | None]:
-    """Carica i file config.json per le CLI supportate se presenti.
+    """Loads config.json files for supported CLIs if present.
 
-    Restituisce una mappa nome_cli -> parsed_json o None se non presente.
+    Returns a map cli_name -> parsed_json or None if not present.
     """
     result: dict[str, dict[str, Any] | None] = {}
     for name in ("claude", "copilot", "opencode", "kiro", "gemini"):
@@ -697,9 +729,9 @@ def load_cli_configs(resource_root: Path) -> dict[str, dict[str, Any] | None]:
 def get_model_tools_for_prompt(
     config: dict[str, Any] | None, prompt_name: str, source_name: Optional[str] = None
 ) -> tuple[Optional[str], Optional[list[str]]]:
-    """Estrae model e tools per il prompt dal config della CLI.
+    """Extracts model and tools for the prompt from the CLI config.
 
-    Ritorna (model, tools) dove ogni valore puo' essere None se non disponibile.
+    Returns (model, tools) where each value can be None if not available.
     """
     if not config:
         return None, None
@@ -732,11 +764,11 @@ def get_model_tools_for_prompt(
 
 
 def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any:
-    """Ritorna il valore raw di `usage_modes[mode]['tools']` per il prompt.
+    """Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
 
-    Può ritornare una lista di stringhe, una stringa o None a seconda di come
-    e' definito nel `config.json`. Non effettua parsing CSV: restituisce il valore
-    esattamente come presente nel file di configurazione.
+    Can return a list of strings, a string, or None depending on how it is
+    defined in `config.json`. Does not perform CSV parsing: returns the value
+    exactly as present in the configuration file.
     """
     if not config:
         return None
@@ -753,14 +785,14 @@ def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) ->
 
 
 def format_tools_inline_list(tools: list[str]) -> str:
-    """Formatta la lista tools come inline YAML/TOML/MD: ['a', 'b']."""
+    """Formats the tools list as inline YAML/TOML/MD: ['a', 'b']."""
     safe = [t.replace("'", "\\'") for t in tools]
     quoted = ", ".join(f"'{s}'" for s in safe)
     return f"[{quoted}]"
 
 
 def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
-    """Unisce dizionari in modo ricorsivo, dando priorita ai valori in ingresso."""
+    """Recursively merges dictionaries, prioritizing incoming values."""
     for key, value in incoming.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
             deep_merge_dict(base[key], value)
@@ -770,6 +802,7 @@ def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str,
 
 
 def find_vscode_settings_source() -> Optional[Path]:
+    """Finds the VS Code settings template if available."""
     candidate = RESOURCE_ROOT / "vscode" / "settings.json"
     if candidate.is_file():
         return candidate
@@ -777,7 +810,7 @@ def find_vscode_settings_source() -> Optional[Path]:
 
 
 def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
-    """Genera chat.promptFilesRecommendations dai prompt disponibili."""
+    """Generates chat.promptFilesRecommendations from available prompts."""
     recommendations: dict[str, bool] = {}
     if not prompts_dir.is_dir():
         return recommendations
@@ -787,7 +820,7 @@ def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
 
 
 def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
-    """Verifica che il percorso sia sotto la root di progetto."""
+    """Verifies that the path is under the project root."""
     if not target.resolve().is_relative_to(project_base):
         raise ReqError(
             f"Error: safe removal of {target} refused (not under PROJECT_BASE)",
@@ -796,27 +829,27 @@ def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
 
 
 def save_vscode_backup(req_root: Path, settings_path: Path) -> None:
-    """Salva un backup delle impostazioni VS Code se il file esiste."""
+    """Saves a backup of VS Code settings if the file exists."""
     backup_path = req_root / "settings.json.backup"
-    # Non creare mai un marker di assenza. Creiamo il backup solo se il file esiste.
+    # Never create an absence marker. Backup only if the file exists.
     if settings_path.exists():
         req_root.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(settings_path, backup_path)
 
 
 def restore_vscode_settings(project_base: Path) -> None:
-    """Ripristina le impostazioni VS Code dal backup, se presente."""
+    """Restores VS Code settings from backup, if present."""
     req_root = project_base / ".req"
     backup_path = req_root / "settings.json.backup"
     target_settings = project_base / ".vscode" / "settings.json"
     if backup_path.exists():
         target_settings.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(backup_path, target_settings)
-    # Non rimuovere il file target se non esiste backup: comportamento di ripristino disabilitato altrimenti.
+    # Do not remove the target file if no backup exists: restore behavior disabled otherwise.
 
 
 def prune_empty_dirs(root: Path) -> None:
-    """Rimuove le directory vuote sotto la radice indicata."""
+    """Removes empty directories under the specified root."""
     if not root.is_dir():
         return
     for current, _dirs, _files in os.walk(root, topdown=False):
@@ -829,7 +862,7 @@ def prune_empty_dirs(root: Path) -> None:
 
 
 def remove_generated_resources(project_base: Path) -> None:
-    """Rimuove risorse generate dallo strumento nella root di progetto."""
+    """Removes resources generated by the tool in the project root."""
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
         project_base / ".claude" / "commands" / "req",
@@ -868,7 +901,7 @@ def remove_generated_resources(project_base: Path) -> None:
 
 
 def run_remove(args: Namespace) -> None:
-    """Gestisce la rimozione delle risorse generate."""
+    """Handles the removal of generated resources."""
     if args.doc or args.dir or args.update:
         raise ReqError("Error: --remove does not accept --doc, --dir, or --update", 4)
     if args.base:
@@ -884,10 +917,10 @@ def run_remove(args: Namespace) -> None:
             11,
         )
 
-    # Dopo la validazione e prima di qualsiasi rimozione, controlla se esiste una nuova versione.
+    # After validation and before any removal, check for a new version.
     maybe_notify_newer_version(timeout_seconds=1.0)
 
-    # Non eseguire alcun ripristino o rimozione di .vscode/settings.json durante la rimozione.
+    # Do not perform any restore or removal of .vscode/settings.json during removal.
     remove_generated_resources(project_base)
     for root_name in (
         ".gemini",
@@ -902,12 +935,12 @@ def run_remove(args: Namespace) -> None:
 
 
 def run(args: Namespace) -> None:
-    """Gestisce il flusso principale di inizializzazione."""
+    """Handles the main initialization flow."""
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
     DEBUG = args.debug
 
-    # Flusso principale: valida input, calcola percorsi, genera risorse.
+    # Main flow: validates input, calculates paths, generates resources.
     if args.remove:
         run_remove(args)
         return
@@ -971,7 +1004,7 @@ def run(args: Namespace) -> None:
     if VERBOSE:
         log(f"OK: technical directory found {tech_dest}")
 
-    # Dopo la validazione e prima di qualsiasi operazione che modifichi il filesystem, controlla se esiste una nuova versione.
+    # After validation and before any operation that modifies the filesystem, check for a new version.
     maybe_notify_newer_version(timeout_seconds=1.0)
 
     if not args.update:
@@ -993,7 +1026,7 @@ def run(args: Namespace) -> None:
     doc_dir_path = project_base / normalized_doc
     doc_dir_empty = not any(doc_dir_path.iterdir())
     doc_target = project_base / normalized_doc / "requirements.md"
-    # Crea requirements.md solo se la cartella --doc e' vuota.
+    # Create requirements.md only if the --doc folder is empty.
     if doc_dir_empty:
         src_file = templates_src / "requirements.md"
         doc_target.parent.mkdir(parents=True, exist_ok=True)
@@ -1003,10 +1036,10 @@ def run(args: Namespace) -> None:
                 f"Created {doc_target} — update the file with the project requirements. (source: {src_file})"
             )
 
-    # Genera l'elenco file per il token %%REQ_DOC%% dopo l'eventuale creazione.
+    # Generate the file list for the %%REQ_DOC%% token after possible creation.
     doc_file_list = generate_doc_file_list(doc_dir_path, project_base)
 
-    # Genera l'elenco directory per il token %%REQ_DIR%%.
+    # Generate the directory list for the %%REQ_DIR%% token.
     dir_list = generate_dir_list(project_base / normalized_dir, project_base)
 
     dlog(f"project_base={project_base}")
@@ -1038,248 +1071,251 @@ def run(args: Namespace) -> None:
             f"{project_base}"
         )
 
-    prompts_dir = REPO_ROOT / "prompts"
+    prompts_dir = RESOURCE_ROOT / "prompts"
     if not prompts_dir.is_dir():
-        prompts_dir = RESOURCE_ROOT / "prompts"
+        raise ReqError(
+            f"Error: prompts directory not found at {prompts_dir} (RESOURCE_ROOT/prompts required)",
+            9,
+        )
     kiro_template, kiro_config = load_kiro_template()
     # Load CLI configs only if requested to include model/tools
     configs: dict[str, dict[str, Any] | None] = {}
     try:
         include_models = args.enable_models
         include_tools = args.enable_tools
+        prompts_use_agents = args.prompts_use_agents
     except Exception:
         include_models = False
         include_tools = False
+        prompts_use_agents = False
     if include_models or include_tools:
         configs = load_cli_configs(RESOURCE_ROOT)
+    for prompt_path in sorted(prompts_dir.glob("*.md")):
+        PROMPT = prompt_path.stem
+        content = prompt_path.read_text(encoding="utf-8")
+        frontmatter, prompt_body = extract_frontmatter(content)
+        description = extract_description(frontmatter)
+        argument_hint = extract_argument_hint(frontmatter)
+        prompt_body = prompt_body if prompt_body.endswith("\n") else prompt_body + "\n"
 
-    if prompts_dir.is_dir():
-        for prompt_path in sorted(prompts_dir.glob("*.md")):
-            PROMPT = prompt_path.stem
-            vlog(f"Processing prompt: {PROMPT}")
-            prompt_content = prompt_path.read_text(encoding="utf-8")
-            frontmatter, body = extract_frontmatter(prompt_content)
-            description = extract_description(frontmatter)
-            prompt_body = body
-            dst_codex = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
-            existed = dst_codex.exists()
-            copy_with_replacements(
-                prompt_path,
-                dst_codex,
-                {
-                    "%%REQ_DOC%%": doc_file_list,
-                    "%%REQ_DIR%%": dir_list,
-                    "%%REQ_PATH%%": normalized_doc,
-                    "%%ARGS%%": "$ARGUMENTS",
-                },
+        base_replacements = {
+            "%%REQ_DOC%%": doc_file_list,
+            "%%REQ_DIR%%": dir_list,
+            "%%REQ_PATH%%": normalized_doc,
+        }
+        prompt_replacements = {**base_replacements, "%%ARGS%%": "$ARGUMENTS"}
+        prompt_with_replacements = apply_replacements(content, prompt_replacements)
+        prompt_body_replaced = apply_replacements(prompt_body, prompt_replacements)
+
+        # .codex/prompts
+        dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
+        existed = dst_codex_prompt.exists()
+        write_text_file(dst_codex_prompt, prompt_with_replacements)
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
+
+        # Gemini TOML
+        dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
+        existed = dst_toml.exists()
+        md_to_toml(prompt_path, dst_toml, force=existed)
+        replace_tokens(
+            dst_toml,
+            {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "{{args}}",
+            },
+        )
+        if configs and (include_models or include_tools):
+            gem_model, gem_tools = get_model_tools_for_prompt(
+                configs.get("gemini"), PROMPT, "gemini"
             )
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex}")
+            if gem_model or gem_tools:
+                content = dst_toml.read_text(encoding="utf-8")
+                parts = content.split("\n", 1)
+                if len(parts) == 2:
+                    first, rest = parts
+                    inject_lines: list[str] = []
+                    if include_models and gem_model:
+                        inject_lines.append(f'model = "{gem_model}"')
+                    if include_tools and gem_tools:
+                        inject_lines.append(
+                            f"tools = {format_tools_inline_list(gem_tools)}"
+                        )
+                    if inject_lines:
+                        content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
+                        dst_toml.write_text(content, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
 
-            dst_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
-            existed = dst_agent.exists()
-            desc_yaml = yaml_double_quote_escape(description)
-            # Determine model/tools for GitHub agent from copilot config
+        # .kiro/prompts
+        dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
+        existed = dst_kiro_prompt.exists()
+        write_text_file(dst_kiro_prompt, prompt_with_replacements)
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
+
+        # .claude/agents
+        dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
+        existed = dst_claude_agent.exists()
+        desc_yaml = yaml_double_quote_escape(description)
+        claude_model = None
+        claude_tools = None
+        if configs:
+            claude_model, claude_tools = get_model_tools_for_prompt(
+                configs.get("claude"), PROMPT, "claude"
+            )
+        claude_header_lines = [
+            "---",
+            f"name: req-{PROMPT}",
+            f'description: "{desc_yaml}"',
+        ]
+        if include_models and claude_model:
+            claude_header_lines.append(f"model: {claude_model}")
+        if include_tools and claude_tools:
+            claude_header_lines.append(
+                f"tools: {format_tools_inline_list(claude_tools)}"
+            )
+        claude_text = (
+            "\n".join(claude_header_lines) + "\n---\n\n" + prompt_body_replaced
+        )
+        dst_claude_agent.parent.mkdir(parents=True, exist_ok=True)
+        if not claude_text.endswith("\n"):
+            claude_text += "\n"
+        dst_claude_agent.write_text(claude_text, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
+
+        # .github/agents
+        dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
+        existed = dst_gh_agent.exists()
+        gh_model = None
+        gh_tools = None
+        if configs:
+            gh_model, gh_tools = get_model_tools_for_prompt(
+                configs.get("copilot"), PROMPT, "copilot"
+            )
+        gh_header_lines = [
+            "---",
+            f"name: req-{PROMPT}",
+            f'description: "{desc_yaml}"',
+        ]
+        if include_models and gh_model:
+            gh_header_lines.append(f"model: {gh_model}")
+        if include_tools and gh_tools:
+            gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
+        gh_text = "\n".join(gh_header_lines) + "\n---\n\n" + prompt_body_replaced
+        dst_gh_agent.parent.mkdir(parents=True, exist_ok=True)
+        if not gh_text.endswith("\n"):
+            gh_text += "\n"
+        dst_gh_agent.write_text(gh_text, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
+
+        # .github/prompts
+        dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
+        existed = dst_gh_prompt.exists()
+        if prompts_use_agents:
+            gh_prompt_text = f"---\nagent: req-{PROMPT}\n---\n"
+        else:
+            gh_header_lines = [
+                "---",
+                f"description: {frontmatter.splitlines()[0].split(':', 1)[1].strip() if 'description:' in frontmatter else description}",
+            ]
+            if argument_hint:
+                gh_header_lines.append(f"argument-hint: {argument_hint}")
             gh_model = None
             gh_tools = None
             if configs:
                 gh_model, gh_tools = get_model_tools_for_prompt(
                     configs.get("copilot"), PROMPT, "copilot"
                 )
-
-            github_header_lines = ["---", f"name: req-{PROMPT}", f'description: "{desc_yaml}"']
             if include_models and gh_model:
-                github_header_lines.append(f"model: {gh_model}")
+                gh_header_lines.append(f"model: {gh_model}")
             if include_tools and gh_tools:
-                github_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
-            github_header = "\n".join(github_header_lines) + "\n---\n\n"
-            github_text = github_header + prompt_body
-            for token, replacement in {
-                "%%REQ_DOC%%": doc_file_list,
-                "%%REQ_DIR%%": dir_list,
-                "%%REQ_PATH%%": normalized_doc,
-                "%%ARGS%%": "$ARGUMENTS",
-            }.items():
-                github_text = github_text.replace(token, replacement)
-            dst_agent.parent.mkdir(parents=True, exist_ok=True)
-            if not github_text.endswith("\n"):
-                github_text += "\n"
-            dst_agent.write_text(github_text, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_agent}")
+                gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
+            gh_header = "\n".join(gh_header_lines) + "\n---\n\n"
+            gh_prompt_text = gh_header + prompt_body_replaced
+        dst_gh_prompt.parent.mkdir(parents=True, exist_ok=True)
+        dst_gh_prompt.write_text(gh_prompt_text, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_prompt}")
 
-            dst_prompt = (
-                project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
-            )
-            existed = dst_prompt.exists()
-            dst_prompt.write_text(f"---\nagent: req-{PROMPT}\n---\n", encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_prompt}")
+        # .kiro/agents
+        dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
+        existed = dst_kiro_agent.exists()
+        kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
+        kiro_resources = generate_kiro_resources(
+            project_base / normalized_doc,
+            project_base,
+            kiro_prompt_rel,
+        )
+        kiro_model, kiro_tools = get_model_tools_for_prompt(kiro_config, PROMPT, "kiro")
+        kiro_tools_list = (
+            list(kiro_tools) if include_tools and isinstance(kiro_tools, list) else None
+        )
+        agent_content = render_kiro_agent(
+            kiro_template,
+            name=f"req-{PROMPT}",
+            description=description,
+            prompt=prompt_body_replaced,
+            resources=kiro_resources,
+            tools=kiro_tools_list,
+            model=kiro_model,
+            include_tools=include_tools,
+            include_model=include_models,
+        )
+        dst_kiro_agent.write_text(agent_content, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
 
-            dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
-            existed = dst_toml.exists()
-            md_to_toml(prompt_path, dst_toml, force=existed)
-            replace_tokens(
-                dst_toml,
-                {
-                    "%%REQ_DOC%%": doc_file_list,
-                    "%%REQ_DIR%%": dir_list,
-                    "%%REQ_PATH%%": normalized_doc,
-                    "%%ARGS%%": "{{args}}",
-                },
+        # .opencode/agent
+        dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
+        existed = dst_opencode_agent.exists()
+        opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
+        if configs:
+            oc_model, _ = get_model_tools_for_prompt(
+                configs.get("opencode"), PROMPT, "opencode"
             )
-            # Optionally inject model/tools into the TOML for Gemini
-            if configs and (include_models or include_tools):
-                gem_model, gem_tools = get_model_tools_for_prompt(
-                    configs.get("gemini"), PROMPT, "gemini"
+            oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
+            if include_models and oc_model:
+                opencode_header_lines.append(f"model: {oc_model}")
+            if include_tools and oc_tools_raw is not None:
+                if isinstance(oc_tools_raw, list):
+                    opencode_header_lines.append(
+                        f"tools: {format_tools_inline_list(oc_tools_raw)}"
+                    )
+                elif isinstance(oc_tools_raw, str):
+                    opencode_header_lines.append(
+                        f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"'
+                    )
+        opencode_text = (
+            "\n".join(opencode_header_lines) + "\n---\n\n" + prompt_body_replaced
+        )
+        dst_opencode_agent.parent.mkdir(parents=True, exist_ok=True)
+        if not opencode_text.endswith("\n"):
+            opencode_text += "\n"
+        dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
+
+        # .opencode/command
+        dst_opencode_command = (
+            project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
+        )
+        existed = dst_opencode_command.exists()
+        if prompts_use_agents:
+            command_text = f"---\nagent: req.{PROMPT}\n---\n"
+        else:
+            command_header_lines = [
+                "---",
+                f'description: "{desc_yaml}"',
+            ]
+            if argument_hint:
+                command_header_lines.append(
+                    f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
                 )
-                if gem_model or gem_tools:
-                    content = dst_toml.read_text(encoding="utf-8")
-                    parts = content.split("\n", 1)
-                    if len(parts) == 2:
-                        first, rest = parts
-                        inject_lines: list[str] = []
-                        if include_models and gem_model:
-                            inject_lines.append(f'model = "{gem_model}"')
-                        if include_tools and gem_tools:
-                            inject_lines.append(
-                                f"tools = {format_tools_inline_list(gem_tools)}"
-                            )
-                        if inject_lines:
-                            content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
-                            dst_toml.write_text(content, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
-
-            dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
-            existed = dst_kiro_prompt.exists()
-            copy_with_replacements(
-                prompt_path,
-                dst_kiro_prompt,
-                {
-                    "%%REQ_DOC%%": doc_file_list,
-                    "%%REQ_DIR%%": dir_list,
-                    "%%REQ_PATH%%": normalized_doc,
-                    "%%ARGS%%": "$ARGUMENTS",
-                },
-            )
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
-
-            dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
-            existed = dst_claude_agent.exists()
-            desc_yaml = yaml_double_quote_escape(description)
-            # Optionally include model/tools for Claude based on flags and config
-            claude_model = None
-            claude_tools = None
-            if configs:
-                claude_model, claude_tools = get_model_tools_for_prompt(
-                    configs.get("claude"), PROMPT, "claude"
-                )
-
-            claude_header_lines = ["---", f"name: req-{PROMPT}", f'description: "{desc_yaml}"']
-            # Include 'model' only when the user enabled models and a value is available.
-            if include_models and claude_model:
-                claude_header_lines.append(f"model: {claude_model}")
-            # Do NOT insert a default 'model: inherit' anymore.
-            if include_tools and claude_tools:
-                claude_header_lines.append(f"tools: {format_tools_inline_list(claude_tools)}")
-            claude_header = "\n".join(claude_header_lines) + "\n---\n\n"
-            claude_text = claude_header + prompt_body
-            for token, replacement in {
-                "%%REQ_DOC%%": doc_file_list,
-                "%%REQ_DIR%%": dir_list,
-                "%%REQ_PATH%%": normalized_doc,
-                "%%ARGS%%": "$ARGUMENTS",
-            }.items():
-                claude_text = claude_text.replace(token, replacement)
-            dst_claude_agent.parent.mkdir(parents=True, exist_ok=True)
-            if not claude_text.endswith("\n"):
-                claude_text += "\n"
-            dst_claude_agent.write_text(claude_text, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
-
-            dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
-            existed = dst_kiro_agent.exists()
-            kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
-            kiro_resources = generate_kiro_resources(
-                project_base / normalized_doc,
-                project_base,
-                kiro_prompt_rel,
-            )
-            kiro_model, kiro_tools = get_model_tools_for_prompt(
-                kiro_config, PROMPT, "kiro"
-            )
-            kiro_tools_list = list(kiro_tools) if isinstance(kiro_tools, list) else []
-            agent_content = render_kiro_agent(
-                kiro_template,
-                name=f"req-{PROMPT}",
-                description=description,
-                prompt=prompt_body,
-                resources=kiro_resources,
-                tools=kiro_tools_list,
-            )
-            # Optionally inject model/tools into Kiro agent JSON
-            if include_models or include_tools:
-                try:
-                    parsed = json.loads(agent_content)
-                    if include_models and kiro_model is not None:
-                        parsed["model"] = kiro_model
-                    else:
-                        parsed.pop("model", None)
-                    if include_tools:
-                        parsed["tools"] = kiro_tools_list
-                        parsed["allowedTools"] = kiro_tools_list
-                    agent_content = json.dumps(parsed, indent=2, ensure_ascii=False) + "\n"
-                except Exception:
-                    dlog(f"Unable to inject model/tools into Kiro agent for {PROMPT}")
-            dst_kiro_agent.write_text(agent_content, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
-
-            dst_opencode_agent = (
-                project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
-            )
-            existed = dst_opencode_agent.exists()
-            desc_yaml = yaml_double_quote_escape(description)
-            # Optionally include model/tools for OpenCode
-            opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
-            if configs:
-                oc_model, _ = get_model_tools_for_prompt(
-                    configs.get("opencode"), PROMPT, "opencode"
-                )
-                oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
-                if include_models and oc_model:
-                    opencode_header_lines.append(f"model: {oc_model}")
-                if include_tools and oc_tools_raw is not None:
-                    if isinstance(oc_tools_raw, list):
-                        opencode_header_lines.append(f"tools: {format_tools_inline_list(oc_tools_raw)}")
-                    elif isinstance(oc_tools_raw, str):
-                        opencode_header_lines.append(f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"')
-            opencode_header = "\n".join(opencode_header_lines) + "\n---\n\n"
-            opencode_text = opencode_header + prompt_body
-            for token, replacement in {
-                "%%REQ_DOC%%": doc_file_list,
-                "%%REQ_DIR%%": dir_list,
-                "%%REQ_PATH%%": normalized_doc,
-                "%%ARGS%%": "$ARGUMENTS",
-            }.items():
-                opencode_text = opencode_text.replace(token, replacement)
-            dst_opencode_agent.parent.mkdir(parents=True, exist_ok=True)
-            if not opencode_text.endswith("\n"):
-                opencode_text += "\n"
-            dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
-
-            # Also create .opencode/command file with front matter referencing the agent
-            dst_opencode_command = (
-                project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
-            )
-            existed = dst_opencode_command.exists()
-            # Build header: agent name plus optional model/tools when enabled and available
-            command_header_lines = ["---", f"agent: req.{PROMPT}"]
             if configs:
                 oc_model, _ = get_model_tools_for_prompt(
                     configs.get("opencode"), PROMPT, "opencode"
@@ -1289,40 +1325,43 @@ def run(args: Namespace) -> None:
                     command_header_lines.append(f"model: {oc_model}")
                 if include_tools and oc_tools_raw is not None:
                     if isinstance(oc_tools_raw, list):
-                        command_header_lines.append(f"tools: {format_tools_inline_list(oc_tools_raw)}")
+                        command_header_lines.append(
+                            f"tools: {format_tools_inline_list(oc_tools_raw)}"
+                        )
                     elif isinstance(oc_tools_raw, str):
-                        command_header_lines.append(f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"')
-            command_header = "\n".join(command_header_lines) + "\n---\n\n"
-            command_text = command_header + prompt_body
-            for token, replacement in {
-                "%%REQ_DOC%%": doc_file_list,
-                "%%REQ_DIR%%": dir_list,
-                "%%REQ_PATH%%": normalized_doc,
-                "%%ARGS%%": "$ARGUMENTS",
-            }.items():
-                command_text = command_text.replace(token, replacement)
-            dst_opencode_command.parent.mkdir(parents=True, exist_ok=True)
-            if not command_text.endswith("\n"):
-                command_text += "\n"
-            dst_opencode_command.write_text(command_text, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
-
-            # Also create .claude/commands/req entry mirroring .codex/prompts behavior
-            # Include front matter: agent (must match the 'name' in .claude/agents/req.<prompt>.md),
-            # optional model (when enabled and available) and allowed-tools as CSV string.
-            dst_claude_command = (
-                project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
+                        command_header_lines.append(
+                            f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"'
+                        )
+            command_text = (
+                "\n".join(command_header_lines) + "\n---\n\n" + prompt_body_replaced
             )
-            existed = dst_claude_command.exists()
+        dst_opencode_command.parent.mkdir(parents=True, exist_ok=True)
+        if not command_text.endswith("\n"):
+            command_text += "\n"
+        dst_opencode_command.write_text(command_text, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
 
-            # Build front matter header for claude command file
+        # .claude/commands/req
+        dst_claude_command = (
+            project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
+        )
+        existed = dst_claude_command.exists()
+        if prompts_use_agents:
             command_header_lines = ["---", f"agent: req-{PROMPT}"]
+            claude_command_text = "\n".join(command_header_lines) + "\n---\n"
+        else:
+            command_header_lines = ["---"]
+            if description:
+                command_header_lines.append(f'description: "{desc_yaml}"')
+            if argument_hint:
+                command_header_lines.append(
+                    f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
+                )
             if include_models and claude_model:
                 command_header_lines.append(
                     f'model: "{yaml_double_quote_escape(str(claude_model))}"'
                 )
-            # allowed-tools: populate as a comma-separated quoted string when tools available
             if include_tools and claude_tools:
                 try:
                     allowed_csv = ", ".join(str(t) for t in claude_tools)
@@ -1331,23 +1370,15 @@ def run(args: Namespace) -> None:
                 command_header_lines.append(
                     f'allowed-tools: "{yaml_double_quote_escape(allowed_csv)}"'
                 )
-
-            command_header = "\n".join(command_header_lines) + "\n---\n\n"
-            command_text = command_header + prompt_body
-            for token, replacement in {
-                "%%REQ_DOC%%": doc_file_list,
-                "%%REQ_DIR%%": dir_list,
-                "%%REQ_PATH%%": normalized_doc,
-                "%%ARGS%%": "$ARGUMENTS",
-            }.items():
-                command_text = command_text.replace(token, replacement)
-
-            dst_claude_command.parent.mkdir(parents=True, exist_ok=True)
-            if not command_text.endswith("\n"):
-                command_text += "\n"
-            dst_claude_command.write_text(command_text, encoding="utf-8")
-            if VERBOSE:
-                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
+            claude_command_text = (
+                "\n".join(command_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+        dst_claude_command.parent.mkdir(parents=True, exist_ok=True)
+        if not claude_command_text.endswith("\n"):
+            claude_command_text += "\n"
+        dst_claude_command.write_text(claude_command_text, encoding="utf-8")
+        if VERBOSE:
+            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
 
     templates_target = req_root / "templates"
     if templates_target.exists():
@@ -1365,18 +1396,18 @@ def run(args: Namespace) -> None:
         vscode_dir.mkdir(parents=True, exist_ok=True)
         target_settings = vscode_dir / "settings.json"
 
-        # Carichiamo le impostazioni esistenti (se presenti) e quelle del template.
+        # Load existing settings (if present) and those from the template.
         existing_settings: dict[str, Any] = {}
         if target_settings.exists():
             try:
                 existing_settings = load_settings(target_settings)
             except Exception:
-                # Se non siamo in grado di caricare le impostazioni esistenti, consideriamo il file come non presente
+                # If checking/loading fails, consider it empty
                 existing_settings = {}
 
         src_settings = load_settings(vscode_settings_src)
 
-        # Calcoliamo il merge semantico senza modificare l'originale finché non siamo sicuri.
+        # Merge without modifying original until sure.
         import copy
 
         final_settings = copy.deepcopy(existing_settings)
@@ -1386,15 +1417,15 @@ def run(args: Namespace) -> None:
         if prompt_recs:
             final_settings["chat.promptFilesRecommendations"] = prompt_recs
 
-        # Se il risultato finale è identico a quanto già presente, non riscriviamo il file né creiamo backup.
+        # If final result is identical to existing, do not rewrite nor backup.
         if existing_settings == final_settings:
             if VERBOSE:
                 log(f"OK: settings.json already up-to-date in {target_settings}")
         else:
-            # Se sono previste modifiche, creiamo backup solo se il file esiste.
+            # If changes are expected, create backup only if file exists.
             if target_settings.exists():
                 save_vscode_backup(req_root, target_settings)
-            # Scriviamo le impostazioni finali sul file target.
+            # Write final settings.
             target_settings.write_text(
                 json.dumps(final_settings, indent=2, ensure_ascii=False),
                 encoding="utf-8",
@@ -1404,9 +1435,9 @@ def run(args: Namespace) -> None:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    """Punto di ingresso CLI per console_scripts e per esecuzione con `-m`.
+    """CLI entry point for console_scripts and `-m` execution.
 
-    Restituisce un codice di uscita (0 successo, non zero in caso di errore).
+    Returns an exit code (0 success, non-zero on error).
     """
     try:
         argv_list = sys.argv[1:] if argv is None else argv
@@ -1426,7 +1457,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     except ReqError as e:
         print(e.message, file=sys.stderr)
         return e.code
-    except Exception as e:  # errore inatteso
+    except Exception as e:  # Unexpected error
         print(f"Unexpected error: {e}", file=sys.stderr)
         if DEBUG:
             import traceback

@@ -1,5 +1,6 @@
 ---
-description: "Perform an optimizazion without changing the requirements. Usage: req.optimize <description>."
+description: "Perform an optimizazion without changing the requirements"
+argument-hint: "req.optimize <description>"
 ---
 
 # Perform an optimizazion without changing the requirements

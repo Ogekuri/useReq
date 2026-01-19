@@ -15,7 +15,7 @@ These operations prepare the environment and normalize data before processing in
 *   **CLI Config Loading** (`load_cli_configs`): Load optional configurations (models, tools) for various providers if requested by flags.
 
 ## 2. Converter Processing Phases
-The tool iterates over all `.md` files found in the `prompts/` folder and, for each one, executes the generation of specific resources.
+The tool iterates over all `.md` files found in the `RESOURCE_ROOT/prompts` folder and, for each one, executes the generation of specific resources.
 
 ### A. Gemini Converter
 Generates TOML configuration files for use with Gemini tools.
@@ -49,13 +49,13 @@ Generates resources for GitHub Copilot Workspace and Chat.
     *   Injects `model` and `tools` retrieved from the `copilot` configuration.
     *   Replaces context tokens in the prompt body.
 *   **Prompt Stub Generation**:
-    *   Creates a `.prompt.md` file in `.github/prompts/` containing only the reference to the agent (`agent: req-{PROMPT}`), serving as an entry point.
-*   **Legacy Codex Support** (`copy_with_replacements`): Maintains compatibility by also generating files in `.codex/prompts/` with direct token replacement.
+    *   Creates a `.prompt.md` file in `.github/prompts/`. When `--prompts-use-agents` is set the file contains only the agent reference (`agent: req-{PROMPT}`); otherwise it contains the full prompt body (analogous to `.codex/prompts/`).
+*   **Codex Prompt Generation** (`apply_replacements`, `write_text_file`): Generates files in `.codex/prompts/` by reusing the already-replaced prompt content.
 
 ### D. Kiro Converter
 Generates resources for the Kiro editor, including prompts and agent definitions.
 
-*   **Prompt Generation** (`copy_with_replacements`):
+*   **Prompt Generation** (`apply_replacements`, `write_text_file`):
     *   Creates the markdown file in `.kiro/prompts/`.
     *   Performs standard token replacement.
 *   **Resource Preparation** (`generate_kiro_resources`):
@@ -63,7 +63,7 @@ Generates resources for the Kiro editor, including prompts and agent definitions
 *   **Agent Building** (`render_kiro_agent`):
     *   Loads the template and agent configuration (`load_kiro_template`).
     *   Populates the agent JSON with name, description, and the calculated resources.
-    *   Injects `tools` and `model` if defined in the specific configuration or template.
+    *   Injects `tools` and `model` when the corresponding flags are enabled.
 
 ### E. OpenCode Converter
 Generates definitions for OpenCode-compatible agents and commands.
@@ -89,3 +89,10 @@ Closing operations to configure the IDE environment and clean up resources.
 *   **Backup and Writing**:
     *   `save_vscode_backup`: Backs up `settings.json` if changes are detected.
     *   Writes the updated `settings.json` file.
+
+## Change Log
+
+* 2026-01-19: Removed legacy `kiro/agent.json` fallback support from `load_kiro_template()` function; Kiro configuration now exclusively uses `config.json` with `agent_template` field.
+* 2026-01-19: Updated `docs/requirements.md` to version 0.38 clarifying REQ-077 behavior for `.claude/commands/req` when `--prompts-use-agents` and model/tools flags are present.
+* 2026-01-19: Added pdoc documentation generation utility and a test that writes HTML output to the pdoc/ directory.
+* 2026-01-19: Reused prompt replacements for Codex/Kiro prompt generation and centralized Kiro model/tools injection in `render_kiro_agent`.

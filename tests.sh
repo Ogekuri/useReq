@@ -5,45 +5,44 @@
 
 now=$(date '+%Y-%m-%d_%H-%M-%S')
 
-# 1. Ottieni il percorso assoluto completo del file (risolvendo i link simbolici)
+# 1. Get the full absolute path of the file (resolving symbolic links)
 FULL_PATH=$(readlink -f "$0")
 
-# 2. Estrai la directory (il percorso senza il nome del file)
+# 2. Extract the directory (the path without the filename)
 SCRIPT_PATH=$(dirname "$FULL_PATH")
 
-# 3. Estrai il nome del file
+# 3. Extract the filename
 SCRIPT_NAME=$(basename "$FULL_PATH")
 
-# --- Test di output (puoi rimuoverli) ---
-#echo "Percorso completo:   $FULL_PATH"
-#echo "Directory:           $SCRIPT_PATH"
-#echo "Nome script:         $SCRIPT_NAME"
+# --- Output tests (can be removed) ---
+#echo "Full path:          $FULL_PATH"
+#echo "Directory:          $SCRIPT_PATH"
+#echo "Script name:        $SCRIPT_NAME"
 
 VENVDIR="${SCRIPT_PATH}/.venv"
 #echo ${VENVDIR}
 
-# Se non c'e il ${VENVDIR} lo crea
+# If ${VENVDIR} does not exist, create it
 if ! [ -d "${VENVDIR}/" ]; then
   echo -n "Create virtual environment ..."
   mkdir ${VENVDIR}/
   virtualenv --python=python3 ${VENVDIR}/ >/dev/null
   echo "done."
 
-  # Installa i requisiti Python
+  # Install Python requirements
   source ${VENVDIR}/bin/activate
 
   echo -n "Install python requirements ..."
   ${VENVDIR}/bin/pip install -r "${SCRIPT_PATH}/requirements.txt" >/dev/null
-  ${VENVDIR}/bin/playwright install chromium
   echo "done." 
 else
-  # echo "Ambiente virtuale trovato."
+  # echo "Virtual environment found."
   source ${VENVDIR}/bin/activate
 fi
 
-# Esegue i test in 2 fasi:
-# 1) Suite standard
-# 2) Solo i post-test di validazione link (solo se 1) ha successo)
+# Run tests in 2 phases:
+# 1) Standard suite
+# 2) Only post-link validation tests (only if 1) is successful)
 
 PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
     ${VENVDIR}/bin/python3 -m 'pytest' "$@"

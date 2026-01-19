@@ -1,5 +1,6 @@
 ---
-description: "Write a requirement draft from the standard template. Usage: req.write <language>."
+description: "Write a requirement draft from the standard template"
+argument-hint: "req.write <language>"
 ---
 
 # Write a requirement's draft based on standard template

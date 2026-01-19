@@ -1,1 +1,1 @@
-# Test package per useReq.
+"""Test package for useReq."""

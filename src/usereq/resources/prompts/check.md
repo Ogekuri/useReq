@@ -1,5 +1,6 @@
 ---
-description: "Run the requirements check. Usage: req.check."
+description: "Run the requirements check"
+argument-hint: "req.check"
 ---
 
 # Run the requirements check

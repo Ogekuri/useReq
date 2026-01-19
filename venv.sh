@@ -8,12 +8,12 @@ echo "Run on path: "$(pwd -P)
 VENVDIR=".venv"
 
 if [ -d "${VENVDIR}/" ]; then
-    echo -n "Remove old virtual enviromnet ..."
+    echo -n "Remove old virtual environment ..."
     rm -rf ${VENVDIR}/
     echo "done."
 fi
 
-# Se non c'e il ${VENVDIR} lo crea
+# If ${VENVDIR} does not exist, create it
 if ! [ -d "${VENVDIR}/" ]; then
     echo -n "Create virtual environment ..."
     mkdir ${VENVDIR}/
@@ -21,7 +21,7 @@ if ! [ -d "${VENVDIR}/" ]; then
     echo "done."
 fi
 
-# Installa i requisiti Python
+# Install Python requirements
 source ${VENVDIR}/bin/activate
 
 echo -n "Install python requirements ..."

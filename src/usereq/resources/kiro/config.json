@@ -16,10 +16,10 @@
     },
   "usage_modes": {
       "read_write": {
-        "tools": [ "read", "glob", "grep", "write", "shell", "todo", "thinking" ]
+        "tools": [ "read", "glob", "grep", "write", "shell", "todo", "todo_list", "thinking" ]
       },
       "read_only": {
-        "tools": [ "read", "glob", "grep", "shell", "todo", "thinking" ]
+        "tools": [ "read", "glob", "grep", "shell", "todo", "todo_list", "thinking" ]
       }
     },
   "agent_template": {
