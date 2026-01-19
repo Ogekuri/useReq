@@ -5,7 +5,7 @@ so callers can use `from usereq import main` without unintentionally importing
 the full package behavior.
 """
 
-__version__ = "0.0.52"
+__version__ = "0.0.53"
 """The current version of the package."""
 
 from . import cli  # usereq.cli submodule
