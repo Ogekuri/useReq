@@ -96,3 +96,5 @@ Closing operations to configure the IDE environment and clean up resources.
 * 2026-01-19: Updated `docs/requirements.md` to version 0.38 clarifying REQ-077 behavior for `.claude/commands/req` when `--prompts-use-agents` and model/tools flags are present.
 * 2026-01-19: Added pdoc documentation generation utility and a test that writes HTML output to the pdoc/ directory.
 * 2026-01-19: Reused prompt replacements for Codex/Kiro prompt generation and centralized Kiro model/tools injection in `render_kiro_agent`.
+
+* 2026-01-20: Added `--yolo` CLI option enabling runtime substitution of `%%STOPANDASKAPPROVE%%` with a YOLO confirmation string; substitution occurs at generation time without modifying source templates.

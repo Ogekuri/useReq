@@ -29,11 +29,11 @@ argument-hint: "req.cover"
 Write and then execute a TODO list following these steps strictly:
 1. **Context Bootstrap & Persistence (MUST RUN FIRST, EVERY INVOCATION)**:
    - Ensure the directory `.req/context/` exists.
-   - If the [User Request](#users-request) section contains non-empty text (from `$ARGUMENTS`):
+   - If the [User Request](#users-request) section contains non-empty text (from `%%ARGS%%`):
      - SAVE it immediately to `.req/context/active_request.md` overwriting existing content.
-   - Otherwise (subsequent turns / reinvocations with empty `$ARGUMENTS`):
+   - Otherwise (subsequent turns / reinvocations with empty `%%ARGS%%`):
      - READ `.req/context/active_request.md` and use it as the restored user request.
-   - If `$ARGUMENTS` is empty AND `.req/context/active_request.md` does not exist or is empty:
+   - If `%%ARGS%%` is empty AND `.req/context/active_request.md` does not exist or is empty:
      - STOP immediately and respond asking for the user request to be provided again via `req.fix <description>`.
    - From this point onward, refer only to `.req/context/active_request.md` for the user request.
 2. Read file/files %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
@@ -43,7 +43,7 @@ Write and then execute a TODO list following these steps strictly:
 4. Re-read %%REQ_DOC%% and confirm that no changes are needed in %%REQ_DOC%%.
 5. If directory/directories %%REQ_DIR%% exists, read it and ensure the proposed code changes conform to that documents; adjust the proposal if needed.
 6. Analyze the proposed source code changes and new requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
-7. **CRITICAL**: Wait for approval.
+7. %%STOPANDASKAPPROVE%%.
 8. Implement the corresponding changes in the source code.
 9. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.

@@ -118,6 +118,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="When set, generate .github and .claude prompt files as agent-only references (agent: req-<name>).",
     )
+    parser.add_argument(
+        "--yolo",
+        action="store_true",
+        help="Enable YOLO mode: proceed without asking for approval when processing prompts.",
+    )
     return parser
 
 
@@ -1084,10 +1089,12 @@ def run(args: Namespace) -> None:
         include_models = args.enable_models
         include_tools = args.enable_tools
         prompts_use_agents = args.prompts_use_agents
+        yolo_mode = args.yolo
     except Exception:
         include_models = False
         include_tools = False
         prompts_use_agents = False
+        yolo_mode = False
     if include_models or include_tools:
         configs = load_cli_configs(RESOURCE_ROOT)
     for prompt_path in sorted(prompts_dir.glob("*.md")):
@@ -1098,12 +1105,22 @@ def run(args: Namespace) -> None:
         argument_hint = extract_argument_hint(frontmatter)
         prompt_body = prompt_body if prompt_body.endswith("\n") else prompt_body + "\n"
 
+        stop_replacement = (
+            "**CONTINUE** with all subsequent steps without seeking confirmation (*YOLO mode*)"
+            if yolo_mode
+            else "**CRITICAL**: Wait for approval"
+        )
+
         base_replacements = {
             "%%REQ_DOC%%": doc_file_list,
             "%%REQ_DIR%%": dir_list,
             "%%REQ_PATH%%": normalized_doc,
         }
-        prompt_replacements = {**base_replacements, "%%ARGS%%": "$ARGUMENTS"}
+        prompt_replacements = {
+            **base_replacements,
+            "%%ARGS%%": "$ARGUMENTS",
+            "%%STOPANDASKAPPROVE%%": stop_replacement,
+        }
         prompt_with_replacements = apply_replacements(content, prompt_replacements)
         prompt_body_replaced = apply_replacements(prompt_body, prompt_replacements)
 
@@ -1125,6 +1142,7 @@ def run(args: Namespace) -> None:
                 "%%REQ_DIR%%": dir_list,
                 "%%REQ_PATH%%": normalized_doc,
                 "%%ARGS%%": "{{args}}",
+                "%%STOPANDASKAPPROVE%%": stop_replacement,
             },
         )
         if configs and (include_models or include_tools):

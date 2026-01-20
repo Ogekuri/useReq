@@ -1,8 +1,8 @@
 ---
 title: "useReq Requirements"
 description: "Software Requirements Specification"
-date: "2026-01-14"
-version: 0.36
+date: "2026-01-20"
+version: 0.37
 author: "Ogekuri"
 scope:
   paths:
@@ -95,6 +95,7 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-14 | 0.34 | Corrected population of `resources` field in Kiro agents from `config.json` template maintaining original format. |
 | 2026-01-14 | 0.35 | Updated Kiro requirement so that `tools` and `allowedTools` are populated with arrays declared in `usage_modes` for each prompt. |
 | 2026-01-15 | 0.36 | Added front matter generation for Claude commands in `.claude/commands/req` with `agent`, `model` (optional), and `allowed-tools` (optional, CSV) fields. |
+| 2026-01-20 | 0.37 | Added `--yolo` CLI flag and token substitution for `%%STOPANDASKAPPROVE%%` (YOLO mode). |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
@@ -200,6 +201,8 @@ No unit tests found in the repository.
 - **REQ-004**: All usage, help, information, verbose, or debug outputs of the script must be in English.
 - **REQ-005**: The command must verify that the `--doc` parameter indicates an existing directory, otherwise it must terminate with error.
 
+- **REQ-073**: The CLI must accept a `--yolo` boolean flag (default false). When present, during prompt processing the token `%%STOPANDASKAPPROVE%%` must be replaced with the text: Continue with all subsequent steps without seeking confirmation (YOLO mode). When absent, the token must be replaced with: **CRITICAL**: Wait for approval.
+
 ### 3.3 Installation & Updates
 - **REQ-006**: The `--upgrade` option must execute the command `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` and terminate with error if the command fails.
 - **REQ-007**: The help usage string must include the `--upgrade` parameter as an available option.
@@ -237,6 +240,8 @@ No unit tests found in the repository.
 - **REQ-033**: If `--enable-models` is present, for each generated prompt the command must search, within folders `src/usereq/resources/{claude,copilot,opencode,kiro,gemini}`, for `config.json` files and, if the file exists and contains an entry for the prompt, include `model: <value>` in the front matter or JSON/TOML of the generated agent.
 - **REQ-034**: If `--enable-tools` is present, for each generated prompt the command must, if available in `config.json`, include the `tools` field derived from `usage_modes[mode]["tools"]` for the `mode` specified in the prompt entry. The `config.json` can specify `tools` as a list of strings or as a comma-separated string; the CLI must accept both forms. When generating files for OpenCode (`.opencode/agent` and `.opencode/command`), the CLI must preserve the original type defined in `config.json`: if the value is a string, it must be inserted into files as a string (without converting it to an array); if it is a list, it must be inserted as an array. For other targets (e.g., Gemini, Kiro, GitHub, Claude) existing behavior (normalization to list when required) remains unchanged.
 - **REQ-035**: Inclusion of `model` and `tools` is conditional on the existence and validity of the `config.json` file for the relative CLI; in the absence of the corresponding key, no field will be added (no additional backward compatibility behaviors are expected).
+
+- **REQ-074**: During prompt processing, the token `%%STOPANDASKAPPROVE%%` must be substituted in all generated outputs (Codex/GitHub prompts, Gemini TOML, Kiro agents, Claude agents/commands, OpenCode files) with either the YOLO text or the approval prompt depending on the state of the `--yolo` flag. The CLI must not modify source templates on disk; substitution shall occur at runtime when generating target files.
 
 ### 3.7 Resource Generation - Specific Tools
 #### 3.7.1 GitHub & Codex
