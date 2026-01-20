@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.54](https://github.com/Ogekuri/useReq/compare/v0.0.53..v0.0.54) - 2026-01-20
+### ⛰️  Features
+- *(core)* implement --yolo mode.
+
 ## [0.0.53](https://github.com/Ogekuri/useReq/compare/v0.0.52..v0.0.53) - 2026-01-19
 ### ⛰️  Features
 - *(core)* add --prompts-use-agents.
@@ -267,6 +271,7 @@
 - \[0.0.51\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.51
 - \[0.0.52\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.52
 - \[0.0.53\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.53
+- \[0.0.54\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.54
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -321,3 +326,4 @@
 [0.0.51]: https://github.com/Ogekuri/useReq/compare/v0.0.50..v0.0.51
 [0.0.52]: https://github.com/Ogekuri/useReq/compare/v0.0.51..v0.0.52
 [0.0.53]: https://github.com/Ogekuri/useReq/compare/v0.0.52..v0.0.53
+[0.0.54]: https://github.com/Ogekuri/useReq/compare/v0.0.53..v0.0.54
