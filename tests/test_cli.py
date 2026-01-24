@@ -337,16 +337,8 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_bootstrap_token_replaced(self) -> None:
-        """REQ-077: Verifies bootstrap substitution was removed; token remains literal."""
-        target = self.TEST_DIR / ".codex" / "prompts" / "req.fix.md"
-        self.assertTrue(target.exists(), "Generated prompt must exist")
-        content = target.read_text(encoding="utf-8")
-        # After removal of runtime bootstrap substitution, generated content may contain
-        # either the literal token or pre-inlined bootstrap content in the source prompt.
-        self.assertTrue(
-            ("%%BOOTSTRAP%%" in content) or ("Context Bootstrap & Persistence" in content),
-            "Generated prompt must contain either the bootstrap token or the bootstrap content",
-        )
+        # Removed: obsolete test for REQ-077 (bootstrap substitution no longer performed).
+        pass
 
     def test_kiro_agent_json_files_created(self) -> None:
         """REQ-019, REQ-020: Verifies JSON files generation in .kiro/agents."""

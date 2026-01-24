@@ -97,6 +97,7 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-15 | 0.36 | Added front matter generation for Claude commands in `.claude/commands/req` with `agent`, `model` (optional), and `allowed-tools` (optional, CSV) fields. |
 | 2026-01-23 | 0.39 | Removed `--parse-prompts` (REQ-075) from requirements; flag was redundant and removed from CLI. |
 | 2026-01-24 | 0.40 | Relaxed commenting requirements (DES-009, DES-010); removed REQ-073 (--yolo); updated agent generation conditional on --prompts-use-agents (REQ-038, REQ-039, REQ-051, REQ-056); clarified Kiro vs GitHub content (REQ-043); removed fallback to default mode in Kiro (REQ-047). |
+| 2026-01-24 | 0.41 | Removed REQ-077: removed runtime bootstrap substitution (`%%BOOTSTRAP%%`) from prompt processing and aligned tests by removing the corresponding test that validated this behavior. |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
