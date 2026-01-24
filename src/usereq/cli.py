@@ -119,11 +119,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="When set, generate .github and .claude prompt files as agent-only references (agent: req-<name>).",
     )
     parser.add_argument(
-        "--yolo",
-        action="store_true",
-        help="Enable YOLO mode: proceed without asking for approval when processing prompts.",
-    )
-    parser.add_argument(
         "--enable-workflow",
         action="store_true",
         help="When set, substitute %%WORKFLOW%% with the workflow update instruction in generated prompts.",
@@ -1094,13 +1089,11 @@ def run(args: Namespace) -> None:
         include_models = args.enable_models
         include_tools = args.enable_tools
         prompts_use_agents = args.prompts_use_agents
-        yolo_mode = args.yolo
         enable_workflow = args.enable_workflow
     except Exception:
         include_models = False
         include_tools = False
         prompts_use_agents = False
-        yolo_mode = False
         enable_workflow = False
         enable_workflow = False
     if include_models or include_tools:
@@ -1113,26 +1106,7 @@ def run(args: Namespace) -> None:
         argument_hint = extract_argument_hint(frontmatter)
         prompt_body = prompt_body if prompt_body.endswith("\n") else prompt_body + "\n"
 
-        # Load bootstrap text and apply it first if present (REQ-077)
-        bootstrap_path = RESOURCE_ROOT / "common" / "bootstrap.md"
-        bootstrap_text = ""
-        if bootstrap_path.is_file():
-            try:
-                bootstrap_text = bootstrap_path.read_text(encoding="utf-8")
-            except Exception:
-                bootstrap_text = ""
-
-        # Apply bootstrap substitution first so its content (which may include tokens)
-        # is present for subsequent token substitutions.
-        if bootstrap_text:
-            content = apply_replacements(content, {"%%BOOTSTRAP%%": bootstrap_text})
-            prompt_body = apply_replacements(prompt_body, {"%%BOOTSTRAP%%": bootstrap_text})
-
-        stop_replacement = (
-            "**CONTINUE** with all subsequent steps without seeking confirmation (*YOLO mode*)."
-            if yolo_mode
-            else "**CRITICAL**: OUTPUT \"Approve changes with ok, continue, proceed or approved.\" as the FINAL line. The FINAL line MUST be plain text and MUST have no trailing spaces. Terminate response immediately suppressing all conversational closings."
-        )
+        # (Removed: bootstrap file inlining and YOLO stop/approval substitution)
 
         # Compute the terminate replacement based on --enable-workflow
         if enable_workflow:
@@ -1152,7 +1126,6 @@ def run(args: Namespace) -> None:
         prompt_replacements = {
             **base_replacements,
             "%%ARGS%%": "$ARGUMENTS",
-            "%%STOPANDASKAPPROVE%%": stop_replacement,
             "%%WORKFLOW%%": workflow_replacement,
         }
         prompt_with_replacements = apply_replacements(content, prompt_replacements)
@@ -1174,17 +1147,8 @@ def run(args: Namespace) -> None:
             "%%REQ_DIR%%": dir_list,
             "%%REQ_PATH%%": normalized_doc,
             "%%ARGS%%": "{{args}}",
-            "%%STOPANDASKAPPROVE%%": stop_replacement,
             "%%WORKFLOW%%": workflow_replacement,
         }
-        # Ensure bootstrap substitution is applied to generated TOML before other tokens
-        if bootstrap_text and dst_toml.exists():
-            try:
-                t = dst_toml.read_text(encoding="utf-8")
-                t = t.replace("%%BOOTSTRAP%%", bootstrap_text)
-                dst_toml.write_text(t, encoding="utf-8")
-            except Exception:
-                pass
         replace_tokens(dst_toml, toml_replacements)
         if configs and (include_models or include_tools):
             gem_model, gem_tools = get_model_tools_for_prompt(

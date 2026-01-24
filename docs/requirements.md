@@ -2,7 +2,7 @@
 title: "useReq Requirements"
 description: "Software Requirements Specification"
 date: "2026-01-21"
-version: 0.39
+version: 0.40
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requirements", "useReq"]
 ---
 
 # useReq Requirements
-**Version**: 0.39
+**Version**: 0.40
 **Author**: Ogekuri
-**Date**: 2026-01-14
+**Date**: 2026-01-24
 
 ## Table of Contents
 <!-- TOC -->
@@ -95,8 +95,8 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-14 | 0.34 | Corrected population of `resources` field in Kiro agents from `config.json` template maintaining original format. |
 | 2026-01-14 | 0.35 | Updated Kiro requirement so that `tools` and `allowedTools` are populated with arrays declared in `usage_modes` for each prompt. |
 | 2026-01-15 | 0.36 | Added front matter generation for Claude commands in `.claude/commands/req` with `agent`, `model` (optional), and `allowed-tools` (optional, CSV) fields. |
-| 2026-01-20 | 0.37 | Added `--yolo` CLI flag and token substitution for `%%STOPANDASKAPPROVE%%` (YOLO mode). |
 | 2026-01-23 | 0.39 | Removed `--parse-prompts` (REQ-075) from requirements; flag was redundant and removed from CLI. |
+| 2026-01-24 | 0.40 | Relaxed commenting requirements (DES-009, DES-010); removed REQ-073 (--yolo); updated agent generation conditional on --prompts-use-agents (REQ-038, REQ-039, REQ-051, REQ-056); clarified Kiro vs GitHub content (REQ-043); removed fallback to default mode in Kiro (REQ-047). |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
@@ -192,8 +192,8 @@ No unit tests found in the repository.
 - **DES-006**: The package entry point must expose `usereq.cli:main` via `use-req`, `req`, and `usereq`.
 - **DES-007**: Expected errors must be handled via a dedicated exception with non-zero exit code.
 - **DES-008**: All comments in source codes must be written exclusively in English. Exceptions are made for source file header comments. For example, comments indicating versions and/or authors like "# VERSION:" or "# AUTHORS:" which maintain standard English formatting.
-- **DES-009**: Every important part of the code (classes, complex functions, business logic, critical algorithms) must be adequately commented.
-- **DES-010**: Every new functionality added must include explanatory comments and, in case of modification of existing code, pre-existing comments must be updated to reflect the new behavior.
+- **DES-009**: Every important part of the code (classes, complex functions, business logic, critical algorithms) should be commented where necessary, though explanatory comments may be minimal for self-evident business logic.
+- **DES-010**: Every new functionality added should include explanatory comments where applicable; modification of existing code does not strictly require updating pre-existing comments if the logic remains clear.
 
 ### 3.2 CLI Interface & General Behavior
 - **REQ-001**: When the `req` command is invoked without parameters, the output must include help and the version number defined in `src/usereq/__init__.py` (`__version__`).
@@ -201,8 +201,6 @@ No unit tests found in the repository.
 - **REQ-003**: The help usage string must include the command `req` and the version `__version__` in the format `usage: req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] (major.minor.patch)` with major.minor.patch from `__version__`.
 - **REQ-004**: All usage, help, information, verbose, or debug outputs of the script must be in English.
 - **REQ-005**: The command must verify that the `--doc` parameter indicates an existing directory, otherwise it must terminate with error.
-
-- **REQ-073**: The CLI must accept a `--yolo` boolean flag (default false). During prompt processing the token `%%STOPANDASKAPPROVE%%` must be replaced with a different text when `--yolo` is enabled.
 
 ### 3.3 Installation & Updates
 - **REQ-006**: The `--upgrade` option must execute the command `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` and terminate with error if the command fails.
@@ -242,19 +240,17 @@ No unit tests found in the repository.
 - **REQ-034**: If `--enable-tools` is present, for each generated prompt the command must, if available in `config.json`, include the `tools` field derived from `usage_modes[mode]["tools"]` for the `mode` specified in the prompt entry. The `config.json` can specify `tools` as a list of strings or as a comma-separated string; the CLI must accept both forms. When generating files for OpenCode (`.opencode/agent` and `.opencode/command`), the CLI must preserve the original type defined in `config.json`: if the value is a string, it must be inserted into files as a string (without converting it to an array); if it is a list, it must be inserted as an array. For other targets (e.g., Gemini, Kiro, GitHub, Claude) existing behavior (normalization to list when required) remains unchanged.
 - **REQ-035**: Inclusion of `model` and `tools` is conditional on the existence and validity of the `config.json` file for the relative CLI; in the absence of the corresponding key, no field will be added (no additional backward compatibility behaviors are expected).
 
-- **REQ-074**: During prompt processing, the token `%%STOPANDASKAPPROVE%%` must be substituted in all generated outputs (Codex/GitHub prompts, Gemini TOML, Kiro agents, Claude agents/commands, OpenCode files) with either the YOLO text or the approval prompt depending on the state of the `--yolo` flag. The CLI must not modify source templates on disk; substitution shall occur at runtime when generating target files.
  
 - **REQ-076**: The CLI must accept a boolean flag `--enable-workflow` (default false). During prompt processing, the token `%%WORKFLOW%%` must be substituted with a static text. Substitution must occur at runtime only and must not modify any source templates on disk. This requirement must be backward compatible with existing CLI behavior when the flag is not provided.
 
-- **REQ-077**: During runtime prompt processing, the CLI must replace the token `%%BOOTSTRAP%%` with the UTF-8 contents of the file `src/usereq/resources/common/bootstrap.md` if the file exists. This replacement must occur before any other token substitutions on the prompt content. After `%%BOOTSTRAP%%` replacement, the CLI must continue with the normal ordered token substitutions (`%%ARGS%%`, `%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%STOPANDASKAPPROVE%%`, `%%WORKFLOW%%`, etc.) applied to the resulting text. Substitutions are runtime-only and must not modify source templates on disk.
-  Substitution must be performed with UTF-8 encoding and preserve newline semantics. If `src/usereq/resources/common/bootstrap.md` is absent, no `%%BOOTSTRAP%%` replacement must occur and the CLI must retain prior behavior.
+ 
 
 ### 3.7 Resource Generation - Specific Tools
 #### 3.7.1 GitHub & Codex
 - **REQ-036**: The command must create folders `.codex/prompts`, `.github/agents`, `.github/prompts`, `.gemini/commands` and `.gemini/commands/req` under the project root.
 - **REQ-037**: For each available Markdown prompt, the command must copy the file into `.codex/prompts` and `.github/agents` replacing `%%REQ_DOC%%`, `%%REQ_DIR%%` and `%%ARGS%%` with calculated values.
-- **REQ-038**: For each available Markdown prompt, the command must create a file `.github/prompts/req.<name>.prompt.md` referencing the agent `req.<name>`.
-- **REQ-039**: The command must create the configuration `.github/prompts` with front matter referencing the agent in use.
+- **REQ-038**: For each available Markdown prompt, the command must create a file `.github/prompts/req.<name>.prompt.md`. This file must reference the agent `req.<name>` only if the `--prompts-use-agents` option is enabled; otherwise, it must contain the description and prompt body.
+- **REQ-039**: The command must create the configuration `.github/prompts` with front matter referencing the agent in use only if the `--prompts-use-agents` option is enabled.
 - **REQ-040**: For each available Markdown prompt, the command must generate a file `.github/agents/req.<name>.agent.md` with front matter including `name` set to `req-<name>`, preserving `description` from the source prompt.
 
 #### 3.7.2 Gemini
@@ -262,18 +258,18 @@ No unit tests found in the repository.
 
 #### 3.7.3 Kiro
 - **REQ-042**: The command must create folders `.kiro/agents` and `.kiro/prompts` under the project root.
-- **REQ-043**: For each available Markdown prompt, the command must copy the file into `.kiro/prompts` with the same contents generated for `.github/agents`.
+- **REQ-043**: For each available Markdown prompt, the command must copy the file into `.kiro/prompts` using the source front matter and prompt body with replacements. This content differs from `.github/agents` which uses a generated front matter.
 - **REQ-044**: For each available Markdown prompt, the command must generate a JSON file in `.kiro/agents` with name `req.<name>.json` using the template contained in `src/usereq/resources/kiro/config.json` in the `agent_template` field. The `config.json` file must include a top-level `settings` object (e.g., {"version": "0.0.46", "default_mode": "read_only"}) and the `agent_template` field, which can be a JSON string or a JSON object, with tokens `%%NAME%%`, `%%DESCRIPTION%%`, `%%PROMPT%%` and optionally `%%RESOURCES%%`; the command must replace tokens and populate the agent's `resources` field with the generated array even when the template contains an empty array instead of the explicit token.
 - **REQ-045**: In Kiro JSON files, fields `name`, `description`, and `prompt` must be populated respectively with `req-<name>`, the `description` from the prompt front matter, and the Markdown prompt body without the initial section between delimiters `---`, with double quotes `"` escaped.
 - **REQ-046**: In Kiro JSON files, the `resources` field must be populated by the command regardless of how it is defined in the template, including as the first item the corresponding prompt file in `.kiro/prompts/req.<name>.md` and, following that, links to identified requirements.
-- **REQ-047**: The command must populate the `tools` and `allowedTools` fields in `.kiro/agents/req.<name>.json` with arrays declared in `usage_modes[mode]["tools"]` of the Kiro configuration, using the `mode` of each prompt (with `settings.default_mode` as fallback) so that tools and permissions correspond to `read_write`/`read_only` modes expected by the template.
+- **REQ-047**: The command must populate the `tools` and `allowedTools` fields in `.kiro/agents/req.<name>.json` with arrays declared in `usage_modes[mode]["tools"]` of the Kiro configuration, using the `mode` of each prompt only if present. If the prompt mode is missing, no tools are set.
 
 #### 3.7.4 OpenCode
 - **REQ-048**: For each available Markdown prompt, the command must generate a Markdown file in `.opencode/agent` with name `req.<name>.md` with front matter containing `description` from the prompt front matter description and `mode` set to "all", followed by the prompt body with substitutions `%%REQ_DOC%%`, `%%REQ_DIR%%`, and `%%ARGS%%`.
 - **REQ-049**: The command must create the folder `.opencode/agent` under the project root.
 - **REQ-050**: The command must create the folder `.opencode/command` under the project root.
 - **REQ-051**: For each available Markdown prompt, the command must generate a file in `.opencode/command` with name `req.<name>.md` including YAML front matter containing:
-  - `agent:` valued with the name of the corresponding file in `.opencode/agent` (e.g., `req.analyze`),
+  - `agent:` valued with the name of the corresponding file in `.opencode/agent` (e.g., `req.analyze`) only if the `--prompts-use-agents` option is enabled,
   - optionally `model:` and `tools:` when tags `--enable-models` and/or `--enable-tools` are active and relative values are present in CLI `config.json`,
   - followed by a separator line and the prompt body with the same substitutions (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) applied for `.kiro/prompts`.
 When `--remove` is present, files generated in `.opencode/command` must be removed and empty directories under `.opencode` deleted.
@@ -284,7 +280,7 @@ When `--remove` is present, files generated in `.opencode/command` must be remov
 - **REQ-054**: In `.claude/agents/req.<name>.md` files, the initial front matter must include fields `name` and `description` valued from the source prompt. The `model` field must not be automatically added by the application: the `model` field can be included only if the `--enable-models` parameter is passed and the file `src/usereq/resources/claude/config.json` contains a valid entry for the corresponding prompt. Similarly, the `tools` field can be included only if the `--enable-tools` parameter is passed and `config.json` provides `usage_modes[mode]["tools"]` for the prompt's `mode`. In the absence of these flags or valid values in `config.json`, the `model` and `tools` fields must not be present in the generated files.
 - **REQ-055**: The command must create the folder `.claude/commands` and its subfolder `.claude/commands/req` under the project root.
 - **REQ-056**: For each available Markdown prompt, the command must generate a file in `.claude/commands/req` with name `<name>.md` including an initial YAML front matter containing:
-  - `agent`: valued with the same `name` identifier present in `.claude/agents/req.<name>.md` (e.g., `req-<name>`).
+  - `agent`: valued with the same `name` identifier present in `.claude/agents/req.<name>.md` (e.g., `req-<name>`) only if the `--prompts-use-agents` option is enabled.
   - optionally `model`: included only if the `--enable-models` option is passed and `src/usereq/resources/claude/config.json` contains a `model` entry for the corresponding prompt; the value must be copied as is from `config.json`.
   - optionally `allowed-tools`: included only if the `--enable-tools` option is passed and `config.json` provides `usage_modes[mode]["tools"]` for the prompt's `mode`; the field must be a CSV string in double quotes, formatted as `"Read, Grep, Glob"`.
   - Followed by a separator line `---` and then the Markdown prompt body with the same token substitutions (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`).
