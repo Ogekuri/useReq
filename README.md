@@ -25,11 +25,12 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
   | `change` | Update the requirements and implement the corresponding changes |
   | `check` | Run the requirements check |
   | `cover` | Implement changes to cover new requirements |
-  | `create` | Write a draft requirement following a standard template and the current project |
+  | `create` | Write a requirement draft using the project's source code |
   | `fix` | Fix a defect without changing the requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
   | `optimize` | Perform optimizations without changing the requirements |
-  | `write` | Write a draft requirement following a standard template and the prompt's input |
+  | `write` | Produce a requirement draft based on the User Request description |
+  | `reset` | Reset useReq/req bootstrap context |
 
 
 ## Default Workflow
@@ -326,3 +327,18 @@ Gemini CLI does not support "model:" or "tools:" on prompts.
 ### OpenIA Codex CLI
 
 OpenIA Codex CLI does not support "model:" or "tools:" on prompts.
+
+
+## Note on GIT usage
+
+Prompts will use `git` only in ways that do not modify the repository history (HEAD) or branches/tags and do not update the Git index (staging area). Promapts are allowed to modify the working tree (the checked-out files) using either normal filesystem edits or `git` commands that only change files in the working directory.
+
+### Allowed `git` operations (read-only or working-tree-only)
+- Read-only inspection: `git status`, `git diff`, `git log`, `git show`, `git ls-files`, `git rev-parse`, `git grep`.
+- Apply changes to the working tree: `git apply` (including --check, --verbose), and `git apply --reject` if needed.
+- Only the git commands explicitly listed as Allowed are permitted. If a git command is not listed, DO NOT run it.
+
+### Forbidden git operations (write to history/HEAD/branches/tags or to the index)
+- History/refs changes: `git commit`, `git merge`, `git rebase`, `git cherry-pick`, `git revert`, `git reset`, `git checkout`, `git switch`, `git restore`, `git tag`, `git branch` (create/delete/move), `git push`, `git fetch`, `git pull`
+- Index changes: `git add`, `git rm`, `git mv`, `git stash`, `git apply --index`, `git commit -a`.
+- Destructive cleanup: `git clean`.

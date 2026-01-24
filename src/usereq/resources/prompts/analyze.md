@@ -9,21 +9,27 @@ argument-hint: "req.analyze <description>"
 - Analyze the provided source code and requirements and produce an analysis report only. Do not edit, refactor, or rewrite any code or requirements.
  
 ## Behavior
- - **CRITICAL**: Do not modify any files in the project.
+ - Even in read-only mode, you can always read, write, or edit files in `.req/context/`. Files in `.req/context/` are assumed to be untracked/ignored. 
+ - You MAY read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
+ - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
+ - **CRITICAL**: Do not modify any git tracked files (i.e., returned by `git ls-files`). You may run commands that create untracked artifacts ONLY if: (a) they are confined to standard disposable locations (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`), (b) they do not change any tracked file contents, and (c) you do NOT rely on those artifacts as permanent outputs. If unsure, run tools in a temporary directory (e.g., `tmp/`, `temp/`, `/tmp`) or use tool flags that disable caches.
  - You are an expert debugger specializing in root cause analysis.
- - Do not modify any files in the project.
  - Only analyze the code and present the results; make no changes.
  - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
- - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
- - Where unit tests exist, strictly adhere to the associated specific instructions.
+ - Allowed git commands in this workflow (read-only only): `git status`, `git diff`, `git ls-files`, `git grep`. Do NOT run any other git commands.
+ - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
+ - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..). Prefer read-only commands for analysis.
  - Follow the ordered steps below exactly.
 
 ## Steps
-Write and then execute a TODO list following these steps strictly:
-1. Read file/files %%REQ_DOC%%, all source files, and the [User Request](#users-request) analysis request.
-2. Produce only an analysis report that answers the [User Request](#users-request). 
-3. If directory/directories %%REQ_DIR%% exists, read it and ensure the report complies with its guidance; revise the report if necessary.
-4. Present the analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+Create a TODO list (use the todo tool if available; otherwise include it in the response) with below steps, then execute them strictly:
+1. Read %%REQ_DOC%% and the [User Request](#users-request) analysis request.
+   - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
+   - Identify and read only the relevant source code files necessary to fulfill the request. Do not load the entire codebase unless absolutely necessary.
+2. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the report complies with its guidance.
+3. Analyze the code to answer the [User Request](#users-request), ensuring compliance with %%REQ_DIR%% documents if present.
+4. Generate the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+5. After the full report, OUTPUT exactly "Analysis completed!" as the FINAL line. The FINAL line MUST be plain text (no markdown/code block) and MUST have no trailing spaces. Terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions, ensure strictly no other text, conversational filler, or formatting follows FINAL line).
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

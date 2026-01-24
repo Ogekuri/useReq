@@ -123,6 +123,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable YOLO mode: proceed without asking for approval when processing prompts.",
     )
+    parser.add_argument(
+        "--enable-workflow",
+        action="store_true",
+        help="When set, substitute %%WORKFLOW%% with the workflow update instruction in generated prompts.",
+    )
     return parser
 
 
@@ -394,7 +399,7 @@ def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
             try:
                 rel_path = file_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/")
-                files.append(f"[{rel_str}]({rel_str})")
+                files.append(f"`{rel_str}`")
             except ValueError:
                 continue
 
@@ -412,7 +417,7 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
             try:
                 rel_path = subdir_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/") + "/"
-                subdirs.append(f"[{rel_str}]({rel_str})")
+                subdirs.append(f"`{rel_str}`")
             except ValueError:
                 continue
 
@@ -421,7 +426,7 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
         try:
             rel_path = dir_path.relative_to(project_base)
             rel_str = str(rel_path).replace(os.sep, "/") + "/"
-            return f"[{rel_str}]({rel_str})"
+            return f"`{rel_str}`"
         except ValueError:
             return ""
 
@@ -1090,11 +1095,14 @@ def run(args: Namespace) -> None:
         include_tools = args.enable_tools
         prompts_use_agents = args.prompts_use_agents
         yolo_mode = args.yolo
+        enable_workflow = args.enable_workflow
     except Exception:
         include_models = False
         include_tools = False
         prompts_use_agents = False
         yolo_mode = False
+        enable_workflow = False
+        enable_workflow = False
     if include_models or include_tools:
         configs = load_cli_configs(RESOURCE_ROOT)
     for prompt_path in sorted(prompts_dir.glob("*.md")):
@@ -1105,11 +1113,36 @@ def run(args: Namespace) -> None:
         argument_hint = extract_argument_hint(frontmatter)
         prompt_body = prompt_body if prompt_body.endswith("\n") else prompt_body + "\n"
 
+        # Load bootstrap text and apply it first if present (REQ-077)
+        bootstrap_path = RESOURCE_ROOT / "common" / "bootstrap.md"
+        bootstrap_text = ""
+        if bootstrap_path.is_file():
+            try:
+                bootstrap_text = bootstrap_path.read_text(encoding="utf-8")
+            except Exception:
+                bootstrap_text = ""
+
+        # Apply bootstrap substitution first so its content (which may include tokens)
+        # is present for subsequent token substitutions.
+        if bootstrap_text:
+            content = apply_replacements(content, {"%%BOOTSTRAP%%": bootstrap_text})
+            prompt_body = apply_replacements(prompt_body, {"%%BOOTSTRAP%%": bootstrap_text})
+
         stop_replacement = (
-            "**CONTINUE** with all subsequent steps without seeking confirmation (*YOLO mode*)"
+            "**CONTINUE** with all subsequent steps without seeking confirmation (*YOLO mode*)."
             if yolo_mode
-            else "**CRITICAL**: Wait for approval"
+            else "**CRITICAL**: OUTPUT \"Approve changes with ok, continue, proceed or approved.\" as the FINAL line. The FINAL line MUST be plain text and MUST have no trailing spaces. Terminate response immediately suppressing all conversational closings."
         )
+
+        # Compute the terminate replacement based on --enable-workflow
+        if enable_workflow:
+            workflow_replacement = (
+                'If WORKFLOW.md file exists, analyze the recently implemented code changes, identify new features and behavioral updates, then update WORKFLOW.md by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure). If no changes detected, leave WORKFLOW.md unchanged.'
+            )
+        else:
+            workflow_replacement = (
+                'OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).'
+            )
 
         base_replacements = {
             "%%REQ_DOC%%": doc_file_list,
@@ -1120,6 +1153,7 @@ def run(args: Namespace) -> None:
             **base_replacements,
             "%%ARGS%%": "$ARGUMENTS",
             "%%STOPANDASKAPPROVE%%": stop_replacement,
+            "%%WORKFLOW%%": workflow_replacement,
         }
         prompt_with_replacements = apply_replacements(content, prompt_replacements)
         prompt_body_replaced = apply_replacements(prompt_body, prompt_replacements)
@@ -1135,16 +1169,23 @@ def run(args: Namespace) -> None:
         dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
         existed = dst_toml.exists()
         md_to_toml(prompt_path, dst_toml, force=existed)
-        replace_tokens(
-            dst_toml,
-            {
-                "%%REQ_DOC%%": doc_file_list,
-                "%%REQ_DIR%%": dir_list,
-                "%%REQ_PATH%%": normalized_doc,
-                "%%ARGS%%": "{{args}}",
-                "%%STOPANDASKAPPROVE%%": stop_replacement,
-            },
-        )
+        toml_replacements = {
+            "%%REQ_DOC%%": doc_file_list,
+            "%%REQ_DIR%%": dir_list,
+            "%%REQ_PATH%%": normalized_doc,
+            "%%ARGS%%": "{{args}}",
+            "%%STOPANDASKAPPROVE%%": stop_replacement,
+            "%%WORKFLOW%%": workflow_replacement,
+        }
+        # Ensure bootstrap substitution is applied to generated TOML before other tokens
+        if bootstrap_text and dst_toml.exists():
+            try:
+                t = dst_toml.read_text(encoding="utf-8")
+                t = t.replace("%%BOOTSTRAP%%", bootstrap_text)
+                dst_toml.write_text(t, encoding="utf-8")
+            except Exception:
+                pass
+        replace_tokens(dst_toml, toml_replacements)
         if configs and (include_models or include_tools):
             gem_model, gem_tools = get_model_tools_for_prompt(
                 configs.get("gemini"), PROMPT, "gemini"

@@ -318,6 +318,35 @@ class TestCLI(unittest.TestCase):
             "Codex and Kiro prompt files must have identical contents",
         )
 
+    def test_terminate_token_replaced_by_default(self) -> None:
+        """REQ-076: Verifies %%WORKFLOW%% is replaced when --enable-workflow is absent."""
+        target_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.fix.md"
+        content = target_prompt.read_text(encoding="utf-8")
+        default_terminate = (
+            'OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).'
+        )
+        self.assertIn(
+            default_terminate,
+            content,
+            "Default termination text must be present in generated prompts when workflow is disabled",
+        )
+        self.assertNotIn(
+            "%%WORKFLOW%%",
+            content,
+            "Termination token must not remain when workflow is disabled",
+        )
+
+    def test_bootstrap_token_replaced(self) -> None:
+        """REQ-077: Verifies %%BOOTSTRAP%% is replaced with bootstrap.md content."""
+        target = self.TEST_DIR / ".codex" / "prompts" / "req.fix.md"
+        self.assertTrue(target.exists(), "Generated prompt must exist")
+        content = target.read_text(encoding="utf-8")
+        self.assertIn(
+            "Context Bootstrap & Persistence",
+            content,
+            "Bootstrap header must appear in generated prompts when bootstrap.md is present",
+        )
+
     def test_kiro_agent_json_files_created(self) -> None:
         """REQ-019, REQ-020: Verifies JSON files generation in .kiro/agents."""
         kiro_agents = self.TEST_DIR / ".kiro" / "agents"

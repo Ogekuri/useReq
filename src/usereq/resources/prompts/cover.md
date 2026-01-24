@@ -6,51 +6,70 @@ argument-hint: "req.cover"
 # Implement changes needed to cover the new requirements
 
 ## Purpose
-- Perform the requirements check and report whether all items are correctly covered, then propose a source code change to cover all uncovered requirements.
+- Perform the requirements check and report uncovered items, then propose and implement source code changes to cover all uncovered requirements.
  
 ## Behavior
- - **CRITICAL**: GIT WRITE OPERATIONS ARE STRICTLY FORBIDDEN. You are NOT authorized to perform, suggest, or output any command that writes to or mutates a Git repository, its history, refs, or remotes. This includes (non-exhaustive) any of the following:
-  * Creating or moving refs: git commit, merge, rebase, cherry-pick, revert, reset (mixed/soft/hard), branch (create/delete), checkout/switch that creates branches, tag (create/delete), notes, stash (save/apply/pop), reflog expire
-  * Editing working tree/index in a way intended to be committed: git add, rm, mv, apply, am, filter-branch, commit-tree, update-index, update-ref
-  * Remote writes: git push, pull (when it results in merges/rebases), fetch with ref updates that are later pushed, submodule update that changes recorded commits, lfs push
-  * Any command or API that results in repository changes equivalent to the above, even if the command name differs.
+ - Even in read-only mode, you can always read, write, or edit files in `.req/context/`. Files in `.req/context/` are assumed to be untracked/ignored.
+ - You MAY read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
+ - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
+ - **CRITICAL**: You may use `git` only in ways that do not modify the repository history (HEAD) or branches/tags and do not update the Git index (staging area). You are allowed to modify the working tree (the checked-out files) using either normal filesystem edits or `git` commands that only change files in the working directory.
+   - Allowed `git` operations (read-only or working-tree-only):
+     - Read-only inspection: `git status`, `git diff`, `git log`, `git show`, `git ls-files`, `git rev-parse`, `git grep`.
+     - Apply changes to the working tree: `git apply` (including --check, --verbose), and `git apply --reject` if needed.
+     - Only the git commands explicitly listed as Allowed are permitted. If a git command is not listed, DO NOT run it.
+   - Forbidden git operations (write to history/HEAD/branches/tags or to the index):
+     - History/refs changes: `git commit`, `git merge`, `git rebase`, `git cherry-pick`, `git revert`, `git reset`, `git checkout`, `git switch`, `git restore`, `git tag`, `git branch` (create/delete/move), `git push`, `git fetch`, `git pull`
+     - Index changes: `git add`, `git rm`, `git mv`, `git stash`, `git apply --index`, `git commit -a`.
+     - Destructive cleanup: `git clean`.
  - You are a senior code reviewer ensuring high standards of code quality and security.
  - Do not modify files that contain requirements.
  - Always strictly respect requirements.
  - Use technical documents to implement features and changes.
- - Preserve the original language of documents, comments, and printed output.
- - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. Do not implement migrations, auto-upgrades or any conversion logic.
- - Do not make unrelated edits.
- - If a valid Python virtual environment exists at `.venv/`, run all Python test scripts using its Python interpreter; otherwise use the system Python. Before running tests, set `PYTHONPATH` to the directory that contains the modules to import.
- - Where unit tests exist, strictly adhere to the associated specific instructions.
- - Follow the ordered steps below exactly.
+ - Any new text added to an existing document MUST match that document’s current language.
+ - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. If maintaining compatibility would require migrations/auto-upgrades/conversion logic, report the conflict instead of implementing and STOP.
+ - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
+ - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..). Prefer read-only commands for analysis.
+ - Follow the ordered steps below exactly. Step 1 (Context Bootstrap & Persistence) MUST ALWAYS execute first and is never skipped. JUMP only affects steps AFTER Step 1. When JUMP is instructed, do not execute any numbered step prior to the target step except Step 1. STOP instruction means: after completing any explicitly required cleanup actions in the current step (e.g., deleting .req/context files), do not run any further commands, do not modify any additional files, and end the response immediately.
 
 ## Steps
-Write and then execute a TODO list following these steps strictly:
-1. **Context Bootstrap & Persistence (MUST RUN FIRST, EVERY INVOCATION)**:
-   - Ensure the directory `.req/context/` exists.
-   - If the [User Request](#users-request) section contains non-empty text (from `%%ARGS%%`):
-     - SAVE it immediately to `.req/context/active_request.md` overwriting existing content.
-   - Otherwise (subsequent turns / reinvocations with empty `%%ARGS%%`):
-     - READ `.req/context/active_request.md` and use it as the restored user request.
-   - If `%%ARGS%%` is empty AND `.req/context/active_request.md` does not exist or is empty:
-     - STOP immediately and respond asking for the user request to be provided again via `req.fix <description>`.
-   - From this point onward, refer only to `.req/context/active_request.md` for the user request.
-2. Read file/files %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
-   - For each requirement, report `OK` if satisfied or `UNCOVERED` if not.
-   - For every `UNCOVERED`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-3. Produce a clear change proposal describing edits to the source code that will cover all `UNCOVERED` requirements.
-4. Re-read %%REQ_DOC%% and confirm that no changes are needed in %%REQ_DOC%%.
-5. If directory/directories %%REQ_DIR%% exists, read it and ensure the proposed code changes conform to that documents; adjust the proposal if needed.
-6. Analyze the proposed source code changes and new requirements. Where unit tests exist, refactor and expand them for full coverage. If no unit tests are present, do not create a new testing suite.
-7. %%STOPANDASKAPPROVE%%.
-8. Implement the corresponding changes in the source code.
-9. Re-read file/files %%REQ_DOC%% and verify the project's source code satisfies the listed requirements.
+Create a TODO list (use the todo tool if available; otherwise include it in the response) with below steps, then execute them strictly:
+1. %%BOOTSTRAP%%
+2. **NOTE**: Here start CHANGE-CODE
+3. Read %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-10. If directory/directories %%REQ_DIR%% exists, verify the application's code follows that documents and report discrepancies with file paths and concise explanations.
+4. **CRITICAL**: If all requirements report `OK`:
+   - DELETE `.req/context/active_request.md`, `.req/context/state.md`, `.req/context/pending_proposal.md`, `.req/context/approved_proposal.md` (if present)
+   - OUTPUT exactly "All requirements are already covered. No changes needed." as the FINAL line. The FINAL line MUST be plain text (no markdown/code block) and MUST have no trailing spaces. Terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions, ensure strictly no other text, conversational filler, or formatting follows FINAL line).
+5. Produce a clear change proposal describing edits to the source code that will cover all `FAIL` requirements.
+6. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the proposal if needed.
+7. Where unit tests exist, plan the necessary refactoring and expansion to cover uncovered requirements and include these details in the change proposal.
+8. **Present the proposed source code changes**.
+9.  SAVE the detailed change proposal (only code logic) into a temporary file `.req/context/pending_proposal.md` (save the full detailed content needed for implementation, do not summarize).
+10. SAVE a file `.req/context/state.md` containing exactly these two lines:
+    - `PREVIOUS-PHASE=CHANGE-CODE`
+    - `NEXT-PHASE=IMPLEMENT-CODE`
+11. %%STOPANDASKAPPROVE%%
+12. **NOTE**: Here start IMPLEMENT-CODE
+13. Implement the changes described in `.req/context/approved_proposal.md` in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the approved proposal.
+14. SAVE a file `.req/context/state.md` containing exactly these two lines:
+   - `PREVIOUS-PHASE=TESTS`
+   - `NEXT-PHASE=TESTS`
+15. **NOTE**: Here start TESTS
+16. Re-read %%REQ_DOC%% and cross-reference with the source code.
+   - For each requirement, report `OK` if satisfied or `FAIL` if not.
+   - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
+17. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and verify that the application's code follows those documents. Report discrepancies with file paths and concise explanations.
    - Report any discrepancies with file paths and concise explanations.
-11. Run all available unit tests and provide a summary of the results, highlighting any failures, but do not modify the existing test suite in any way. At this point, the unit tests must remain exactly as they are.
-12. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-13. If [WORKFLOW.md](WORKFLOW.md) file exist, analyze the recently implemented code changes, identify new features and behavioral updates, then update [WORKFLOW.md](WORKFLOW.md) by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure).
-14. **CRITICAL**: delete file `.req/context/active_request.md`.
+18. Run the updated test suite. 
+   - Verify that the implemented changes satisfy the approved requirements and pass tests.
+   - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption.
+   - Fix the source code to pass valid tests. Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure and STOP. You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
+19. Present results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+20. %%WORKFLOW%%
+21. **CRITICAL**: DELETE the following files if they exist (do not error if missing)
+  - `.req/context/active_request.md`
+  - `.req/context/state.md`
+  - `.req/context/pending_proposal.md`
+  - `.req/context/approved_proposal.md`
+22. After the full report, OUTPUT exactly "Requirements coverage completed!" as the FINAL line. The FINAL line MUST be plain text (no markdown/code block) and MUST have no trailing spaces. Terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions, ensure strictly no other text, conversational filler, or formatting follows FINAL line).
