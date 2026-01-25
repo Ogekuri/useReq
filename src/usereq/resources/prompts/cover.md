@@ -58,15 +58,15 @@ Generate a task list based strictly on the steps below:
 11. Run the updated test suite. 
    - Verify that the implemented changes satisfy the requirements and pass tests.
    - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption.
-   - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Requirements coverage FAILED!", and then terminate the execution.
-   - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Requirements coverage FAILED!", and then terminate the execution.
+   - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Requirements coverage FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
+   - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Requirements coverage FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
 12. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 13. %%WORKFLOW%%
 14. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
-   - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains"Aborting",  OUTPUT exactly "No changes to commit." as the FINAL line(plain text, no  markdown/code block, have no trailing spaces),, and then terminate the execution.
+   - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains"Aborting",  OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "cover(useReq):<DESCRIPTION> [<DATE>]"`
       - Generate `<DATE>` executing `date +"%Y-%m-%d %H:%M:%S"`.
       - Generate `<DESCRIPTION>` as a clear and concise description of changes made to source code and tests, using English language.

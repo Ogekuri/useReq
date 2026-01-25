@@ -51,7 +51,7 @@ Generate a task list based strictly on the steps below:
 6. Where unit tests exist, plan the necessary refactoring and expansion to cover bug/defect described and include these details in the change proposal.
 7. PRINT in the response presenting the detailed **source code changes** (only code logic, full detailed content needed for implementation, do not summarize).
 8. Implement the **source code changes** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **source code changes**.
-9. Re-read %%REQ_DOC%% and cross-reference with the source code.
+9.  Re-read %%REQ_DOC%% and cross-reference with the source code.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 10. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and verify the application's code follows those documents and report discrepancies with file paths and concise explanations.
@@ -59,8 +59,8 @@ Generate a task list based strictly on the steps below:
 11. Run the updated test suite. 
    - Verify that the implemented changes satisfy the requirements and pass tests.
    - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption.
-   - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Defect fix FAILED!", and then terminate the execution.
-   - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Defect fix FAILED!", and then terminate the execution.
+   - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Defect fix FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
+   - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Defect fix FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
 12. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 13. %%WORKFLOW%%
