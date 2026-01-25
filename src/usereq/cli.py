@@ -1560,16 +1560,15 @@ def run(args: Namespace) -> None:
 
     installed = _collect_installed_modules(project_base)
 
-    def _format_install_rows(
+    def _format_install_table(
         installed_map: dict[str, list[str]], workflow_enabled: bool
-    ) -> list[str]:
-        # Keep header/separator exactly as required while aligning body rows for readability.
-        widths = [
-            len("CLI"),
-            len("Modules Installed"),
-            len("Workflow Installed"),
-        ]
+    ) -> tuple[str, str, list[str]]:
+        """Format the installation summary table aligning header and rows."""
+
+        columns = ("CLI", "Modules Installed", "Workflow Installed")
+        widths = [len(value) for value in columns]
         rows: list[tuple[str, str, str]] = []
+
         for cli_name in sorted(installed_map.keys()):
             modules = installed_map[cli_name]
             mods_text = ", ".join(modules) if modules else "-"
@@ -1580,17 +1579,16 @@ def run(args: Namespace) -> None:
             rows.append((cli_name, mods_text, workflow_text))
 
         def fmt(row: tuple[str, str, str]) -> str:
-            return (
-                f"{row[0].ljust(widths[0])} | "
-                f"{row[1].ljust(widths[1])} | "
-                f"{row[2].ljust(widths[2])}"
-            )
+            return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))
 
-        return [fmt(r) for r in rows]
+        header = fmt(columns)
+        separator = " | ".join("-" * max(3, widths[idx]) for idx in range(len(columns)))
+        return header, separator, [fmt(r) for r in rows]
 
-    print("CLI | Modules Installed | Workflow Installed")
-    print("--- | --- | ---")
-    for line in _format_install_rows(installed, enable_workflow):
+    header, separator, rows = _format_install_table(installed, enable_workflow)
+    print(header)
+    print(separator)
+    for line in rows:
         print(line)
 
 

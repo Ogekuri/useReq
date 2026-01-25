@@ -9,6 +9,7 @@ of the CLI script, according to requirement REQ-054.
 
 import json
 import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -1071,20 +1072,26 @@ class TestUpdateNotification(unittest.TestCase):
 
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         self.assertIn("Installation completed successfully in", written)
-        # New requirement: the CLI must print a readable table of installed
-        # modules per CLI target immediately after the success message.
-        self.assertIn(
-            "CLI | Modules Installed | Workflow Installed",
-            written,
-            "The installation summary table header must be printed",
-        )
 
         lines = written.splitlines()
-        header_line = "CLI | Modules Installed | Workflow Installed"
-        header_index = next(
-            i for i, line in enumerate(lines) if line.strip().startswith(header_line)
+        header_pattern = re.compile(
+            r"^CLI\s+\|\s+Modules Installed\s+\|\s+Workflow Installed\s*$"
         )
-        # Skip header and separator lines; verify all data rows align pipes.
+        try:
+            header_index = next(
+                i for i, line in enumerate(lines) if header_pattern.search(line)
+            )
+        except StopIteration as exc:
+            raise self.failureException(
+                "The installation summary table header must be printed"
+            ) from exc
+        header_line = lines[header_index]
+        header_pipes = [pos for pos, ch in enumerate(header_line) if ch == "|"]
+        self.assertEqual(
+            len(header_pipes), 2, "Header row must contain exactly two pipe separators",
+        )
+
+        # Skip header and separator lines; verify all data rows align pipes with header.
         data_rows = [
             line
             for line in lines[header_index + 2 :]
@@ -1093,14 +1100,10 @@ class TestUpdateNotification(unittest.TestCase):
         self.assertGreater(
             len(data_rows), 0, "The installation summary table must include data rows",
         )
-        reference_pipes = [pos for pos, ch in enumerate(data_rows[0]) if ch == "|"]
-        self.assertEqual(
-            len(reference_pipes), 2, "Data rows must contain exactly two pipe separators",
-        )
-        for row in data_rows[1:]:
+        for row in data_rows:
             row_pipes = [pos for pos, ch in enumerate(row) if ch == "|"]
             self.assertEqual(
-                reference_pipes,
+                header_pipes,
                 row_pipes,
-                f"Installation summary row is not aligned: {row}",
+                f"Installation summary row is not aligned with header: {row}",
             )
