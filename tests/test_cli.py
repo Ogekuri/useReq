@@ -1078,3 +1078,29 @@ class TestUpdateNotification(unittest.TestCase):
             written,
             "The installation summary table header must be printed",
         )
+
+        lines = written.splitlines()
+        header_line = "CLI | Modules Installed | Workflow Installed"
+        header_index = next(
+            i for i, line in enumerate(lines) if line.strip().startswith(header_line)
+        )
+        # Skip header and separator lines; verify all data rows align pipes.
+        data_rows = [
+            line
+            for line in lines[header_index + 2 :]
+            if "|" in line and line.strip("- |")
+        ]
+        self.assertGreater(
+            len(data_rows), 0, "The installation summary table must include data rows",
+        )
+        reference_pipes = [pos for pos, ch in enumerate(data_rows[0]) if ch == "|"]
+        self.assertEqual(
+            len(reference_pipes), 2, "Data rows must contain exactly two pipe separators",
+        )
+        for row in data_rows[1:]:
+            row_pipes = [pos for pos, ch in enumerate(row) if ch == "|"]
+            self.assertEqual(
+                reference_pipes,
+                row_pipes,
+                f"Installation summary row is not aligned: {row}",
+            )

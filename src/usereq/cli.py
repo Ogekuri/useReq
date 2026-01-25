@@ -1560,14 +1560,38 @@ def run(args: Namespace) -> None:
 
     installed = _collect_installed_modules(project_base)
 
-    # Print ASCII table header exactly as required.
+    def _format_install_rows(
+        installed_map: dict[str, list[str]], workflow_enabled: bool
+    ) -> list[str]:
+        # Keep header/separator exactly as required while aligning body rows for readability.
+        widths = [
+            len("CLI"),
+            len("Modules Installed"),
+            len("Workflow Installed"),
+        ]
+        rows: list[tuple[str, str, str]] = []
+        for cli_name in sorted(installed_map.keys()):
+            modules = installed_map[cli_name]
+            mods_text = ", ".join(modules) if modules else "-"
+            workflow_text = "Yes" if workflow_enabled else "No"
+            widths[0] = max(widths[0], len(cli_name))
+            widths[1] = max(widths[1], len(mods_text))
+            widths[2] = max(widths[2], len(workflow_text))
+            rows.append((cli_name, mods_text, workflow_text))
+
+        def fmt(row: tuple[str, str, str]) -> str:
+            return (
+                f"{row[0].ljust(widths[0])} | "
+                f"{row[1].ljust(widths[1])} | "
+                f"{row[2].ljust(widths[2])}"
+            )
+
+        return [fmt(r) for r in rows]
+
     print("CLI | Modules Installed | Workflow Installed")
     print("--- | --- | ---")
-    for cli_name in sorted(installed.keys()):
-        mods = installed[cli_name]
-        mods_text = ", ".join(mods) if mods else "-"
-        workflow_text = "Yes" if enable_workflow else "No"
-        print(f"{cli_name} | {mods_text} | {workflow_text}")
+    for line in _format_install_rows(installed, enable_workflow):
+        print(line)
 
 
 def main(argv: Optional[list[str]] = None) -> int:
