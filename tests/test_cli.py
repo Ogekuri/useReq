@@ -1071,3 +1071,10 @@ class TestUpdateNotification(unittest.TestCase):
 
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         self.assertIn("Installation completed successfully in", written)
+        # New requirement: the CLI must print a readable table of installed
+        # modules per CLI target immediately after the success message.
+        self.assertIn(
+            "CLI | Modules Installed | Workflow Installed",
+            written,
+            "The installation summary table header must be printed",
+        )

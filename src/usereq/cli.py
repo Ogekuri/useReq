@@ -1493,6 +1493,82 @@ def run(args: Namespace) -> None:
         resolved_base = str(project_base)
     print(f"Installation completed successfully in {resolved_base}")
 
+    # Build and print a simple installation report table describing which
+    # modules were installed for each CLI target and whether workflow was
+    # enabled for the operation. The table is printed in plain ASCII with
+    # a header row matching the requirement.
+    def _collect_installed_modules(root: Path) -> dict[str, list[str]]:
+        found: dict[str, list[str]] = {}
+        # Known CLI targets and the module folders we expect for them.
+        # We infer "installed modules" by presence of these folders.
+        # This is conservative and does not change on-disk templates.
+        # Targets: claude, kiro, opencode, codex, github, gemini
+        if (root / ".claude" / "agents").is_dir() or (root / ".claude" / "commands").is_dir():
+            mods: list[str] = []
+            if (root / ".claude" / "agents").is_dir():
+                mods.append("agents")
+            if (root / ".claude" / "commands" / "req").is_dir() or (root / ".claude" / "commands").is_dir():
+                mods.append("commands")
+            found["claude"] = mods
+        else:
+            found["claude"] = []
+
+        if (root / ".kiro" / "agents").is_dir() or (root / ".kiro" / "prompts").is_dir():
+            mods = []
+            if (root / ".kiro" / "agents").is_dir():
+                mods.append("agents")
+            if (root / ".kiro" / "prompts").is_dir():
+                mods.append("prompts")
+            found["kiro"] = mods
+        else:
+            found["kiro"] = []
+
+        if (root / ".opencode" / "agent").is_dir() or (root / ".opencode" / "command").is_dir():
+            mods = []
+            if (root / ".opencode" / "agent").is_dir():
+                mods.append("agent")
+            if (root / ".opencode" / "command").is_dir():
+                mods.append("command")
+            found["opencode"] = mods
+        else:
+            found["opencode"] = []
+
+        if (root / ".codex" / "prompts").is_dir():
+            found["codex"] = ["prompts"]
+        else:
+            found["codex"] = []
+
+        if (root / ".github" / "agents").is_dir() or (root / ".github" / "prompts").is_dir():
+            mods = []
+            if (root / ".github" / "agents").is_dir():
+                mods.append("agents")
+            if (root / ".github" / "prompts").is_dir():
+                mods.append("prompts")
+            found["github"] = mods
+        else:
+            found["github"] = []
+
+        if (root / ".gemini" / "commands" / "req").is_dir() or (root / ".gemini" / "commands").is_dir():
+            mods = []
+            if (root / ".gemini" / "commands" / "req").is_dir() or (root / ".gemini" / "commands").is_dir():
+                mods.append("commands")
+            found["gemini"] = mods
+        else:
+            found["gemini"] = []
+
+        return found
+
+    installed = _collect_installed_modules(project_base)
+
+    # Print ASCII table header exactly as required.
+    print("CLI | Modules Installed | Workflow Installed")
+    print("--- | --- | ---")
+    for cli_name in sorted(installed.keys()):
+        mods = installed[cli_name]
+        mods_text = ", ".join(mods) if mods else "-"
+        workflow_text = "Yes" if enable_workflow else "No"
+        print(f"{cli_name} | {mods_text} | {workflow_text}")
+
 
 def main(argv: Optional[list[str]] = None) -> int:
     """CLI entry point for console_scripts and `-m` execution.

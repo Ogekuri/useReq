@@ -215,6 +215,22 @@ No unit tests found in the repository.
   - "Installation completed successfully in <path>"
   - where `<path>` is the absolute path to the project root as resolved from the `--base` parameter or the absolute working directory when `--here` was used. This line must be printed only on successful completion and must not be emitted on error paths or when the command performs a dry-run or validation-only flow.
 
+ - **REQ-078**: After successful completion of an installation or an update operation (that is, when the command finishes all intended filesystem modifications without error and exits with status code 0), the CLI must print a single-line English message informing the user that the installation completed successfully and include the resolved project root path used for the operation. The single-line message format must be exactly:
+  - "Installation completed successfully in <path>"
+  - where `<path>` is the absolute path to the project root as resolved from the `--base` parameter or the absolute working directory when `--here` was used. This line must be printed only on successful completion and must not be emitted on error paths or when the command performs a dry-run or validation-only flow.
+
+  Immediately following the single-line message the CLI must print a human-readable table describing which modules were installed and for which CLI targets, and whether the optional workflow feature was installed. The table must:
+  - Be printed in plain ASCII (pipe-separated rows) and use a header row with the columns `CLI`, `Modules Installed`, and `Workflow Installed`.
+  - Use the following exact header and separator rows (including the pipe and dash characters):
+    ```
+    CLI | Modules Installed | Workflow Installed
+    --- | --- | ---
+    ```
+  - For each CLI target that received module installations during the operation, include one row with the target name under `CLI`, a comma-and-space separated list of installed module names under `Modules Installed` (or a single hyphen `-` if no modules were installed for that target), and `Yes` or `No` under `Workflow Installed` indicating whether `--enable-workflow` caused workflow content to be included for that target.
+  - If the operation installed modules for multiple CLI targets (for example `req`, `use-req`, `req.sh`), include one row per target in alphabetical order.
+  - If no modules were installed for any target, print a single row with `-` in the `Modules Installed` column and `No` in the `Workflow Installed` column.
+  - All textual output in the table must be in English.
+
 ### 3.4 Version Check
 - **REQ-010**: The command, after successfully validating inputs and before performing any operation modifying the filesystem, must verify online availability of a new version by performing an HTTP GET call to `https://api.github.com/repos/Ogekuri/useReq/releases/latest` with a 1-second timeout.
 - **REQ-011**: If the call fails (timeout/network error/invalid response), the command must proceed without printing anything. If the call succeeds and the remote version (read from JSON `tag_name` field and normalized by removing any `v` prefix) is greater than `__version__`, the command must print a message in English indicating current version and available version and must indicate how to update using `req --upgrade`.
