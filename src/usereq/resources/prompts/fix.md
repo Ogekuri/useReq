@@ -59,7 +59,7 @@ Create a TODO list (use the todo tool if available; otherwise include it in the 
   - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md if exist).
   - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit." as the FINAL line (plain text, no markdown/code block, have no trailing spaces), and STOP.
   - Commit a structured commit message with: `git commit -m "fix(useReq): <DESCRIPTION> [<UUID>]"`
-    - Generate `<UUID>` executing `uuidgen || date -u +"%Y%m%dT%H%M%SZ"`.
+    - Generate `<UUID>` executing `date +"%Y-%m-%d %H:%M:%S"`.
     - Generate `<DESCRIPTION>` as clear and concise description of changes made on requirements and source code.
 15. Confirm the repo is clean with `git status --porcelain`, If NOT empty OUTPUT exactly "Defect fix FAILED!" as the FINAL line (plain text, no markdown/code block, have no trailing spaces), and STOP.
 16. OUTPUT exactly "Defect fixed!" as the FINAL line (plain text, no markdown/code block, have no trailing spaces), and STOP.
