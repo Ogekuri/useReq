@@ -1,5 +1,5 @@
 ---
-description: "Write a WORKFLOW.md draft using the project's source code"
+description: "Write a WORKFLOW.md using the project's source code"
 argument-hint: "Target language for the generated WORKFLOW.md"
 ---
 
@@ -13,7 +13,7 @@ Analyze the existing source code to generate a workflow description (`WORKFLOW.m
 - You can read, write, or edit `WORKFLOW.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any project files except creating/updating `WORKFLOW.md`.
-- Write the draft in the requested language.
+- Write the document in the requested language.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.

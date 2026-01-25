@@ -121,7 +121,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--enable-workflow",
         action="store_true",
-        help="When set, substitute %%WORKFLOW%% with the workflow update instruction in generated prompts.",
+        help="When set, enable workflow command and WORKFLOW.md management in prompts.",
     )
     return parser
 
