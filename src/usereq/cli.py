@@ -815,11 +815,19 @@ def find_vscode_settings_source() -> Optional[Path]:
 
 
 def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
-    """Generates chat.promptFilesRecommendations from available prompts."""
+    """Generates chat.promptFilesRecommendations from available prompts.
+
+    Note: callers should exclude 'workflow' from recommendations when
+    workflow generation is not enabled.
+    """
     recommendations: dict[str, bool] = {}
     if not prompts_dir.is_dir():
         return recommendations
     for prompt_path in sorted(prompts_dir.glob("*.md")):
+        # Exclude 'workflow' from recommendations by default; the caller will
+        # decide whether to include it when workflow generation is enabled.
+        if prompt_path.stem == "workflow":
+            continue
         recommendations[f"req.{prompt_path.stem}"] = True
     return recommendations
 
@@ -1118,6 +1126,10 @@ def run(args: Namespace) -> None:
         pass
     for prompt_path in sorted(prompts_dir.glob("*.md")):
         PROMPT = prompt_path.stem
+        # Skip generation of the 'workflow' prompt/agents unless explicitly enabled.
+        if PROMPT == "workflow" and not enable_workflow:
+            dlog("Skipping 'workflow' prompt generation because --enable-workflow is not set")
+            continue
         content = prompt_path.read_text(encoding="utf-8")
         frontmatter, prompt_body = extract_frontmatter(content)
         description = extract_description(frontmatter)
@@ -1448,6 +1460,12 @@ def run(args: Namespace) -> None:
         final_settings = deep_merge_dict(final_settings, src_settings)
 
         prompt_recs = build_prompt_recommendations(prompts_dir)
+        # Include 'workflow' recommendation only when workflow generation is enabled
+        # and the prompt file exists in the resources.
+        if enable_workflow:
+            workflow_src = prompts_dir / "workflow.md"
+            if workflow_src.is_file():
+                prompt_recs[f"req.workflow"] = True
         if prompt_recs:
             final_settings["chat.promptFilesRecommendations"] = prompt_recs
 
