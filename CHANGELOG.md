@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.56](https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56) - 2026-01-25
+### ⛰️  Features
+- *(core)* add refactor to optimize.
+
+### 🐛  Bug Fixes
+- *(core)* change todo list step.
+- *(useReq)* align workflow default test with resource text [2026-01-25 15:48:30]
+- *(core)* minor fix on workflow.
+- *(core)* misc fixes.
+
+### 🚜  Changes
+- *(useReq)* extract workflow strings to resources/common and load them from files [2026-01-25 11:32:01]
+
+### 📚  Documentation
+- *(core)* add tech dir.
+
 ## [0.0.55](https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55) - 2026-01-24
 ### 🚜  Changes
 - *(useReq)* remove obsolete bootstrap test and update requirements revision [fb8f2113-4a6a-4f23-a0d0-0c5db444338b]
@@ -277,6 +293,7 @@
 - \[0.0.53\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.53
 - \[0.0.54\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.54
 - \[0.0.55\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.55
+- \[0.0.56\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.56
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -333,3 +350,4 @@
 [0.0.53]: https://github.com/Ogekuri/useReq/compare/v0.0.52..v0.0.53
 [0.0.54]: https://github.com/Ogekuri/useReq/compare/v0.0.53..v0.0.54
 [0.0.55]: https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55
+[0.0.56]: https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56
