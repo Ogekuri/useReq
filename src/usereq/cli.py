@@ -401,6 +401,27 @@ def generate_doc_file_list(doc_dir: Path, project_base: Path) -> str:
     return ", ".join(files)
 
 
+def generate_doc_file_items(doc_dir: Path, project_base: Path) -> list[str]:
+    """Generates a list of relative file paths (no formatting) for printing.
+
+    Each entry is formatted as `docs/foo.md` (forward slashes), without
+    surrounding backticks.
+    """
+    if not doc_dir.is_dir():
+        return []
+
+    items: list[str] = []
+    for file_path in sorted(doc_dir.iterdir()):
+        if file_path.is_file():
+            try:
+                rel_path = file_path.relative_to(project_base)
+                rel_str = str(rel_path).replace(os.sep, "/")
+                items.append(rel_str)
+            except ValueError:
+                continue
+    return items
+
+
 def generate_dir_list(dir_path: Path, project_base: Path) -> str:
     """Generates the markdown directory list for %%REQ_DIR%% replacement."""
     if not dir_path.is_dir():
@@ -426,6 +447,38 @@ def generate_dir_list(dir_path: Path, project_base: Path) -> str:
             return ""
 
     return ", ".join(subdirs)
+
+
+def generate_dir_items(dir_path: Path, project_base: Path) -> list[str]:
+    """Generates a list of relative directory paths (with trailing slash).
+
+    Each entry is formatted as `tech/` (forward slashes, trailing slash).
+    If there are no subdirectories, returns the directory itself with
+    a trailing slash.
+    """
+    if not dir_path.is_dir():
+        return []
+
+    items: list[str] = []
+    for subdir_path in sorted(dir_path.iterdir()):
+        if subdir_path.is_dir():
+            try:
+                rel_path = subdir_path.relative_to(project_base)
+                rel_str = str(rel_path).replace(os.sep, "/") + "/"
+                items.append(rel_str)
+            except ValueError:
+                continue
+
+    # If there are no subdirectories, use the directory itself.
+    if not items:
+        try:
+            rel_path = dir_path.relative_to(project_base)
+            rel_str = str(rel_path).replace(os.sep, "/") + "/"
+            return [rel_str]
+        except ValueError:
+            return []
+
+    return items
 
 
 def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
@@ -1492,6 +1545,20 @@ def run(args: Namespace) -> None:
     except Exception:
         resolved_base = str(project_base)
     print(f"Installation completed successfully in {resolved_base}")
+
+    # Print the discovered files and directories used for token substitutions
+    # as required by REQ-078: one item per line prefixed with '- '.
+    doc_items = generate_doc_file_items(doc_dir_path, project_base)
+    dir_items = generate_dir_items(project_base / normalized_dir, project_base)
+
+    for entry in doc_items:
+        print(f"- {entry}")
+
+    if dir_items:
+        for entry in dir_items:
+            print(f"- {entry}")
+    else:
+        print("The folder %%REQ_DIR%% does not contain any folder")
 
     # Build and print a simple installation report table describing which
     # modules were installed for each CLI target and whether workflow was

@@ -2,7 +2,7 @@
 title: "useReq Requirements"
 description: "Software Requirements Specification"
 date: "2026-01-25"
-version: 0.42
+version: 0.43
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requirements", "useReq"]
 ---
 
 # useReq Requirements
-**Version**: 0.42
+**Version**: 0.43
 **Author**: Ogekuri
 **Date**: 2026-01-25
 
@@ -99,6 +99,7 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-24 | 0.40 | Relaxed commenting requirements (DES-009, DES-010); removed REQ-073 (--yolo); updated agent generation conditional on --prompts-use-agents (REQ-038, REQ-039, REQ-051, REQ-056); clarified Kiro vs GitHub content (REQ-043); removed fallback to default mode in Kiro (REQ-047). |
 | 2026-01-24 | 0.41 | Removed REQ-077: removed runtime bootstrap substitution (`%%BOOTSTRAP%%`) from prompt processing and aligned tests by removing the corresponding test that validated this behavior. |
 | 2026-01-25 | 0.42 | Added REQ-078: CLI prints a single-line success message including resolved installation path when installation/update completes successfully. |
+| 2026-01-25 | 0.43 | Updated REQ-078 to require printing the list of files found in %%REQ_DOC%% and the list of directories found in %%REQ_DIR%% between the success message and the installed modules table. |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
@@ -211,15 +212,17 @@ No unit tests found in the repository.
 - **REQ-008**: The `--uninstall` option must execute the command `uv tool uninstall usereq` and terminate with error if the command fails.
 - **REQ-009**: The help usage string must include the `--uninstall` parameter as an available option.
 
-- **REQ-078**: After successful completion of an installation or an update operation (that is, when the command finishes all intended filesystem modifications without error and exits with status code 0), the CLI must print a single line in English informing the user that the installation completed successfully and include the resolved project root path used for the operation. The message format must be exactly:
+ - **REQ-078**: After successful completion of an installation or an update operation (that is, when the command finishes all intended filesystem modifications without error and exits with status code 0), the CLI must print a single line in English informing the user that the installation completed successfully and include the resolved project root path used for the operation. The message format must be exactly:
   - "Installation completed successfully in <path>"
   - where `<path>` is the absolute path to the project root as resolved from the `--base` parameter or the absolute working directory when `--here` was used. This line must be printed only on successful completion and must not be emitted on error paths or when the command performs a dry-run or validation-only flow.
 
- - **REQ-078**: After successful completion of an installation or an update operation (that is, when the command finishes all intended filesystem modifications without error and exits with status code 0), the CLI must print a single-line English message informing the user that the installation completed successfully and include the resolved project root path used for the operation. The single-line message format must be exactly:
-  - "Installation completed successfully in <path>"
-  - where `<path>` is the absolute path to the project root as resolved from the `--base` parameter or the absolute working directory when `--here` was used. This line must be printed only on successful completion and must not be emitted on error paths or when the command performs a dry-run or validation-only flow.
+  Immediately following the single-line message, and before printing the ASCII table described below, the CLI must print a summary listing of the files and directories discovered for substitution of the tokens `%%REQ_DOC%%` and `%%REQ_DIR%%` as follows:
+  - Print the list of files discovered under the resolved `--doc` path (used for `%%REQ_DOC%%`) one per line, each prefixed with `- ` and using the relative path representation that the CLI uses for `%%REQ_DOC%%` substitutions (for example `- docs/requirements.md`). Files must be listed in alphabetical order.
+  - Print the list of subdirectories discovered under the resolved `--dir` path (used for `%%REQ_DIR%%`) one per line, each prefixed with `- ` and using the relative path representation that the CLI uses for `%%REQ_DIR%%` substitutions; directory entries must include a trailing slash to indicate directories (for example `- tech/`). Directories must be listed in alphabetical order.
+  - If the resolved `--dir` path contains no subdirectories, the CLI must print the single line exactly:
+    - "The folder %%REQ_DIR%% does not contain any folder"
 
-  Immediately following the single-line message the CLI must print a human-readable table describing which modules were installed and for which CLI targets, and whether the optional workflow feature was installed. The table must:
+  Immediately after the file and directory listing, the CLI must print a human-readable table describing which modules were installed and for which CLI targets, and whether the optional workflow feature was installed. The table must:
   - Be printed in plain ASCII (pipe-separated rows) and use a header row with the columns `CLI`, `Modules Installed`, and `Workflow Installed`.
   - Use the following exact header and separator rows (including the pipe and dash characters):
     ```
