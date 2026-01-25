@@ -322,11 +322,14 @@ class TestCLI(unittest.TestCase):
         """REQ-076: Verifies %%WORKFLOW%% is replaced when --enable-workflow is absent."""
         target_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.fix.md"
         content = target_prompt.read_text(encoding="utf-8")
-        default_terminate = (
-            'OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).'
+        workflow_off_path = cli.RESOURCE_ROOT / "common" / "workflow_off.md"
+        workflow_off_text = (
+            workflow_off_path.read_text(encoding="utf-8").strip()
+            if workflow_off_path.is_file()
+            else 'If `WORKFLOW.md` file exists, does not modify that file, leave `WORKFLOW.md` unchanged.'
         )
         self.assertIn(
-            default_terminate,
+            workflow_off_text,
             content,
             "Default termination text must be present in generated prompts when workflow is disabled",
         )
