@@ -22,13 +22,13 @@ Analyze the source code and requirements to answer the user request, producing a
 - Use filesystem/shell tools to read files as needed (read-only only; e.g., `cat`, `sed -n`, `head`, `tail`, `rg`, `less`). Do NOT use in-place editing flags (e.g., `-i`, `perl -pi`) in this workflow.
 - Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT Step).
-   - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input unless a fatal execution error occurs (expressly indicated in the steps).
-   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks (does not propose any other steps/actions). Start immediately with the task output.
-- **CRITICAL**: Execute all steps in to-do list sequentially and strictly. Execute one by one.
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT step).
+   - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
+   - Output: Strictly omit all concluding remarks (does not propose any other steps/actions).
+- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
 
 ## Steps
-Generate a task list based strictly on the steps below (utilize the TODO LIST tool if supported; if not, list them in your response):
+Generate a task list based strictly on the steps below:
 1. Read %%REQ_DOC%% and the [User Request](#users-request) analysis request.
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
    - Identify and read only the relevant source code files necessary to fulfill the request. Do not load the entire codebase unless absolutely necessary.
