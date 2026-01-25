@@ -1107,3 +1107,61 @@ class TestUpdateNotification(unittest.TestCase):
                 row_pipes,
                 f"Installation summary row is not aligned with header: {row}",
             )
+
+    def test_workflow_summary_marks_yes(self) -> None:
+        """The summary table must mark workflow as installed when the flag is enabled."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stdout") as fake_stdout:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--doc",
+                        "docs",
+                        "--dir",
+                        "tech",
+                        "--enable-workflow",
+                    ]
+                )
+
+        self.assertEqual(exit_code, 0)
+
+        written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
+        lines = written.splitlines()
+        header_pattern = re.compile(
+            r"^CLI\s+\|\s+Modules Installed\s+\|\s+Workflow Installed\s*$"
+        )
+        try:
+            header_index = next(
+                i for i, line in enumerate(lines) if header_pattern.search(line)
+            )
+        except StopIteration as exc:
+            raise self.failureException(
+                "The installation summary table header must be printed"
+            ) from exc
+
+        data_rows = [
+            line
+            for line in lines[header_index + 2 :]
+            if "|" in line and line.strip("- |")
+        ]
+        self.assertGreater(
+            len(data_rows), 0, "The summary table must contain data rows",
+        )
+
+        for row in data_rows:
+            parts = [col.strip() for col in row.split("|")]
+            self.assertGreaterEqual(
+                len(parts), 3, f"Row must contain three columns: {row}"
+            )
+            self.assertEqual(
+                parts[2],
+                "Yes",
+                "Workflow Installed column must be 'Yes' when --enable-workflow is provided",
+            )

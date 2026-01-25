@@ -1177,10 +1177,12 @@ def run(args: Namespace) -> None:
     except Exception:
         # If reading fails, keep defaults defined above.
         pass
+    workflow_targets: set[str] = set()
     for prompt_path in sorted(prompts_dir.glob("*.md")):
         PROMPT = prompt_path.stem
+        is_workflow_prompt = PROMPT == "workflow"
         # Skip generation of the 'workflow' prompt/agents unless explicitly enabled.
-        if PROMPT == "workflow" and not enable_workflow:
+        if is_workflow_prompt and not enable_workflow:
             dlog("Skipping 'workflow' prompt generation because --enable-workflow is not set")
             continue
         content = prompt_path.read_text(encoding="utf-8")
@@ -1211,6 +1213,8 @@ def run(args: Namespace) -> None:
         dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
         existed = dst_codex_prompt.exists()
         write_text_file(dst_codex_prompt, prompt_with_replacements)
+        if is_workflow_prompt:
+            workflow_targets.add("codex")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
 
@@ -1247,11 +1251,15 @@ def run(args: Namespace) -> None:
                         dst_toml.write_text(content, encoding="utf-8")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
+        if is_workflow_prompt:
+            workflow_targets.add("gemini")
 
         # .kiro/prompts
         dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
         existed = dst_kiro_prompt.exists()
         write_text_file(dst_kiro_prompt, prompt_with_replacements)
+        if is_workflow_prompt:
+            workflow_targets.add("kiro")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
 
@@ -1283,6 +1291,8 @@ def run(args: Namespace) -> None:
         if not claude_text.endswith("\n"):
             claude_text += "\n"
         dst_claude_agent.write_text(claude_text, encoding="utf-8")
+        if is_workflow_prompt:
+            workflow_targets.add("claude")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
 
@@ -1309,6 +1319,8 @@ def run(args: Namespace) -> None:
         if not gh_text.endswith("\n"):
             gh_text += "\n"
         dst_gh_agent.write_text(gh_text, encoding="utf-8")
+        if is_workflow_prompt:
+            workflow_targets.add("github")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
 
@@ -1366,6 +1378,8 @@ def run(args: Namespace) -> None:
             include_model=include_models,
         )
         dst_kiro_agent.write_text(agent_content, encoding="utf-8")
+        if is_workflow_prompt:
+            workflow_targets.add("kiro")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
 
@@ -1396,6 +1410,8 @@ def run(args: Namespace) -> None:
         if not opencode_text.endswith("\n"):
             opencode_text += "\n"
         dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
+        if is_workflow_prompt:
+            workflow_targets.add("opencode")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
 
@@ -1476,6 +1492,8 @@ def run(args: Namespace) -> None:
         if not claude_command_text.endswith("\n"):
             claude_command_text += "\n"
         dst_claude_command.write_text(claude_command_text, encoding="utf-8")
+        if is_workflow_prompt:
+            workflow_targets.add("claude")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
 
@@ -1628,7 +1646,7 @@ def run(args: Namespace) -> None:
     installed = _collect_installed_modules(project_base)
 
     def _format_install_table(
-        installed_map: dict[str, list[str]], workflow_enabled: bool
+        installed_map: dict[str, list[str]], workflow_targets: set[str]
     ) -> tuple[str, str, list[str]]:
         """Format the installation summary table aligning header and rows."""
 
@@ -1639,7 +1657,7 @@ def run(args: Namespace) -> None:
         for cli_name in sorted(installed_map.keys()):
             modules = installed_map[cli_name]
             mods_text = ", ".join(modules) if modules else "-"
-            workflow_text = "Yes" if workflow_enabled else "No"
+            workflow_text = "Yes" if cli_name in workflow_targets else "No"
             widths[0] = max(widths[0], len(cli_name))
             widths[1] = max(widths[1], len(mods_text))
             widths[2] = max(widths[2], len(workflow_text))
@@ -1652,7 +1670,7 @@ def run(args: Namespace) -> None:
         separator = " | ".join("-" * max(3, widths[idx]) for idx in range(len(columns)))
         return header, separator, [fmt(r) for r in rows]
 
-    header, separator, rows = _format_install_table(installed, enable_workflow)
+    header, separator, rows = _format_install_table(installed, workflow_targets)
     print(header)
     print(separator)
     for line in rows:
