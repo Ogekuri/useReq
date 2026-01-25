@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.57](https://github.com/Ogekuri/useReq/compare/v0.0.56..v0.0.57) - 2026-01-25
+### 🐛  Bug Fixes
+- *(core)* change terminate execution.
+
+### 🚜  Changes
+- *(useReq)* Add final installation success message in CLI and update requirements/tests [2026-01-25 17:36:52]
+
 ## [0.0.56](https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56) - 2026-01-25
 ### ⛰️  Features
 - *(core)* add refactor to optimize.
@@ -294,6 +301,7 @@
 - \[0.0.54\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.54
 - \[0.0.55\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.55
 - \[0.0.56\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.56
+- \[0.0.57\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.57
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -351,3 +359,4 @@
 [0.0.54]: https://github.com/Ogekuri/useReq/compare/v0.0.53..v0.0.54
 [0.0.55]: https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55
 [0.0.56]: https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56
+[0.0.57]: https://github.com/Ogekuri/useReq/compare/v0.0.56..v0.0.57
