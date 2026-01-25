@@ -1,1 +1,1 @@
-OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).
+If `WORKFLOW.md` file exists, does not modify that file, leave `WORKFLOW.md` unchanged.
