@@ -1,8 +1,8 @@
 ---
 title: "useReq Requirements"
 description: "Software Requirements Specification"
-date: "2026-01-21"
-version: 0.40
+date: "2026-01-25"
+version: 0.42
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requirements", "useReq"]
 ---
 
 # useReq Requirements
-**Version**: 0.40
+**Version**: 0.42
 **Author**: Ogekuri
-**Date**: 2026-01-24
+**Date**: 2026-01-25
 
 ## Table of Contents
 <!-- TOC -->
@@ -98,6 +98,7 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-23 | 0.39 | Removed `--parse-prompts` (REQ-075) from requirements; flag was redundant and removed from CLI. |
 | 2026-01-24 | 0.40 | Relaxed commenting requirements (DES-009, DES-010); removed REQ-073 (--yolo); updated agent generation conditional on --prompts-use-agents (REQ-038, REQ-039, REQ-051, REQ-056); clarified Kiro vs GitHub content (REQ-043); removed fallback to default mode in Kiro (REQ-047). |
 | 2026-01-24 | 0.41 | Removed REQ-077: removed runtime bootstrap substitution (`%%BOOTSTRAP%%`) from prompt processing and aligned tests by removing the corresponding test that validated this behavior. |
+| 2026-01-25 | 0.42 | Added REQ-078: CLI prints a single-line success message including resolved installation path when installation/update completes successfully. |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
@@ -209,6 +210,10 @@ No unit tests found in the repository.
 - **REQ-007**: The help usage string must include the `--upgrade` parameter as an available option.
 - **REQ-008**: The `--uninstall` option must execute the command `uv tool uninstall usereq` and terminate with error if the command fails.
 - **REQ-009**: The help usage string must include the `--uninstall` parameter as an available option.
+
+- **REQ-078**: After successful completion of an installation or an update operation (that is, when the command finishes all intended filesystem modifications without error and exits with status code 0), the CLI must print a single line in English informing the user that the installation completed successfully and include the resolved project root path used for the operation. The message format must be exactly:
+  - "Installation completed successfully in <path>"
+  - where `<path>` is the absolute path to the project root as resolved from the `--base` parameter or the absolute working directory when `--here` was used. This line must be printed only on successful completion and must not be emitted on error paths or when the command performs a dry-run or validation-only flow.
 
 ### 3.4 Version Check
 - **REQ-010**: The command, after successfully validating inputs and before performing any operation modifying the filesystem, must verify online availability of a new version by performing an HTTP GET call to `https://api.github.com/repos/Ogekuri/useReq/releases/latest` with a 1-second timeout.

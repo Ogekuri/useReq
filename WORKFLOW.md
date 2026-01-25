@@ -97,5 +97,6 @@ Closing operations to configure the IDE environment and clean up resources.
 * 2026-01-19: Added pdoc documentation generation utility and a test that writes HTML output to the pdoc/ directory.
 * 2026-01-19: Reused prompt replacements for Codex/Kiro prompt generation and centralized Kiro model/tools injection in `render_kiro_agent`.
 * 2026-01-24: Removed runtime bootstrap substitution (REQ-077) and removed obsolete test `test_bootstrap_token_replaced`.
+* 2026-01-25: CLI prints a final single-line confirmation on successful installation: "Installation completed successfully in <path>".
 
 

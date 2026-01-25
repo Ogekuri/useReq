@@ -1054,3 +1054,27 @@ class TestUpdateNotification(unittest.TestCase):
         # Note: we do not check exit code because stdout capture might vary based on runner.
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         self.assertIn("req --upgrade", written)
+
+    def test_installation_success_message(self) -> None:
+        """Verifies the CLI prints the installation success message on completion."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stdout") as fake_stdout:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--doc",
+                        str(self.TEST_DIR / "docs"),
+                        "--dir",
+                        str(self.TEST_DIR / "tech"),
+                    ]
+                )
+
+        written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
+        self.assertIn("Installation completed successfully in", written)

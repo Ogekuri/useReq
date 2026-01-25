@@ -1467,6 +1467,14 @@ def run(args: Namespace) -> None:
             if VERBOSE:
                 log(f"OK: merged settings.json in {target_settings}")
 
+    # Final success notification: printed only when the command completed all
+    # intended filesystem modifications without raising an exception.
+    try:
+        resolved_base = str(project_base.resolve())
+    except Exception:
+        resolved_base = str(project_base)
+    print(f"Installation completed successfully in {resolved_base}")
+
 
 def main(argv: Optional[list[str]] = None) -> int:
     """CLI entry point for console_scripts and `-m` execution.
