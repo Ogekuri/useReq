@@ -42,22 +42,22 @@ Generate a task list based strictly on the steps below:
    - Confirm the repo is clean (treat untracked as dirty) executing `git status --porcelain`. If output is NOT empty, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
    - Avoid detached HEAD executing `git symbolic-ref -q HEAD`. If it fails, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
 2. Read %%REQ_DOC%% and [User Request](#users-request), then apply the outlined guidelines when documenting changes to the requirements (follow the existing style, structure, and language).
-3. Produce a comprehensive change proposal describing the edits to requirements needed to implement the changes described by the [User Request](#users-request). This proposal must account for the original User Request and all subsequent changes and adjustments for %%REQ_DOC%%. 
+3. Generate a detailed **Software Requirements Specification Update** documenting the exact modifications to requirements needed to implement the changes described by the [User Request](#users-request). This **Software Requirements Specification Update** must account for the original User Request and all subsequent changes and adjustments for %%REQ_DOC%%. 
    - Never introduce new requirements solely to explicitly forbid functions/features/behaviors. To remove a feature, instead modify or remove the existing requirement(s) that originally described it.
    - In this step, do not edit, create, delete, or rename any source code files in the project (including refactors or formatting-only changes).
-4. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the proposal if needed.
-5. PRINT in the response presenting the detailed **requirements changes** (only requirements, full detailed content needed for implementation, do not summarize).
-6. Apply the **requirements changes** to %%REQ_DOC%%, following its formatting, language, and guidelines from the template at `.req/templates/requirements.md`. Do NOT introduce any additional edits beyond what the **requirements changes** describes.
+4. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the **Software Requirements Specification Update** if needed.
+5. PRINT in the response presenting the detailed **Software Requirements Specification Update** (only requirements, full detailed content needed for implementation, do not summarize).
+6. Apply the **Software Requirements Specification Update** to %%REQ_DOC%%, following its formatting, language, and guidelines from the template at `.req/templates/requirements.md`. Do NOT introduce any additional edits beyond what the **Software Requirements Specification Update** describes.
 7. Re-read %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - **NOTE**: Since requirements have been updated but code has not, anticipate `FAIL` for the modified/new requirements, but verify the actual status. Report `FAIL` if the code does not fully satisfy the requirement. This confirms the gap to be filled.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-8. Produce a clear change proposal describing edits to the source code that will cover all `FAIL` requirements and the [User Request](#users-request).
+8. Generate a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all `FAIL` requirements and the [User Request](#users-request).
 9.  If a migration/compatibility need is discovered but not specified in requirements, propose a requirements update describing it, then OUTPUT exactly "Change request FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
-10. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the proposal if needed.
-11. Where unit tests exist, plan the necessary refactoring and expansion to cover new requirements and include these details in the change proposal.
-12. PRINT in the response presenting the detailed **source code and test changes** (only code logic, full detailed content needed for implementation, do not summarize).
-13. Implement the **source code changes** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **source code changes**.  
+10. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed.
+11. Where unit tests exist, plan the necessary refactoring and expansion to cover new requirements and include these details in the **Comprehensive Technical Implementation Report**.
+12. PRINT in the response presenting the detailed **Comprehensive Technical Implementation Report** (only code logic, full detailed content needed for implementation, do not summarize).
+13. Implement the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.  
 14. Re-read %%REQ_DOC%% and cross-reference with the source code.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.

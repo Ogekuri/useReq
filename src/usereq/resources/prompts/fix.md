@@ -45,12 +45,12 @@ Generate a task list based strictly on the steps below:
 2. Read %%REQ_DOC%% and the [User Request](#users-request).
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
    - Identify and read only the relevant source code files necessary to fulfill the request. Do not load the entire codebase unless absolutely necessary.
-3. Produce a clear change proposal describing edits to the source code that fix the bug/defect described by the [User Request](#users-request).
-4. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the proposal if needed.
+3. Generate a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that fix the bug/defect described by the [User Request](#users-request).
+4. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed.
 5. A change is allowed ONLY if it corrects behavior that is: (a) explicitly required by %%REQ_DOC%% (cite requirement ID/section) OR (b) a defect with concrete evidence (crash, security flaw, data corruption, failing test, or incorrect output that contradicts a specific documented behavior). If the request implies new requirements or changing documented behavior, recommend `req.new` or `req.change`, then OUTPUT exactly "Defect fix FAILED!", and then terminate the execution.
-6. Where unit tests exist, plan the necessary refactoring and expansion to cover bug/defect described and include these details in the change proposal.
-7. PRINT in the response presenting the detailed **source code changes** (only code logic, full detailed content needed for implementation, do not summarize).
-8. Implement the **source code changes** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **source code changes**.
+6. Where unit tests exist, plan the necessary refactoring and expansion to cover bug/defect described and include these details in the **Comprehensive Technical Implementation Report**.
+7. PRINT in the response presenting the detailed **Comprehensive Technical Implementation Report** (only code logic, full detailed content needed for implementation, do not summarize).
+8. Implement the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
 9.  Re-read %%REQ_DOC%% and cross-reference with the source code.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.

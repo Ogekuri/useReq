@@ -45,11 +45,11 @@ Generate a task list based strictly on the steps below:
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 3. **CRITICAL**: If all requirements report `OK`, OUTPUT exactly "All requirements are already covered. No changes needed.", and then terminate the execution.
-4. If there are uncovered requirements, produce a clear change proposal describing edits to the source code that will cover all `FAIL` requirements.
-5. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the proposal if needed.
-6. Where unit tests exist, plan the necessary refactoring and expansion to cover uncovered requirements and include these details in the change proposal.
-7. PRINT in the response presenting the detailed **source code and test changes** (only code logic, full detailed content needed for implementation, do not summarize).
-8. Implement the **source code changes** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **source code changes**.
+4. If there are uncovered requirements, Generate a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all `FAIL` requirements.
+5. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed.
+6. Where unit tests exist, plan the necessary refactoring and expansion to cover uncovered requirements and include these details in the **Comprehensive Technical Implementation Report**.
+7. PRINT in the response presenting the detailed **Comprehensive Technical Implementation Report** (only code logic, full detailed content needed for implementation, do not summarize).
+8. Implement the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
 9. Re-read %%REQ_DOC%% and cross-reference with the source code.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
