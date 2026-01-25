@@ -20,16 +20,16 @@ Draft a new requirements document (`requirements_DRAFT.md`) based entirely on th
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT Step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input unless a fatal execution error occurs (expressly indicated in the steps).
-   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks. Start immediately with the task output.
-- Follow the ordered steps below exactly. STOP instruction means: terminate response immediately after task completion (e.g., PRINT, OUTPUT,..) of current step, suppressing all conversational closings (does not propose any other steps/actions, ensure strictly no other text, conversational filler, do not run any further commands, do not modify any additional files).
+   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks (does not propose any other steps/actions). Start immediately with the task output.
+- **CRITICAL**: Execute all steps in to-do list sequentially and strictly. Execute one by one.
 
 ## Steps
-Generate a task list based strictly on the steps below. Utilize the TODO LIST tool if supported; if not, list them in your response. Execute each step sequentially and strictly:
+Generate a task list based strictly on the steps below (utilize the TODO LIST tool if supported; if not, list them in your response):
 1. Read [User Request](#users-request) to identify and extract all project and application requirements.
 2. Extract the target language from the [User Request](#users-request).
    - Prefer an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the target language is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!"  as the FINAL line, and STOP.
+   - If multiple natural languages are mentioned and the target language is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!" , and then terminate the execution.
    - If no language is specified, use English.
 3. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the target language is not English, you MUST translate all template section headers and structural text into the target language.
 4. Analyze the [User Request](#users-request) to infer the software’s behavior and main features, then produce a hierarchical requirements list.
@@ -48,7 +48,7 @@ Generate a task list based strictly on the steps below. Utilize the TODO LIST to
    - Describe every project requirement clearly, succinctly, and unambiguously.
    - Format the requirements as a bulleted list, using 'shall' or 'must' to indicate mandatory actions. Translate these terms using their closest equivalents in the target language.
 8. PRINT in the response presenting the requirements draft in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user.
-9. OUTPUT exactly "Requirements written!" as the FINAL line, and STOP.
+9. OUTPUT exactly "Requirements written!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

@@ -24,18 +24,18 @@ Analyze the source code and requirements to answer the user request, producing a
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT Step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input unless a fatal execution error occurs (expressly indicated in the steps).
-   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks. Start immediately with the task output.
-- Follow the ordered steps below exactly. STOP instruction means: terminate response immediately after task completion (e.g., PRINT, OUTPUT,..) of current step, suppressing all conversational closings (does not propose any other steps/actions, ensure strictly no other text, conversational filler, do not run any further commands, do not modify any additional files).
+   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks (does not propose any other steps/actions). Start immediately with the task output.
+- **CRITICAL**: Execute all steps in to-do list sequentially and strictly. Execute one by one.
 
 ## Steps
-Generate a task list based strictly on the steps below. Utilize the TODO LIST tool if supported; if not, list them in your response. Execute each step sequentially and strictly:
+Generate a task list based strictly on the steps below (utilize the TODO LIST tool if supported; if not, list them in your response):
 1. Read %%REQ_DOC%% and the [User Request](#users-request) analysis request.
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
    - Identify and read only the relevant source code files necessary to fulfill the request. Do not load the entire codebase unless absolutely necessary.
 2. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the report complies with its guidance.
 3. Analyze the code to answer the [User Request](#users-request), ensuring compliance with %%REQ_DIR%% documents if present.
 4. PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-5. OUTPUT exactly "Analysis completed!" as the FINAL line, and STOP.
+5. OUTPUT exactly "Analysis completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

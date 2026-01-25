@@ -23,11 +23,11 @@ Verify that the project's source code satisfies the documented requirements and 
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT Step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input unless a fatal execution error occurs (expressly indicated in the steps).
-   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks. Start immediately with the task output.
-- Follow the ordered steps below exactly. STOP instruction means: terminate response immediately after task completion (e.g., PRINT, OUTPUT,..) of current step, suppressing all conversational closings (does not propose any other steps/actions, ensure strictly no other text, conversational filler, do not run any further commands, do not modify any additional files).
+   - Zero-Latency Output: Strictly omit all conversational fillers, introductions, and concluding remarks (does not propose any other steps/actions). Start immediately with the task output.
+- **CRITICAL**: Execute all steps in to-do list sequentially and strictly. Execute one by one.
 
 ## Steps
-Generate a task list based strictly on the steps below. Utilize the TODO LIST tool if supported; if not, list them in your response. Execute each step sequentially and strictly:
+Generate a task list based strictly on the steps below (utilize the TODO LIST tool if supported; if not, list them in your response):
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
 2. Read %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
@@ -36,4 +36,4 @@ Generate a task list based strictly on the steps below. Utilize the TODO LIST to
 3. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and verify that the application's code follows those documents.
    - Report any discrepancies with file paths and concise explanations.
 4. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-5. OUTPUT exactly "Check completed!" as the FINAL line, and STOP.
+5. OUTPUT exactly "Check completed!".

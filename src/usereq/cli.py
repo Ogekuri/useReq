@@ -1101,10 +1101,10 @@ def run(args: Namespace) -> None:
     # Load workflow substitution texts from resources/common, falling back to defaults.
     common_dir = RESOURCE_ROOT / "common"
     workflow_on_text = (
-        'If WORKFLOW.md file exists, analyze the recently implemented code changes, identify new features and behavioral updates, then update WORKFLOW.md by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure). If no changes detected, leave WORKFLOW.md unchanged.'
+        'If `WORKFLOW.md` file exists, analyze the recently implemented code changes, identify new features and behavioral updates, then update `WORKFLOW.md` by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure). If no changes detected, leave `WORKFLOW.md` unchanged.'
     )
     workflow_off_text = (
-        'OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).'
+        'If `WORKFLOW.md` file exists, does not modify that file, leave `WORKFLOW.md` unchanged.'
     )
     try:
         on_path = common_dir / "workflow_on.md"
