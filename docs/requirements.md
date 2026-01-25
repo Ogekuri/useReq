@@ -195,6 +195,7 @@ No unit tests found in the repository.
 - **DES-008**: All comments in source codes must be written exclusively in English. Exceptions are made for source file header comments. For example, comments indicating versions and/or authors like "# VERSION:" or "# AUTHORS:" which maintain standard English formatting.
 - **DES-009**: Every important part of the code (classes, complex functions, business logic, critical algorithms) should be commented where necessary, though explanatory comments may be minimal for self-evident business logic.
 - **DES-010**: Every new functionality added should include explanatory comments where applicable; modification of existing code does not strictly require updating pre-existing comments if the logic remains clear.
+- **DES-011**: The static strings used for the `%%WORKFLOW%%` token substitution must be stored as plain text files inside the package resources under `src/usereq/resources/common/` with the filenames `workflow_on.md` and `workflow_off.md`. At runtime the CLI must load these files and use their contents for the `%%WORKFLOW%%` substitution. If the files are not present or cannot be read, the CLI must fall back to sensible built-in default texts that preserve previous behavior.
 
 ### 3.2 CLI Interface & General Behavior
 - **REQ-001**: When the `req` command is invoked without parameters, the output must include help and the version number defined in `src/usereq/__init__.py` (`__version__`).

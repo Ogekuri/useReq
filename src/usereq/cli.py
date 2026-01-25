@@ -1098,6 +1098,24 @@ def run(args: Namespace) -> None:
         enable_workflow = False
     if include_models or include_tools:
         configs = load_cli_configs(RESOURCE_ROOT)
+    # Load workflow substitution texts from resources/common, falling back to defaults.
+    common_dir = RESOURCE_ROOT / "common"
+    workflow_on_text = (
+        'If WORKFLOW.md file exists, analyze the recently implemented code changes, identify new features and behavioral updates, then update WORKFLOW.md by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure). If no changes detected, leave WORKFLOW.md unchanged.'
+    )
+    workflow_off_text = (
+        'OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).'
+    )
+    try:
+        on_path = common_dir / "workflow_on.md"
+        off_path = common_dir / "workflow_off.md"
+        if on_path.is_file():
+            workflow_on_text = on_path.read_text(encoding="utf-8").strip()
+        if off_path.is_file():
+            workflow_off_text = off_path.read_text(encoding="utf-8").strip()
+    except Exception:
+        # If reading fails, keep defaults defined above.
+        pass
     for prompt_path in sorted(prompts_dir.glob("*.md")):
         PROMPT = prompt_path.stem
         content = prompt_path.read_text(encoding="utf-8")
@@ -1109,14 +1127,7 @@ def run(args: Namespace) -> None:
         # (Removed: bootstrap file inlining and YOLO stop/approval substitution)
 
         # Compute the terminate replacement based on --enable-workflow
-        if enable_workflow:
-            workflow_replacement = (
-                'If WORKFLOW.md file exists, analyze the recently implemented code changes, identify new features and behavioral updates, then update WORKFLOW.md by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure). If no changes detected, leave WORKFLOW.md unchanged.'
-            )
-        else:
-            workflow_replacement = (
-                'OUTPUT "All done!" and terminate response immediately after task completion suppressing all conversational closings (does not propose any other steps/actions).'
-            )
+        workflow_replacement = workflow_on_text if enable_workflow else workflow_off_text
 
         base_replacements = {
             "%%REQ_DOC%%": doc_file_list,
