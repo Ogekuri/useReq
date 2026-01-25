@@ -9,6 +9,7 @@
     "check":    { "model": "sonnet", "mode": "read_only" },
     "cover":    { "model": "opus", "mode": "read_write" },
     "create":   { "model": "sonnet", "mode": "read_write" },
+    "workflow": { "model": "sonnet", "mode": "read_write" },
     "fix":      { "model": "opus", "mode": "read_write" },
     "new":      { "model": "sonnet", "mode": "read_write" },
     "optimize": { "model": "opus", "mode": "read_write" },

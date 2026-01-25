@@ -250,6 +250,7 @@ No unit tests found in the repository.
  
 - **REQ-076**: The CLI must accept a boolean flag `--enable-workflow` (default false). During prompt processing, the token `%%WORKFLOW%%` must be substituted with a static text. Substitution must occur at runtime only and must not modify any source templates on disk. This requirement must be backward compatible with existing CLI behavior when the flag is not provided.
 
+- **REQ-079**: The CLI and provider configuration files must support a `workflow` prompt entry. For each provider configuration file under `src/usereq/resources/` that defines per-prompt `model` and `mode` values, a `workflow` entry must be present and its `model` and `mode` values must match the `create` prompt entry for the same provider. When generating prompt resources, the CLI must treat `workflow` like any other prompt and, when `--enable-models` is active, include the `model` value for `workflow` from the provider configuration. If a provider configuration does not include a `workflow` entry, generators that rely on provider `model` metadata must fall back to the `create` prompt's `model` and `mode` for `workflow` without modifying configuration files on disk.
  
 
 ### 3.7 Resource Generation - Specific Tools
