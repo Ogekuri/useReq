@@ -60,6 +60,10 @@
         *   `build_prompt_recommendations`: Creates VS Code prompt recommendations.
         *   `save_vscode_backup`: Creates a backup of existing VS Code settings.
         *   `write_text_file`: Writes the final merged settings to `.vscode/settings.json`.
+        *   **Final Reporting**
+            *   `collect_modules_installed`: Gathers which CLI targets installed modules by checking generated folders.
+            *   `collect_prompts_installed`: Records the list of prompt names generated for each target so the report lists them.
+            *   `print_installation_summary`: Prints the ASCII table that now includes `Prompts Installed` between `CLI` and `Modules Installed` along with workflow installation flags.
 
 ## Documentation Utilities
 

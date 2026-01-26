@@ -1075,7 +1075,7 @@ class TestUpdateNotification(unittest.TestCase):
 
         lines = written.splitlines()
         header_pattern = re.compile(
-            r"^CLI\s+\|\s+Modules Installed\s+\|\s+Workflow Installed\s*$"
+            r"^CLI\s+\|\s+Prompts Installed\s+\|\s+Modules Installed\s+\|\s+Workflow Installed\s*$"
         )
         try:
             header_index = next(
@@ -1088,7 +1088,9 @@ class TestUpdateNotification(unittest.TestCase):
         header_line = lines[header_index]
         header_pipes = [pos for pos, ch in enumerate(header_line) if ch == "|"]
         self.assertEqual(
-            len(header_pipes), 2, "Header row must contain exactly two pipe separators",
+            len(header_pipes),
+            3,
+            "Header row must contain exactly three pipe separators",
         )
 
         # Skip header and separator lines; verify all data rows align pipes with header.
@@ -1135,7 +1137,7 @@ class TestUpdateNotification(unittest.TestCase):
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         lines = written.splitlines()
         header_pattern = re.compile(
-            r"^CLI\s+\|\s+Modules Installed\s+\|\s+Workflow Installed\s*$"
+            r"^CLI\s+\|\s+Prompts Installed\s+\|\s+Modules Installed\s+\|\s+Workflow Installed\s*$"
         )
         try:
             header_index = next(
@@ -1158,10 +1160,10 @@ class TestUpdateNotification(unittest.TestCase):
         for row in data_rows:
             parts = [col.strip() for col in row.split("|")]
             self.assertGreaterEqual(
-                len(parts), 3, f"Row must contain three columns: {row}"
+                len(parts), 4, f"Row must contain four columns: {row}"
             )
             self.assertEqual(
-                parts[2],
+                parts[3],
                 "Yes",
                 "Workflow Installed column must be 'Yes' when --enable-workflow is provided",
             )

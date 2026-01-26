@@ -1178,6 +1178,14 @@ def run(args: Namespace) -> None:
         # If reading fails, keep defaults defined above.
         pass
     workflow_targets: set[str] = set()
+    prompts_installed: dict[str, set[str]] = {
+        "claude": set(),
+        "codex": set(),
+        "github": set(),
+        "gemini": set(),
+        "kiro": set(),
+        "opencode": set(),
+    }
     for prompt_path in sorted(prompts_dir.glob("*.md")):
         PROMPT = prompt_path.stem
         is_workflow_prompt = PROMPT == "workflow"
@@ -1217,6 +1225,7 @@ def run(args: Namespace) -> None:
             workflow_targets.add("codex")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
+        prompts_installed["codex"].add(PROMPT)
 
         # Gemini TOML
         dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
@@ -1251,6 +1260,7 @@ def run(args: Namespace) -> None:
                         dst_toml.write_text(content, encoding="utf-8")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
+        prompts_installed["gemini"].add(PROMPT)
         if is_workflow_prompt:
             workflow_targets.add("gemini")
 
@@ -1262,6 +1272,7 @@ def run(args: Namespace) -> None:
             workflow_targets.add("kiro")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
+        prompts_installed["kiro"].add(PROMPT)
 
         # .claude/agents
         dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
@@ -1352,6 +1363,7 @@ def run(args: Namespace) -> None:
         dst_gh_prompt.write_text(gh_prompt_text, encoding="utf-8")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_prompt}")
+        prompts_installed["github"].add(PROMPT)
 
         # .kiro/agents
         dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
@@ -1456,6 +1468,7 @@ def run(args: Namespace) -> None:
         dst_opencode_command.write_text(command_text, encoding="utf-8")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
+        prompts_installed["opencode"].add(PROMPT)
 
         # .claude/commands/req
         dst_claude_command = (
@@ -1496,6 +1509,7 @@ def run(args: Namespace) -> None:
             workflow_targets.add("claude")
         if VERBOSE:
             log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
+        prompts_installed["claude"].add(PROMPT)
 
     templates_target = req_root / "templates"
     if templates_target.exists():
@@ -1646,31 +1660,43 @@ def run(args: Namespace) -> None:
     installed = _collect_installed_modules(project_base)
 
     def _format_install_table(
-        installed_map: dict[str, list[str]], workflow_targets: set[str]
+        installed_map: dict[str, list[str]],
+        prompts_map: dict[str, set[str]],
+        workflow_targets: set[str],
     ) -> tuple[str, str, list[str]]:
-        """Format the installation summary table aligning header and rows."""
+        """Format the installation summary table aligning header, prompts, and rows."""
 
-        columns = ("CLI", "Modules Installed", "Workflow Installed")
+        columns = (
+            "CLI",
+            "Prompts Installed",
+            "Modules Installed",
+            "Workflow Installed",
+        )
         widths = [len(value) for value in columns]
-        rows: list[tuple[str, str, str]] = []
+        rows: list[tuple[str, str, str, str]] = []
 
         for cli_name in sorted(installed_map.keys()):
             modules = installed_map[cli_name]
+            prompts = sorted(prompts_map.get(cli_name, ()))
+            prompts_text = ", ".join(prompts) if prompts else "-"
             mods_text = ", ".join(modules) if modules else "-"
             workflow_text = "Yes" if cli_name in workflow_targets else "No"
             widths[0] = max(widths[0], len(cli_name))
-            widths[1] = max(widths[1], len(mods_text))
-            widths[2] = max(widths[2], len(workflow_text))
-            rows.append((cli_name, mods_text, workflow_text))
+            widths[1] = max(widths[1], len(prompts_text))
+            widths[2] = max(widths[2], len(mods_text))
+            widths[3] = max(widths[3], len(workflow_text))
+            rows.append((cli_name, prompts_text, mods_text, workflow_text))
 
-        def fmt(row: tuple[str, str, str]) -> str:
+        def fmt(row: tuple[str, ...]) -> str:
             return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))
 
         header = fmt(columns)
         separator = " | ".join("-" * max(3, widths[idx]) for idx in range(len(columns)))
         return header, separator, [fmt(r) for r in rows]
 
-    header, separator, rows = _format_install_table(installed, workflow_targets)
+    header, separator, rows = _format_install_table(
+        installed, prompts_installed, workflow_targets
+    )
     print(header)
     print(separator)
     for line in rows:

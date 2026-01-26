@@ -223,16 +223,16 @@ No unit tests found in the repository.
   - If the resolved `--dir` path contains no subdirectories, the CLI must print the single line exactly:
     - "The folder %%REQ_DIR%% does not contain any folder"
 
-  Immediately after the file and directory listing, the CLI must print a human-readable table describing which modules were installed and for which CLI targets, and whether the optional workflow feature was installed. The table must:
-  - Be printed in plain ASCII (pipe-separated rows) and use a header row with the columns `CLI`, `Modules Installed`, and `Workflow Installed`.
+  - Immediately after the file and directory listing, the CLI must print a human-readable table describing which prompts and modules were installed for each CLI target and whether the optional workflow feature was installed. The table must:
+  - Be printed in plain ASCII (pipe-separated rows) and use a header row with the columns `CLI`, `Prompts Installed`, `Modules Installed`, and `Workflow Installed`.
   - Use the following exact header and separator rows (including the pipe and dash characters):
     ```
-    CLI | Modules Installed | Workflow Installed
-    --- | --- | ---
+    CLI | Prompts Installed | Modules Installed | Workflow Installed
+    --- | --- | --- | ---
     ```
-  - For each CLI target that received module installations during the operation, include one row with the target name under `CLI`, a comma-and-space separated list of installed module names under `Modules Installed` (or a single hyphen `-` if no modules were installed for that target), and `Yes` or `No` under `Workflow Installed` indicating whether `--enable-workflow` caused workflow content to be included for that target.
-  - If the operation installed modules for multiple CLI targets (for example `req`, `use-req`, `req.sh`), include one row per target in alphabetical order.
-  - If no modules were installed for any target, print a single row with `-` in the `Modules Installed` column and `No` in the `Workflow Installed` column.
+  - For each CLI target that received module installations during the operation, include one row with the target name under `CLI`, a comma-and-space separated list of prompt names installed for that target under `Prompts Installed` (or a single hyphen `-` if no prompts were installed), a comma-and-space separated list of installed module names under `Modules Installed` (or `-` if none), and `Yes` or `No` under `Workflow Installed` indicating whether `--enable-workflow` caused workflow content to be included for that target. Prompt names should reflect the catalogs processed in the run (for example `analyze`, `change`, `check`, `cover`, `create`, `fix`, `new`, `refactor`, `write`, etc.) and must be listed alphabetically.
+  - The rows must be listed in alphabetical order by the `CLI` column.
+  - If no modules were installed for any target, print a single row with `-` in both the `Prompts Installed` and `Modules Installed` columns and `No` in the `Workflow Installed` column.
   - All textual output in the table must be in English.
 
 ### 3.4 Version Check
