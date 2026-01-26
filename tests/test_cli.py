@@ -633,7 +633,7 @@ class TestModelsAndTools(unittest.TestCase):
         for name in ("copilot", "claude", "gemini", "kiro", "opencode"):
             sample_config = {
                 "settings": {"version": "1.0.0"},
-                "prompts": {"analyze": {"model": "GPT-5.1-Codex-Mini (copilot)", "mode": "read_write"}},
+                "prompts": {"analyze": {"model": "GPT-5.1-Codex-Mini (Preview) (copilot)", "mode": "read_write"}},
             }
             if name == "claude":
                 sample_config["usage_modes"] = claude_usage

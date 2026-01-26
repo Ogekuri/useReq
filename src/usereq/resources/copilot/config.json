@@ -5,13 +5,13 @@
   },
   "prompts": {
     "analyze":  { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_only" },
-    "change":   { "model": "GPT-5.1-Codex-Mini (copilot)", "mode": "read_write" },
+    "change":   { "model": "GPT-5.1-Codex-Mini (Preview) (copilot)", "mode": "read_write" },
     "check":    { "model": "Gemini 3 Flash (Preview) (copilot)", "mode": "read_only" },
     "cover":    { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
     "create":   { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
     "workflow": { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
     "fix":      { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
-    "new":      { "model": "GPT-5.1-Codex-Mini (copilot)", "mode": "read_write" },
+    "new":      { "model": "GPT-5.1-Codex-Mini (Preview) (copilot)", "mode": "read_write" },
     "refactor": { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
     "write":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" }
   },
