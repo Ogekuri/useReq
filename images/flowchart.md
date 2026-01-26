@@ -15,7 +15,7 @@ flowchart TD
     COVER@{ shape: lean-r, label: "Req.**Cover**"}
     FIX@{ shape: lean-r, label: "Req.**Fix**"}
     NEW@{ shape: lean-r, label: "Req.**New**"}
-    OPTIMIZE@{ shape: lean-r, label: "Req.**Optimize**"}
+    REFACTOR@{ shape: lean-r, label: "Req.**Refactor**"}
     WRITE@{ shape: lean-r, label: "Req.**Write**"}
     CREATE@{ shape: lean-r, label: "Req.**Create**"}
     RENAME@{ shape: subproc, label: "**mv** requirements_DRAFT.md requirements.md" }
@@ -73,9 +73,9 @@ flowchart TD
     START --> FIX
     FIX -- **input** a defect to fix ----> REQ_READ
 
-    %% Optimize
-    START --> OPTIMIZE
-    OPTIMIZE -- **input** an optimization request ----> REQ_READ
+    %% Refactor
+    START --> REFACTOR
+    REFACTOR -- **input** an optimization request ----> REQ_READ
 
     %% New
     START --> NEW

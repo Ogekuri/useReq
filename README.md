@@ -28,7 +28,7 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
   | `create` | Write a requirement draft using the project's source code |
   | `fix` | Fix a defect without changing the requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
-  | `optimize` | Perform optimizations without changing the requirements |
+  | `refactor` | Perform optimizations without changing the requirements |
   | `write` | Produce a requirement draft based on the User Request description |
   | `reset` | Reset useReq/req bootstrap context |
   | `workflow` | Write a `WORKFLOW.md` using the project's source code (--enable-workflow) |
@@ -207,7 +207,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | `create` | Gemini 3 Pro (Preview) (copilot) |
   | `fix` | GPT-5.1-Codex-Max (copilot) |
   | `new` | GPT-5.1-Codex-Mini (Preview) (copilot) |
-  | `optimize` | GPT-5.2-Codex (copilot) |
+  | `refactor` | GPT-5.2-Codex (copilot) |
   | `write` | Gemini 3 Pro (Preview) (copilot) |
 
 ### Claude Code
@@ -242,7 +242,7 @@ When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enable
   | `create` | claude-sonnet-4-5 |
   | `fix` | claude-opus-4-5 |
   | `new` | claude-sonnet-4-5 |
-  | `optimize` | claude-opus-4-5 |
+  | `refactor` | claude-opus-4-5 |
   | `write` | claude-sonnet-4-5 |
 
 ### Kiro CLI
@@ -268,7 +268,7 @@ When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enable
   | `create` | claude-sonnet-4.5 |
   | `fix` | claude-opus-4.5 |
   | `new` | claude-sonnet-4.5 |
-  | `optimize` | claude-opus-4.5 |
+  | `refactor` | claude-opus-4.5 |
   | `write` | claude-sonnet-4.5 |
 
 ### OpenCode CLI
@@ -317,7 +317,7 @@ OpenCode CLI does not support "tools:" on agents/prompts.
   | `create` | github-copilot/gpt-5.1 |
   | `fix` | github-copilot/gpt-5.1-codex-max |
   | `new` | github-copilot/gpt-5-mini |
-  | `optimize` | github-copilot/gpt-5.2-codex |
+  | `refactor` | github-copilot/gpt-5.2-codex |
   | `write` | github-copilot/gpt-5.1 |
 
 
