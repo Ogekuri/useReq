@@ -75,6 +75,13 @@ uv tool uninstall usereq
   - Launch `req` from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
   - `--doc` must be an existing directory under the project base and **must** contain requirements `.md` files.  If one doesn't exist, it is automatically created from the `requirements.md` template.
   - `--dir` must be an existing directory under the project base and **can** contain technical documentation folders.
+  - Select CLI to install with:
+    * `--enable-claude`       Enable generation of Claude prompts and agents for this run.
+    * `--enable-codex`        Enable generation of Codex prompts for this run.
+    * `--enable-gemini`       Enable generation of Gemini prompts for this run.
+    * `--enable-github`       Enable generation of GitHub prompts and agents for this run.
+    * `--enable-kiro`         Enable generation of Kiro prompts and agents for this run.
+    * `--enable-opencode`     Enable generation of OpenCode prompts and agents for this run.
 - You need to run `req` again if you add or remove `.md` requirement files in the `docs/` directory or any subfolders in the `tech/` directory.
 - Option `--prompts-use-agents`  generate prompt files as **agent-only references** (agent: req-<name>).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
@@ -119,7 +126,9 @@ uv tool uninstall usereq
 - ✅ Claude Extension for Visual Studio Code [`@agent-req-create italian`] (does not **hightlight** agent's commands like CLI)
 
 #### GitHub Copilot
-- ✅ GitHub Copilot CLI Prompt [`/req.create italian`]
+- ✅ GitHub Copilot CLI Prompt [`/agent ➡️ req-create ➡️ italian ↩️`]
+  * Slash command not supported 
+  * Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
 - ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.create; italian ↩️`]
   * **Starts a new chat** for every prompt.
 

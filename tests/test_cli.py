@@ -43,6 +43,16 @@ KIRO_READ_WRITE_TOOLS = [
 ]
 """List of read-write tools allowed for Kiro."""
 
+PROVIDER_FLAGS = [
+    "--enable-claude",
+    "--enable-codex",
+    "--enable-gemini",
+    "--enable-github",
+    "--enable-kiro",
+    "--enable-opencode",
+]
+"""Provider-specific CLI flags that enable prompt generation."""
+
 
 class TestCLI(unittest.TestCase):
     """Test suite for the useReq CLI command."""
@@ -76,6 +86,7 @@ class TestCLI(unittest.TestCase):
                     "--dir",
                     str(cls.TEST_DIR / "tech"),
                 ]
+                + PROVIDER_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -669,6 +680,7 @@ class TestModelsAndTools(unittest.TestCase):
                     "--enable-models",
                     "--enable-tools",
                 ]
+                + PROVIDER_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -738,6 +750,7 @@ class TestModelsAndTools(unittest.TestCase):
                     "--dir",
                     str(self.TEST_DIR / "tech"),
                 ]
+                + PROVIDER_FLAGS
             )
         self.assertEqual(exit_code, 0)
         gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
@@ -761,6 +774,7 @@ class TestModelsAndTools(unittest.TestCase):
                     str(self.TEST_DIR / "tech"),
                     "--enable-tools",
                 ]
+                + PROVIDER_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -812,6 +826,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                     "--dir",
                     str(cls.TEST_DIR / "tech"),
                 ]
+                + PROVIDER_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -887,6 +902,7 @@ class TestPromptsUseAgents(unittest.TestCase):
                     "--enable-models",
                     "--enable-tools",
                 ]
+                + PROVIDER_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -958,6 +974,7 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     str(cls.TEST_DIR / "tech"),
                     "--enable-tools",
                 ]
+                + PROVIDER_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1005,6 +1022,53 @@ class TestKiroToolsEnabled(unittest.TestCase):
         )
 
 
+class TestProviderEnableFlags(unittest.TestCase):
+    """Ensures the CLI enforces provider enable flags before generating resources."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-provider-flags"
+    )
+
+    def setUp(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def test_requires_at_least_one_provider_flag(self) -> None:
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--doc",
+                        str(self.TEST_DIR / "docs"),
+                        "--dir",
+                        str(self.TEST_DIR / "tech"),
+                    ]
+                )
+
+        self.assertEqual(
+            exit_code,
+            4,
+            "Missing provider --enable-* flags must cause exit code 4",
+        )
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "--enable-*",
+            written,
+            "Error message must mention the --enable-* requirement",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -1043,6 +1107,7 @@ class TestUpdateNotification(unittest.TestCase):
                         "--dir",
                         str(self.TEST_DIR / "tech"),
                     ]
+                    + PROVIDER_FLAGS
                 )
 
         # Note: we do not check exit code because stdout capture might vary based on runner.
@@ -1068,6 +1133,7 @@ class TestUpdateNotification(unittest.TestCase):
                         "--dir",
                         str(self.TEST_DIR / "tech"),
                     ]
+                    + PROVIDER_FLAGS
                 )
 
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
@@ -1130,6 +1196,7 @@ class TestUpdateNotification(unittest.TestCase):
                         "tech",
                         "--enable-workflow",
                     ]
+                    + PROVIDER_FLAGS
                 )
 
         self.assertEqual(exit_code, 0)

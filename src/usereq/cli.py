@@ -60,6 +60,8 @@ def build_parser() -> argparse.ArgumentParser:
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
         "--doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
+        "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
+        "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] [--enable-workflow] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -112,6 +114,36 @@ def build_parser() -> argparse.ArgumentParser:
         "--enable-tools",
         action="store_true",
         help="Include 'tools' in generated prompts/agents when available from CLI configs.",
+    )
+    parser.add_argument(
+        "--enable-claude",
+        action="store_true",
+        help="Enable generation of Claude prompts and agents for this run.",
+    )
+    parser.add_argument(
+        "--enable-codex",
+        action="store_true",
+        help="Enable generation of Codex prompts for this run.",
+    )
+    parser.add_argument(
+        "--enable-gemini",
+        action="store_true",
+        help="Enable generation of Gemini prompts for this run.",
+    )
+    parser.add_argument(
+        "--enable-github",
+        action="store_true",
+        help="Enable generation of GitHub prompts and agents for this run.",
+    )
+    parser.add_argument(
+        "--enable-kiro",
+        action="store_true",
+        help="Enable generation of Kiro prompts and agents for this run.",
+    )
+    parser.add_argument(
+        "--enable-opencode",
+        action="store_true",
+        help="Enable generation of OpenCode prompts and agents for this run.",
     )
     parser.add_argument(
         "--prompts-use-agents",
@@ -1070,6 +1102,29 @@ def run(args: Namespace) -> None:
     if VERBOSE:
         log(f"OK: technical directory found {tech_dest}")
 
+    enable_claude = args.enable_claude
+    enable_codex = args.enable_codex
+    enable_gemini = args.enable_gemini
+    enable_github = args.enable_github
+    enable_kiro = args.enable_kiro
+    enable_opencode = args.enable_opencode
+    if not any(
+        (
+            enable_claude,
+            enable_codex,
+            enable_gemini,
+            enable_github,
+            enable_kiro,
+            enable_opencode,
+        )
+    ):
+        parser = build_parser()
+        parser.print_help()
+        raise ReqError(
+            "Error: at least one --enable-* flag is required to generate prompts",
+            4,
+        )
+
     # After validation and before any operation that modifies the filesystem, check for a new version.
     maybe_notify_newer_version(timeout_seconds=1.0)
 
@@ -1116,24 +1171,50 @@ def run(args: Namespace) -> None:
     dlog(f"SUB_TECH_DIR={sub_tech_dir}")
     dlog(f"TOKEN_REQ_DIR={token_req_dir}")
 
-    for folder in (
-        project_base / ".codex" / "prompts",
-        project_base / ".github" / "agents",
-        project_base / ".github" / "prompts",
-        project_base / ".gemini" / "commands",
-        project_base / ".gemini" / "commands" / "req",
-        project_base / ".kiro" / "agents",
-        project_base / ".kiro" / "prompts",
-        project_base / ".claude" / "agents",
-        project_base / ".claude" / "commands",
-        project_base / ".claude" / "commands" / "req",
-        project_base / ".opencode" / "agent",
-        project_base / ".opencode" / "command",
-    ):
+    target_folders: list[Path] = []
+    if enable_codex:
+        target_folders.append(project_base / ".codex" / "prompts")
+    if enable_github:
+        target_folders.extend(
+            [
+                project_base / ".github" / "agents",
+                project_base / ".github" / "prompts",
+            ]
+        )
+    if enable_gemini:
+        target_folders.extend(
+            [
+                project_base / ".gemini" / "commands",
+                project_base / ".gemini" / "commands" / "req",
+            ]
+        )
+    if enable_kiro:
+        target_folders.extend(
+            [
+                project_base / ".kiro" / "agents",
+                project_base / ".kiro" / "prompts",
+            ]
+        )
+    if enable_claude:
+        target_folders.extend(
+            [
+                project_base / ".claude" / "agents",
+                project_base / ".claude" / "commands",
+                project_base / ".claude" / "commands" / "req",
+            ]
+        )
+    if enable_opencode:
+        target_folders.extend(
+            [
+                project_base / ".opencode" / "agent",
+                project_base / ".opencode" / "command",
+            ]
+        )
+    for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
         log(
-            "OK: created/ensured folders .codex, .github, .gemini, .kiro under "
+            "OK: ensured provider folders for the requested target CLIs under "
             f"{project_base}"
         )
 
@@ -1186,6 +1267,9 @@ def run(args: Namespace) -> None:
         "kiro": set(),
         "opencode": set(),
     }
+    modules_installed: dict[str, set[str]] = {
+        key: set() for key in prompts_installed.keys()
+    }
     for prompt_path in sorted(prompts_dir.glob("*.md")):
         PROMPT = prompt_path.stem
         is_workflow_prompt = PROMPT == "workflow"
@@ -1217,299 +1301,320 @@ def run(args: Namespace) -> None:
         prompt_with_replacements = apply_replacements(content, prompt_replacements)
         prompt_body_replaced = apply_replacements(prompt_body, prompt_replacements)
 
-        # .codex/prompts
-        dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
-        existed = dst_codex_prompt.exists()
-        write_text_file(dst_codex_prompt, prompt_with_replacements)
-        if is_workflow_prompt:
-            workflow_targets.add("codex")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
-        prompts_installed["codex"].add(PROMPT)
+        if enable_codex:
+            # .codex/prompts
+            dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
+            existed = dst_codex_prompt.exists()
+            write_text_file(dst_codex_prompt, prompt_with_replacements)
+            if is_workflow_prompt:
+                workflow_targets.add("codex")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
+            prompts_installed["codex"].add(PROMPT)
+            modules_installed["codex"].add("prompts")
 
-        # Gemini TOML
-        dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
-        existed = dst_toml.exists()
-        md_to_toml(prompt_path, dst_toml, force=existed)
-        toml_replacements = {
-            "%%REQ_DOC%%": doc_file_list,
-            "%%REQ_DIR%%": dir_list,
-            "%%REQ_PATH%%": normalized_doc,
-            "%%ARGS%%": "{{args}}",
-            "%%WORKFLOW%%": workflow_replacement,
-        }
-        replace_tokens(dst_toml, toml_replacements)
-        if configs and (include_models or include_tools):
-            gem_model, gem_tools = get_model_tools_for_prompt(
-                configs.get("gemini"), PROMPT, "gemini"
-            )
-            if gem_model or gem_tools:
-                content = dst_toml.read_text(encoding="utf-8")
-                parts = content.split("\n", 1)
-                if len(parts) == 2:
-                    first, rest = parts
-                    inject_lines: list[str] = []
-                    if include_models and gem_model:
-                        inject_lines.append(f'model = "{gem_model}"')
-                    if include_tools and gem_tools:
-                        inject_lines.append(
-                            f"tools = {format_tools_inline_list(gem_tools)}"
-                        )
-                    if inject_lines:
-                        content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
-                        dst_toml.write_text(content, encoding="utf-8")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
-        prompts_installed["gemini"].add(PROMPT)
-        if is_workflow_prompt:
-            workflow_targets.add("gemini")
+        if enable_gemini:
+            # Gemini TOML
+            dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
+            existed = dst_toml.exists()
+            md_to_toml(prompt_path, dst_toml, force=existed)
+            toml_replacements = {
+                "%%REQ_DOC%%": doc_file_list,
+                "%%REQ_DIR%%": dir_list,
+                "%%REQ_PATH%%": normalized_doc,
+                "%%ARGS%%": "{{args}}",
+                "%%WORKFLOW%%": workflow_replacement,
+            }
+            replace_tokens(dst_toml, toml_replacements)
+            if configs and (include_models or include_tools):
+                gem_model, gem_tools = get_model_tools_for_prompt(
+                    configs.get("gemini"), PROMPT, "gemini"
+                )
+                if gem_model or gem_tools:
+                    content = dst_toml.read_text(encoding="utf-8")
+                    parts = content.split("\n", 1)
+                    if len(parts) == 2:
+                        first, rest = parts
+                        inject_lines: list[str] = []
+                        if include_models and gem_model:
+                            inject_lines.append(f'model = "{gem_model}"')
+                        if include_tools and gem_tools:
+                            inject_lines.append(
+                                f"tools = {format_tools_inline_list(gem_tools)}"
+                            )
+                        if inject_lines:
+                            content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
+                            dst_toml.write_text(content, encoding="utf-8")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
+            prompts_installed["gemini"].add(PROMPT)
+            modules_installed["gemini"].add("commands")
+            if is_workflow_prompt:
+                workflow_targets.add("gemini")
 
-        # .kiro/prompts
-        dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
-        existed = dst_kiro_prompt.exists()
-        write_text_file(dst_kiro_prompt, prompt_with_replacements)
-        if is_workflow_prompt:
-            workflow_targets.add("kiro")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
-        prompts_installed["kiro"].add(PROMPT)
+        if enable_kiro:
+            # .kiro/prompts
+            dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
+            existed = dst_kiro_prompt.exists()
+            write_text_file(dst_kiro_prompt, prompt_with_replacements)
+            if is_workflow_prompt:
+                workflow_targets.add("kiro")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
+            prompts_installed["kiro"].add(PROMPT)
+            modules_installed["kiro"].add("prompts")
 
-        # .claude/agents
-        dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
-        existed = dst_claude_agent.exists()
-        desc_yaml = yaml_double_quote_escape(description)
-        claude_model = None
-        claude_tools = None
-        if configs:
-            claude_model, claude_tools = get_model_tools_for_prompt(
-                configs.get("claude"), PROMPT, "claude"
-            )
-        claude_header_lines = [
-            "---",
-            f"name: req-{PROMPT}",
-            f'description: "{desc_yaml}"',
-        ]
-        if include_models and claude_model:
-            claude_header_lines.append(f"model: {claude_model}")
-        if include_tools and claude_tools:
-            claude_header_lines.append(
-                f"tools: {format_tools_inline_list(claude_tools)}"
-            )
-        claude_text = (
-            "\n".join(claude_header_lines) + "\n---\n\n" + prompt_body_replaced
-        )
-        dst_claude_agent.parent.mkdir(parents=True, exist_ok=True)
-        if not claude_text.endswith("\n"):
-            claude_text += "\n"
-        dst_claude_agent.write_text(claude_text, encoding="utf-8")
-        if is_workflow_prompt:
-            workflow_targets.add("claude")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
-
-        # .github/agents
-        dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
-        existed = dst_gh_agent.exists()
-        gh_model = None
-        gh_tools = None
-        if configs:
-            gh_model, gh_tools = get_model_tools_for_prompt(
-                configs.get("copilot"), PROMPT, "copilot"
-            )
-        gh_header_lines = [
-            "---",
-            f"name: req-{PROMPT}",
-            f'description: "{desc_yaml}"',
-        ]
-        if include_models and gh_model:
-            gh_header_lines.append(f"model: {gh_model}")
-        if include_tools and gh_tools:
-            gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
-        gh_text = "\n".join(gh_header_lines) + "\n---\n\n" + prompt_body_replaced
-        dst_gh_agent.parent.mkdir(parents=True, exist_ok=True)
-        if not gh_text.endswith("\n"):
-            gh_text += "\n"
-        dst_gh_agent.write_text(gh_text, encoding="utf-8")
-        if is_workflow_prompt:
-            workflow_targets.add("github")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
-
-        # .github/prompts
-        dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
-        existed = dst_gh_prompt.exists()
-        if prompts_use_agents:
-            gh_prompt_text = f"---\nagent: req-{PROMPT}\n---\n"
-        else:
-            gh_header_lines = [
+        if enable_claude:
+            # .claude/agents
+            dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
+            existed = dst_claude_agent.exists()
+            desc_yaml = yaml_double_quote_escape(description)
+            claude_model = None
+            claude_tools = None
+            if configs:
+                claude_model, claude_tools = get_model_tools_for_prompt(
+                    configs.get("claude"), PROMPT, "claude"
+                )
+            claude_header_lines = [
                 "---",
-                f"description: {frontmatter.splitlines()[0].split(':', 1)[1].strip() if 'description:' in frontmatter else description}",
+                f"name: req-{PROMPT}",
+                f'description: "{desc_yaml}"',
             ]
-            if argument_hint:
-                gh_header_lines.append(f"argument-hint: {argument_hint}")
+            if include_models and claude_model:
+                claude_header_lines.append(f"model: {claude_model}")
+            if include_tools and claude_tools:
+                claude_header_lines.append(
+                    f"tools: {format_tools_inline_list(claude_tools)}"
+                )
+            claude_text = (
+                "\n".join(claude_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            dst_claude_agent.parent.mkdir(parents=True, exist_ok=True)
+            if not claude_text.endswith("\n"):
+                claude_text += "\n"
+            dst_claude_agent.write_text(claude_text, encoding="utf-8")
+            if is_workflow_prompt:
+                workflow_targets.add("claude")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
+            modules_installed["claude"].add("agents")
+
+        if enable_github:
+            # .github/agents
+            dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
+            existed = dst_gh_agent.exists()
             gh_model = None
             gh_tools = None
             if configs:
                 gh_model, gh_tools = get_model_tools_for_prompt(
                     configs.get("copilot"), PROMPT, "copilot"
                 )
+            gh_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{desc_yaml}"',
+            ]
             if include_models and gh_model:
                 gh_header_lines.append(f"model: {gh_model}")
             if include_tools and gh_tools:
                 gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
-            gh_header = "\n".join(gh_header_lines) + "\n---\n\n"
-            gh_prompt_text = gh_header + prompt_body_replaced
-        dst_gh_prompt.parent.mkdir(parents=True, exist_ok=True)
-        dst_gh_prompt.write_text(gh_prompt_text, encoding="utf-8")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_prompt}")
-        prompts_installed["github"].add(PROMPT)
+            gh_text = "\n".join(gh_header_lines) + "\n---\n\n" + prompt_body_replaced
+            dst_gh_agent.parent.mkdir(parents=True, exist_ok=True)
+            if not gh_text.endswith("\n"):
+                gh_text += "\n"
+            dst_gh_agent.write_text(gh_text, encoding="utf-8")
+            if is_workflow_prompt:
+                workflow_targets.add("github")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
+            modules_installed["github"].add("agents")
 
-        # .kiro/agents
-        dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
-        existed = dst_kiro_agent.exists()
-        kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
-        kiro_resources = generate_kiro_resources(
-            project_base / normalized_doc,
-            project_base,
-            kiro_prompt_rel,
-        )
-        kiro_model, kiro_tools = get_model_tools_for_prompt(kiro_config, PROMPT, "kiro")
-        kiro_tools_list = (
-            list(kiro_tools) if include_tools and isinstance(kiro_tools, list) else None
-        )
-        agent_content = render_kiro_agent(
-            kiro_template,
-            name=f"req-{PROMPT}",
-            description=description,
-            prompt=prompt_body_replaced,
-            resources=kiro_resources,
-            tools=kiro_tools_list,
-            model=kiro_model,
-            include_tools=include_tools,
-            include_model=include_models,
-        )
-        dst_kiro_agent.write_text(agent_content, encoding="utf-8")
-        if is_workflow_prompt:
-            workflow_targets.add("kiro")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
+        if enable_github:
+            # .github/prompts
+            dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
+            existed = dst_gh_prompt.exists()
+            if prompts_use_agents:
+                gh_prompt_text = f"---\nagent: req-{PROMPT}\n---\n"
+            else:
+                gh_header_lines = [
+                    "---",
+                    f"description: {frontmatter.splitlines()[0].split(':', 1)[1].strip() if 'description:' in frontmatter else description}",
+                ]
+                if argument_hint:
+                    gh_header_lines.append(f"argument-hint: {argument_hint}")
+                gh_model = None
+                gh_tools = None
+                if configs:
+                    gh_model, gh_tools = get_model_tools_for_prompt(
+                        configs.get("copilot"), PROMPT, "copilot"
+                    )
+                if include_models and gh_model:
+                    gh_header_lines.append(f"model: {gh_model}")
+                if include_tools and gh_tools:
+                    gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
+                gh_header = "\n".join(gh_header_lines) + "\n---\n\n"
+                gh_prompt_text = gh_header + prompt_body_replaced
+            dst_gh_prompt.parent.mkdir(parents=True, exist_ok=True)
+            dst_gh_prompt.write_text(gh_prompt_text, encoding="utf-8")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_prompt}")
+            prompts_installed["github"].add(PROMPT)
+            modules_installed["github"].add("prompts")
 
-        # .opencode/agent
-        dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
-        existed = dst_opencode_agent.exists()
-        opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
-        if configs:
-            oc_model, _ = get_model_tools_for_prompt(
-                configs.get("opencode"), PROMPT, "opencode"
+        if enable_kiro:
+            # .kiro/agents
+            dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
+            existed = dst_kiro_agent.exists()
+            kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
+            kiro_resources = generate_kiro_resources(
+                project_base / normalized_doc,
+                project_base,
+                kiro_prompt_rel,
             )
-            oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
-            if include_models and oc_model:
-                opencode_header_lines.append(f"model: {oc_model}")
-            if include_tools and oc_tools_raw is not None:
-                if isinstance(oc_tools_raw, list):
-                    opencode_header_lines.append(
-                        f"tools: {format_tools_inline_list(oc_tools_raw)}"
-                    )
-                elif isinstance(oc_tools_raw, str):
-                    opencode_header_lines.append(
-                        f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"'
-                    )
-        opencode_text = (
-            "\n".join(opencode_header_lines) + "\n---\n\n" + prompt_body_replaced
-        )
-        dst_opencode_agent.parent.mkdir(parents=True, exist_ok=True)
-        if not opencode_text.endswith("\n"):
-            opencode_text += "\n"
-        dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
-        if is_workflow_prompt:
-            workflow_targets.add("opencode")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
+            kiro_model, kiro_tools = get_model_tools_for_prompt(kiro_config, PROMPT, "kiro")
+            kiro_tools_list = (
+                list(kiro_tools) if include_tools and isinstance(kiro_tools, list) else None
+            )
+            agent_content = render_kiro_agent(
+                kiro_template,
+                name=f"req-{PROMPT}",
+                description=description,
+                prompt=prompt_body_replaced,
+                resources=kiro_resources,
+                tools=kiro_tools_list,
+                model=kiro_model,
+                include_tools=include_tools,
+                include_model=include_models,
+            )
+            dst_kiro_agent.write_text(agent_content, encoding="utf-8")
+            if is_workflow_prompt:
+                workflow_targets.add("kiro")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
+            modules_installed["kiro"].add("agents")
 
-        # .opencode/command
-        dst_opencode_command = (
-            project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
-        )
-        existed = dst_opencode_command.exists()
-        if prompts_use_agents:
-            command_text = f"---\nagent: req.{PROMPT}\n---\n"
-        else:
-            command_header_lines = [
-                "---",
-                f'description: "{desc_yaml}"',
-            ]
-            if argument_hint:
-                command_header_lines.append(
-                    f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
-                )
+        if enable_opencode:
+            # .opencode/agent
+            dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
+            existed = dst_opencode_agent.exists()
+            opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
             if configs:
                 oc_model, _ = get_model_tools_for_prompt(
                     configs.get("opencode"), PROMPT, "opencode"
                 )
                 oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
                 if include_models and oc_model:
-                    command_header_lines.append(f"model: {oc_model}")
+                    opencode_header_lines.append(f"model: {oc_model}")
                 if include_tools and oc_tools_raw is not None:
                     if isinstance(oc_tools_raw, list):
-                        command_header_lines.append(
+                        opencode_header_lines.append(
                             f"tools: {format_tools_inline_list(oc_tools_raw)}"
                         )
                     elif isinstance(oc_tools_raw, str):
-                        command_header_lines.append(
+                        opencode_header_lines.append(
                             f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"'
                         )
-            command_text = (
-                "\n".join(command_header_lines) + "\n---\n\n" + prompt_body_replaced
+            opencode_text = (
+                "\n".join(opencode_header_lines) + "\n---\n\n" + prompt_body_replaced
             )
-        dst_opencode_command.parent.mkdir(parents=True, exist_ok=True)
-        if not command_text.endswith("\n"):
-            command_text += "\n"
-        dst_opencode_command.write_text(command_text, encoding="utf-8")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
-        prompts_installed["opencode"].add(PROMPT)
+            dst_opencode_agent.parent.mkdir(parents=True, exist_ok=True)
+            if not opencode_text.endswith("\n"):
+                opencode_text += "\n"
+            dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
+            if is_workflow_prompt:
+                workflow_targets.add("opencode")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
+            modules_installed["opencode"].add("agent")
 
-        # .claude/commands/req
-        dst_claude_command = (
-            project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
-        )
-        existed = dst_claude_command.exists()
-        if prompts_use_agents:
-            command_header_lines = ["---", f"agent: req-{PROMPT}"]
-            claude_command_text = "\n".join(command_header_lines) + "\n---\n"
-        else:
-            command_header_lines = ["---"]
-            if description:
-                command_header_lines.append(f'description: "{desc_yaml}"')
-            if argument_hint:
-                command_header_lines.append(
-                    f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
-                )
-            if include_models and claude_model:
-                command_header_lines.append(
-                    f'model: "{yaml_double_quote_escape(str(claude_model))}"'
-                )
-            if include_tools and claude_tools:
-                try:
-                    allowed_csv = ", ".join(str(t) for t in claude_tools)
-                except Exception:
-                    allowed_csv = str(claude_tools)
-                command_header_lines.append(
-                    f'allowed-tools: "{yaml_double_quote_escape(allowed_csv)}"'
-                )
-            claude_command_text = (
-                "\n".join(command_header_lines) + "\n---\n\n" + prompt_body_replaced
+            # .opencode/command
+            dst_opencode_command = (
+                project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
             )
-        dst_claude_command.parent.mkdir(parents=True, exist_ok=True)
-        if not claude_command_text.endswith("\n"):
-            claude_command_text += "\n"
-        dst_claude_command.write_text(claude_command_text, encoding="utf-8")
-        if is_workflow_prompt:
-            workflow_targets.add("claude")
-        if VERBOSE:
-            log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
-        prompts_installed["claude"].add(PROMPT)
+            existed = dst_opencode_command.exists()
+            if prompts_use_agents:
+                command_text = f"---\nagent: req.{PROMPT}\n---\n"
+            else:
+                command_header_lines = [
+                    "---",
+                    f'description: "{desc_yaml}"',
+                ]
+                if argument_hint:
+                    command_header_lines.append(
+                        f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
+                    )
+                if configs:
+                    oc_model, _ = get_model_tools_for_prompt(
+                        configs.get("opencode"), PROMPT, "opencode"
+                    )
+                    oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
+                    if include_models and oc_model:
+                        command_header_lines.append(f"model: {oc_model}")
+                    if include_tools and oc_tools_raw is not None:
+                        if isinstance(oc_tools_raw, list):
+                            command_header_lines.append(
+                                f"tools: {format_tools_inline_list(oc_tools_raw)}"
+                            )
+                        elif isinstance(oc_tools_raw, str):
+                            command_header_lines.append(
+                                f'tools: "{yaml_double_quote_escape(oc_tools_raw)}"'
+                            )
+                command_text = (
+                    "\n".join(command_header_lines) + "\n---\n\n" + prompt_body_replaced
+                )
+            dst_opencode_command.parent.mkdir(parents=True, exist_ok=True)
+            if not command_text.endswith("\n"):
+                command_text += "\n"
+            dst_opencode_command.write_text(command_text, encoding="utf-8")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_command}")
+            prompts_installed["opencode"].add(PROMPT)
+            modules_installed["opencode"].add("command")
+
+        if enable_claude:
+            # .claude/commands/req
+            dst_claude_command = (
+                project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
+            )
+            existed = dst_claude_command.exists()
+            if prompts_use_agents:
+                command_header_lines = ["---", f"agent: req-{PROMPT}"]
+                claude_command_text = "\n".join(command_header_lines) + "\n---\n"
+            else:
+                command_header_lines = ["---"]
+                if description:
+                    command_header_lines.append(f'description: "{desc_yaml}"')
+                if argument_hint:
+                    command_header_lines.append(
+                        f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
+                    )
+                if include_models and claude_model:
+                    command_header_lines.append(
+                        f'model: "{yaml_double_quote_escape(str(claude_model))}"'
+                    )
+                if include_tools and claude_tools:
+                    try:
+                        allowed_csv = ", ".join(str(t) for t in claude_tools)
+                    except Exception:
+                        allowed_csv = str(claude_tools)
+                    command_header_lines.append(
+                        f'allowed-tools: "{yaml_double_quote_escape(allowed_csv)}"'
+                    )
+                claude_command_text = (
+                    "\n".join(command_header_lines)
+                    + "\n---\n\n"
+                    + prompt_body_replaced
+                )
+            dst_claude_command.parent.mkdir(parents=True, exist_ok=True)
+            if not claude_command_text.endswith("\n"):
+                claude_command_text += "\n"
+            dst_claude_command.write_text(claude_command_text, encoding="utf-8")
+            if is_workflow_prompt:
+                workflow_targets.add("claude")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
+            prompts_installed["claude"].add(PROMPT)
+            modules_installed["claude"].add("commands")
 
     templates_target = req_root / "templates"
     if templates_target.exists():
@@ -1596,71 +1701,8 @@ def run(args: Namespace) -> None:
     # modules were installed for each CLI target and whether workflow was
     # enabled for the operation. The table is printed in plain ASCII with
     # a header row matching the requirement.
-    def _collect_installed_modules(root: Path) -> dict[str, list[str]]:
-        found: dict[str, list[str]] = {}
-        # Known CLI targets and the module folders we expect for them.
-        # We infer "installed modules" by presence of these folders.
-        # This is conservative and does not change on-disk templates.
-        # Targets: claude, kiro, opencode, codex, github, gemini
-        if (root / ".claude" / "agents").is_dir() or (root / ".claude" / "commands").is_dir():
-            mods: list[str] = []
-            if (root / ".claude" / "agents").is_dir():
-                mods.append("agents")
-            if (root / ".claude" / "commands" / "req").is_dir() or (root / ".claude" / "commands").is_dir():
-                mods.append("commands")
-            found["claude"] = mods
-        else:
-            found["claude"] = []
-
-        if (root / ".kiro" / "agents").is_dir() or (root / ".kiro" / "prompts").is_dir():
-            mods = []
-            if (root / ".kiro" / "agents").is_dir():
-                mods.append("agents")
-            if (root / ".kiro" / "prompts").is_dir():
-                mods.append("prompts")
-            found["kiro"] = mods
-        else:
-            found["kiro"] = []
-
-        if (root / ".opencode" / "agent").is_dir() or (root / ".opencode" / "command").is_dir():
-            mods = []
-            if (root / ".opencode" / "agent").is_dir():
-                mods.append("agent")
-            if (root / ".opencode" / "command").is_dir():
-                mods.append("command")
-            found["opencode"] = mods
-        else:
-            found["opencode"] = []
-
-        if (root / ".codex" / "prompts").is_dir():
-            found["codex"] = ["prompts"]
-        else:
-            found["codex"] = []
-
-        if (root / ".github" / "agents").is_dir() or (root / ".github" / "prompts").is_dir():
-            mods = []
-            if (root / ".github" / "agents").is_dir():
-                mods.append("agents")
-            if (root / ".github" / "prompts").is_dir():
-                mods.append("prompts")
-            found["github"] = mods
-        else:
-            found["github"] = []
-
-        if (root / ".gemini" / "commands" / "req").is_dir() or (root / ".gemini" / "commands").is_dir():
-            mods = []
-            if (root / ".gemini" / "commands" / "req").is_dir() or (root / ".gemini" / "commands").is_dir():
-                mods.append("commands")
-            found["gemini"] = mods
-        else:
-            found["gemini"] = []
-
-        return found
-
-    installed = _collect_installed_modules(project_base)
-
     def _format_install_table(
-        installed_map: dict[str, list[str]],
+        installed_map: dict[str, set[str]],
         prompts_map: dict[str, set[str]],
         workflow_targets: set[str],
     ) -> tuple[str, str, list[str]]:
@@ -1678,8 +1720,10 @@ def run(args: Namespace) -> None:
         for cli_name in sorted(installed_map.keys()):
             modules = installed_map[cli_name]
             prompts = sorted(prompts_map.get(cli_name, ()))
+            if not modules and not prompts:
+                continue
             prompts_text = ", ".join(prompts) if prompts else "-"
-            mods_text = ", ".join(modules) if modules else "-"
+            mods_text = ", ".join(sorted(modules)) if modules else "-"
             workflow_text = "Yes" if cli_name in workflow_targets else "No"
             widths[0] = max(widths[0], len(cli_name))
             widths[1] = max(widths[1], len(prompts_text))
@@ -1692,10 +1736,12 @@ def run(args: Namespace) -> None:
 
         header = fmt(columns)
         separator = " | ".join("-" * max(3, widths[idx]) for idx in range(len(columns)))
+        if not rows:
+            return header, separator, [fmt(("-", "-", "-", "No"))]
         return header, separator, [fmt(r) for r in rows]
 
     header, separator, rows = _format_install_table(
-        installed, prompts_installed, workflow_targets
+        modules_installed, prompts_installed, workflow_targets
     )
     print(header)
     print(separator)

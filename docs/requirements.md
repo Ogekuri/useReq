@@ -1,8 +1,7 @@
----
 title: "useReq Requirements"
 description: "Software Requirements Specification"
-date: "2026-01-25"
-version: 0.43
+date: "2026-01-26"
+version: 0.45
 author: "Ogekuri"
 scope:
   paths:
@@ -15,10 +14,9 @@ scope:
     - ".*/**"
 visibility: "draft"
 tags: ["markdown", "requirements", "useReq"]
----
 
 # useReq Requirements
-**Version**: 0.44
+**Version**: 0.45
 **Author**: Ogekuri
 **Date**: 2026-01-26
 
@@ -101,6 +99,7 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-25 | 0.42 | Added REQ-078: CLI prints a single-line success message including resolved installation path when installation/update completes successfully. |
 | 2026-01-25 | 0.43 | Updated REQ-078 to require printing the list of files found in %%REQ_DOC%% and the list of directories found in %%REQ_DIR%% between the success message and the installed modules table. |
 | 2026-01-26 | 0.44 | Renamed `optimize` prompt to `refactor` and updated configuration files. |
+| 2026-01-26 | 0.45 | Added provider-specific enable flags for prompt generation and tightened the installation summary table to the targeted providers. |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
@@ -127,6 +126,8 @@ The project scope is to provide a `use-req`/`req` command that, given a project,
 .
 ├── CHANGELOG.md
 ├── LICENSE
+- **REQ-083**: Resource generation described in sections 3.7.1 through 3.7.5 (GitHub/Codex, Gemini, Kiro, OpenCode, and Claude) must execute only when the corresponding `--enable-<provider>` flag is active for that provider; providers that remain disabled must not receive new prompts, agents, or module installs during that invocation, and the provider-specific `workflow` prompt is only produced when both `--enable-workflow` and the provider enable flag are supplied.
+
 ├── README.md
 ├── TODO.md
 ├── docs
@@ -206,6 +207,9 @@ No unit tests found in the repository.
 - **REQ-003**: The help usage string must include the command `req` and the version `__version__` in the format `usage: req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] (major.minor.patch)` with major.minor.patch from `__version__`.
 - **REQ-004**: All usage, help, information, verbose, or debug outputs of the script must be in English.
 - **REQ-005**: The command must verify that the `--doc` parameter indicates an existing directory, otherwise it must terminate with error.
+- **REQ-080**: The command must accept boolean flags `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, and `--enable-opencode` (all defaulting to false) that are documented in the usage help string and gate prompt generation for the named CLI. When a flag is omitted the CLI must skip creating prompts, agents, modules, and workflow content for that provider during the current execution.
+- **REQ-081**: During normal installation or update runs (that is, invocations that are not `--upgrade`, `--uninstall`, `--remove`, or the version/help shortcuts), the command must require that at least one of the provider-specific enable flags is supplied. If none is provided, the CLI must print an English error message stating that at least one `--enable-*` flag is required, reprint the help usage text, and exit with a non-zero status code.
+- **REQ-082**: The ASCII installation summary table described in REQ-078 must include rows only for CLI targets whose prompts were installed during the current invocation; providers skipped because their enable flag was missing must not appear even if their folders already exist from past runs.
 
 ### 3.3 Installation & Updates
 - **REQ-006**: The `--upgrade` option must execute the command `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` and terminate with error if the command fails.
@@ -274,6 +278,8 @@ No unit tests found in the repository.
 
  - **REQ-079**: Provider configuration files under `src/usereq/resources/` may include an optional `workflow` prompt entry. For providers that define per-prompt `model` and `mode` values, a `workflow` entry, if present, should have `model` and `mode` values consistent with the provider's `create` prompt when that is the intended behavior. The CLI must treat `workflow` as a normal prompt only when `--enable-workflow` is active: in that case, generators should include the `workflow` prompt and, if `--enable-models` is set, include the `model` value for `workflow` from the provider configuration. If a provider configuration does not include a `workflow` entry, and `--enable-workflow` is active, generators that rely on provider `model` metadata must fall back to the `create` prompt's `model` and `mode` for `workflow` without modifying provider configuration files on disk. When `--enable-workflow` is not active, no `workflow` prompt generation or `model` injection for `workflow` must occur.
  
+- **REQ-083**: Resource generation described in sections 3.7.1 through 3.7.5 (GitHub/Codex, Gemini, Kiro, OpenCode, and Claude) must execute only when the corresponding `--enable-<provider>` flag is active for that provider; providers that remain disabled must not receive new prompts, agents, or module installs during that invocation, and the provider-specific `workflow` prompt is only produced when both `--enable-workflow` and the provider enable flag are supplied.
+
 
 ### 3.7 Resource Generation - Specific Tools
 #### 3.7.1 GitHub & Codex
