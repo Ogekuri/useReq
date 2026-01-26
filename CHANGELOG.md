@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.0.59](https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59) - 2026-01-26
+### ⛰️  Features
+- *(core)* change models for github copilot.
+
+### 🐛  Bug Fixes
+- *(core)* rename Optimize in Refactor
+- *(core)* Typo on GPT-5.1-Codex-Mini (Preview) (copilot)
+- *(useReq)* report workflow in summary table [2026-01-25 20:51:19]
+- *(useReq)* align install summary header [2026-01-25 20:32:17]
+- *(core)* change SRS Update and Technical Implementation Records
+- *(useReq)* align install summary table [2026-01-25 20:01:42]
+- *(core)* fix --enable-workflow help string.
+
+### 🚜  Changes
+- *(useReq)* record prompts in install summary table [2026-01-26 14:10:43]
+- *(useReq)* Rename 'optimize' prompt to 'refactor' and update configurations and tests [2026-01-26 12:27:00]
+- *(useReq)* print discovered REQ_DOC files and REQ_DIR folders after install; update REQ-078 and bump version to 0.43 [2026-01-25 20:43:09]
+- *(useReq)* include installation modules table in final message; update requirements and tests [2026-01-25 19:36:10]
+- *(useReq)* Make workflow prompt generation conditional on --enable-workflow; adjust recommendations and tests [2026-01-25 19:31:42]
+
+### 📚  Documentation
+- *(core)* update README.md.
+- *(core)* update Mermaid flowchart.
+
 ## [0.0.58](https://github.com/Ogekuri/useReq/compare/v0.0.57..v0.0.58) - 2026-01-25
 ### ⛰️  Features
 - *(core)* add worklow command.
@@ -310,6 +334,7 @@
 - \[0.0.56\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.56
 - \[0.0.57\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.57
 - \[0.0.58\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.58
+- \[0.0.59\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.59
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -369,3 +394,4 @@
 [0.0.56]: https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56
 [0.0.57]: https://github.com/Ogekuri/useReq/compare/v0.0.56..v0.0.57
 [0.0.58]: https://github.com/Ogekuri/useReq/compare/v0.0.57..v0.0.58
+[0.0.59]: https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59
