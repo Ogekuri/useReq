@@ -1,12 +1,12 @@
 ---
-description: "Perform an optimization without changing the requirements"
-argument-hint: "Description of the optimization goal"
+description: "Perform a refactor without changing the requirements"
+argument-hint: "Description of the refactor goal"
 ---
 
-# Perform an optimization without changing the requirements
+# Perform a refactor without changing the requirements
 
 ## Purpose
-Propose and implement optimizations to the source code to improve performance or resource usage while strictly preserving existing behavior and complying with requirements.
+Propose and implement refactoring to the source code to improve structure or performance while strictly preserving existing behavior and complying with requirements.
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, delete file outside of project's home directory.
@@ -24,7 +24,7 @@ Propose and implement optimizations to the source code to improve performance or
 - Always strictly respect requirements.
 - Use technical documents to implement features and changes.
 - Any new text added to an existing document MUST match that document’s current language.
-- Prioritize clean implementation of internal logic. You are encouraged to refactor internals and private APIs freely to achieve optimization goals. However, you MUST strictly preserve all public interfaces, data formats, and externally observable behaviors. Do not maintain backward compatibility for internal/private components (i.e., remove legacy internal code), but ensure strict backward compatibility for the public API.
+- Prioritize clean implementation of internal logic. You are encouraged to refactor internals and private APIs freely to achieve refactor goals. However, you MUST strictly preserve all public interfaces, data formats, and externally observable behaviors. Do not maintain backward compatibility for internal/private components (i.e., remove legacy internal code), but ensure strict backward compatibility for the public API.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`,`rm -f`,..). Prefer read-only commands for analysis.
 - Directives for autonomous execution:
@@ -43,9 +43,9 @@ Generate a task list based strictly on the steps below:
 2. Read %%REQ_DOC%% and the [User Request](#users-request).
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
    - Identify and read only the relevant source code files necessary to fulfill the request. Do not load the entire codebase unless absolutely necessary.
-3. Generate a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that implement the optimization described by the [User Request](#users-request).
+3. Generate a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that implement the refactor described by the [User Request](#users-request).
 4. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed.
-5. A change is allowed ONLY if it: (a) preserves externally observable behavior required by %%REQ_DOC%% AND (b) improves performance, reliability, or resource usage in a measurable or well-justified way. If the request requires new user-visible features, new configuration options, or changes to documented behavior, recommend to use the `req.new` or `req.change` workflow instead, then OUTPUT exactly "Optimization FAILED!", and then terminate the execution.
+5. A change is allowed ONLY if it: (a) preserves externally observable behavior required by %%REQ_DOC%% AND (b) improves code structure, performance, reliability, or resource usage in a measurable or well-justified way. If the request requires new user-visible features, new configuration options, or changes to documented behavior, recommend to use the `req.new` or `req.change` workflow instead, then OUTPUT exactly "Refactor FAILED!", and then terminate the execution.
 6. Where unit tests exist, plan the necessary refactoring and expansion to cover performance-critical paths and include these details in the **Comprehensive Technical Implementation Report**.
 7. PRINT in the response presenting the detailed **Comprehensive Technical Implementation Report** (only code logic, full detailed content needed for implementation, do not summarize).
 8. Implement the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
@@ -57,8 +57,8 @@ Generate a task list based strictly on the steps below:
 11. Run the updated test suite. 
    - Verify that the implemented changes satisfy the requirements and pass tests.
    - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption.
-   - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Optimization FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
-   - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Optimization FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
+   - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Refactor FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
+   - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Refactor FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
 12. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
 13. %%WORKFLOW%%
@@ -68,9 +68,9 @@ Generate a task list based strictly on the steps below:
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "refactor(useReq): <DESCRIPTION> [<DATE>]"`
       - Generate `<DATE>` executing `date +"%Y-%m-%d %H:%M:%S"`.
-      - Generate `<DESCRIPTION>` as clear and concise description of the optimization changes made on source code, using English language.
-15. Confirm the repo is clean with `git status --porcelain`, If NOT empty OUTPUT exactly "Optimization FAILED!", and then terminate the execution.
-16. OUTPUT exactly "Optimization completed!".
+      - Generate `<DESCRIPTION>` as clear and concise description of the refactor changes made on source code, using English language.
+15. Confirm the repo is clean with `git status --porcelain`, If NOT empty OUTPUT exactly "Refactor FAILED!", and then terminate the execution.
+16. OUTPUT exactly "Refactor completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

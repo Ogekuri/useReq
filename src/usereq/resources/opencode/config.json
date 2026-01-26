@@ -12,7 +12,7 @@
     "workflow": { "model": "github-copilot/gpt-5.1", "mode": "read_write" },
     "fix":      { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
     "new":      { "model": "github-copilot/gpt-5-mini", "mode": "read_write" },
-    "optimize": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+    "refactor": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
     "write":    { "model": "github-copilot/gpt-5.1", "mode": "read_write" }
   }
 }

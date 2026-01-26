@@ -12,7 +12,7 @@
     "workflow": { "model": "claude-sonnet-4.5", "mode": "read_write" },
     "fix":      { "model": "claude-opus-4.5", "mode": "read_write" },
     "new":      { "model": "claude-sonnet-4.5", "mode": "read_write" },
-    "optimize": { "model": "claude-opus-4.5", "mode": "read_write" },
+    "refactor": { "model": "claude-opus-4.5", "mode": "read_write" },
     "write":    { "model": "claude-sonnet-4.5", "mode": "read_write" }
     },
   "usage_modes": {

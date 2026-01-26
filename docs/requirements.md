@@ -18,9 +18,9 @@ tags: ["markdown", "requirements", "useReq"]
 ---
 
 # useReq Requirements
-**Version**: 0.43
+**Version**: 0.44
 **Author**: Ogekuri
-**Date**: 2026-01-25
+**Date**: 2026-01-26
 
 ## Table of Contents
 <!-- TOC -->
@@ -100,6 +100,7 @@ tags: ["markdown", "requirements", "useReq"]
 | 2026-01-24 | 0.41 | Removed REQ-077: removed runtime bootstrap substitution (`%%BOOTSTRAP%%`) from prompt processing and aligned tests by removing the corresponding test that validated this behavior. |
 | 2026-01-25 | 0.42 | Added REQ-078: CLI prints a single-line success message including resolved installation path when installation/update completes successfully. |
 | 2026-01-25 | 0.43 | Updated REQ-078 to require printing the list of files found in %%REQ_DOC%% and the list of directories found in %%REQ_DIR%% between the success message and the installed modules table. |
+| 2026-01-26 | 0.44 | Renamed `optimize` prompt to `refactor` and updated configuration files. |
 
 ## 1. Introduction
 This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
@@ -150,7 +151,7 @@ The project scope is to provide a `use-req`/`req` command that, given a project,
             │   ├── cover.md
             │   ├── fix.md
             │   ├── new.md
-            │   ├── optimize.md
+            │   ├── refactor.md
             │   └── write.md
             ├── templates
             │   └── requirements.md

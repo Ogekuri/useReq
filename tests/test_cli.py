@@ -173,7 +173,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.md",
             "req.fix.md",
             "req.new.md",
-            "req.optimize.md",
+            "req.refactor.md",
             "req.write.md",
         ]
         for prompt in expected_prompts:
@@ -193,7 +193,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.agent.md",
             "req.fix.agent.md",
             "req.new.agent.md",
-            "req.optimize.agent.md",
+            "req.refactor.agent.md",
             "req.write.agent.md",
         ]
         for agent in expected_agents:
@@ -233,7 +233,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.prompt.md",
             "req.fix.prompt.md",
             "req.new.prompt.md",
-            "req.optimize.prompt.md",
+            "req.refactor.prompt.md",
             "req.write.prompt.md",
         ]
         for prompt in expected_prompts:
@@ -261,7 +261,7 @@ class TestCLI(unittest.TestCase):
             "cover.toml",
             "fix.toml",
             "new.toml",
-            "optimize.toml",
+            "refactor.toml",
             "write.toml",
         ]
         for toml in expected_toml:
@@ -298,7 +298,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.md",
             "req.fix.md",
             "req.new.md",
-            "req.optimize.md",
+            "req.refactor.md",
             "req.write.md",
         ]
         for prompt in expected_prompts:
@@ -347,7 +347,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.json",
             "req.fix.json",
             "req.new.json",
-            "req.optimize.json",
+            "req.refactor.json",
             "req.write.json",
         ]
         for agent in expected_agents:
@@ -481,7 +481,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.md",
             "req.fix.md",
             "req.new.md",
-            "req.optimize.md",
+            "req.refactor.md",
             "req.write.md",
         ]
         for agent in expected_agents:
@@ -523,7 +523,7 @@ class TestCLI(unittest.TestCase):
             "req.cover.md",
             "req.fix.md",
             "req.new.md",
-            "req.optimize.md",
+            "req.refactor.md",
             "req.write.md",
         ]
         for agent in expected_agents:
