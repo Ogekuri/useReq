@@ -150,9 +150,11 @@ The project scope is to provide a `use-req`/`req` command that, given a project,
             │   ├── change.md
             │   ├── check.md
             │   ├── cover.md
+            │   ├── create.md
             │   ├── fix.md
             │   ├── new.md
             │   ├── refactor.md
+            │   ├── recreate.md
             │   └── write.md
             ├── templates
             │   └── requirements.md
@@ -234,7 +236,7 @@ No unit tests found in the repository.
     CLI | Prompts Installed | Modules Installed | Workflow Installed
     --- | --- | --- | ---
     ```
-  - For each CLI target that received module installations during the operation, include one row with the target name under `CLI`, a comma-and-space separated list of prompt names installed for that target under `Prompts Installed` (or a single hyphen `-` if no prompts were installed), a comma-and-space separated list of installed module names under `Modules Installed` (or `-` if none), and `Yes` or `No` under `Workflow Installed` indicating whether `--enable-workflow` caused workflow content to be included for that target. Prompt names should reflect the catalogs processed in the run (for example `analyze`, `change`, `check`, `cover`, `create`, `fix`, `new`, `refactor`, `write`, etc.) and must be listed alphabetically.
+  - For each CLI target that received module installations during the operation, include one row with the target name under `CLI`, a comma-and-space separated list of prompt names installed for that target under `Prompts Installed` (or a single hyphen `-` if no prompts were installed), a comma-and-space separated list of installed module names under `Modules Installed` (or `-` if none), and `Yes` or `No` under `Workflow Installed` indicating whether `--enable-workflow` caused workflow content to be included for that target. Prompt names should reflect the catalogs processed in the run (for example `analyze`, `change`, `check`, `cover`, `create`, `fix`, `new`, `refactor`, `recreate`, `write`, etc.) and must be listed alphabetically.
   - The rows must be listed in alphabetical order by the `CLI` column.
   - If no modules were installed for any target, print a single row with `-` in both the `Prompts Installed` and `Modules Installed` columns and `No` in the `Workflow Installed` column.
   - All textual output in the table must be in English.
@@ -279,6 +281,8 @@ No unit tests found in the repository.
  - **REQ-079**: Provider configuration files under `src/usereq/resources/` may include an optional `workflow` prompt entry. For providers that define per-prompt `model` and `mode` values, a `workflow` entry, if present, should have `model` and `mode` values consistent with the provider's `create` prompt when that is the intended behavior. The CLI must treat `workflow` as a normal prompt only when `--enable-workflow` is active: in that case, generators should include the `workflow` prompt and, if `--enable-models` is set, include the `model` value for `workflow` from the provider configuration. If a provider configuration does not include a `workflow` entry, and `--enable-workflow` is active, generators that rely on provider `model` metadata must fall back to the `create` prompt's `model` and `mode` for `workflow` without modifying provider configuration files on disk. When `--enable-workflow` is not active, no `workflow` prompt generation or `model` injection for `workflow` must occur.
  
 - **REQ-083**: Resource generation described in sections 3.7.1 through 3.7.5 (GitHub/Codex, Gemini, Kiro, OpenCode, and Claude) must execute only when the corresponding `--enable-<provider>` flag is active for that provider; providers that remain disabled must not receive new prompts, agents, or module installs during that invocation, and the provider-specific `workflow` prompt is only produced when both `--enable-workflow` and the provider enable flag are supplied.
+
+- **REQ-084**: The `recreate` prompt must be added to `src/usereq/resources/prompts` and treated as a standard Markdown prompt whose documented reorganizing, updating, and renumbering workflow mirrors the template text. All enable-flag-aware metadata sources that already declare the `create` prompt (Claude, GitHub/Copilot, OpenCode, and Kiro) must also declare `recreate` with the same `model` and `mode` so `--enable-models` and `--enable-tools` can apply consistently; when any corresponding provider flag is active, the CLI must generate the `recreate` artifacts (prompts, agents, commands, etc.) with the same token substitutions, argument hints, and workflow handling as other prompts without writing outside the permitted directories.
 
 
 ### 3.7 Resource Generation - Specific Tools

@@ -9,6 +9,7 @@
     "check":    { "model": "claude-sonnet-4.5", "mode": "read_only" },
     "cover":    { "model": "claude-opus-4.5", "mode": "read_write" },
     "create":   { "model": "claude-sonnet-4.5", "mode": "read_write" },
+    "recreate": { "model": "claude-sonnet-4.5", "mode": "read_write" },
     "workflow": { "model": "claude-sonnet-4.5", "mode": "read_write" },
     "fix":      { "model": "claude-opus-4.5", "mode": "read_write" },
     "new":      { "model": "claude-sonnet-4.5", "mode": "read_write" },

@@ -9,6 +9,7 @@
     "check":    { "model": "github-copilot/gemini-3-flash-preview", "mode": "read_only" },
     "cover":    { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
     "create":   { "model": "github-copilot/gpt-5.1", "mode": "read_write" },
+    "recreate": { "model": "github-copilot/gpt-5.1", "mode": "read_write" },
     "workflow": { "model": "github-copilot/gpt-5.1", "mode": "read_write" },
     "fix":      { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
     "new":      { "model": "github-copilot/gpt-5-mini", "mode": "read_write" },

@@ -185,6 +185,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.md",
             "req.new.md",
             "req.refactor.md",
+            "req.recreate.md",
             "req.write.md",
         ]
         for prompt in expected_prompts:
@@ -205,6 +206,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.agent.md",
             "req.new.agent.md",
             "req.refactor.agent.md",
+            "req.recreate.agent.md",
             "req.write.agent.md",
         ]
         for agent in expected_agents:
@@ -245,6 +247,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.prompt.md",
             "req.new.prompt.md",
             "req.refactor.prompt.md",
+            "req.recreate.prompt.md",
             "req.write.prompt.md",
         ]
         for prompt in expected_prompts:
@@ -273,6 +276,7 @@ class TestCLI(unittest.TestCase):
             "fix.toml",
             "new.toml",
             "refactor.toml",
+            "recreate.toml",
             "write.toml",
         ]
         for toml in expected_toml:
@@ -310,6 +314,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.md",
             "req.new.md",
             "req.refactor.md",
+            "req.recreate.md",
             "req.write.md",
         ]
         for prompt in expected_prompts:
@@ -359,6 +364,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.json",
             "req.new.json",
             "req.refactor.json",
+            "req.recreate.json",
             "req.write.json",
         ]
         for agent in expected_agents:
@@ -493,6 +499,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.md",
             "req.new.md",
             "req.refactor.md",
+            "req.recreate.md",
             "req.write.md",
         ]
         for agent in expected_agents:
@@ -535,6 +542,7 @@ class TestCLI(unittest.TestCase):
             "req.fix.md",
             "req.new.md",
             "req.refactor.md",
+            "req.recreate.md",
             "req.write.md",
         ]
         for agent in expected_agents:

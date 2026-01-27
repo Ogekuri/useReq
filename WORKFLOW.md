@@ -44,6 +44,7 @@
             *   `extract_description`: Retrieves the description from frontmatter.
             *   `apply_replacements`: Substitutes tokens in text with calculated values.
             *   `write_text_file`: Writes generated content to the destination file.
+            *   **New `recreate` prompt**: Introduces the reorganizing-and-renumbering workflow along with the same provider metadata as `create`, so artifact generation for enabled providers now includes `recreate` content as well.
             *   **Format-Specific Generators**
                 *   `md_to_toml`: Converts Markdown prompts to TOML format for Gemini.
                 *   `replace_tokens`: Updates TOML files with dynamic values.
