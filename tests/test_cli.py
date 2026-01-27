@@ -1022,6 +1022,55 @@ class TestKiroToolsEnabled(unittest.TestCase):
         )
 
 
+class TestCLIWithoutClaude(unittest.TestCase):
+    """Runs CLI without Claude enabled to ensure other providers work."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-no-claude"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        # Run CLI with a provider other than Claude to surface unbound variable issues.
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cls.exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--doc",
+                    str(cls.TEST_DIR / "docs"),
+                    "--dir",
+                    str(cls.TEST_DIR / "tech"),
+                    "--enable-github",
+                ]
+            )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+
+    def test_exit_code_zero_without_claude(self) -> None:
+        """CLI must succeed when Claude is disabled and GitHub is enabled."""
+        self.assertEqual(self.exit_code, 0)
+
+    def test_github_files_created_without_claude(self) -> None:
+        """GitHub artifacts must be generated without requiring Claude resources."""
+        github_agent = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        self.assertTrue(github_agent.exists(), "GitHub agent must be generated")
+        content = github_agent.read_text(encoding="utf-8")
+        self.assertIn("description:", content, "GitHub agent must include description")
+        claude_dir = self.TEST_DIR / ".claude"
+        self.assertFalse(
+            claude_dir.exists(),
+            "Claude resources must not be created when provider flag is omitted",
+        )
+
+
 class TestProviderEnableFlags(unittest.TestCase):
     """Ensures the CLI enforces provider enable flags before generating resources."""
 

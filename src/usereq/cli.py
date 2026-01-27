@@ -1301,6 +1301,15 @@ def run(args: Namespace) -> None:
         prompt_with_replacements = apply_replacements(content, prompt_replacements)
         prompt_body_replaced = apply_replacements(prompt_body, prompt_replacements)
 
+        # Precompute description and Claude metadata so provider blocks can reuse them safely.
+        desc_yaml = yaml_double_quote_escape(description)
+        claude_model = None
+        claude_tools = None
+        if configs:
+            claude_model, claude_tools = get_model_tools_for_prompt(
+                configs.get("claude"), PROMPT, "claude"
+            )
+
         if enable_codex:
             # .codex/prompts
             dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
@@ -1368,13 +1377,6 @@ def run(args: Namespace) -> None:
             # .claude/agents
             dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
             existed = dst_claude_agent.exists()
-            desc_yaml = yaml_double_quote_escape(description)
-            claude_model = None
-            claude_tools = None
-            if configs:
-                claude_model, claude_tools = get_model_tools_for_prompt(
-                    configs.get("claude"), PROMPT, "claude"
-                )
             claude_header_lines = [
                 "---",
                 f"name: req-{PROMPT}",
