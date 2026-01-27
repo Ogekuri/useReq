@@ -43,10 +43,13 @@ Generate a task list based strictly on the steps below:
 4. List used components and libraries.
 5. Locate and read the unit tests (do not execute them unless explicitly required). Summarize what they test and how. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
 6. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
+   - Act as a *Senior Technical Requirements Engineer*. Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
+     * A comprehensive functional clear description .
+     * The precise expected behavior (include acceptance criteria with testable conditions where possible).
+     * The implementation guidance complete with a detailed implementation logic (data flow, algorithms, or business rules) sufficient for a developer to implement the feature without further clarification.
+   - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - Write requirements, section titles, tables, and other content in **target language**.
    - Follow `.req/templates/requirements.md` translated into **target language**.
-   - Describe every project requirement clearly, succinctly, and unambiguously.
-   - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - Output the entire response in clean, properly formatted Markdown.
 7. Re-read `%%REQ_PATH%%/requirements_DRAFT.md` and cross-reference with the source code.
    - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).

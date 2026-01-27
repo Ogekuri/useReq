@@ -1,7 +1,8 @@
-title: "useReq Requirements"
-description: "Software Requirements Specification"
-date: "2026-01-26"
-version: 0.45
+---
+title: "Requisiti useReq"
+description: "Specifica dei Requisiti Software"
+date: "2026-01-27"
+version: 0.46
 author: "Ogekuri"
 scope:
   paths:
@@ -13,131 +14,105 @@ scope:
   excludes:
     - ".*/**"
 visibility: "draft"
-tags: ["markdown", "requirements", "useReq"]
+tags: ["markdown", "requisiti", "useReq"]
+---
 
-# useReq Requirements
-**Version**: 0.45
-**Author**: Ogekuri
-**Date**: 2026-01-26
+# Requisiti useReq
+**Versione**: 0.46
+**Autore**: Ogekuri
+**Data**: 2026-01-27
 
-## Table of Contents
+## Indice
 <!-- TOC -->
-- [useReq Requirements](#usereq-requirements)
-  - [Table of Contents](#table-of-contents)
-  - [Revision History](#revision-history)
-  - [1. Introduction](#1-introduction)
-    - [1.1 Document Rules](#11-document-rules)
-    - [1.2 Project Scope](#12-project-scope)
-    - [1.3 Components and Libraries Used](#13-components-and-libraries-used)
-    - [1.4 Project Structure](#14-project-structure)
-    - [1.5 Main Components and Relationships](#15-main-components-and-relationships)
-    - [1.6 Optimizations and Performance](#16-optimizations-and-performance)
-    - [1.7 Test Suite](#17-test-suite)
-  - [2. Project Requirements](#2-project-requirements)
-    - [2.1 Project Functions](#21-project-functions)
-    - [2.2 Project Constraints](#22-project-constraints)
-  - [3. Requirements](#3-requirements)
-    - [3.1 Design and Implementation](#31-design-and-implementation)
-    - [3.2 CLI Interface \& General Behavior](#32-cli-interface--general-behavior)
-    - [3.3 Installation \& Updates](#33-installation--updates)
-    - [3.4 Version Check](#34-version-check)
-    - [3.5 Project Initialization \& Configuration](#35-project-initialization--configuration)
-    - [3.6 Resource Generation - Common](#36-resource-generation---common)
-    - [3.7 Resource Generation - Specific Tools](#37-resource-generation---specific-tools)
-      - [3.7.1 GitHub \& Codex](#371-github--codex)
-      - [3.7.2 Gemini](#372-gemini)
-      - [3.7.3 Kiro](#373-kiro)
-      - [3.7.4 OpenCode](#374-opencode)
-      - [3.7.5 Claude](#375-claude)
-    - [3.8 Removal](#38-removal)
-    - [3.9 Development \& Testing](#39-development--testing)
-    - [3.10 CI/CD Workflows](#310-cicd-workflows)
+- [Requisiti useReq](#requisiti-usereq)
+  - [Indice](#indice)
+  - [Cronologia delle Revisioni](#cronologia-delle-revisioni)
+  - [1. Introduzione](#1-introduzione)
+    - [1.1 Regole del Documento](#11-regole-del-documento)
+    - [1.2 Ambito del Progetto](#12-ambito-del-progetto)
+    - [1.3 Componenti e Librerie Utilizzati](#13-componenti-e-librerie-utilizzati)
+    - [1.4 Struttura del Progetto](#14-struttura-del-progetto)
+    - [1.5 Componenti Principali e Relazioni](#15-componenti-principali-e-relazioni)
+    - [1.6 Ottimizzazioni e Prestazioni](#16-ottimizzazioni-e-prestazioni)
+    - [1.7 Suite di Test](#17-suite-di-test)
+  - [2. Requisiti di Progetto](#2-requisiti-di-progetto)
+    - [2.1 Funzioni del Progetto](#21-funzioni-del-progetto)
+    - [2.2 Vincoli del Progetto](#22-vincoli-del-progetto)
+  - [3. Requisiti](#3-requisiti)
+    - [3.1 Progettazione e Implementazione](#31-progettazione-e-implementazione)
+    - [3.2 Interfaccia CLI e Comportamento Generale](#32-interfaccia-cli-e-comportamento-generale)
+    - [3.3 Installazione e Aggiornamenti](#33-installazione-e-aggiornamenti)
+    - [3.4 Controllo Versione](#34-controllo-versione)
+    - [3.5 Inizializzazione e Configurazione del Progetto](#35-inizializzazione-e-configurazione-del-progetto)
+    - [3.6 Generazione Risorse - Comune](#36-generazione-risorse---comune)
+    - [3.7 Generazione Risorse - GitHub e Codex](#37-generazione-risorse---github-e-codex)
+    - [3.8 Generazione Risorse - Gemini](#38-generazione-risorse---gemini)
+    - [3.9 Generazione Risorse - Kiro](#39-generazione-risorse---kiro)
+    - [3.10 Generazione Risorse - OpenCode](#310-generazione-risorse---opencode)
+    - [3.11 Generazione Risorse - Claude](#311-generazione-risorse---claude)
+    - [3.12 Rimozione](#312-rimozione)
+    - [3.13 Sviluppo e Test](#313-sviluppo-e-test)
+    - [3.14 Workflow CI/CD](#314-workflow-cicd)
 <!-- TOC -->
 
-## Revision History
-| Date | Version | Reason and Description of Change |
+## Cronologia delle Revisioni
+| Data | Versione | Motivo e Descrizione del Cambiamento |
 |------|---------|----------------------------------|
-| 2025-12-31 | 0.0 | Creation of requirements draft. |
-| 2026-01-01 | 0.1 | Added req.sh script to run in-development version with venv. |
-| 2026-01-01 | 0.2 | Added version printing for invocations without arguments and with dedicated options. |
-| 2026-01-01 | 0.3 | Added help printing with version for invocations without arguments and version-only printing for dedicated options. |
-| 2026-01-01 | 0.4 | Added version and command in the help usage string. |
-| 2026-01-01 | 0.5 | Updated Gemini command generation in dedicated subfolder. |
-| 2026-01-01 | 0.6 | Added support for Kiro CLI resource generation. |
-| 2026-01-01 | 0.7 | Modified --doc command to accept directories and generate file lists. |
-| 2026-01-01 | 0.8 | Restored path relativization and test organization under temp/. |
-| 2026-01-01 | 0.9 | Modified --dir command to process subfolders and generate directory lists. |
-| 2026-01-01 | 0.10 | Updated Kiro prompt generation with full Markdown body. |
-| 2026-01-01 | 0.11 | Added support for --upgrade option and updated usage. |
-| 2026-01-01 | 0.12 | Added support for --uninstall option and updated usage. |
-| 2026-01-01 | 0.13 | Added persistent configuration for --doc and --dir. |
-| 2026-01-02 | 0.14 | Added support for --update option. |
-| 2026-01-02 | 0.15 | Added support for --remove option and settings restoration. |
-| 2026-01-02 | 0.16 | Added requirement for English language output. |
-| 2026-01-02 | 0.17 | Added requirements for English language comments in source code. |
-| 2026-01-02 | 0.18 | Added requirement for Kiro resource ordering. |
-| 2026-01-09 | 0.19 | Added support for OpenCode resource generation. |
-| 2026-01-10 | 0.20 | Added support for Claude Code CLI resource generation. |
-| 2026-01-11 | 0.21 | Modified OpenCode support: removed opencode.json generation, added individual agent generation in .opencode/agent/ with "all" mode. |
-| 2026-01-11 | 0.22 | Modified OpenCode agent generation in .opencode/agent/ from JSON to Markdown with front matter. |
-| 2026-01-11 | 0.23 | Removed generation of .opencode/prompts folder. |
-| 2026-01-11 | 0.24 | Added requirement REQ-040: generation of front matter `name` for agents in `.github/agents`. |
-| 2026-01-11 | 0.25 | Removed `model: inherit` obligation for agents in `.github/agents` (REQ-040 updated). |
-| 2026-01-11 | 0.27 | Added detailed output in unit tests to show test list, current execution, check, and result. |
-| 2026-01-11 | 0.28 | Avoided generation of .req/settings.json.absent; --remove does not modify .vscode/settings.json; idempotent merge of VS Code settings. |
-| 2026-01-11 | 0.29 | Clarified --remove behavior: the .req folder must be completely removed; removed obligation to restore VS Code settings during --remove. |
-| 2026-01-11 | 0.30 | Added requirements and GitHub Actions workflow for build on v* tags and attestation generation for release. |
-| 2026-01-11 | 0.31 | Added online check for new version availability (GitHub releases latest). |
-| 2026-01-14 | 0.32 | Removed default `model: inherit` setting for Claude Code; added optional `model` and `tools` management based on flags and configuration file; updated requirements and tests. |
-| 2026-01-14 | 0.33 | Forbidden any test writing outside of `temp/`; updated requirements and test suite. |
-| 2026-01-14 | 0.34 | Corrected population of `resources` field in Kiro agents from `config.json` template maintaining original format. |
-| 2026-01-14 | 0.35 | Updated Kiro requirement so that `tools` and `allowedTools` are populated with arrays declared in `usage_modes` for each prompt. |
-| 2026-01-15 | 0.36 | Added front matter generation for Claude commands in `.claude/commands/req` with `agent`, `model` (optional), and `allowed-tools` (optional, CSV) fields. |
-| 2026-01-23 | 0.39 | Removed `--parse-prompts` (REQ-075) from requirements; flag was redundant and removed from CLI. |
-| 2026-01-24 | 0.40 | Relaxed commenting requirements (DES-009, DES-010); removed REQ-073 (--yolo); updated agent generation conditional on --prompts-use-agents (REQ-038, REQ-039, REQ-051, REQ-056); clarified Kiro vs GitHub content (REQ-043); removed fallback to default mode in Kiro (REQ-047). |
-| 2026-01-24 | 0.41 | Removed REQ-077: removed runtime bootstrap substitution (`%%BOOTSTRAP%%`) from prompt processing and aligned tests by removing the corresponding test that validated this behavior. |
-| 2026-01-25 | 0.42 | Added REQ-078: CLI prints a single-line success message including resolved installation path when installation/update completes successfully. |
-| 2026-01-25 | 0.43 | Updated REQ-078 to require printing the list of files found in %%REQ_DOC%% and the list of directories found in %%REQ_DIR%% between the success message and the installed modules table. |
-| 2026-01-26 | 0.44 | Renamed `optimize` prompt to `refactor` and updated configuration files. |
-| 2026-01-26 | 0.45 | Added provider-specific enable flags for prompt generation and tightened the installation summary table to the targeted providers. |
+| 2025-12-31 | 0.0 | Creazione bozza requisiti. |
+| 2026-01-26 | 0.45 | Aggiunta flag di abilitazione specifici per provider per la generazione prompt e tabella di riepilogo installazione ristretta ai provider target. |
+| 2026-01-27 | 0.46 | Traduzione in Italiano, riorganizzazione e rinumerazione. |
 
-## 1. Introduction
-This document defines the software requirements for useReq, a CLI utility that initializes a project with templates, prompts, and agent resources, ensuring consistent relative paths with respect to the project root.
+## 1. Introduzione
+Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
 
-### 1.1 Document Rules
-This document must always follow these rules:
-- This document must be written in English.
-- Requirements must be formatted as a bulleted list, using the verb "must" to indicate mandatory actions.
-- Each identifier (**PRJ-001**, **PRJ-002**, **CTN-001**, **CTN-002**, **DES-001**, **DES-002**, **REQ-012**, **REQ-036**, …) must be unique.
-- Each identifier must start with the prefix of its requirement group (PRJ-, CTN-, DES-, REQ-).
-- Each requirement must be identifiable, verifiable, and testable.
-- With each modification of the document, the version number and revision history must be updated by adding an entry to the bottom of the list.
+### 1.1 Regole del Documento
+Questo documento deve sempre seguire queste regole:
+- Una breve descrizione dello scopo/raggruppamento delle regole del documento.
+- Questo documento deve essere scritto in Italiano.
+- I requisiti devono essere formattati come elenco puntato, utilizzando il verbo "deve" per indicare azioni obbligatorie.
+- Ogni identificatore (**PRJ-001**, **PRJ-002**, **CTN-001**, **CTN-002**, **DES-001**, **DES-002**, **REQ-012**, **REQ-036**, …) deve essere univoco.
+- Ogni identificatore deve iniziare con il prefisso del gruppo del requisito (PRJ-, CTN-, DES-, REQ-).
+- Ogni requisito deve essere identificabile, verificabile e testabile.
+- Ad ogni modifica del documento, il numero di versione e la cronologia delle revisioni devono essere aggiornati aggiungendo una voce in fondo alla lista.
 
-### 1.2 Project Scope
-The project scope is to provide a `use-req`/`req` command that, given a project, initializes requirement files, technical folders, and prompt resources for development tools, ensuring safe relative paths and a repeatable setup.
+### 1.2 Ambito del Progetto
+L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progetto, inizializza file di requisiti, cartelle tecniche e risorse di prompt per strumenti di sviluppo, garantendo percorsi relativi sicuri e un setup ripetibile.
 
-### 1.3 Components and Libraries Used
-- Python 3.11+ as package runtime.
-- Standard libraries (`argparse`, `json`, `pathlib`, `shutil`, `os`, `re`, `sys`) for CLI parsing, file management, and paths.
-- `setuptools` and `wheel` for packaging and distribution.
+### 1.3 Componenti e Librerie Utilizzati
+- Python 3.11+ come runtime del pacchetto.
+- Librerie standard (`argparse`, `json`, `pathlib`, `shutil`, `os`, `re`, `sys`) per parsing CLI, gestione file e percorsi.
+- `setuptools` e `wheel` per pacchettizzazione e distribuzione.
 
-### 1.4 Project Structure
+### 1.4 Struttura del Progetto
 ```
 .
 ├── CHANGELOG.md
 ├── LICENSE
-- **REQ-083**: Resource generation described in sections 3.7.1 through 3.7.5 (GitHub/Codex, Gemini, Kiro, OpenCode, and Claude) must execute only when the corresponding `--enable-<provider>` flag is active for that provider; providers that remain disabled must not receive new prompts, agents, or module installs during that invocation, and the provider-specific `workflow` prompt is only produced when both `--enable-workflow` and the provider enable flag are supplied.
-
+├── package.json
+├── pdoc.sh
+├── pyproject.toml
 ├── README.md
+├── req.sh
+├── requirements.txt
+├── tests.sh
 ├── TODO.md
+├── venv.sh
+├── WORKFLOW.md
 ├── docs
-│   └── requirements.md
+│   ├── requirements.md
+│   └── requirements_DRAFT.md
+├── images
+│   └── flowchart.md
 ├── other-stuff
 │   └── templates
 │       ├── srs-template-bare.md
 │       └── srs-template.md
-├── pyproject.toml
-└── src
+├── pdoc
+│   ├── index.html
+│   ├── search.js
+│   ├── usereq.html
+│   └── usereq
+├── src
     └── usereq
         ├── __init__.py
         ├── __main__.py
@@ -160,190 +135,173 @@ The project scope is to provide a `use-req`/`req` command that, given a project,
             │   └── requirements.md
             └── vscode
                 └── settings.json
+├── tech
+├── temp
+└── tests
+    ├── __init__.py
+    └── test_cli.py
 ```
 
-### 1.5 Main Components and Relationships
-- `usereq.cli` contains the main command logic, argument parsing, and initialization flow.
-- `usereq.__main__` exposes execution as a Python module and delegates to `usereq.cli.main`.
-- `usereq.__init__` provides version metadata and a re-export of the `main` entry point.
-- `resources/prompts`, `resources/templates`, and `resources/vscode` contain the source files that the command copies or integrates into the target project.
+### 1.5 Componenti Principali e Relazioni
+- `usereq.cli` contiene la logica principale del comando, parsing degli argomenti e flusso di inizializzazione.
+- `usereq.__main__` espone l'esecuzione come modulo Python e delega a `usereq.cli.main`.
+- `usereq.__init__` fornisce metadati di versione e riesporta l'entry point `main`.
+- `resources/prompts`, `resources/templates`, e `resources/vscode` contengono i file sorgente che il comando copia o integra nel progetto target.
 
-### 1.6 Optimizations and Performance
-There are no explicit performance optimizations; the code is limited to linear processing of files and paths necessary for initialization.
+### 1.6 Ottimizzazioni e Prestazioni
+Non ci sono ottimizzazioni delle prestazioni esplicite identificate; il codice si limita all'elaborazione lineare di file e percorsi necessari per l'inizializzazione.
 
-### 1.7 Test Suite
-No unit tests found in the repository.
+### 1.7 Suite di Test
+Il progetto include una suite di test in `tests/`.
 
-## 2. Project Requirements
-### 2.1 Project Functions
-- **PRJ-001**: The command must initialize a project by creating or updating requirement documents, technical templates, and prompt resources based on the root indicated by the user.
-- **PRJ-002**: The command must accept exactly one of the options `--base` or `--here` and parameters `--doc` and `--dir` to determine the project root and paths to manage.
-- **PRJ-003**: The command must generate prompt resources for Codex, GitHub, and Gemini by replacing path tokens with calculated relative values.
-- **PRJ-004**: The command must update local templates in `.req/templates` and integrate VS Code settings when available.
-- **PRJ-005**: The user interface must be a textual CLI with error messages and optional progress logs.
+## 2. Requisiti di Progetto
+### 2.1 Funzioni del Progetto
+- Questa sezione definisce le funzioni principali che il progetto deve implementare.
+- **PRJ-001**: Il comando deve inizializzare un progetto creando o aggiornando documenti di requisiti, template tecnici e risorse di prompt basati sulla root indicata dall'utente.
+- **PRJ-002**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here` e parametri `--doc` e `--dir` per determinare la root del progetto e i percorsi da gestire.
+- **PRJ-003**: Il comando deve generare risorse di prompt per Codex, GitHub e Gemini sostituendo i token di percorso con valori relativi calcolati.
+- **PRJ-004**: Il comando deve aggiornare i template locali in `.req/templates` e integrare le impostazioni di VS Code quando disponibili.
+- **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
-### 2.2 Project Constraints
-- **CTN-001**: The values of `--doc` and `--dir` can be absolute or relative paths. Paths must be normalized to paths relative to the project root passed with `--base` by checking if it is present in the paths passed with `--doc` and `--dir`.
-- **CTN-002**: The path passed to `--doc` and then normalized with respect to `--base`, must exist as a real directory under the project root before resource copying.
-- **CTN-003**: The path passed to `--dir` and then normalized with respect to `--base`, must exist as a real directory under the project root before resource copying.
-- **CTN-004**: Removal of pre-existing `.req` or `.req/templates` directories must be allowed only if such paths are under the project root.
-- **CTN-005**: The command must fail if the specified project does not exist on the filesystem.
+### 2.2 Vincoli del Progetto
+- Questa sezione definisce i vincoli e le limitazioni che il progetto deve rispettare.
+- **CTN-001**: I valori di `--doc` e `--dir` possono essere percorsi assoluti o relativi. I percorsi devono essere normalizzati rispetto alla root del progetto passata con `--base` verificando se presente nei percorsi passati con `--doc` e `--dir`.
+- **CTN-002**: Il percorso passato a `--doc` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
+- **CTN-003**: Il percorso passato a `--dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
+- **CTN-004**: La rimozione di directory preesistenti `.req` o `.req/templates` deve essere permessa solo se tali percorsi sono sotto la root del progetto.
+- **CTN-005**: Il comando deve fallire se il progetto specificato non esiste sul filesystem.
 
-## 3. Requirements
-### 3.1 Design and Implementation
-- **DES-001**: The calculation of tokens `%%REQ_DOC%%` and `%%REQ_DIR%%` must be replaced with the list of documents and directories found in the folders specified with `--doc` and `--dir`. When expanded inline, these lists must be formatted using inline code notation (backticks) for each item rather than markdown links. For documents use the form `file1`, `file2`, `file3`; for directories use the form `dir1/`, `dir2/` (note the trailing slash to indicate directories).
-- **DES-002**: The source of the `requirements.md` template must be the `resources/templates` folder included in the package and the command must fail if the template is not available.
-- **DES-003**: The conversion of Markdown prompts to TOML must extract the `description` field from the front matter and save the prompt body in a multiline string.
-- **DES-004**: The merge of VS Code settings must support JSONC files by removing comments and must recursively merge objects with priority to template values.
-- **DES-005**: The recommendations `chat.promptFilesRecommendations` must be generated starting from available Markdown prompts.
-- **DES-006**: The package entry point must expose `usereq.cli:main` via `use-req`, `req`, and `usereq`.
-- **DES-007**: Expected errors must be handled via a dedicated exception with non-zero exit code.
-- **DES-008**: All comments in source codes must be written exclusively in English. Exceptions are made for source file header comments. For example, comments indicating versions and/or authors like "# VERSION:" or "# AUTHORS:" which maintain standard English formatting.
-- **DES-009**: Every important part of the code (classes, complex functions, business logic, critical algorithms) should be commented where necessary, though explanatory comments may be minimal for self-evident business logic.
-- **DES-010**: Every new functionality added should include explanatory comments where applicable; modification of existing code does not strictly require updating pre-existing comments if the logic remains clear.
-- **DES-011**: The static strings used for the `%%WORKFLOW%%` token substitution must be stored as plain text files inside the package resources under `src/usereq/resources/common/` with the filenames `workflow_on.md` and `workflow_off.md`. At runtime the CLI must load these files and use their contents for the `%%WORKFLOW%%` substitution. If the files are not present or cannot be read, the CLI must fall back to sensible built-in default texts that preserve previous behavior.
+## 3. Requisiti
+### 3.1 Progettazione e Implementazione
+- Questa sezione delinea i requisiti relativi alle scelte di progettazione e ai dettagli implementativi.
+- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` deve essere sostituito con la lista di documenti e directory trovati nelle cartelle specificate con `--doc` e `--dir`. Quando espansi inline, queste liste devono essere formattate usando notazione inline code (backticks) per ogni elemento invece di link markdown. Per documenti usare la forma `file1`, `file2`, `file3`; per directory usare la forma `dir1/`, `dir2/` (con slash finale).
+- **DES-002**: La sorgente del template `requirements.md` deve essere la cartella `resources/templates` inclusa nel pacchetto e il comando deve fallire se il template non è disponibile.
+- **DES-003**: La conversione di prompt Markdown in TOML deve estrarre il campo `description` dal front matter e salvare il corpo del prompt in una stringa multilinea.
+- **DES-004**: L'unione delle impostazioni VS Code deve supportare file JSONC rimuovendo i commenti e deve unire ricorsivamente gli oggetti con priorità ai valori del template.
+- **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate partendo dai prompt Markdown disponibili.
+- **DES-006**: L'entry point del pacchetto deve esporre `usereq.cli:main` via `use-req`, `req`, e `usereq`.
+- **DES-007**: Gli errori attesi devono essere gestiti via eccezione dedicata con exit code non-zero.
+- **DES-008**: Tutti i commenti nel codice sorgente devono essere scritti esclusivamente in Inglese. Eccezioni sono fatte per header di file sorgente.
+- **DES-009**: Ogni parte importante del codice (classi, funzioni complesse, logica di business, algoritmi critici) dovrebbe essere commentata dove necessario.
+- **DES-010**: Ogni nuova funzionalità aggiunta dovrebbe includere commenti esplicativi dove applicabile.
+- **DES-011**: Le stringhe statiche usate per la sostituzione del token `%%WORKFLOW%%` devono essere salvate come file di testo semplice nelle risorse del pacchetto sotto `src/usereq/resources/common/` con nomi `workflow_on.md` e `workflow_off.md`. A runtime la CLI deve caricare questi file; se non presenti, deve usare default sensati.
 
-### 3.2 CLI Interface & General Behavior
-- **REQ-001**: When the `req` command is invoked without parameters, the output must include help and the version number defined in `src/usereq/__init__.py` (`__version__`).
-- **REQ-002**: When the `req` command is invoked with the `--ver` or `--version` option, the output must contain only the version number defined in `src/usereq/__init__.py` (`__version__`).
-- **REQ-003**: The help usage string must include the command `req` and the version `__version__` in the format `usage: req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) --doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] (major.minor.patch)` with major.minor.patch from `__version__`.
-- **REQ-004**: All usage, help, information, verbose, or debug outputs of the script must be in English.
-- **REQ-005**: The command must verify that the `--doc` parameter indicates an existing directory, otherwise it must terminate with error.
-- **REQ-080**: The command must accept boolean flags `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, and `--enable-opencode` (all defaulting to false) that are documented in the usage help string and gate prompt generation for the named CLI. When a flag is omitted the CLI must skip creating prompts, agents, modules, and workflow content for that provider during the current execution.
-- **REQ-081**: During normal installation or update runs (that is, invocations that are not `--upgrade`, `--uninstall`, `--remove`, or the version/help shortcuts), the command must require that at least one of the provider-specific enable flags is supplied. If none is provided, the CLI must print an English error message stating that at least one `--enable-*` flag is required, reprint the help usage text, and exit with a non-zero status code.
-- **REQ-082**: The ASCII installation summary table described in REQ-078 must include rows only for CLI targets whose prompts were installed during the current invocation; providers skipped because their enable flag was missing must not appear even if their folders already exist from past runs.
+### 3.2 Interfaccia CLI e Comportamento Generale
+- Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
+- **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
+- **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req` e la versione nel formato `usage: req -c ...`.
+- **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
+- **REQ-005**: Il comando deve verificare che il parametro `--doc` indichi una directory esistente, altrimenti deve terminare con errore.
+- **REQ-006**: Il comando deve accettare flag booleani `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, e `--enable-opencode` (default false). Quando un flag è omesso, la CLI deve saltare la creazione di risorse per quel provider.
+- **REQ-007**: Durante installazioni normali (non upgrade/remove/help), il comando deve richiedere che almeno un flag `--enable-*` sia fornito. Se nessuno è fornito, deve stampare un messaggio di errore in Inglese e uscire.
+- **REQ-008**: La tabella riassuntiva di installazione ASCII deve includere righe solo per i target CLI i cui prompt sono stati installati durante l'invocazione corrente.
 
-### 3.3 Installation & Updates
-- **REQ-006**: The `--upgrade` option must execute the command `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` and terminate with error if the command fails.
-- **REQ-007**: The help usage string must include the `--upgrade` parameter as an available option.
-- **REQ-008**: The `--uninstall` option must execute the command `uv tool uninstall usereq` and terminate with error if the command fails.
-- **REQ-009**: The help usage string must include the `--uninstall` parameter as an available option.
+### 3.3 Installazione e Aggiornamenti
+- Questa sezione copre i requisiti per l'installazione, l'aggiornamento e la disinstallazione del tool e delle risorse.
+- **REQ-009**: L'opzione `--upgrade` deve eseguire il comando `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` e terminare con errore se fallisce.
+- **REQ-010**: La stringa di aiuto deve includere `--upgrade` come opzione disponibile.
+- **REQ-011**: L'opzione `--uninstall` deve eseguire `uv tool uninstall usereq` e terminare con errore se fallisce.
+- **REQ-012**: La stringa di aiuto deve includere `--uninstall` come opzione disponibile.
+- **REQ-013**: Dopo il completamento con successo di un'installazione o aggiornamento, la CLI deve stampare una singola riga in Inglese informando l'utente del successo includendo il percorso root risolto.
+- **REQ-014**: Immediatamente dopo il messaggio di successo, la CLI deve stampare una lista dei file e directory scoperti per la sostituzione dei token `%%REQ_DOC%%` e `%%REQ_DIR%%`, prefissati da `- `.
+- **REQ-015**: Immediatamente dopo la lista file, la CLI deve stampare una tabella leggibile ASCII descrivendo quali prompt e moduli sono stati installati per ogni target CLI e se il workflow è stato installato.
 
- - **REQ-078**: After successful completion of an installation or an update operation (that is, when the command finishes all intended filesystem modifications without error and exits with status code 0), the CLI must print a single line in English informing the user that the installation completed successfully and include the resolved project root path used for the operation. The message format must be exactly:
-  - "Installation completed successfully in <path>"
-  - where `<path>` is the absolute path to the project root as resolved from the `--base` parameter or the absolute working directory when `--here` was used. This line must be printed only on successful completion and must not be emitted on error paths or when the command performs a dry-run or validation-only flow.
+### 3.4 Controllo Versione
+- Questa sezione specifica i requisiti per la verifica online di nuove versioni del software.
+- **REQ-016**: Il comando, dopo validazione input e prima di modifiche filesystem, deve verificare disponibilità online di nuova versione tramite chiamata HTTP GET a GitHub API con timeout 1 secondo.
+- **REQ-017**: Se la chiamata ha successo e la versione remota è maggiore di `__version__`, il comando deve stampare un messaggio in Inglese indicando versione corrente, disponibile e comando per aggiornare.
 
-  Immediately following the single-line message, and before printing the ASCII table described below, the CLI must print a summary listing of the files and directories discovered for substitution of the tokens `%%REQ_DOC%%` and `%%REQ_DIR%%` as follows:
-  - Print the list of files discovered under the resolved `--doc` path (used for `%%REQ_DOC%%`) one per line, each prefixed with `- ` and using the relative path representation that the CLI uses for `%%REQ_DOC%%` substitutions (for example `- docs/requirements.md`). Files must be listed in alphabetical order.
-  - Print the list of subdirectories discovered under the resolved `--dir` path (used for `%%REQ_DIR%%`) one per line, each prefixed with `- ` and using the relative path representation that the CLI uses for `%%REQ_DIR%%` substitutions; directory entries must include a trailing slash to indicate directories (for example `- tech/`). Directories must be listed in alphabetical order.
-  - If the resolved `--dir` path contains no subdirectories, the CLI must print the single line exactly:
-    - "The folder %%REQ_DIR%% does not contain any folder"
+### 3.5 Inizializzazione e Configurazione del Progetto
+- Questa sezione descrive come il progetto deve essere inizializzato e configurato.
+- **REQ-018**: Se la directory indicata da `--doc` è vuota, il comando deve generare un file `requirements.md` dal template.
+- **REQ-019**: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
+- **REQ-020**: Lo script `req.sh` deve essere eseguibile da qualsiasi percorso, risolvere la propria directory, verificare `.venv` e crearlo se assente.
+- **REQ-021**: Se `.venv` esiste, `req.sh` deve eseguire il comando usando il Python del venv inoltrando gli argomenti.
+- **REQ-022**: Il comando deve salvare i valori di `--doc` e `--dir` in `.req/config.json` come percorsi relativi.
+- **REQ-023**: Il file `.req/config.json` deve includere campi `doc` e `dir` preservando slash finali.
+- **REQ-024**: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione usando parametri salvati.
+- **REQ-025**: Quando `--update` è presente, il comando deve verificare presenza di `.req/config.json` e terminare con errore se assente.
+- **REQ-026**: Con `--update`, il comando deve caricare `doc` e `dir` da config ed eseguire il flusso come se passati manualmente.
+- **REQ-027**: Il comando deve copiare i template in `.req/templates`, rimpiazzando pre-esistenti.
+- **REQ-028**: Se il template VS Code è disponibile, deve creare o aggiornare `.vscode/settings.json` unendo impostazioni.
+- **REQ-029**: Prima di modificare `.vscode/settings.json`, deve salvare lo stato originale in backup sotto `.req/` (per ripristino con remove).
+- **REQ-030**: L'aggiornamento di `.vscode/settings.json` deve avvenire solo se ci sono differenze semantiche; se non ce ne sono, non deve riscrivere né creare backup.
+- **REQ-031**: Il file `.req/settings.json.absent` non deve mai essere generato.
 
-  - Immediately after the file and directory listing, the CLI must print a human-readable table describing which prompts and modules were installed for each CLI target and whether the optional workflow feature was installed. The table must:
-  - Be printed in plain ASCII (pipe-separated rows) and use a header row with the columns `CLI`, `Prompts Installed`, `Modules Installed`, and `Workflow Installed`.
-  - Use the following exact header and separator rows (including the pipe and dash characters):
-    ```
-    CLI | Prompts Installed | Modules Installed | Workflow Installed
-    --- | --- | --- | ---
-    ```
-  - For each CLI target that received module installations during the operation, include one row with the target name under `CLI`, a comma-and-space separated list of prompt names installed for that target under `Prompts Installed` (or a single hyphen `-` if no prompts were installed), a comma-and-space separated list of installed module names under `Modules Installed` (or `-` if none), and `Yes` or `No` under `Workflow Installed` indicating whether `--enable-workflow` caused workflow content to be included for that target. Prompt names should reflect the catalogs processed in the run (for example `analyze`, `change`, `check`, `cover`, `create`, `fix`, `new`, `refactor`, `recreate`, `write`, etc.) and must be listed alphabetically.
-  - The rows must be listed in alphabetical order by the `CLI` column.
-  - If no modules were installed for any target, print a single row with `-` in both the `Prompts Installed` and `Modules Installed` columns and `No` in the `Workflow Installed` column.
-  - All textual output in the table must be in English.
+### 3.6 Generazione Risorse - Comune
+- Questa sezione contiene i requisiti comuni per la generazione delle risorse per i vari provider AI.
+- **REQ-032**: Il comando deve sostituire `%%REQ_DOC%%` con la lista di file in `--doc` formattati come inline code, relativi alla root.
+- **REQ-033**: La lista file per `%%REQ_DOC%%` deve usare percorsi relativi netti.
+- **REQ-034**: Lo script deve relativizzare percorsi che contengono il path home progetto.
+- **REQ-035**: Il comando deve sostituire `%%REQ_DIR%%` con la lista di sottocartelle in `--dir` formattate come inline code con slash finale.
+- **REQ-036**: Se la directory `--dir` è vuota, usare la directory stessa per `%%REQ_DIR%%`.
+- **REQ-037**: La lista directory per `%%REQ_DIR%%` deve usare percorsi relativi.
+- **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
+- **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
+- **REQ-040**: Con `--enable-tools`, includere `tools` derivato da `usage_modes` se presente in `config.json`.
+- **REQ-041**: L'inclusione di `model` e `tools` è condizionale alla validità del `config.json`.
+- **REQ-042**: La CLI deve accettare flag `--enable-workflow` (default false). Il token `%%WORKFLOW%%` deve essere sostituito a runtime con testo statico. Se non presente, non generare prompt workflow.
+- **REQ-043**: I file di configurazione provider possono includere voce `workflow`. Se `--enable-workflow` è attivo, i generatori devono includere il prompt `workflow`.
+- **REQ-044**: La generazione risorse descritta nelle sezioni specifiche deve eseguire solo quando il flag `--enable-<provider>` corrispondente è attivo.
+- **REQ-045**: Il prompt `recreate` deve essere aggiunto a `src/usereq/resources/prompts` e trattato come prompt standard. Deve essere generato per ogni provider abilitato.
 
-### 3.4 Version Check
-- **REQ-010**: The command, after successfully validating inputs and before performing any operation modifying the filesystem, must verify online availability of a new version by performing an HTTP GET call to `https://api.github.com/repos/Ogekuri/useReq/releases/latest` with a 1-second timeout.
-- **REQ-011**: If the call fails (timeout/network error/invalid response), the command must proceed without printing anything. If the call succeeds and the remote version (read from JSON `tag_name` field and normalized by removing any `v` prefix) is greater than `__version__`, the command must print a message in English indicating current version and available version and must indicate how to update using `req --upgrade`.
+### 3.7 Generazione Risorse - GitHub e Codex
+- Requisiti specifici per la generazione di risorse per GitHub Copilot e Codex.
+- **REQ-046**: Il comando deve creare cartelle `.codex/prompts`, `.github/agents`, `.github/prompts`.
+- **REQ-047**: Per ogni prompt Markdown, copiare in `.codex/prompts` e `.github/agents` con sostituzioni.
+- **REQ-048**: Per ogni prompt Markdown, creare file `.github/prompts/req.<name>.prompt.md`.
+- **REQ-049**: Creare configurazione `.github/prompts` con front matter che referenzia l'agente solo se `--prompts-use-agents` è abilitato.
+- **REQ-050**: Per ogni prompt, generare `.github/agents/req.<name>.agent.md` con front matter incluso `name`.
 
-### 3.5 Project Initialization & Configuration
-- **REQ-012**: If the directory indicated by `--doc` is empty, the command must generate a `requirements.md` file from the template.
-- **REQ-013**: The project must include a `req.sh` script in the repository root to start the in-development version of the command.
-- **REQ-014**: The `req.sh` script must be executable from any path, resolve its own directory, verify the presence of `.venv` in that directory and, if absent, create the venv and install packages from `requirements.txt` before execution.
-- **REQ-015**: If `.venv` exists, the `req.sh` script must execute the command using the venv's Python without reinstalling packages, forwarding received arguments.
-- **REQ-016**: The command must save values of `--doc` and `--dir` in `.req/config.json` after validation and normalization into paths relative to the project root, and before selecting files present in `--doc` and directories present in `--dir`.
-- **REQ-017**: The `.req/config.json` file must include fields `doc` and `dir` with relative paths and preserve any trailing slash of `--dir` to allow bypassing `--doc` and `--dir` parameters.
-- **REQ-018**: The command must support the `--update` option to re-execute initialization using parameters saved in `.req/config.json`.
-- **REQ-019**: When `--update` is present, the command must verify the presence of `.req/config.json` in the project root and terminate with error if the file does not exist.
-- **REQ-020**: When `--update` is present, the command must load fields `doc` and `dir` from `.req/config.json` and execute the flow as if `--doc` and `--dir` were passed manually, without rewriting `.req/config.json`.
-- **REQ-021**: The command must copy templates into `.req/templates`, replacing any pre-existing templates.
-- **REQ-022**: If the VS Code template is available, the command must create or update `.vscode/settings.json` merging settings with existing ones and adding recommendations for prompts.
-- **REQ-023**: Before modifying `.vscode/settings.json`, the command must save the original state in a backup file under `.req/` to allow restoration with `--remove`.
-- **REQ-024**: During installation or update of VS Code settings (`.vscode/settings.json`), the command must calculate the merge result and verify if the resulting content differs from currently present content; if there are no semantic differences, the command must not rewrite the file nor create backups. If changes are expected, the command must create a backup only if the target file already exists, then apply changes.
-- **REQ-025**: The file `.req/settings.json.absent` must never be generated by the command.
+### 3.8 Generazione Risorse - Gemini
+- Requisiti specifici per Gemin.
+- **REQ-051**: Il comando deve creare cartelle `.gemini/commands` e `.gemini/commands/req`.
+- **REQ-052**: Per ogni prompt Markdown, generare file TOML in `.gemini/commands/req` convertendo Markdown e sostituendo token.
 
-### 3.6 Resource Generation - Common
-- **REQ-026**: The command must examine all files contained in the `--doc` directory in alphabetical order and replace the string `%%REQ_DOC%%` with a list of files formatted using inline code (backticks), in the form `file1`, `file2`, `file3` separated by ", " (comma space). Each entry must be the path relative to the project root as calculated by the script.
-- **REQ-027**: The list of files for `%%REQ_DOC%%` replacement must use relative paths calculated by the script, net of the absolute path and relative to the project home.
-- **REQ-028**: The script must relativize paths that contain the project home path (e.g., temp/project_sample/docs/ becomes docs/).
-- **REQ-029**: The command must examine all subfolders contained in the `--dir` directory in alphabetical order and replace the string `%%REQ_DIR%%` with a list of directories formatted using inline code (backticks), in the form `dir1/`, `dir2/`, `dir3/` separated by ", " (comma space). Each entry must be the path relative to the project root as calculated by the script. Directory entries must include a trailing slash to indicate directory semantics.
-- **REQ-030**: If the directory indicated by `--dir` is empty, it must use the directory itself for `%%REQ_DIR%%` replacement.
-- **REQ-031**: The list of directories for `%%REQ_DIR%%` replacement must use relative paths calculated by the script.
-- **REQ-032**: The command must support options `--enable-models` and `--enable-tools` (optional) to include respectively fields `model` and `tools` in generated agent/prompt files when available.
-- **REQ-033**: If `--enable-models` is present, for each generated prompt the command must search, within folders `src/usereq/resources/{claude,copilot,opencode,kiro,gemini}`, for `config.json` files and, if the file exists and contains an entry for the prompt, include `model: <value>` in the front matter or JSON/TOML of the generated agent.
-- **REQ-034**: If `--enable-tools` is present, for each generated prompt the command must, if available in `config.json`, include the `tools` field derived from `usage_modes[mode]["tools"]` for the `mode` specified in the prompt entry. The `config.json` can specify `tools` as a list of strings or as a comma-separated string; the CLI must accept both forms. When generating files for OpenCode (`.opencode/agent` and `.opencode/command`), the CLI must preserve the original type defined in `config.json`: if the value is a string, it must be inserted into files as a string (without converting it to an array); if it is a list, it must be inserted as an array. For other targets (e.g., Gemini, Kiro, GitHub, Claude) existing behavior (normalization to list when required) remains unchanged.
-- **REQ-035**: Inclusion of `model` and `tools` is conditional on the existence and validity of the `config.json` file for the relative CLI; in the absence of the corresponding key, no field will be added (no additional backward compatibility behaviors are expected).
+### 3.9 Generazione Risorse - Kiro
+- Requisiti specifici per Kiro.
+- **REQ-053**: Il comando deve creare cartelle `.kiro/agents` e `.kiro/prompts`.
+- **REQ-054**: Per ogni prompt Markdown, copiare in `.kiro/prompts` mantenendo front matter.
+- **REQ-055**: Per ogni prompt, generare JSON in `.kiro/agents` usando template agent da `config.json`.
+- **REQ-056**: In file Kiro JSON, popolare campi `name`, `description`, `prompt` (body escaped).
+- **REQ-057**: In file Kiro JSON, popolare campo `resources` con il file prompt relativo e requisiti.
+- **REQ-058**: Popolare `tools` e `allowedTools` in `.kiro/agents` basandosi su `config.json` e mode prompt.
 
- 
-- **REQ-076**: The CLI must accept a boolean flag `--enable-workflow` (default false). During prompt processing, the token `%%WORKFLOW%%` must be substituted with a static text. Substitution must occur at runtime only and must not modify any source templates on disk. This requirement must be backward compatible with existing CLI behavior when the flag is not provided.
+### 3.10 Generazione Risorse - OpenCode
+- Requisiti specifici per OpenCode.
+- **REQ-059**: Creare cartella `.opencode/agent` e `.opencode/command`.
+- **REQ-060**: Per ogni prompt, generare Markdown in `.opencode/agent` con front matter e mode "all".
+- **REQ-061**: Per ogni prompt, generare file in `.opencode/command` con front matter (agent ref se abilitato, model/tools opzionali).
 
- - **REQ-076**: The CLI must accept a boolean flag `--enable-workflow` (default false). When `--enable-workflow` is present, during prompt processing the token `%%WORKFLOW%%` must be substituted at runtime only with a static text loaded from package resources (`src/usereq/resources/common/workflow_on.md` when available, or a sensible built-in default otherwise). Substitution must never modify source template files on disk. When `--enable-workflow` is not present (default), the CLI must not generate any `workflow` prompt files or `workflow` agents for any provider; existing templates and resources on disk must remain unchanged. This behavior must be backward compatible with previous CLI behavior when the flag is omitted.
+### 3.11 Generazione Risorse - Claude
+- Requisiti specifici per Claude.
+- **REQ-062**: Creare cartella `.claude/agents`.
+- **REQ-063**: Generare file `.claude/agents/req.<name>.md` con sostituzioni.
+- **REQ-064**: In `.claude/agents`, includere front matter con `name`, `description`. `model`/`tools` solo se abilitati e configurati.
+- **REQ-065**: Creare cartella `.claude/commands/req`.
+- **REQ-066**: Generare file in `.claude/commands/req` con front matter (agent ref se abilitato, model/tools/allowed-tools opzionali).
 
- - **REQ-079**: Provider configuration files under `src/usereq/resources/` may include an optional `workflow` prompt entry. For providers that define per-prompt `model` and `mode` values, a `workflow` entry, if present, should have `model` and `mode` values consistent with the provider's `create` prompt when that is the intended behavior. The CLI must treat `workflow` as a normal prompt only when `--enable-workflow` is active: in that case, generators should include the `workflow` prompt and, if `--enable-models` is set, include the `model` value for `workflow` from the provider configuration. If a provider configuration does not include a `workflow` entry, and `--enable-workflow` is active, generators that rely on provider `model` metadata must fall back to the `create` prompt's `model` and `mode` for `workflow` without modifying provider configuration files on disk. When `--enable-workflow` is not active, no `workflow` prompt generation or `model` injection for `workflow` must occur.
- 
-- **REQ-083**: Resource generation described in sections 3.7.1 through 3.7.5 (GitHub/Codex, Gemini, Kiro, OpenCode, and Claude) must execute only when the corresponding `--enable-<provider>` flag is active for that provider; providers that remain disabled must not receive new prompts, agents, or module installs during that invocation, and the provider-specific `workflow` prompt is only produced when both `--enable-workflow` and the provider enable flag are supplied.
+### 3.12 Rimozione
+- Questa sezione specifica il comportamento per la rimozione delle risorse generate.
+- **REQ-067**: Il comando deve supportare l'opzione `--remove` per rimuovere risorse create.
+- **REQ-068**: Con `--remove`, richiedere obbligatoriamente `--base` o `--here` e rifiutare `--doc`, `--dir`, `--update`.
+- **REQ-069**: Con `--remove`, verificare esistenza `.req/config.json`.
+- **REQ-070**: Con `--remove`, NON ripristinare `.vscode/settings.json` dai backup.
+- **REQ-071**: Con `--remove`, rimuovere risorse create: `.codex`, `.github`, `.gemini`, `.kiro`, `.req`, etc.
+- **REQ-072**: Dopo rimozione, eliminare sottocartelle vuote nei provider folder.
+- **REQ-073**: Con `--remove`, rimuovere file generati in `.claude` e `.opencode` ed eliminare directory vuote.
+- **REQ-074**: Con `--remove`, non modificare mai `.vscode/settings.json` esistente.
 
-- **REQ-084**: The `recreate` prompt must be added to `src/usereq/resources/prompts` and treated as a standard Markdown prompt whose documented reorganizing, updating, and renumbering workflow mirrors the template text. All enable-flag-aware metadata sources that already declare the `create` prompt (Claude, GitHub/Copilot, OpenCode, and Kiro) must also declare `recreate` with the same `model` and `mode` so `--enable-models` and `--enable-tools` can apply consistently; when any corresponding provider flag is active, the CLI must generate the `recreate` artifacts (prompts, agents, commands, etc.) with the same token substitutions, argument hints, and workflow handling as other prompts without writing outside the permitted directories.
+### 3.13 Sviluppo e Test
+- Requisiti per lo sviluppo e l'esecuzione dei test.
+- **REQ-075**: Unit test devono usare esclusivamente la cartella `temp/` (o `tests/temp/`).
+- **REQ-076**: Il progetto deve includere suite `tests/test_cli.py` che verifica operazioni CLI in cartella temporanea.
+- **REQ-077**: Unit test non devono creare/modificare file fuori da `temp/`.
 
-
-### 3.7 Resource Generation - Specific Tools
-#### 3.7.1 GitHub & Codex
-- **REQ-036**: The command must create folders `.codex/prompts`, `.github/agents`, `.github/prompts`, `.gemini/commands` and `.gemini/commands/req` under the project root.
-- **REQ-037**: For each available Markdown prompt, the command must copy the file into `.codex/prompts` and `.github/agents` replacing `%%REQ_DOC%%`, `%%REQ_DIR%%` and `%%ARGS%%` with calculated values.
-- **REQ-038**: For each available Markdown prompt, the command must create a file `.github/prompts/req.<name>.prompt.md`. This file must reference the agent `req.<name>` only if the `--prompts-use-agents` option is enabled; otherwise, it must contain the description and prompt body.
-- **REQ-039**: The command must create the configuration `.github/prompts` with front matter referencing the agent in use only if the `--prompts-use-agents` option is enabled.
-- **REQ-040**: For each available Markdown prompt, the command must generate a file `.github/agents/req.<name>.agent.md` with front matter including `name` set to `req-<name>`, preserving `description` from the source prompt.
-
-#### 3.7.2 Gemini
-- **REQ-041**: For each available Markdown prompt, the command must generate a TOML file in `.gemini/commands/req` with name `<name>.toml` (without `req.` prefix), converting the Markdown and replacing `%%REQ_DOC%%`, `%%REQ_DIR%%` and `%%ARGS%%` with appropriate values for Gemini.
-
-#### 3.7.3 Kiro
-- **REQ-042**: The command must create folders `.kiro/agents` and `.kiro/prompts` under the project root.
-- **REQ-043**: For each available Markdown prompt, the command must copy the file into `.kiro/prompts` using the source front matter and prompt body with replacements. This content differs from `.github/agents` which uses a generated front matter.
-- **REQ-044**: For each available Markdown prompt, the command must generate a JSON file in `.kiro/agents` with name `req.<name>.json` using the template contained in `src/usereq/resources/kiro/config.json` in the `agent_template` field. The `config.json` file must include a top-level `settings` object (e.g., {"version": "0.0.46", "default_mode": "read_only"}) and the `agent_template` field, which can be a JSON string or a JSON object, with tokens `%%NAME%%`, `%%DESCRIPTION%%`, `%%PROMPT%%` and optionally `%%RESOURCES%%`; the command must replace tokens and populate the agent's `resources` field with the generated array even when the template contains an empty array instead of the explicit token.
-- **REQ-045**: In Kiro JSON files, fields `name`, `description`, and `prompt` must be populated respectively with `req-<name>`, the `description` from the prompt front matter, and the Markdown prompt body without the initial section between delimiters `---`, with double quotes `"` escaped.
-- **REQ-046**: In Kiro JSON files, the `resources` field must be populated by the command regardless of how it is defined in the template, including as the first item the corresponding prompt file in `.kiro/prompts/req.<name>.md` and, following that, links to identified requirements.
-- **REQ-047**: The command must populate the `tools` and `allowedTools` fields in `.kiro/agents/req.<name>.json` with arrays declared in `usage_modes[mode]["tools"]` of the Kiro configuration, using the `mode` of each prompt only if present. If the prompt mode is missing, no tools are set.
-
-#### 3.7.4 OpenCode
-- **REQ-048**: For each available Markdown prompt, the command must generate a Markdown file in `.opencode/agent` with name `req.<name>.md` with front matter containing `description` from the prompt front matter description and `mode` set to "all", followed by the prompt body with substitutions `%%REQ_DOC%%`, `%%REQ_DIR%%`, and `%%ARGS%%`.
-- **REQ-049**: The command must create the folder `.opencode/agent` under the project root.
-- **REQ-050**: The command must create the folder `.opencode/command` under the project root.
-- **REQ-051**: For each available Markdown prompt, the command must generate a file in `.opencode/command` with name `req.<name>.md` including YAML front matter containing:
-  - `agent:` valued with the name of the corresponding file in `.opencode/agent` (e.g., `req.analyze`) only if the `--prompts-use-agents` option is enabled,
-  - optionally `model:` and `tools:` when tags `--enable-models` and/or `--enable-tools` are active and relative values are present in CLI `config.json`,
-  - followed by a separator line and the prompt body with the same substitutions (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`) applied for `.kiro/prompts`.
-When `--remove` is present, files generated in `.opencode/command` must be removed and empty directories under `.opencode` deleted.
-
-#### 3.7.5 Claude
-- **REQ-052**: The command must create the folder `.claude/agents` under the project root.
-- **REQ-053**: For each available Markdown prompt, the command must generate a file `.claude/agents/req.<name>.md` applying the same token substitutions used for `.kiro/prompts`.
-- **REQ-054**: In `.claude/agents/req.<name>.md` files, the initial front matter must include fields `name` and `description` valued from the source prompt. The `model` field must not be automatically added by the application: the `model` field can be included only if the `--enable-models` parameter is passed and the file `src/usereq/resources/claude/config.json` contains a valid entry for the corresponding prompt. Similarly, the `tools` field can be included only if the `--enable-tools` parameter is passed and `config.json` provides `usage_modes[mode]["tools"]` for the prompt's `mode`. In the absence of these flags or valid values in `config.json`, the `model` and `tools` fields must not be present in the generated files.
-- **REQ-055**: The command must create the folder `.claude/commands` and its subfolder `.claude/commands/req` under the project root.
-- **REQ-056**: For each available Markdown prompt, the command must generate a file in `.claude/commands/req` with name `<name>.md` including an initial YAML front matter containing:
-  - `agent`: valued with the same `name` identifier present in `.claude/agents/req.<name>.md` (e.g., `req-<name>`) only if the `--prompts-use-agents` option is enabled.
-  - optionally `model`: included only if the `--enable-models` option is passed and `src/usereq/resources/claude/config.json` contains a `model` entry for the corresponding prompt; the value must be copied as is from `config.json`.
-  - optionally `allowed-tools`: included only if the `--enable-tools` option is passed and `config.json` provides `usage_modes[mode]["tools"]` for the prompt's `mode`; the field must be a CSV string in double quotes, formatted as `"Read, Grep, Glob"`.
-  - Followed by a separator line `---` and then the Markdown prompt body with the same token substitutions (`%%REQ_DOC%%`, `%%REQ_DIR%%`, `%%REQ_PATH%%`, `%%ARGS%%`).
-
-### 3.8 Removal
-- **REQ-057**: The command must support the `--remove` option to remove resources created by installation in the project root indicated by `--base` or `--here`.
-- **REQ-058**: When `--remove` is present, the command must mandatorily require `--base` or `--here` and must refuse usage of `--doc`, `--dir` or `--update`.
-- **REQ-059**: When `--remove` is present, the command must verify the existence of `.req/config.json` in the project root and terminate with error if absent.
-- **REQ-060**: When `--remove` is present, the command must not restore `.vscode/settings.json` from the original state using backups kept in `.req/` (the `.req/` directory will be removed when the --remove option is used).
-- **REQ-061**: When `--remove` is present, the command must remove created resources: `.codex/prompts/req.*`, `.github/agents/req.*`, `.github/prompts/req.*`, `.gemini/commands/req/`, `.kiro/agents/req.*`, `.kiro/prompts/req.*`, `.req/templates/`, `.req/config.json` and the complete `.req/` folder (all files and subfolders must be deleted).
-- **REQ-062**: After removal, the command must delete empty subfolders under `.gemini`, `.codex`, `.kiro`, and `.github` iterating from bottom to top.
-- **REQ-063**: When `--remove` is present, the command must remove generated `.claude/agents/req.*` files and remove any empty directories under `.claude`, and generated `.opencode/agent/req.*` files.
-- **REQ-064**: When `--remove` is present, the command must in no case modify or remove the file `.vscode/settings.json` present in the project root, even if it was previously created by useReq.
-- **REQ-065**: When `--remove` is present, the command must remove files generated in `.claude/commands/req` and remove any empty directories under `.claude`.
-
-### 3.9 Development & Testing
-- **REQ-066**: Unit tests, if implemented, must be executed using exclusively the `temp/` folder (or `tests/temp/`) for any file or directory operation, and temporary folders must be deleted at the end of execution.
-- **REQ-067**: The project must include a unit test suite (`tests/test_cli.py`) that verifies correct CLI script operation by performing the following operations: (1) create an empty test directory in `temp/project-test`, removing it if already present; (2) create subfolders `docs` and `tech`; (3) execute the script with parameters `--base temp/project-test`, `--doc temp/project-test/docs` and `--dir temp/project-test/tech`; (4) verify that the generated file and directory structure and relative contents comply with documented requirements. The test suite must exclusively use folders under `temp/` (or `tests/temp/`) for any file/directory creation, modification, or deletion and must not touch other repository paths. Furthermore, it must provide detailed output during execution, showing the list of all available tests, which test is currently running, what it will check (based on method description), and the test result (PASS or FAIL).
-- **REQ-068**: Unit tests must not create, modify, or remove files or folders outside of the `temp/` (or `tests/temp/`) folder of the repository; every filesystem write operation must be confined to such temporary paths.
-
-### 3.10 CI/CD Workflows
-- **REQ-069**: The repository must include a GitHub Actions workflow under `.github/workflows/` that triggers on push of tags matching `v*`.
-- **REQ-070**: The workflow must perform the build of Python package distributions (sdist and wheel) producing outputs under `dist/`.
-- **REQ-071**: The workflow must create (or update) a GitHub Release for the tag and upload as asset all files produced in `dist/`.
-- **REQ-072**: The workflow must generate artifact attestations (build provenance) for files in `dist/` using OIDC, so that attestations appear visible in the GitHub web interface for the release/asset.
-
+### 3.14 Workflow CI/CD
+- Requisiti per l'automazione CI/CD.
+- **REQ-078**: Il repository deve includere workflow GitHub Actions che scatta su push di tag `v*`.
+- **REQ-079**: Il workflow deve eseguire build pacchetto Python (sdist e wheel) in `dist/`.
+- **REQ-080**: Il workflow deve creare GitHub Release per il tag e caricare asset da `dist/`.
+- **REQ-081**: Il workflow deve generare attestazioni artefatto per file in `dist/`.

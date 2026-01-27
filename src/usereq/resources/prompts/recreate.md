@@ -32,11 +32,12 @@ Generate a task list based strictly on the steps below:
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
    - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!", and then terminate the execution.
    - If no language is specified, use English.
-2. Read the **Software Requirements Specification** document %%REQ_DOC%% and extract a complete, explicit list of atomic requirements.
+2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
+3. Read the **Software Requirements Specification** document %%REQ_DOC%% and extract a complete, explicit list of atomic requirements.
    - Preserve every requirement’s original intent; do not delete any requirement.
    - If requirements have IDs, capture them as "Original IDs".
    - If requirements do not have IDs, assign temporary, stable "Original IDs" in the order they appear (e.g., `SRC-001`, `SRC-002`, ...). These temporary IDs are only for traceability during reorganization and verification.
-3. Reorganize the extracted requirements into a hierarchical structure with a maximum depth of 3 levels.
+4. Reorganize the extracted requirements into a hierarchical structure with a maximum depth of 3 levels.
    - You MUST explicitly determine the most effective grouping strategy considering: **Typology**, **Functionality**, **Abstraction Level** (high-level vs. low-level), and **Context**.
    - Constraints:
      - Maximum hierarchy depth: 3 levels total (e.g., Level 1 section → Level 2 subsection → Level 3 requirements list).
@@ -44,15 +45,15 @@ Generate a task list based strictly on the steps below:
    - Integrate the hierarchy into the document’s structure:
      - Keep the document’s top-level sections in the same order.
      - Within the most appropriate document’s section(s), create subsections/sub-subsections (still respecting the max depth) to represent the chosen groupings.
-4. Verify full coverage of the input requirements after reorganization.
+5. Verify full coverage of the input requirements after reorganization.
    - Perform a strict one-to-one coverage check: every extracted "Original ID" MUST appear exactly once in the reorganized structure (either as the requirement itself or as an explicitly merged/rewritten equivalent).
    - If any requirement was rewritten for clarity, you MUST ensure the rewrite is meaning-preserving.
    - If any requirement is missing or duplicated, you MUST fix the structure before proceeding.
-5. Add all requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
+6. Add all requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
    - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
-6. Analyze the project's source code to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
+7. Analyze the project's source code to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
    - Add missing requirements to the reorganized draft and place them into the appropriate section/subsection (respecting the max 3-level hierarchy).
    - Requirements for the output:
      - Scan the codebase for high-importance functionalities, critical behaviors, or logic that are NOT currently documented in the reorganized requirements.
@@ -62,22 +63,27 @@ Generate a task list based strictly on the steps below:
      - Include the project’s file/folder structure (tree view) with a sensible depth limit (e.g., max depth 4) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
      - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
      - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
-7. Update/edit every requirements that specifies the document itself writing language, replacing it consistently with the **target language**, without changing any other constraints or the requirements’ intended meaning.
-8. Create or update the **Software Requirements Specification** document with the recreated requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
-   - Write requirements, section titles, tables, and other content in **target language**.
-   - Describe every project requirement clearly, succinctly, and unambiguously.
+8. Update/edit every requirements that specifies the document itself writing language, replacing it consistently with the **target language**, without changing any other constraints or the requirements’ intended meaning.
+9. Create or overwrite the **Software Requirements Specification** document with the recreated requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.   
+   - Act as a *Senior Technical Requirements Engineer*. Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
+     * A comprehensive functional clear description .
+     * The precise expected behavior (include acceptance criteria with testable conditions where possible).
+     * The implementation guidance complete with a detailed implementation logic (data flow, algorithms, or business rules) sufficient for a developer to implement the feature without further clarification.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+   - Write requirements, section titles, tables, and other content in **target language**.
+   - Follow `.req/templates/requirements.md` translated into **target language**.
    - Output the entire response in clean, properly formatted Markdown.
-9. Re-number all requirements in `%%REQ_PATH%%/requirements_DRAFT.md` and preserve all cross-references.
+10. Re-number all requirements in `%%REQ_PATH%%/requirements_DRAFT.md` and preserve all cross-references.
    - You MUST perform a complete renumbering of the requirements in a consistent, deterministic order (document order).
    - You MUST update every internal cross-reference to requirement identifiers so that references still point to the correct renumbered requirement.
    - If renumbering and reference-updating cannot be performed safely with simple text operations, you MUST implement and execute a Python renumbering utility.
      - Prefer executing the program inline (e.g., via `python -c` or a here-doc) to avoid creating additional project files.
      - The program MUST only read and write `%%REQ_PATH%%/requirements_DRAFT.md` and MUST NOT write anywhere else.
      - The program MUST produce (in print output) the mapping from old requirement IDs to new requirement IDs.
-10. Re-read `%%REQ_PATH%%/requirements_DRAFT.md` and cross-reference with the source code.
+     - The program MUST keep the file a properly formatted Markdown document.
+11. Re-read `%%REQ_PATH%%/requirements_DRAFT.md` and cross-reference with the source code.
    - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).
    - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
    - Report `OK` if the draft accurately describes the code (even if the code is buggy). Report `FAIL` only if the draft makes assertions that are not present or contradicted by the source code.
-11. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-12. OUTPUT exactly "Requirements reorganized and updated!".
+12. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
+13. OUTPUT exactly "Requirements reorganized and updated!".
