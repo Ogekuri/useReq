@@ -9,7 +9,7 @@ argument-hint: "Description of the requirements to be drafted (from scratch)"
 Draft a new requirements document (`requirements_DRAFT.md`) based entirely on the user's description and specifications, without referencing existing source code.
 
 ## Behavior (absolute rules, non-negotiable)
-- **CRITICAL**: NEVER write, modify, edit, delete file outside of project's home directory.
+- **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You can read, write, or edit `%%REQ_PATH%%/requirements_DRAFT.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any project files except creating/updating `%%REQ_PATH%%/requirements_DRAFT.md`.
