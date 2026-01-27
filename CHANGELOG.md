@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.60](https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60) - 2026-01-27
+### 🐛  Bug Fixes
+- *(core)* minor fixes.
+- *(useReq)* prevent unbound claude metadata [2026-01-27 10:32:37]
+- *(core)* update **CRITICAL** about project's home writing.
+
+### 🚜  Changes
+- *(useReq)* add recreate prompt and align configs/tests
+
+### 📚  Documentation
+- *(core)* recreate tested on requirements.md.
+- *(core)* update docs with recreate.
+
 ## [0.0.59](https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59) - 2026-01-26
 ### ⛰️  Features
 - *(core)* change models for github copilot.
@@ -335,6 +348,7 @@
 - \[0.0.57\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.57
 - \[0.0.58\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.58
 - \[0.0.59\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.59
+- \[0.0.60\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.60
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -395,3 +409,4 @@
 [0.0.57]: https://github.com/Ogekuri/useReq/compare/v0.0.56..v0.0.57
 [0.0.58]: https://github.com/Ogekuri/useReq/compare/v0.0.57..v0.0.58
 [0.0.59]: https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59
+[0.0.60]: https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60
