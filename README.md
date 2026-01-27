@@ -13,8 +13,8 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
 - Drives development through requirement changes.
 - Keeps development under control.
 - Creates a common interface for different CLIs and Agents.
-- Creates requirements files for existing projects.
-- Manages requirements files in different languages.
+- Creates **Software Requirements Specification** [*SRS*] files for existing projects.
+- Manages *SRS* files in different languages.
 - Lightweight customization.
 
 
@@ -25,11 +25,12 @@ This allows them to be run both as a Python package (installed as `req`, `usereq
   | `change` | Update the requirements and implement the corresponding changes |
   | `check` | Run the requirements check |
   | `cover` | Implement changes to cover new requirements |
-  | `create` | Write a requirement draft using the project's source code |
+  | `create` | Write a *SRS* draft using the project's source code |
   | `fix` | Fix a defect without changing the requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
+  | `recreate` | Reorganize, update, and renumber the *SRS* |
   | `refactor` | Perform optimizations without changing the requirements |
-  | `write` | Produce a requirement draft based on the User Request description |
+  | `write` | Produce a *SRS* draft based on the User Request description |
   | `reset` | Reset useReq/req bootstrap context |
   | `workflow` | Write a `WORKFLOW.md` using the project's source code (--enable-workflow) |
 
@@ -216,6 +217,7 @@ The --enable-models switch include "model:" specification on prompts according b
   | `create` | Gemini 3 Pro (Preview) (copilot) |
   | `fix` | GPT-5.1-Codex-Max (copilot) |
   | `new` | GPT-5.1-Codex-Mini (Preview) (copilot) |
+  | `recreate` | Gemini 3 Pro (Preview) (copilot) |
   | `refactor` | GPT-5.2-Codex (copilot) |
   | `write` | Gemini 3 Pro (Preview) (copilot) |
 
@@ -251,6 +253,7 @@ When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enable
   | `create` | claude-sonnet-4-5 |
   | `fix` | claude-opus-4-5 |
   | `new` | claude-sonnet-4-5 |
+  | `recreate` | claude-sonnet-4-5 |
   | `refactor` | claude-opus-4-5 |
   | `write` | claude-sonnet-4-5 |
 
@@ -277,6 +280,7 @@ When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enable
   | `create` | claude-sonnet-4.5 |
   | `fix` | claude-opus-4.5 |
   | `new` | claude-sonnet-4.5 |
+  | `recreate` | claude-sonnet-4.5 |
   | `refactor` | claude-opus-4.5 |
   | `write` | claude-sonnet-4.5 |
 
@@ -326,6 +330,7 @@ OpenCode CLI does not support "tools:" on agents/prompts.
   | `create` | github-copilot/gpt-5.1 |
   | `fix` | github-copilot/gpt-5.1-codex-max |
   | `new` | github-copilot/gpt-5-mini |
+  | `recreate` | github-copilot/gpt-5.1 |
   | `refactor` | github-copilot/gpt-5.2-codex |
   | `write` | github-copilot/gpt-5.1 |
 

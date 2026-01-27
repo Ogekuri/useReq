@@ -1,12 +1,12 @@
 ---
-description: "Produce a requirement draft based on the User Request description"
-argument-hint: "Description of the requirements to be drafted (from scratch)"
+description: "Produce a Software Requirements Specification draft based on the User Request description"
+argument-hint: "Description of the application to be drafted from scratch"
 ---
 
-# Produce a requirement draft based on the User Request description
+# Produce a Software Requirements Specification draft based on the User Request description
 
 ## Purpose
-Draft a new requirements document (`requirements_DRAFT.md`) based entirely on the user's description and specifications, without referencing existing source code.
+Draft a new **Software Requirements Specification** draft based entirely on the user's description and specifications, without referencing existing source code.
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
@@ -26,12 +26,12 @@ Draft a new requirements document (`requirements_DRAFT.md`) based entirely on th
 ## Steps
 Generate a task list based strictly on the steps below:
 1. Read [User Request](#users-request) to identify and extract all project and application requirements.
-2. Extract the target language from the [User Request](#users-request).
+2. Extract the **target language** from the [User Request](#users-request).
    - Prefer an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the target language is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!" , and then terminate the execution.
+   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!" , and then terminate the execution.
    - If no language is specified, use English.
-3. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the target language is not English, you MUST translate all template section headers and structural text into the target language.
+3. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
 4. Analyze the [User Request](#users-request) to infer the software’s behavior and main features, then produce a hierarchical requirements list.
    - Requirements for the output:
       - Describe any text-based UI and/or GUI functionality requested.
@@ -42,11 +42,12 @@ Generate a task list based strictly on the steps below:
       - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
 5. List requested components and libraries.
 6. Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
-7. Create a Markdown file with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
-   - Write requirements, section titles, tables, and other content in target language.
+7. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
+   - Write requirements, section titles, tables, and other content in **target language**.
    - Follow `.req/templates/requirements.md` translated into requested language.
    - Describe every project requirement clearly, succinctly, and unambiguously.
-   - Format the requirements as a bulleted list, using 'shall' or 'must' to indicate mandatory actions. Translate these terms using their closest equivalents in the target language.
+   - Format the requirements as a bulleted list, using 'shall' or 'must' to indicate mandatory actions. Translate these terms using their closest equivalents in the **target language**.
+   - Output the entire response in clean, properly formatted Markdown.
 8. PRINT in the response presenting the requirements draft in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user.
 9. OUTPUT exactly "Requirements written!".
 

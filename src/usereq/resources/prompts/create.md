@@ -1,12 +1,12 @@
 ---
-description: "Write a requirement draft using the project's source code"
-argument-hint: "Target language for the generated requirements draft"
+description: "Write a Software Requirements Specification draft using the project's source code"
+argument-hint: "Target language for the generated SRS draft"
 ---
 
-# Write a requirement's draft using the project's source code
+# Write a Software Requirements Specification's draft using the project's source code
 
 ## Purpose
-Analyze the existing source code to generate a comprehensive requirements draft file (`requirements_DRAFT.md`) in the specified language, reflecting the current state of the project.
+Analyze the existing source code to generate a comprehensive **Software Requirements Specification** draft in the specified language, reflecting the current state of the project.
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
@@ -26,13 +26,13 @@ Analyze the existing source code to generate a comprehensive requirements draft 
 
 ## Steps
 Generate a task list based strictly on the steps below:
-1. Extract the target language from the %%ARGS%%.
+1. Extract the **target language** from the %%ARGS%%.
    - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
    - an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the target language is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!", and then terminate the execution.
+   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!", and then terminate the execution.
    - If no language is specified, use English.
-2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the target language is not English, you MUST translate all template section headers and structural text into the target language.
+2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
 3. Analyze the project's source code to infer the software’s behavior and main features, then produce a hierarchical requirements list.
    - Requirements for the output:
       - Describe any text-based UI and/or GUI functionality implemented.
@@ -42,11 +42,12 @@ Generate a task list based strictly on the steps below:
       - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
 4. List used components and libraries.
 5. Locate and read the unit tests (do not execute them unless explicitly required). Summarize what they test and how. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
-6. Create a Markdown file with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
-   - Write requirements, section titles, tables, and other content in target language.
-   - Follow `.req/templates/requirements.md` translated into target language.
+6. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
+   - Write requirements, section titles, tables, and other content in **target language**.
+   - Follow `.req/templates/requirements.md` translated into **target language**.
    - Describe every project requirement clearly, succinctly, and unambiguously.
-   - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the target language.
+   - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+   - Output the entire response in clean, properly formatted Markdown.
 7. Re-read `%%REQ_PATH%%/requirements_DRAFT.md` and cross-reference with the source code.
    - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).
    - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
