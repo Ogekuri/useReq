@@ -17,9 +17,9 @@ Analyze the existing source code to generate a workflow description (`WORKFLOW.m
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
-- Directives for autonomous execution:
+- **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT step).
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
@@ -33,5 +33,4 @@ Generate a task list based strictly on the steps below:
    - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!", and then terminate the execution.
    - If no language is specified, use English.
 2. Analyze the project's source code to infer the software’s behavior and main features. Identify all functions and components utilized when all features are enabled. Generate the content for `WORKFLOW.md` using only concise, hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid verbosity and unverified assumptions; focus strictly on the provided code.
-3. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-4. OUTPUT exactly "Requirements written!".
+3. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Requirements written!".

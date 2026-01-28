@@ -16,9 +16,9 @@ Draft a new **Software Requirements Specification** draft based entirely on the 
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
-- Directives for autonomous execution:
+- **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT step).
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
@@ -40,16 +40,20 @@ Generate a task list based strictly on the steps below:
       - Describe the organization of components, objects, classes and their relationships.
       - Propose a logical file/folder structure for the project as a ascii tree view based on the requirements.
       - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
-5. List requested components and libraries.
-6. Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
-7. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
+    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+5. Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
+   - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
+   - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+   - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
+6. List requested components and libraries.
+7. Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
+8. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
    - Write requirements, section titles, tables, and other content in **target language**.
    - Follow `.req/templates/requirements.md` translated into requested language.
    - Describe every project requirement clearly, succinctly, and unambiguously.
    - Format the requirements as a bulleted list, using 'shall' or 'must' to indicate mandatory actions. Translate these terms using their closest equivalents in the **target language**.
    - Output the entire response in clean, properly formatted Markdown.
-8. PRINT in the response presenting the requirements draft in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user.
-9. OUTPUT exactly "Requirements written!".
+9. PRINT in the response presenting the requirements draft in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user. The final line of the output must be EXACTLY "Requirements written!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

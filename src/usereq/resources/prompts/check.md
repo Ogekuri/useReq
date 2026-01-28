@@ -19,9 +19,9 @@ Verify that the project's source code satisfies the documented requirements and 
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`,`PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read files as needed (read-only only; e.g., `cat`, `sed -n`, `head`, `tail`, `rg`, `less`).
-- Directives for autonomous execution:
+- **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT step).
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
@@ -29,11 +29,12 @@ Verify that the project's source code satisfies the documented requirements and 
 ## Steps
 Generate a task list based strictly on the steps below:
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
-2. Read %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
+2. Read %%REQ_DOC%% and cross-reference with the source code to check all requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
-   - **NOTE**: Mark `OK` only with direct evidence (file path + line numbers). If uncertain or evidence is missing, mark `FAIL` and state what evidence you could not find.
+   - It is forbidden to mark a requirement as `OK` without at least one verifiable reference (file path + line range or excerpt). If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-3. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and verify that the application's code follows those documents.
+3. If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Based on filenames, determine which are relevant and READ them.
+   - Verify that the application's source code follows those documents.
+   - Do not check guidelines from files you have not explicitly read via a tool action.
    - Report any discrepancies with file paths and concise explanations.
-4. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-5. OUTPUT exactly "Check completed!".
+4. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Check completed!".

@@ -28,9 +28,9 @@ Identify uncovered requirements and implement source code changes to ensure all 
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. If maintaining compatibility would require migrations/auto-upgrades conversion logic, report the conflict instead of implementing, and then terminate the execution.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`,`PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (eg: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..). Prefer read-only commands for analysis.
-- Directives for autonomous execution:
+- **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (PRINT step).
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
    - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
@@ -38,36 +38,33 @@ Identify uncovered requirements and implement source code changes to ensure all 
 ## Steps
 Generate a task list based strictly on the steps below:
 1. **CRITICAL**: Check GIT Status
-   - Confirm you are inside a git repo executing `git rev-parse --is-inside-work-tree`. If it fails, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
-   - Confirm the repo is clean (treat untracked as dirty) executing `git status --porcelain`. If output is NOT empty, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
-   - Avoid detached HEAD executing `git symbolic-ref -q HEAD`. If it fails, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
-2. Read %%REQ_DOC%% and verify that the project's source code satisfies the requirements listed there.
+   - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'GIT status check FAILED!'; exit 1; }`. If it fails, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
+2. Read %%REQ_DOC%% and cross-reference with the source code to check all requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
+   - It is forbidden to mark a requirement as `OK` without at least one verifiable reference (file path + line range or excerpt). If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 3. **CRITICAL**: If all requirements report `OK`, OUTPUT exactly "All requirements are already covered. No changes needed.", and then terminate the execution.
 4. If there are uncovered requirements, GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all `FAIL` requirements. The **Comprehensive Technical Implementation Report** MUST only code logic, full detailed content needed for implementation, do not summarize.
-5. If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed.
-6. Where unit tests exist, plan the necessary refactoring and expansion to cover uncovered requirements and include these details in the **Comprehensive Technical Implementation Report**.
-7. IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
-8. Re-read %%REQ_DOC%% and cross-reference with the source code.
+   - If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Based on filenames, determine which are relevant and READ them. Ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply guidelines from files you have not explicitly read via a tool action.
+5. Where unit tests exist, plan the necessary refactoring and expansion to cover uncovered requirements and include these details in the **Comprehensive Technical Implementation Report**.
+6. IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
+7. Re-read %%REQ_DOC%% and cross-reference with the source code to check all requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
+   - It is forbidden to mark a requirement as `OK` without at least one verifiable reference (file path + line range or excerpt). If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-9.  If directory/directories %%REQ_DIR%% exists, read only the relevant guidance files needed for this request (do not read large/irrelevant files) and verify that the application's code follows those documents. Report discrepancies with file paths and concise explanations.
-   - Report any discrepancies with file paths and concise explanations.
-10. Run the updated test suite. 
+8.  Run the updated test suite. 
    - Verify that the implemented changes satisfy the requirements and pass tests.
-   - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption.
+   - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. You must NOT modify existing tests unless the new requirement causes an unavoidable breaking change strictly documented in the requirements update. If an existing test fails and it is not related to a breaking change, assume you introduced a regression in the source code and fix the code.
    - Fix the source code to pass valid tests. After fixing, re-run the relevant tests to confirm they pass. Attempt to fix up to 2 times then, if they fail again, report the failure, then OUTPUT exactly "Requirements coverage FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "Requirements coverage FAILED!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
-11. PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence).
-12. %%WORKFLOW%%
-13. **CRITICAL**: Stage & commit
+9.  %%WORKFLOW%%
+10. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains"Aborting",  OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "cover(useReq):<DESCRIPTION> [<DATE>]"`
       - Generate `<DATE>` executing `date +"%Y-%m-%d %H:%M:%S"`.
       - Generate `<DESCRIPTION>` as a clear and concise description of changes made to source code and tests, using English language.
-14. Confirm the repo is clean with `git status --porcelain`, If NOT empty OUTPUT exactly "Requirements coverage FAILED!", and then terminate the execution.
-15. OUTPUT exactly "Requirements coverage completed!".
+11. Confirm the repo is clean with `git status --porcelain`, If NOT empty OUTPUT exactly "Requirements coverage FAILED!", and then terminate the execution.
+12. PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Requirements coverage completed!".
