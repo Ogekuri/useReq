@@ -19,18 +19,18 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 - **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
+- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Check if a TODO LIST tool is available, you MUST use todo tool to create the to-do list exactly as written and then follow it step by step without pausing. If TODO LIST tool is NOT available OUTPUT exactly "TODO LIST tool check FAILED!", and then terminate the execution.
 
 ## Steps
-Generate a task list based strictly on the steps below:
+Internally generate a task list based strictly on the steps below, then execute it step by step without pausing:
 1. Extract the **target language** from the %%ARGS%%.
    - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
    - an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!", and then terminate the execution.
+   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
    - If no language is specified, use English.
 2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
 3. Read the **Software Requirements Specification** document %%REQ_DOC%% and extract a complete, explicit list of atomic requirements.
@@ -60,7 +60,7 @@ Generate a task list based strictly on the steps below:
      - Describe any text-based UI and/or GUI functionality implemented.
      - Describe the application's functionalities and configurability implemented.
      - Describe the any critical behaviors, or very important logic.
-     - Include the project’s file/folder structure (tree view) with a sensible depth limit (e.g., max depth 4) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
+     - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for src/ directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
      - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
@@ -71,7 +71,7 @@ Generate a task list based strictly on the steps below:
    - Act as a *Senior Technical Requirements Engineer*. Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
      * A comprehensive functional clear description .
      * The precise expected behavior (include acceptance criteria with testable conditions where possible).
-     * The *implementation guidance* complete with a detailed implementation logic (data flow, algorithms, or business rules) sufficient for a developer to implement the feature without further clarification. Constrain *implementation guidance* to verifiable constraints/invariants rather than speculative design.
+     * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code..
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - Write requirements, section titles, tables, and other content in **target language**.
    - Follow `.req/templates/requirements.md` translated into **target language**.

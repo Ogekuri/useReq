@@ -18,18 +18,18 @@ Draft a new **Software Requirements Specification** draft based entirely on the 
 - Use filesystem/shell tools to read/write/delete files as needed (e.g: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 - **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
+- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Check if a TODO LIST tool is available, you MUST use todo tool to create the to-do list exactly as written and then follow it step by step without pausing. If TODO LIST tool is NOT available OUTPUT exactly "TODO LIST tool check FAILED!", and then terminate the execution.
 
 ## Steps
-Generate a task list based strictly on the steps below:
+Internally generate a task list based strictly on the steps below, then execute it step by step without pausing:
 1. Read [User Request](#users-request) to identify and extract all project and application requirements.
 2. Extract the **target language** from the [User Request](#users-request).
    - Prefer an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED!" , and then terminate the execution.
+   - If multiple natural languages are mentioned, infer the **target language** based on context (e.g., phrases like "translate into...", "write in..."). Only if the target remains completely ambiguous, report it, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
    - If no language is specified, use English.
 3. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
 4. Analyze the [User Request](#users-request) to infer the software’s behavior and main features, then produce a hierarchical requirements list.
