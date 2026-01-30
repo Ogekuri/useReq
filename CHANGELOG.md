@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.61](https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61) - 2026-01-30
+### 🐛  Bug Fixes
+- *(core)* change prompts.
+- *(core)* promtps changed.
+- *(core)* major fix on prompts
+
 ## [0.0.60](https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60) - 2026-01-27
 ### 🐛  Bug Fixes
 - *(core)* minor fixes.
@@ -349,6 +355,7 @@
 - \[0.0.58\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.58
 - \[0.0.59\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.59
 - \[0.0.60\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.60
+- \[0.0.61\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.61
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -410,3 +417,4 @@
 [0.0.58]: https://github.com/Ogekuri/useReq/compare/v0.0.57..v0.0.58
 [0.0.59]: https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59
 [0.0.60]: https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60
+[0.0.61]: https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61
