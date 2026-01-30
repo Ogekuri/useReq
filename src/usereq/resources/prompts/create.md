@@ -20,7 +20,7 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 - **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
-   - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
 
@@ -43,11 +43,12 @@ Generate a task list based strictly on the steps below:
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
    - If evidence is weak (e.g., only naming conventions), force a label: Inferred (Low confidence), or exclude it.
+   - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
 4. Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
    - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
-5. List used components and libraries.
+5. List used components and libraries ONLY if evidenced by manifest/lock/config files or direct imports; cite the file path(s) used as evidence and do not guess.
 6. Locate and read the unit tests (do not execute them unless explicitly required). Summarize what they test and how. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
 7. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
    - Act as a *Senior Technical Requirements Engineer*. Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
@@ -58,7 +59,7 @@ Generate a task list based strictly on the steps below:
    - Write requirements, section titles, tables, and other content in **target language**.
    - Follow `.req/templates/requirements.md` translated into **target language**.
    - Output the entire response in clean, properly formatted Markdown.
-8. Re-read `%%REQ_PATH%%/requirements_DRAFT.md` and cross-reference with the source code.
+8. Review `%%REQ_PATH%%/requirements_DRAFT.md`. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code.
    - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).
    - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
    - Report `OK` if the draft accurately describes the code (even if the code is buggy). Report `FAIL` only if the draft makes assertions that are not present or contradicted by the source code.

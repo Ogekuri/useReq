@@ -22,18 +22,18 @@ Verify that the project's source code satisfies the documented requirements and 
 - **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
-   - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
 
 ## Steps
 Generate a task list based strictly on the steps below:
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
-2. Read %%REQ_DOC%% and cross-reference with the source code to check all requirements.
+2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check all requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
-   - It is forbidden to mark a requirement as `OK` without at least one verifiable reference (file path + line range or excerpt). If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
+   - It is forbidden to mark a requirement as `OK` without quoting the exact code snippet that satisfies it, alongside the file path and line ranges. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated.. If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
-3. If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Based on filenames, determine which are relevant and READ them.
+3. If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines.
    - Verify that the application's source code follows those documents.
    - Do not check guidelines from files you have not explicitly read via a tool action.
    - Report any discrepancies with file paths and concise explanations.

@@ -23,7 +23,7 @@ Analyze the source code and requirements to answer the user request, producing a
 - **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
-   - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
 
@@ -31,9 +31,9 @@ Analyze the source code and requirements to answer the user request, producing a
 Generate a task list based strictly on the steps below:
 1. Read %%REQ_DOC%% and the [User Request](#users-request) analysis request.
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
-   - Identify and read only the relevant source code files necessary to fulfill the request. Do not load the entire codebase unless absolutely necessary.
+   - Use search-first (`git grep`/`rg`) to find the minimal relevant file set, then read only those files. Avoid scanning entire directories unless evidence indicates it is required.. Do not load the entire codebase unless absolutely necessary.
 2. Analyze the source code to answer the [User Request](#users-request), ensuring compliance with %%REQ_DIR%% documents if present.
-   - If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Based on filenames, determine which are relevant and READ them. Ensure the report complies with its guidance. Do not apply guidelines from files you have not explicitly read via a tool action.
+   - If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines. Ensure the report complies with its guidance. Do not apply guidelines from files you have not explicitly read via a tool action.
 3. PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
 
 <h2 id="users-request">User's Request</h2>

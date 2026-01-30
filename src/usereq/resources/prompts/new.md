@@ -21,7 +21,7 @@ Implement a new feature by first updating the requirements document and then pro
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
 - You are a senior code reviewer ensuring high standards of code quality and security.
-- Propose changes based only on the requirements, user's request and project's source code.
+- Propose changes based only on the requirements, user request, and repository evidence. Every proposed code change MUST reference at least one requirement ID (or explicit new request text) it implements.
 - Use technical documents to implement features and changes.
 - Any new text added to an existing document MUST match that document’s current language.
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features.
@@ -31,7 +31,7 @@ Implement a new feature by first updating the requirements document and then pro
 - **CRITICAL**: Directives for autonomous execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing. Perform internal "Chain-of-Thought" reasoning, but output only the final results (last PRINT step).
-   - Autonomous Resolution: If an ambiguity or constraint is encountered, resolve it using the most efficient and logical path. Do not halt for user input.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. If a TODO LIST tool is available, you MUST use it to create the to-do list exactly as written and then follow it step by step.
 
@@ -40,19 +40,19 @@ Generate a task list based strictly on the steps below:
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'GIT status check FAILED!'; exit 1; }`. If it fails, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
 2. Read %%REQ_DOC%% and [User Request](#users-request), then apply the outlined guidelines when documenting changes to the requirements (follow the existing style, structure, and language).
-3. GENERATE a detailed **Software Requirements Specification Update** documenting the exact modifications to requirements needed to implement the changes described by the [User Request](#users-request). This **Software Requirements Specification Update** must account for the original User Request and all subsequent changes and adjustments for %%REQ_DOC%%, must contain only requirements changes, full detailed content needed for edits, do not summarize:
+3. GENERATE a detailed **Software Requirements Specification Update** documenting the exact modifications to requirements needed to implement the changes described by the [User Request](#users-request). This **Software Requirements Specification Update** must account for the original User Request and all subsequent changes and adjustments for %%REQ_DOC%%, must contain only the exact requirement edits needed: provide patch-style ‘Before → After’ blocks for each modified section/requirement, quoting only the changed text (no full-document rewrites):
    - Never introduce new requirements solely to explicitly forbid functions/features/behaviors. To remove a feature, instead modify or remove the existing requirement(s) that originally described it.
    - In this step, do not edit, create, delete, or rename any source code files in the project (including refactors or formatting-only changes).
 4. Do not change the intent of existing requirements unless the new feature logically requires it. You may make minimal edits for consistency (references, numbering, glossary) as long as you explicitly list them.
    - If you must adjust an existing requirement's intent, list the exact requirement(s) and explain why.
 5. Apply the **Software Requirements Specification Update** to %%REQ_DOC%%, following its formatting, language, and guidelines from the template at `.req/templates/requirements.md`. Do NOT introduce any additional edits beyond what the **Software Requirements Specification Update** describes.
-6. GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all new requirements in **Software Requirements Specification Update** and the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST only code logic, full detailed content needed for implementation, do not summarize.
-   - If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Based on filenames, determine which are relevant and READ them. Ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply guidelines from files you have not explicitly read via a tool action.
+6. GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all new requirements in **Software Requirements Specification Update** and the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
+   - If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines. Ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply guidelines from files you have not explicitly read via a tool action.
 7.  Where unit tests exist, plan the necessary refactoring and expansion to cover new requirements and include these details in the **Comprehensive Technical Implementation Report**.
 8.  IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
-9.  Re-read %%REQ_DOC%% and cross-reference with the source code to check all requirements.
+9.  Review %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check all requirements.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
-   - It is forbidden to mark a requirement as `OK` without at least one verifiable reference (file path + line range or excerpt). If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
+   - It is forbidden to mark a requirement as `OK` without quoting the exact code snippet that satisfies it, alongside the file path and line ranges. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated.. If strict evidence (exact file and logic match) is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence: file path(s), line numbers (when relevant), and a short explanation.
 10. Run the updated test suite. 
    - Verify that the implemented changes satisfy the requirements and pass tests.
