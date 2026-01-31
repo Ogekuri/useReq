@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.62](https://github.com/Ogekuri/useReq/compare/v0.0.61..v0.0.62) - 2026-01-31
+### ⛰️  Features
+- *(core)* add todo tool fallback if missing.
+
 ## [0.0.61](https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61) - 2026-01-30
 ### 🐛  Bug Fixes
 - *(core)* change prompts.
@@ -25,7 +29,7 @@
 
 ### 🐛  Bug Fixes
 - *(core)* rename Optimize in Refactor
-- *(core)* Typo on GPT-5.2-Codex (copilot)
+- *(core)* Typo on GPT-5.1-Codex-Mini (Preview) (copilot)
 - *(useReq)* report workflow in summary table [2026-01-25 20:51:19]
 - *(useReq)* align install summary header [2026-01-25 20:32:17]
 - *(core)* change SRS Update and Technical Implementation Records
@@ -356,6 +360,7 @@
 - \[0.0.59\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.59
 - \[0.0.60\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.60
 - \[0.0.61\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.61
+- \[0.0.62\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.62
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -418,3 +423,4 @@
 [0.0.59]: https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59
 [0.0.60]: https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60
 [0.0.61]: https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61
+[0.0.62]: https://github.com/Ogekuri/useReq/compare/v0.0.61..v0.0.62
