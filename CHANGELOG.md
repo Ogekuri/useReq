@@ -25,7 +25,7 @@
 
 ### 🐛  Bug Fixes
 - *(core)* rename Optimize in Refactor
-- *(core)* Typo on GPT-5.1-Codex-Mini (Preview) (copilot)
+- *(core)* Typo on GPT-5.2-Codex (copilot)
 - *(useReq)* report workflow in summary table [2026-01-25 20:51:19]
 - *(useReq)* align install summary header [2026-01-25 20:32:17]
 - *(core)* change SRS Update and Technical Implementation Records

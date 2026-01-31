@@ -24,10 +24,19 @@ Verify that the project's source code satisfies the documented requirements and 
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Check if a TODO LIST tool is available, you MUST use todo tool to create the to-do list exactly as written and then follow it step by step without pausing. If TODO LIST tool is NOT available OUTPUT exactly "TODO LIST tool check FAILED!", and then terminate the execution.
+- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps:
+   - If a dedicated task-list tool is available, use it to create the task list.
+   - If no such tool is available, create an equivalent task list in the assistant output as a markdown checklist.
+   - In both cases, execute the Steps strictly in order, updating the checklist as each step completes. Do not terminate solely due to missing tooling.
+
+## Task list fallback (tool-optional)
+If a task-list tool is unavailable, emulate it in plain text:
+- Render a markdown checklist with one item per Step (1..4).
+- Mark items as [x] only after the step finishes successfully.
+- If a step requires termination, stop immediately and do not mark subsequent items.
 
 ## Steps
-Internally generate a task list based strictly on the steps below, then execute it step by step without pausing:
+Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
 2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check all requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.

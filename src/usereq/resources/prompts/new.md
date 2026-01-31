@@ -32,12 +32,21 @@ Implement a new feature by first updating the requirements document and then pro
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Check if a TODO LIST tool is available, you MUST use todo tool to create the to-do list exactly as written and then follow it step by step without pausing. If TODO LIST tool is NOT available OUTPUT exactly "TODO LIST tool check FAILED!", and then terminate the execution.
+- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps:
+   - If a dedicated task-list tool is available, use it to create the task list.
+   - If no such tool is available, create an equivalent task list in the assistant output as a markdown checklist.
+   - In both cases, execute the Steps strictly in order, updating the checklist as each step completes. Do not terminate solely due to missing tooling.
+
+## Task list fallback (tool-optional)
+If a task-list tool is unavailable, emulate it in plain text:
+- Render a markdown checklist with one item per Step (1..14).
+- Mark items as [x] only after the step finishes successfully.
+- If a step requires termination, stop immediately and do not mark subsequent items.
 
 ## Steps
-Internally generate a task list based strictly on the steps below, then execute it step by step without pausing:
+Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
 1. **CRITICAL**: Check GIT Status
-   - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'GIT status check FAILED!'; exit 1; }`. If it fails, OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
+   - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'GIT status check FAILED!'; }`. If it printing text including a word "FAILED", OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
 2. Read %%REQ_DOC%% and [User Request](#users-request), then apply the outlined guidelines when documenting changes to the requirements (follow the existing style, structure, and language).
 3. GENERATE a detailed **Software Requirements Specification Update** documenting the exact modifications to requirements needed to implement the changes described by the [User Request](#users-request). This **Software Requirements Specification Update** must account for the original User Request and all subsequent changes and adjustments for %%REQ_DOC%%, must contain only the exact requirement edits needed: provide patch-style ‘Before → After’ blocks for each modified section/requirement, quoting only the changed text (no full-document rewrites):
    - Never introduce new requirements solely to explicitly forbid functions/features/behaviors. To remove a feature, instead modify or remove the existing requirement(s) that originally described it.
