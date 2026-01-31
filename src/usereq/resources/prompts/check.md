@@ -37,9 +37,9 @@ You must manage the execution flow using two distinct methods:
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
-Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
+Render the **Global Roadmap** (markdown checklist `1..4`) at the start of your execution, then execute it step by step without pausing:
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
-2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check all requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
+2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check ALL requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - It is forbidden to mark a requirement as `OK` without quoting the exact code snippet that satisfies it. For each requirement, provide a concise evidence pointer (file path + symbol + line range), and include full code excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "shall not..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possibile.

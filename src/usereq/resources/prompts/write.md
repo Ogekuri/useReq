@@ -34,7 +34,7 @@ You must manage the execution flow using two distinct methods:
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
-Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
+Render the **Global Roadmap** (markdown checklist `1..9`) at the start of your execution, then execute it step by step without pausing:
 1. Read [User Request](#users-request) to identify and extract all project and application requirements.
 2. Extract the **target language** from the [User Request](#users-request).
    - Prefer an explicit marker like "language: <name>".

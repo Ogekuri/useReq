@@ -44,7 +44,7 @@ You must manage the execution flow using two distinct methods:
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
-Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
+Render the **Global Roadmap** (markdown checklist `1..12`) at the start of your execution, then execute it step by step without pausing:
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'GIT status check FAILED!'; }`. If it printing text including a word "FAILED", OUTPUT exactly "GIT status check FAILED!", and then terminate the execution.
 2. Read %%REQ_DOC%% and the [User Request](#users-request).

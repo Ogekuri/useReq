@@ -38,7 +38,7 @@ You must manage the execution flow using two distinct methods:
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
-Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
+Render the **Global Roadmap** (markdown checklist `1..3`) at the start of your execution, then execute it step by step without pausing:
 1. Read %%REQ_DOC%% and the [User Request](#users-request) analysis request.
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
    - Use search-first (`git grep`/`rg`) to find the minimal relevant file set, then read only those files. Avoid scanning entire directories unless evidence indicates it is required. Do not load the entire codebase unless absolutely necessary.
