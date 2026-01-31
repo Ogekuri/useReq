@@ -31,16 +31,17 @@ Propose and implement refactoring to the source code to improve structure or per
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps:
-   - If a dedicated task-list tool is available, use it to create the task list.
-   - If no such tool is available, create an equivalent task list in the assistant output as a markdown checklist.
-   - In both cases, execute the Steps strictly in order, updating the checklist as each step completes. Do not terminate solely due to missing tooling.
+- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Do not terminate solely before complete all steps.
 
-## Task list fallback (tool-optional)
-If a task-list tool is unavailable, emulate it in plain text:
-- Render a markdown checklist with one item per Step (1..12).
-- Mark items as [x] only after the step finishes successfully.
-- If a step requires termination, stop immediately and do not mark subsequent items.
+## Execution Protocol (Global vs Local)
+You must manage the execution flow using two distinct methods:
+-  **Global Roadmap (Markdown Checklist)**: 
+   - You MUST maintain a plain-text Markdown checklist of the `12` Steps (one item per Step) below in your response. 
+   - Mark items as `[x]` ONLY when the step is fully completed.
+   - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
+-  **Local Sub-tasks (Tool Usage)**: 
+   - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+   - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
 Generate a task list (tool-based if available, otherwise a markdown checklist in text) based strictly on the steps below, then execute it step by step without pausing:
