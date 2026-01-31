@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.63](https://github.com/Ogekuri/useReq/compare/v0.0.62..v0.0.63) - 2026-01-31
+### ⛰️  Features
+- *(core)* use text list for global activities and todo list for tasks.
+
 ## [0.0.62](https://github.com/Ogekuri/useReq/compare/v0.0.61..v0.0.62) - 2026-01-31
 ### ⛰️  Features
 - *(core)* add todo tool fallback if missing.
@@ -361,6 +365,7 @@
 - \[0.0.60\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.60
 - \[0.0.61\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.61
 - \[0.0.62\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.62
+- \[0.0.63\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.63
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -424,3 +429,4 @@
 [0.0.60]: https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60
 [0.0.61]: https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61
 [0.0.62]: https://github.com/Ogekuri/useReq/compare/v0.0.61..v0.0.62
+[0.0.63]: https://github.com/Ogekuri/useReq/compare/v0.0.62..v0.0.63
