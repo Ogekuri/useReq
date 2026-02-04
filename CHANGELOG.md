@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.66](https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66) - 2026-02-04
+### ⛰️  Features
+- *(core)* add Professional Personas specifications.
+- *(core)* add COMPONENT on commits.
+
 ## [0.0.65](https://github.com/Ogekuri/useReq/compare/v0.0.64..v0.0.65) - 2026-02-04
 ### ⛰️  Features
 - *(core)* add models.json config.
@@ -376,6 +381,7 @@
 - \[0.0.63\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.63
 - \[0.0.64\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.64
 - \[0.0.65\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.65
+- \[0.0.66\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.66
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -442,3 +448,4 @@
 [0.0.63]: https://github.com/Ogekuri/useReq/compare/v0.0.62..v0.0.63
 [0.0.64]: https://github.com/Ogekuri/useReq/compare/v0.0.63..v0.0.64
 [0.0.65]: https://github.com/Ogekuri/useReq/compare/v0.0.64..v0.0.65
+[0.0.66]: https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66
