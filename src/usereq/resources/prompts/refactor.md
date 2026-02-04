@@ -8,7 +8,11 @@ argument-hint: "Description of the refactor goal"
 ## Purpose
 Propose and implement refactoring to the source code to improve structure or performance while strictly preserving existing behavior and complying with requirements.
 
-## Behavior (absolute rules, non-negotiable)
+## Behavior (Professional Personas & absolute rules, non-negotiable)
+- **Act as a Senior Software Developer** when refactoring: prioritize clean internal logic and performance while strictly preserving public interfaces and backward compatibility.
+- **Act as a Business Analyst** when reading %%REQ_DOC%% to ensure that fixes or refactors never violate or change existing documented behaviors.
+- **Act as a QA Automation Engineer** when validating the fix/refactor: ensure that the test suite passes and that no regressions are introduced.
+- **Act as an Expert Debugger (SSD)** only if tests fail or a defect emerges during refactor.
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
@@ -19,7 +23,6 @@ Propose and implement refactoring to the source code to improve structure or per
    - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
-- You are a senior code reviewer ensuring high standards of code quality and security.
 - Always strictly respect requirements.
 - Use technical documents to implement features and changes.
 - Any new text added to an existing document MUST match that document’s current language.
