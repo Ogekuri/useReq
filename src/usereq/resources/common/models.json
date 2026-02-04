@@ -1,0 +1,120 @@
+{
+  "settings": {
+    "version": "0.0.64",
+    "default_mode": "read_only"
+  },
+  "codex": {
+  },
+  "copilot": {
+    "prompts": {
+      "analyze":  { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_only" },
+      "change":   { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
+      "check":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_only" },
+      "cover":    { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
+      "create":   { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
+      "workflow": { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
+      "fix":      { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
+      "new":      { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
+      "recreate": { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
+      "refactor": { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
+      "write":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" }
+    },
+    "usage_modes": {
+      "read_write": {
+        "tools": [
+          "vscode", "execute", "read", "edit", "search", 
+          "ms-python.python/getPythonEnvironmentInfo", 
+          "ms-python.python/getPythonExecutableCommand", 
+          "ms-python.python/installPythonPackage", 
+          "ms-python.python/configurePythonEnvironment", "todo"
+        ]
+      },
+      "read_only": {
+        "tools": [
+          "vscode", "execute", "read", "search", 
+          "ms-python.python/getPythonEnvironmentInfo", 
+          "ms-python.python/getPythonExecutableCommand", 
+          "ms-python.python/installPythonPackage", 
+          "ms-python.python/configurePythonEnvironment", "todo"
+        ]
+      }
+    }
+  },
+  "opencode": {
+    "prompts": {
+      "analyze":  { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_only" },
+      "change":   { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+      "check":    { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_only" },
+      "cover":    { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
+      "create":   { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+      "workflow": { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
+      "fix":      { "model": "github-copilot/gpt-5.1-codex-max", "mode": "read_write" },
+      "new":      { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+      "recreate": { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
+      "refactor": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+      "write":    { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" }
+    }
+  },
+  "claude": {
+    "prompts": {
+      "analyze":  { "model": "haiku", "mode": "read_only" },
+      "change":   { "model": "sonnet", "mode": "read_write" },
+      "check":    { "model": "haiku", "mode": "read_only" },
+      "cover":    { "model": "opus", "mode": "read_write" },
+      "create":   { "model": "haiku", "mode": "read_write" },
+      "workflow": { "model": "haiku", "mode": "read_write" },
+      "fix":      { "model": "opus", "mode": "read_write" },
+      "new":      { "model": "sonnet", "mode": "read_write" },
+      "recreate": { "model": "haiku", "mode": "read_write" },
+      "refactor": { "model": "opus", "mode": "read_write" },
+      "write":    { "model": "haiku", "mode": "read_write" }
+    },
+    "usage_modes": {
+      "read_write": {
+        "tools": "Read, Grep, Glob, ReadFile, Edit, WriteFile, DeleteFile, Pytest"
+      },
+      "read_only": {
+        "tools": "Read, Grep, Glob, ReadFile, Pytest"
+      }
+    }
+  },
+  "gemini": {
+  },
+  "kiro": {
+    "prompts": {
+      "analyze":  { "model": "claude-haiku-4.5", "mode": "read_only" },
+      "change":   { "model": "claude-sonnet-4.5", "mode": "read_write" },
+      "check":    { "model": "claude-haiku-4.5", "mode": "read_only" },
+      "cover":    { "model": "claude-opus-4.5", "mode": "read_write" },
+      "create":   { "model": "claude-haiku-4.5", "mode": "read_write" },
+      "workflow": { "model": "claude-haiku-4.5", "mode": "read_write" },
+      "fix":      { "model": "claude-opus-4.5", "mode": "read_write" },
+      "new":      { "model": "claude-sonnet-4.5", "mode": "read_write" },
+      "recreate": { "model": "claude-haiku-4.5", "mode": "read_write" },
+      "refactor": { "model": "claude-opus-4.5", "mode": "read_write" },
+      "write":    { "model": "claude-haiku-4.5", "mode": "read_write" }
+      },
+    "usage_modes": {
+        "read_write": {
+          "tools": [ "read", "glob", "grep", "write", "shell", "todo", "todo_list", "thinking" ]
+        },
+        "read_only": {
+          "tools": [ "read", "glob", "grep", "shell", "todo", "todo_list", "thinking" ]
+        }
+      },
+    "agent_template": {
+      "name": "%%NAME%%",
+      "description": "%%DESCRIPTION%%",
+      "prompt": "%%PROMPT%%",
+      "mcpServers": {},
+      "tools": [],
+      "allowedTools": [],
+      "toolAliases": {},
+      "resources": [],
+      "hooks": {},
+      "toolsSettings": {},
+      "useLegacyMcpJson": false,
+      "model": null
+      }
+  }
+}

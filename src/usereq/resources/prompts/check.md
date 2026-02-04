@@ -12,7 +12,7 @@ Verify that the project's source code satisfies the documented requirements and 
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
-- **CRITICAL**: Do not modify any git tracked files (i.e., returned by `git ls-files`). You may run commands that create untracked artifacts ONLY if: (a) they are confined to standard disposable locations (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`,`node_modules/.cache`, `/tmp`), (b) they do not change any tracked file contents, and (c) you do NOT rely on those artifacts as permanent outputs. If unsure, run tools in a temporary directory (eg., `tmp/`, `temp/`, `/tmp`) or use tool flags that disable caches.
+- **CRITICAL**: Do not modify any git tracked files (i.e., returned by `git ls-files`). You may run commands that create untracked artifacts ONLY if: (a) they are confined to standard disposable locations (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`,`node_modules/.cache`, `/tmp`), (b) they do not change any tracked file contents, and (c) you do NOT rely on those artifacts as permanent outputs. If unsure, run tools in a temporary directory (e.g., `tmp/`, `temp/`, `/tmp`) or use tool flags that disable caches.
 - Allowed git commands in this workflow (read-only only): `git status`, `git diff`, `git ls-files`, `git grep`, `git rev-parse`. Do NOT run any other git commands.
 - Only analyze the code and test execution and present the results; make no changes.
 - Do NOT create or modify tests in this workflow.
@@ -24,12 +24,12 @@ Verify that the project's source code satisfies the documented requirements and 
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Do not terminate solely before complete all steps.
+- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Complete all tasks of steps without pausing or any stop, except explicit indicated.
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `4` Steps (one item per Step) below in your response. 
+   - You MUST maintain a plain-text Markdown checklist of the `6` Steps (one item per Step) below in your response. 
    - Mark items as `[x]` ONLY when the step is fully completed.
    - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
 -  **Local Sub-tasks (Tool Usage)**: 
@@ -37,14 +37,14 @@ You must manage the execution flow using two distinct methods:
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
-Render the **Global Roadmap** (markdown checklist `1..4`) at the start of your execution, then execute it step by step without pausing:
+Render the **Global Roadmap** (markdown checklist `1..6`) at the start of your execution, then execute it step by step without pausing:
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
 2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check ALL requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - It is forbidden to mark a requirement as `OK` without quoting the exact code snippet that satisfies it. For each requirement, provide a concise evidence pointer (file path + symbol + line range), and include full code excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "shall not..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
-   - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possibile.
-3. If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines.
-   - Verify that the application's source code follows those documents.
-   - Do not check guidelines from files you have not explicitly read via a tool action.
-   - Report any discrepancies with file paths and concise explanations.
-4. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Check completed!".
+   - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
+3. **CRITICAL**: If all requirements report `OK`, OUTPUT exactly "All requirements are already covered. No changes needed.", and then terminate the execution.
+4. If there are uncovered requirements, GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all `FAIL` requirements. The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
+   - If directory/directories %%REQ_DIR%% exists, list files in %%REQ_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines. Ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply guidelines from files you have not explicitly read via a tool action.
+5. Where unit tests exist, plan the necessary refactoring and expansion to cover uncovered requirements and include these details in the **Comprehensive Technical Implementation Report**.
+6. PRINT in the response presenting the results of requirements check and **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Check completed!".

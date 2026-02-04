@@ -87,6 +87,9 @@ uv tool uninstall usereq
 - Option `--prompts-use-agents`  generate prompt files as **agent-only references** (agent: req-<name>).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 - Add `--enable-workflow` to enable `WORKFLOW.md` management.
+- Add `--update` to update an existi installation.
+  - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
+- Add `--legacy` to enable the *legacy mode* support (see below).
 
 
 ## Supported CLIs, Agents, and Extensions
@@ -122,13 +125,15 @@ uv tool uninstall usereq
   * set environment variable **CODEX_HOME** to project's home before run VS Code
 
 #### Claude Code
-- ✅ Claude Code CLI Prompt [`/req.create italian`]
+- ✅ Claude Code CLI Prompt [`/req:create italian`]
 - ✅ Claude Code CLI Agent [`@agent-req-create italian`]
 - ✅ Claude Extension for Visual Studio Code [`@agent-req-create italian`] (does not **hightlight** agent's commands like CLI)
 
 #### GitHub Copilot
 - ✅ GitHub Copilot CLI Prompt [`/agent ➡️ req-create ➡️ italian ↩️`]
+  * Use `--legacy` to not add `model:` on agents.
   * Slash command not supported 
+  * Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
   * Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
 - ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.create; italian ↩️`]
   * **Starts a new chat** for every prompt.
@@ -370,3 +375,11 @@ This section describes the Git behavior when executing the commands provided by 
   - Do not use destructive commands (e.g., `git reset --hard`, `git clean -fd`) to "clean" the repository without verifying the impact.
   - If you prefer to isolate changes, execute commands in a branch or a copy of the repository.
 
+## *Legacy Mode*
+
+The *Legacy Mode* can enable with `--legacy` args.
+
+### GitHub Copilot
+
+In *Legacy Mode* the unsupported `model:` does not added to agents.
+See: Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)

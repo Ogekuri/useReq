@@ -30,6 +30,7 @@
         *   `resolve_absolute`: Resolves a normalized path to an absolute path.
         *   `maybe_notify_newer_version`: Checks for package updates before proceeding.
         *   `save_config`: Saves current parameters to `.req/config.json`.
+        *   Copies `models.json` or `models-legacy.json` from package resources to `.req/models.json` after creating the `.req` directory. When `--legacy` is active and `models-legacy.json` exists, copies it instead of `models.json`. When `--preserve-models` is active, skips overwriting `.req/models.json` to preserve custom configurations.
     *   **Environment Preparation**
         *   `compute_sub_path`: Calculates relative paths for token substitution.
         *   `make_relative_token`: Formats paths as tokens for templates.
@@ -37,8 +38,8 @@
         *   `generate_doc_file_list`: Creates a list of documentation files for `%%REQ_DOC%%`.
         *   `generate_dir_list`: Creates a list of technical directories for `%%REQ_DIR%%`.
     *   **Resource Generation**
-        *   `load_kiro_template`: Loads Kiro agent templates and configuration.
-        *   `load_cli_configs`: Loads configurations for external CLIs (Claude, Copilot, etc.).
+        *   `load_kiro_template`: Loads Kiro agent templates from centralized models configuration.
+        *   `load_centralized_models`: Loads configurations for external CLIs (Claude, Copilot, Kiro, etc.) from centralized `common/models.json` or `common/models-legacy.json` when `--legacy` flag is active. When `--preserve-models` is active with `--update` and `.req/models.json` exists, loads from that file instead, bypassing `--legacy`.
         *   **Prompt Processing Loop** (Iterates over available prompts)
             *   `extract_frontmatter`: Separates metadata from the prompt body.
             *   `extract_description`: Retrieves the description from frontmatter.

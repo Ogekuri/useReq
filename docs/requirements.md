@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-01-27"
-version: 0.46
+version: 0.47
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.46
+**Versione**: 0.47
 **Autore**: Ogekuri
-**Data**: 2026-01-27
+**Data**: 2026-02-01
 
 ## Indice
 <!-- TOC -->
@@ -61,6 +61,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2025-12-31 | 0.0 | Creazione bozza requisiti. |
 | 2026-01-26 | 0.45 | Aggiunta flag di abilitazione specifici per provider per la generazione prompt e tabella di riepilogo installazione ristretta ai provider target. |
 | 2026-01-27 | 0.46 | Traduzione in Italiano, riorganizzazione e rinumerazione. |
+| 2026-02-01 | 0.47 | Aggiunta del parametro --legacy per supportare configurazioni legacy. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -185,16 +186,17 @@ Il progetto include una suite di test in `tests/`.
 - **DES-009**: Ogni parte importante del codice (classi, funzioni complesse, logica di business, algoritmi critici) dovrebbe essere commentata dove necessario.
 - **DES-010**: Ogni nuova funzionalità aggiunta dovrebbe includere commenti esplicativi dove applicabile.
 - **DES-011**: Le stringhe statiche usate per la sostituzione del token `%%WORKFLOW%%` devono essere salvate come file di testo semplice nelle risorse del pacchetto sotto `src/usereq/resources/common/` con nomi `workflow_on.md` e `workflow_off.md`. A runtime la CLI deve caricare questi file; se non presenti, deve usare default sensati.
+- **DES-012**: La funzione `load_cli_configs` deve essere sostituita con `load_centralized_models` che carica i dati dal file `src/usereq/resources/common/models.json`. Quando `legacy_mode` è attivo, deve caricare `models-legacy.json` se esiste, altrimenti fare fallback su `models.json`. Il fallback deve avvenire a livello di file completo, non per singole voci. La struttura di ritorno deve rimanere compatibile: un dizionario `cli_name -> config` dove `config` contiene le chiavi `prompts`, `usage_modes`, e opzionalmente `agent_template`.
 
 ### 3.2 Interfaccia CLI e Comportamento Generale
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
 - **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
-- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req` e la versione nel formato `usage: req -c ...`.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
 - **REQ-005**: Il comando deve verificare che il parametro `--doc` indichi una directory esistente, altrimenti deve terminare con errore.
-- **REQ-006**: Il comando deve accettare flag booleani `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, e `--enable-opencode` (default false). Quando un flag è omesso, la CLI deve saltare la creazione di risorse per quel provider.
-- **REQ-007**: Durante installazioni normali (non upgrade/remove/help), il comando deve richiedere che almeno un flag `--enable-*` sia fornito. Se nessuno è fornito, deve stampare un messaggio di errore in Inglese e uscire.
+- **REQ-006**: Il comando deve accettare flag booleani `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--legacy`, e `--preserve-models` (default false). Quando un flag `--enable-*` è omesso, la CLI deve saltare la creazione di risorse per quel provider. Quando `--legacy` è attivo, la CLI deve attivare la "legacy mode" per il caricamento delle configurazioni. Quando `--preserve-models` è attivo in combinazione con `--update`, la CLI deve preservare il file `.req/models.json` esistente e il flag `--legacy` non ha effetto.
+- **REQ-007**: Durante installazioni normali (non upgrade/remove/help), il comando deve richiedere che almeno un flag `--enable-*` sia fornito. Il flag `--legacy` non conta come flag di abilitazione del provider. Se nessun flag `--enable-*` è fornito, deve stampare un messaggio di errore in Inglese e uscire.
 - **REQ-008**: La tabella riassuntiva di installazione ASCII deve includere righe solo per i target CLI i cui prompt sono stati installati durante l'invocazione corrente.
 
 ### 3.3 Installazione e Aggiornamenti
@@ -224,6 +226,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-025**: Quando `--update` è presente, il comando deve verificare presenza di `.req/config.json` e terminare con errore se assente.
 - **REQ-026**: Con `--update`, il comando deve caricare `doc` e `dir` da config ed eseguire il flusso come se passati manualmente.
 - **REQ-027**: Il comando deve copiare i template in `.req/templates`, rimpiazzando pre-esistenti.
+- **REQ-084**: Il comando deve copiare il file di configurazione modelli in `.req/models.json`, rimpiazzando il file pre-esistente se presente, a meno che `--preserve-models` sia attivo. Quando `--preserve-models` NON è attivo: se `--legacy` NON è attivo, deve copiare `models.json` dalle risorse del pacchetto (`src/usereq/resources/common/models.json`); se `--legacy` è attivo E il file `models-legacy.json` è caricato con successo (cioè quando esiste), deve copiare `models-legacy.json` dalle risorse del pacchetto (`src/usereq/resources/common/models-legacy.json`); se `--legacy` è attivo ma `models-legacy.json` non esiste, deve copiare `models.json`. Questa copia deve avvenire dopo la creazione della directory `.req` e dopo il salvataggio di `config.json`.
 - **REQ-028**: Se il template VS Code è disponibile, deve creare o aggiornare `.vscode/settings.json` unendo impostazioni.
 - **REQ-029**: Prima di modificare `.vscode/settings.json`, deve salvare lo stato originale in backup sotto `.req/` (per ripristino con remove).
 - **REQ-030**: L'aggiornamento di `.vscode/settings.json` deve avvenire solo se ci sono differenze semantiche; se non ce ne sono, non deve riscrivere né creare backup.
@@ -240,7 +243,9 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
 - **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
 - **REQ-040**: Con `--enable-tools`, includere `tools` derivato da `usage_modes` se presente in `config.json`.
-- **REQ-041**: L'inclusione di `model` e `tools` è condizionale alla validità del `config.json`.
+- **REQ-041**: L'inclusione di `model` e `tools` è condizionale alla validità del file di configurazione centralizzato (`models.json` o `models-legacy.json` a seconda della modalità legacy).
+- **REQ-082**: La CLI deve caricare le configurazioni per la generazione dei prompt. Quando `--preserve-models` è attivo in combinazione con `--update` e il file `.req/models.json` esiste, deve caricare le configurazioni da `.req/models.json`; in questo caso il flag `--legacy` non ha effetto. Quando `--preserve-models` NON è attivo o il file `.req/models.json` non esiste: deve caricare dal file centralizzato `src/usereq/resources/common/models.json`, leggendo la voce corrispondente al CLI (`<cli>`) per ottenere `prompts` e `usage_modes`; se il flag `--legacy` è attivo, la CLI deve prima verificare la presenza del file `src/usereq/resources/common/models-legacy.json`; se esiste, deve caricarlo al posto di `models.json` (fallback a livello di file, non di singole voci); se `models-legacy.json` non esiste, deve usare `models.json`. I file `src/usereq/resources/<cli>/config.json` non devono più essere utilizzati e possono essere rimossi dal disco.
+- **REQ-083**: La stringa di aiuto deve includere `--legacy` e `--preserve-models` come opzioni disponibili.
 - **REQ-042**: La CLI deve accettare flag `--enable-workflow` (default false). Il token `%%WORKFLOW%%` deve essere sostituito a runtime con testo statico. Se non presente, non generare prompt workflow.
 - **REQ-043**: I file di configurazione provider possono includere voce `workflow`. Se `--enable-workflow` è attivo, i generatori devono includere il prompt `workflow`.
 - **REQ-044**: La generazione risorse descritta nelle sezioni specifiche deve eseguire solo quando il flag `--enable-<provider>` corrispondente è attivo.

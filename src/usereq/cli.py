@@ -62,6 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] [--enable-workflow] "
+        "[--legacy] [--preserve-models] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -154,6 +155,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--enable-workflow",
         action="store_true",
         help="When set, enable workflow command and WORKFLOW.md management in prompts.",
+    )
+    parser.add_argument(
+        "--legacy",
+        action="store_true",
+        help="When set, enable legacy mode using config-legacy.json files for prompt configuration.",
+    )
+    parser.add_argument(
+        "--preserve-models",
+        action="store_true",
+        help="When set with --update, preserve existing .req/models.json and bypass --legacy mode.",
     )
     return parser
 
@@ -732,36 +743,35 @@ def find_template_source() -> Path:
 
 
 def load_kiro_template() -> tuple[str, dict[str, Any]]:
-    """Loads the Kiro template and configuration needed for agents."""
-    roots = [RESOURCE_ROOT]
-    builtin_root = Path(__file__).resolve().parent / "resources"
-    if builtin_root != RESOURCE_ROOT:
-        roots.append(builtin_root)
-
-    for root in roots:
-        candidate = root / "kiro" / "config.json"
-        if candidate.is_file():
+    """Loads the Kiro template from centralized models configuration."""
+    common_dir = RESOURCE_ROOT / "common"
+    
+    # Try models.json first (this function is called during generation, not with legacy flag check)
+    for config_name in ["models.json", "models-legacy.json"]:
+        config_file = common_dir / config_name
+        if config_file.is_file():
             try:
-                cfg = load_settings(candidate)
+                all_models = load_settings(config_file)
+                if isinstance(all_models, dict):
+                    kiro_cfg = all_models.get("kiro")
+                    if isinstance(kiro_cfg, dict):
+                        agent_template = kiro_cfg.get("agent_template")
+                        if isinstance(agent_template, str) and agent_template.strip():
+                            return agent_template, kiro_cfg
+                        if isinstance(agent_template, dict):
+                            try:
+                                return (
+                                    json.dumps(agent_template, indent=2, ensure_ascii=False),
+                                    kiro_cfg,
+                                )
+                            except Exception:
+                                pass
             except Exception as exc:
-                dlog(f"Failed parsing kiro/config.json at {candidate}: {exc}")
-                cfg = {}
-            agent_template = (
-                cfg.get("agent_template") if isinstance(cfg, dict) else None
-            )
-            if isinstance(agent_template, str) and agent_template.strip():
-                return agent_template, cfg
-            if isinstance(agent_template, dict):
-                try:
-                    return (
-                        json.dumps(agent_template, indent=2, ensure_ascii=False),
-                        cfg,
-                    )
-                except Exception:
-                    pass
-
+                dlog(f"Failed parsing {config_file}: {exc}")
+                continue
+    
     raise ReqError(
-        "Error: no Kiro config with 'agent_template' found in resources/kiro",
+        "Error: no Kiro config with 'agent_template' found in centralized models",
         9,
     )
 
@@ -797,22 +807,54 @@ def load_settings(path: Path) -> dict[str, Any]:
         return json.loads(cleaned)
 
 
-def load_cli_configs(resource_root: Path) -> dict[str, dict[str, Any] | None]:
-    """Loads config.json files for supported CLIs if present.
+def load_centralized_models(
+    resource_root: Path, 
+    legacy_mode: bool = False, 
+    preserve_models_path: Optional[Path] = None
+) -> dict[str, dict[str, Any] | None]:
+    """Loads centralized models configuration from common/models.json.
 
     Returns a map cli_name -> parsed_json or None if not present.
+    When preserve_models_path is provided and exists, loads from that file,
+    ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to 
+    load models-legacy.json first, falling back to models.json if not found.
     """
+    common_dir = resource_root / "common"
+    config_file = None
+    
+    # Priority 1: preserve_models_path if provided and exists
+    if preserve_models_path and preserve_models_path.is_file():
+        config_file = preserve_models_path
+        dlog(f"Using preserved models config: {preserve_models_path}")
+    # Priority 2: legacy mode
+    elif legacy_mode:
+        legacy_candidate = common_dir / "models-legacy.json"
+        if legacy_candidate.is_file():
+            config_file = legacy_candidate
+            dlog(f"Using legacy models config: {legacy_candidate}")
+    
+    # Fallback: standard models.json
+    if config_file is None:
+        config_file = common_dir / "models.json"
+        if not config_file.is_file():
+            dlog(f"Models config not found: {config_file}")
+            return {name: None for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")}
+    
+    # Load the centralized configuration
+    try:
+        all_models = load_settings(config_file)
+        dlog(f"Loaded centralized models from: {config_file}")
+    except Exception as exc:
+        dlog(f"Failed loading centralized models from {config_file}: {exc}")
+        return {name: None for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")}
+    
+    # Extract individual CLI configs
     result: dict[str, dict[str, Any] | None] = {}
-    for name in ("claude", "copilot", "opencode", "kiro", "gemini"):
-        candidate = resource_root / name / "config.json"
-        if candidate.is_file():
-            try:
-                result[name] = load_settings(candidate)
-            except Exception:
-                dlog(f"Failed loading config for {name}: {candidate}")
-                result[name] = None
-        else:
-            result[name] = None
+    for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex"):
+        result[name] = all_models.get(name) if isinstance(all_models, dict) else None
+        if result[name]:
+            dlog(f"Extracted config for {name}")
+    
     return result
 
 
@@ -1143,6 +1185,27 @@ def run(args: Namespace) -> None:
     if VERBOSE:
         log(f"OK: ensured directory {req_root}")
 
+    # Copy models configuration to .req/models.json based on legacy mode (REQ-084)
+    # Skip if --preserve-models is active
+    if not args.preserve_models:
+        models_target = req_root / "models.json"
+        if args.legacy:
+            legacy_candidate = RESOURCE_ROOT / "common" / "models-legacy.json"
+            if legacy_candidate.is_file():
+                models_src = legacy_candidate
+            else:
+                models_src = RESOURCE_ROOT / "common" / "models.json"
+        else:
+            models_src = RESOURCE_ROOT / "common" / "models.json"
+        
+        if models_src.is_file():
+            shutil.copyfile(models_src, models_target)
+            if VERBOSE:
+                log(f"OK: copied {models_src} to {models_target}")
+    else:
+        if VERBOSE:
+            log("OK: preserved existing .req/models.json (--preserve-models active)")
+
     templates_src = find_template_source()
     doc_dir_path = project_base / normalized_doc
     doc_dir_empty = not any(doc_dir_path.iterdir())
@@ -1239,7 +1302,18 @@ def run(args: Namespace) -> None:
         enable_workflow = False
         enable_workflow = False
     if include_models or include_tools:
-        configs = load_cli_configs(RESOURCE_ROOT)
+        # Determine preserve_models_path (REQ-082)
+        preserve_models_path = None
+        if args.preserve_models and args.update:
+            candidate_path = project_base / ".req" / "models.json"
+            if candidate_path.is_file():
+                preserve_models_path = candidate_path
+        
+        configs = load_centralized_models(
+            RESOURCE_ROOT, 
+            legacy_mode=args.legacy,
+            preserve_models_path=preserve_models_path
+        )
     # Load workflow substitution texts from resources/common, falling back to defaults.
     common_dir = RESOURCE_ROOT / "common"
     workflow_on_text = (

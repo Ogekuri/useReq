@@ -25,7 +25,7 @@ Analyze the source code and requirements to answer the user request, producing a
    - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Do not terminate solely before complete all steps.
+- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Complete all tasks of steps without pausing or any stop, except explicit indicated.
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:

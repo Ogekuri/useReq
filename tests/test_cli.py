@@ -637,29 +637,51 @@ class TestModelsAndTools(unittest.TestCase):
         tmp_resources = Path(__file__).resolve().parents[1] / "temp" / "resources"
         if tmp_resources.exists():
             shutil.rmtree(tmp_resources)
-        (tmp_resources / "copilot").mkdir(parents=True, exist_ok=True)
-        (tmp_resources / "claude").mkdir(parents=True, exist_ok=True)
-        (tmp_resources / "gemini").mkdir(parents=True, exist_ok=True)
-        (tmp_resources / "kiro").mkdir(parents=True, exist_ok=True)
-        (tmp_resources / "opencode").mkdir(parents=True, exist_ok=True)
+        tmp_resources.mkdir(parents=True, exist_ok=True)
+        (tmp_resources / "common").mkdir(parents=True, exist_ok=True)
 
         cls._tmp_resources = tmp_resources
         cls._orig_resource_root = cli.RESOURCE_ROOT
 
         base_usage = {"read_write": {"tools": ["vscode", "execute", "read"]}}
         claude_usage = {"read_write": {"tools": ["Read", "Grep", "Glob"]}}
+        kiro_usage = {
+            "read_write": {"tools": KIRO_READ_WRITE_TOOLS},
+            "read_only": {"tools": KIRO_READ_ONLY_TOOLS}
+        }
 
-        for name in ("copilot", "claude", "gemini", "kiro", "opencode"):
-            sample_config = {
-                "settings": {"version": "1.0.0"},
+        # Create centralized models.json
+        models_config = {
+            "settings": {"version": "1.0.0"},
+            "codex": {},
+            "copilot": {
                 "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
+                "usage_modes": base_usage
+            },
+            "claude": {
+                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
+                "usage_modes": claude_usage
+            },
+            "gemini": {
+                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
+                "usage_modes": base_usage
+            },
+            "kiro": {
+                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_only"}},
+                "usage_modes": kiro_usage,
+                "agent_template": {
+                    "name": "%%NAME%%",
+                    "description": "%%DESCRIPTION%%",
+                    "prompt": "%%PROMPT%%"
+                }
+            },
+            "opencode": {
+                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
+                "usage_modes": base_usage
             }
-            if name == "claude":
-                sample_config["usage_modes"] = claude_usage
-            else:
-                sample_config["usage_modes"] = base_usage
-            cfg_path = tmp_resources / name / "config.json"
-            cfg_path.write_text(json.dumps(sample_config, indent=2), encoding="utf-8")
+        }
+        models_path = tmp_resources / "common" / "models.json"
+        models_path.write_text(json.dumps(models_config, indent=2), encoding="utf-8")
 
         # Copy existing prompts and templates into tmp_resources so CLI finds them
         repo_root = Path(__file__).resolve().parents[1]
@@ -1030,6 +1052,81 @@ class TestKiroToolsEnabled(unittest.TestCase):
         )
 
 
+class TestLoadCLIConfigsLegacy(unittest.TestCase):
+    """Verifies load_centralized_models selects models-legacy when requested."""
+
+    CLI_NAMES = ("claude", "copilot", "gemini", "kiro", "opencode", "codex")
+
+    def setUp(self) -> None:
+        self.resources_dir = Path(tempfile.mkdtemp(prefix="usereq-cli-configs-"))
+        common_dir = self.resources_dir / "common"
+        common_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create models.json with all CLI configs
+        default_models = {
+            "settings": {"version": "0.0.64"},
+            "claude": {"id": "claude-config"},
+            "copilot": {"id": "copilot-config"},
+            "gemini": {"id": "gemini-config"},
+            "kiro": {"id": "kiro-config"},
+            "opencode": {"id": "opencode-config"},
+            "codex": {"id": "codex-config"}
+        }
+        (common_dir / "models.json").write_text(
+            json.dumps(default_models, indent=2), encoding="utf-8"
+        )
+        
+        # Create models-legacy.json (copilot doesn't have legacy)
+        legacy_models = {
+            "settings": {"version": "0.0.64"},
+            "claude": {"id": "claude-legacy"},
+            "copilot": {"id": "copilot-config"},
+            "gemini": {"id": "gemini-legacy"},
+            "kiro": {"id": "kiro-legacy"},
+            "opencode": {"id": "opencode-legacy"},
+            "codex": {"id": "codex-legacy"}
+        }
+        (common_dir / "models-legacy.json").write_text(
+            json.dumps(legacy_models, indent=2), encoding="utf-8"
+        )
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.resources_dir)
+
+    def test_legacy_mode_prefers_legacy_configs(self) -> None:
+        """REQ-082: With --legacy the models-legacy.json overrides models.json."""
+        configs = cli.load_centralized_models(self.resources_dir, legacy_mode=True)
+        self.assertEqual(
+            configs["claude"]["id"],
+            "claude-legacy",
+            "Claude should load from models-legacy.json in legacy mode",
+        )
+        self.assertEqual(
+            configs["gemini"]["id"],
+            "gemini-legacy",
+            "Gemini should load from models-legacy.json in legacy mode",
+        )
+        self.assertEqual(
+            configs["copilot"]["id"],
+            "copilot-config",
+            "Copilot should use models-legacy.json even though it has same value",
+        )
+
+    def test_standard_mode_uses_config_json(self) -> None:
+        """Verify that the normal path uses models.json."""
+        configs = cli.load_centralized_models(self.resources_dir, legacy_mode=False)
+        self.assertEqual(
+            configs["claude"]["id"],
+            "claude-config",
+            "Claude should load from models.json when not in legacy mode",
+        )
+        self.assertEqual(
+            configs["copilot"]["id"],
+            "copilot-config",
+            "Copilot should load from models.json when not in legacy mode",
+        )
+
+
 class TestCLIWithoutClaude(unittest.TestCase):
     """Runs CLI without Claude enabled to ensure other providers work."""
 
@@ -1291,3 +1388,122 @@ class TestUpdateNotification(unittest.TestCase):
                 "Yes",
                 "Workflow Installed column must be 'Yes' when --enable-workflow is provided",
             )
+
+
+class TestPreserveModels(unittest.TestCase):
+    """Verifies --preserve-models flag preserves .req/models.json and bypasses --legacy."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-preserve-models-"))
+        self.docs_dir = self.TEST_DIR / "docs"
+        self.tech_dir = self.TEST_DIR / "tech"
+        self.docs_dir.mkdir(parents=True, exist_ok=True)
+        self.tech_dir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_preserve_models_keeps_custom_config(self) -> None:
+        """REQ-082, REQ-084: With --preserve-models and --update, custom .req/models.json is preserved."""
+        # Initial setup
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    "docs",
+                    "--dir",
+                    "tech",
+                    "--enable-claude",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        # Modify .req/models.json with custom content
+        models_file = self.TEST_DIR / ".req" / "models.json"
+        self.assertTrue(models_file.is_file(), ".req/models.json should exist after initial setup")
+        
+        custom_config = {
+            "settings": {"version": "9.9.9", "custom": "preserved"},
+            "claude": {"id": "custom-claude-config", "prompts": ["custom-prompt"]},
+        }
+        models_file.write_text(json.dumps(custom_config, indent=2), encoding="utf-8")
+
+        # Run --update with --preserve-models
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--update",
+                    "--preserve-models",
+                    "--enable-claude",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        # Verify custom content is preserved
+        preserved_content = json.loads(models_file.read_text(encoding="utf-8"))
+        self.assertEqual(
+            preserved_content["settings"]["version"],
+            "9.9.9",
+            ".req/models.json version should be preserved with --preserve-models",
+        )
+        self.assertEqual(
+            preserved_content["settings"]["custom"],
+            "preserved",
+            "Custom fields in .req/models.json should be preserved with --preserve-models",
+        )
+        self.assertEqual(
+            preserved_content["claude"]["id"],
+            "custom-claude-config",
+            "Custom claude config should be preserved with --preserve-models",
+        )
+
+    def test_preserve_models_bypasses_legacy_mode(self) -> None:
+        """REQ-082: With --preserve-models, --legacy has no effect."""
+        # Setup with initial run
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    "docs",
+                    "--dir",
+                    "tech",
+                    "--enable-claude",
+                ]
+            )
+
+        # Create custom models.json
+        models_file = self.TEST_DIR / ".req" / "models.json"
+        custom_config = {
+            "settings": {"marker": "preserve-wins"},
+            "claude": {"id": "preserved-config"},
+        }
+        models_file.write_text(json.dumps(custom_config, indent=2), encoding="utf-8")
+
+        # Run with both --preserve-models and --legacy
+        # The preserve flag should take precedence
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--update",
+                    "--preserve-models",
+                    "--legacy",
+                    "--enable-claude",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        # Verify custom content is still preserved (--legacy had no effect)
+        preserved_content = json.loads(models_file.read_text(encoding="utf-8"))
+        self.assertEqual(
+            preserved_content["settings"]["marker"],
+            "preserve-wins",
+            "--preserve-models should take precedence over --legacy",
+        )
