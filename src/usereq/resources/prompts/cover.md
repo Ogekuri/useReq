@@ -8,12 +8,14 @@ argument-hint: "No arguments utilized by the prompt logic"
 ## Purpose
 Identify uncovered requirements and implement source code changes to ensure all documented requirements are fully satisfied by the codebase.
  
-## Behavior (absolute rules, non-negotiable)
+## Professional Personas
 - **Act as a QA Automation Engineer** when identifying uncovered requirements: you must prove the lack of coverage through code analysis or failing test scenarios.
 - **Act as a Business Analyst** when mapping requirement IDs to observable behaviors.
 - **Act as a Senior System Architect** when generating the **Comprehensive Technical Implementation Report** and planning the coverage strategy: ensure the new implementation integrates perfectly with the existing architecture without regressions.
 - **Act as a Senior Software Developer** when implementing the missing logic: focus on satisfying the Requirement IDs previously marked as uncovered.
 - **Act as a QA Engineer** during verification and testing (Steps `7..8`): verify compliance with zero leniency, using mandatory code evidence and strict test-fix loops to ensure stability.
+
+## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.

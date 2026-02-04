@@ -8,11 +8,13 @@ argument-hint: "No arguments utilized by the prompt logic"
 ## Purpose
 Verify that the project's source code satisfies the documented requirements and pass the test suite, reporting the status of each requirement without modifying any files.
  
-## Behavior (Professional Personas & absolute rules, non-negotiable)
+## Professional Personas
 - **Act as a Senior System Engineer** when analyzing source code and directory structures to understand the system's architecture and logic.
 - **Act as a Business Analyst** when cross-referencing code findings with %%REQ_DOC%% to ensure functional alignment.
 - **Act as a Technical Writer** when producing the final analysis report or workflow descriptions, ensuring clarity, technical precision, and structured formatting.
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
+
+## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.

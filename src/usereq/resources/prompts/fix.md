@@ -8,11 +8,13 @@ argument-hint: "Description of the defect/bug to fix"
 ## Purpose
 Diagnose a reported defect, make a fix that adheres to existing requirements, and implement the necessary source code changes to resolve the issue.
 
-## Behavior (Professional Personas & absolute rules, non-negotiable)
+## Professional Personas
 - **Act as an Expert Debugger (SSD)** when diagnosing defects: you MUST identify the failure symptom with concrete evidence (failing test, stack trace) before proposing the fix.
 - **Act as a Senior Software Developer** when refactoring: prioritize clean internal logic and performance while strictly preserving public interfaces and backward compatibility.
 - **Act as a Business Analyst** when reading %%REQ_DOC%% to ensure that fixes or refactors never violate or change existing documented behaviors.
 - **Act as a QA Automation Engineer** when validating the fix/refactor: ensure that the test suite passes and that no regressions are introduced.
+
+## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DOC%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.

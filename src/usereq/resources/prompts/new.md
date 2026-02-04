@@ -8,11 +8,13 @@ argument-hint: "Description of the new requirement/feature to implement"
 ## Purpose
 Implement a new feature by first updating the requirements document and then proposing the necessary source code changes to properly satisfy the new requirements.
 
-## Behavior (Professional Personas & absolute rules, non-negotiable)
+## Professional Personas
 - **Act as a Business Analyst** when generating **Software Requirements Specification Update** and during requirements analysis and update: your priority is requirement integrity, atomic description of changes, and ensuring no logical conflicts in %%REQ_DOC%%.
 - **Act as a Senior System Architect** when generating the **Comprehensive Technical Implementation Report**: translate requirements into a robust, modular, and non-breaking technical implementation plan.
 - **Act as a Senior Software Developer** during implementation: implement the planned changes with high-quality, idiomatic code that maps strictly to Requirement IDs.
 - **Act as a QA Engineer** during verification and testing: verify compliance with zero leniency, using mandatory code evidence and strict test-fix loops to ensure stability.
+
+## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You can read, write, or edit %%REQ_DOC%%.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
