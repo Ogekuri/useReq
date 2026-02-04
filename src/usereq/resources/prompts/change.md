@@ -75,9 +75,11 @@ Render the **Global Roadmap** (markdown checklist `1..14`) at the start of your 
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test, %%REQ_DOC%% and WORKFLOW.md only if it was modified/created).
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
-   - Commit a structured commit message with: `git commit -m "change(useReq): <DESCRIPTION> [<DATE>]"`
-      - Generate `<DATE>` executing `date +"%Y-%m-%d %H:%M:%S"`.
-      - Generate `<DESCRIPTION>` as clear and concise description of changes made on requirements, source code and tests, using English language.
+   - Commit a structured commit message with: `git commit -m "change(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
+      - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
+      - Set `<DESCRIPTION>` to a short, clear summary in English of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
+      - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS
+and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
 13. Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Change request completed with unclean git repository!".
 14. PRINT in the response presenting the **Software Requirements Specification Update** and the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Change request completed!".
 
