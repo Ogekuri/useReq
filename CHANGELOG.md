@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.67](https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67) - 2026-02-04
+### 🐛  Bug Fixes
+- *(core)* fix Professional Personas specifications.
+
 ## [0.0.66](https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66) - 2026-02-04
 ### ⛰️  Features
 - *(core)* add Professional Personas specifications.
@@ -382,6 +386,7 @@
 - \[0.0.64\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.64
 - \[0.0.65\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.65
 - \[0.0.66\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.66
+- \[0.0.67\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.67
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -449,3 +454,4 @@
 [0.0.64]: https://github.com/Ogekuri/useReq/compare/v0.0.63..v0.0.64
 [0.0.65]: https://github.com/Ogekuri/useReq/compare/v0.0.64..v0.0.65
 [0.0.66]: https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66
+[0.0.67]: https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67
