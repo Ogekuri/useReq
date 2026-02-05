@@ -9,7 +9,7 @@ argument-hint: "Target language for the generated WORKFLOW.md"
 Analyze the existing source code to generate a workflow description (`WORKFLOW.md`) in the specified language, reflecting the current state of the project.
 
 ## Professional Personas
-- **Act as a Senior System Engineer** when analyzing source code and directory structures to understand the system's architecture and logic.
+- **Act as a Senior System Engineer** when analyzing source code; your primary goal is to trace the execution flow (call stack) across files and modules, identifying exactly how data and control move from one function to another.
 - **Act as a Business Analyst** when cross-referencing code findings with %%REQ_DOC%% to ensure functional alignment.
 - **Act as a Technical Writer** when producing the final analysis report or workflow descriptions, ensuring clarity, technical precision, and structured formatting.
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
@@ -33,7 +33,7 @@ Analyze the existing source code to generate a workflow description (`WORKFLOW.m
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `3` Steps (one item per Step) below in your response. 
+   - You MUST maintain a plain-text Markdown checklist of the `4` Steps (one item per Step) below in your response. 
    - Mark items as `[x]` ONLY when the step is fully completed.
    - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
 -  **Local Sub-tasks (Tool Usage)**: 
@@ -41,7 +41,7 @@ You must manage the execution flow using two distinct methods:
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Steps
-Render the **Global Roadmap** (markdown checklist `1..3`) at the start of your execution, then execute it step by step without pausing:
+Render the **Global Roadmap** (markdown checklist `1..4`) at the start of your execution, then execute it step by step without pausing:
 1. Extract the **target language** from the %%ARGS%%.
    - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
    - an explicit marker like "language: <name>".
@@ -49,4 +49,12 @@ Render the **Global Roadmap** (markdown checklist `1..3`) at the start of your e
    - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
    - If no language is specified, use English.
 2. Analyze the project's source code to infer the software’s behavior and main features. Identify all functions and components utilized when all features are enabled. Generate the content for `WORKFLOW.md` using only concise, hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid verbosity and unverified assumptions; focus strictly on the provided code.
-3. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "WORKFLOW.md written!".
+3. Analyze the project's source code to reconstruct the software's execution logic. Generate the `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions.
+Document structure and traceability:
+   -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
+      -  Level 1: High-level Feature or Process description (keep it concise).
+      -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
+      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as: `function_name()`: [Single-line technical description of its specific action].
+   -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers.
+   -  Avoid verbosity and unverified assumptions; focus strictly on the provided code; prefer more traces over longer prose.
+4. PRINT in the response the generated `WORKFLOW.md`. Before finishing, verify that the document includes a comprehensive mapping of internal functions and their descriptions as requested. The final line of the output must be EXACTLY "WORKFLOW.md written!".
