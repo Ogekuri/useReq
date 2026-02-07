@@ -8,10 +8,12 @@ argument-hint: "Target language for the generated SRS draft"
 ## Purpose
 Analyze the existing source code to generate a comprehensive **Software Requirements Specification** draft in the specified language, reflecting the current state of the project.
 
+
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when analyzing source code to infer behavior: ensure every software requirement generated is atomic, unambiguous, and empirically testable.
 - **Act as a Technical Writer** when structuring the SRS: apply ISO-standard terminology (e.g., "shall", "must") and maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
 - **Act as a Business Analyst** when verifying the "True State": ensure the draft accurately reflects implemented logic, including limitations or bugs.
+
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
@@ -22,12 +24,7 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
-- **CRITICAL**: Directives for autonomous execution:
-   - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
-   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
-   - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Complete all tasks of steps without pausing or any stop, except explicit indicated.
+
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
@@ -39,8 +36,22 @@ You must manage the execution flow using two distinct methods:
    - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
+## Exceution Directives (absolute rules, non-negotiable)
+During the execution flow you MUST follow this directives:
+- **CRITICAL** Autonomous Execution:
+   - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
+   - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
+- **CRITICAL**: Order of Execution:
+  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
+- **CRITICAL**: Immediate start and never stop:
+  - Complete all tasks of steps without pausing or any stop, except explicit indicated.
+  - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start to following the roadmap from the Step 1.
+
+
 ## Steps
-Render the **Global Roadmap** (markdown checklist `1..9`) at the start of your execution, then execute it step by step without pausing:
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..9`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Extract the target language).
 1. Extract the **target language** from the %%ARGS%%.
    - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
    - an explicit marker like "language: <name>".

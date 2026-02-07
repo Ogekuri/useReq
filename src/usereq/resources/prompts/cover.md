@@ -7,13 +7,15 @@ argument-hint: "No arguments utilized by the prompt logic"
 
 ## Purpose
 Identify uncovered requirements and implement source code changes to ensure all documented requirements are fully satisfied by the codebase.
- 
+
+
 ## Professional Personas
 - **Act as a QA Automation Engineer** when identifying uncovered requirements: you must prove the lack of coverage through code analysis or failing test scenarios.
 - **Act as a Business Analyst** when mapping requirement IDs to observable behaviors.
 - **Act as a Senior System Architect** when generating the **Comprehensive Technical Implementation Report** and planning the coverage strategy: ensure the new implementation integrates perfectly with the existing architecture without regressions.
 - **Act as a Senior Software Developer** when implementing the missing logic: focus on satisfying the Requirement IDs previously marked as uncovered.
 - **Act as a QA Engineer** during verification and testing (Steps `7..8`): verify compliance with zero leniency, using mandatory code evidence and strict test-fix loops to ensure stability.
+
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
@@ -33,12 +35,7 @@ Identify uncovered requirements and implement source code changes to ensure all 
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. If maintaining compatibility would require migrations/auto-upgrades conversion logic, report the conflict instead of implementing, and then terminate the execution.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`,`PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (eg: `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..). Prefer read-only commands for analysis.
-- **CRITICAL**: Directives for autonomous execution:
-   - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
-   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
-   - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Complete all tasks of steps without pausing or any stop, except explicit indicated.
+
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
@@ -50,8 +47,22 @@ You must manage the execution flow using two distinct methods:
    - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
+## Exceution Directives (absolute rules, non-negotiable)
+During the execution flow you MUST follow this directives:
+- **CRITICAL** Autonomous Execution:
+   - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
+   - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
+- **CRITICAL**: Order of Execution:
+  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
+- **CRITICAL**: Immediate start and never stop:
+  - Complete all tasks of steps without pausing or any stop, except explicit indicated.
+  - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start to following the roadmap from the Step 1.
+
+
 ## Steps
-Render the **Global Roadmap** (markdown checklist `1..12`) at the start of your execution, then execute it step by step without pausing:
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..12`, and start to following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status).
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it printing text including a word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check ALL requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.

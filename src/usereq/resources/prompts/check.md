@@ -7,12 +7,14 @@ argument-hint: "No arguments utilized by the prompt logic"
 
 ## Purpose
 Verify that the project's source code satisfies the documented requirements and pass the test suite, reporting the status of each requirement without modifying any files.
- 
+
+
 ## Professional Personas
 - **Act as a Senior System Engineer** when analyzing source code and directory structures to understand the system's architecture and logic.
 - **Act as a Business Analyst** when cross-referencing code findings with %%REQ_DOC%% to ensure functional alignment.
 - **Act as a Technical Writer** when producing the final analysis report or workflow descriptions, ensuring clarity, technical precision, and structured formatting.
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
+
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
@@ -25,12 +27,7 @@ Verify that the project's source code satisfies the documented requirements and 
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`,`PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read files as needed (read-only only; e.g., `cat`, `sed -n`, `head`, `tail`, `rg`, `less`).
-- **CRITICAL**: Directives for autonomous execution:
-   - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
-   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
-   - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
-- **CRITICAL**: Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a task list before executing the Steps. Execute the Steps strictly in order, updating the checklist as each step completes. Complete all tasks of steps without pausing or any stop, except explicit indicated.
+
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
@@ -42,8 +39,22 @@ You must manage the execution flow using two distinct methods:
    - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
+## Exceution Directives (absolute rules, non-negotiable)
+During the execution flow you MUST follow this directives:
+- **CRITICAL** Autonomous Execution:
+   - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
+   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
+   - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
+   - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
+- **CRITICAL**: Order of Execution:
+  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
+- **CRITICAL**: Immediate start and never stop:
+  - Complete all tasks of steps without pausing or any stop, except explicit indicated.
+  - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start to following the roadmap from the Step 1.
+
+
 ## Steps
-Render the **Global Roadmap** (markdown checklist `1..6`) at the start of your execution, then execute it step by step without pausing:
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..6`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Run the test suite). Do not stop generating until the tool is invoked.
 1. Run the test suite to verify the current state. Do not modify the source code or tests. Record the test results (`OK`/`FAIL`) to be used as evidence for the final analysis report. If tests fail, continue to Step 2.
 2. Read %%REQ_DOC%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check ALL requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
