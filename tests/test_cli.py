@@ -1390,6 +1390,127 @@ class TestUpdateNotification(unittest.TestCase):
             )
 
 
+class TestTechTemplates(unittest.TestCase):
+    """Tests for --write-tech and --overwrite-tech functionality."""
+
+    def setUp(self) -> None:
+        """Create temporary project for tech template tests."""
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-tech-templates-"))
+        self.docs_dir = self.TEST_DIR / "docs"
+        self.tech_dir = self.TEST_DIR / "tech"
+        self.docs_dir.mkdir(parents=True, exist_ok=True)
+        self.tech_dir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        """Clean up test directory."""
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_write_tech_preserves_existing(self) -> None:
+        """REQ-086: --write-tech does not overwrite existing files."""
+        # Create existing file in tech dir with specific content
+        existing_file = self.tech_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        original_content = "# Original Content\nThis should be preserved.\n"
+        existing_file.write_text(original_content, encoding="utf-8")
+
+        # Run with --write-tech
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    "docs",
+                    "--dir",
+                    "tech",
+                    "--write-tech",
+                    "--enable-claude",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        # Verify existing file was NOT modified
+        preserved_content = existing_file.read_text(encoding="utf-8")
+        self.assertEqual(
+            preserved_content,
+            original_content,
+            "Existing file should be preserved with --write-tech",
+        )
+
+    def test_overwrite_tech_overwrites_existing(self) -> None:
+        """REQ-087: --overwrite-tech overwrites existing files."""
+        # Create existing file in tech dir with specific content
+        existing_file = self.tech_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        original_content = "# Original Content\nThis should be overwritten.\n"
+        existing_file.write_text(original_content, encoding="utf-8")
+
+        # Run with --overwrite-tech
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    "docs",
+                    "--dir",
+                    "tech",
+                    "--overwrite-tech",
+                    "--enable-claude",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        # Verify existing file WAS modified (content differs from original)
+        new_content = existing_file.read_text(encoding="utf-8")
+        self.assertNotEqual(
+            new_content,
+            original_content,
+            "Existing file should be overwritten with --overwrite-tech",
+        )
+
+    def test_write_tech_and_overwrite_tech_mutually_exclusive(self) -> None:
+        """REQ-088: --write-tech and --overwrite-tech cannot be used together."""
+        # Attempt to run with both flags - argparse should handle mutual exclusivity
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with self.assertRaises(SystemExit):
+                cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--doc",
+                        "docs",
+                        "--dir",
+                        "tech",
+                        "--write-tech",
+                        "--overwrite-tech",
+                        "--enable-claude",
+                    ]
+                )
+
+    def test_no_copy_without_flags(self) -> None:
+        """REQ-089: Tech templates are not copied without --write-tech or --overwrite-tech."""
+        # Run without either flag
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--doc",
+                    "docs",
+                    "--dir",
+                    "tech",
+                    "--enable-claude",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        # Verify no tech template files were copied
+        tech_file = self.tech_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        self.assertFalse(
+            tech_file.exists(),
+            "Tech templates should not be copied without --write-tech or --overwrite-tech",
+        )
+
+
 class TestPreserveModels(unittest.TestCase):
     """Verifies --preserve-models flag preserves .req/models.json and bypasses --legacy."""
 

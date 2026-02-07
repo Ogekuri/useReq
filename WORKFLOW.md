@@ -35,6 +35,7 @@
         *   `compute_sub_path`: Calculates relative paths for token substitution.
         *   `make_relative_token`: Formats paths as tokens for templates.
         *   `find_template_source`: Locates the source directory for templates.
+        *   `copy_tech_templates`: Copies technical templates from `src/usereq/resources/tech/` to the target directory specified by `--dir`. The function accepts an `overwrite` parameter that controls whether existing files are preserved (`False` for `--write-tech`) or overwritten (`True` for `--overwrite-tech`). Executed only when `--write-tech` or `--overwrite-tech` flags are active, before generating directory lists.
         *   `generate_doc_file_list`: Creates a list of documentation files for `%%REQ_DOC%%`.
         *   `generate_dir_list`: Creates a list of technical directories for `%%REQ_DIR%%`.
     *   **Resource Generation**

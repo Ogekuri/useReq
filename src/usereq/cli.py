@@ -62,7 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--doc DOC --dir DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] [--enable-workflow] "
-        "[--legacy] [--preserve-models] "
+        "[--legacy] [--preserve-models] [--write-tech | --overwrite-tech] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -165,6 +165,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--preserve-models",
         action="store_true",
         help="When set with --update, preserve existing .req/models.json and bypass --legacy mode.",
+    )
+    tech_group = parser.add_mutually_exclusive_group()
+    tech_group.add_argument(
+        "--write-tech",
+        action="store_true",
+        help="Copy tech templates from resources/tech/ to --dir without overwriting existing files.",
+    )
+    tech_group.add_argument(
+        "--overwrite-tech",
+        action="store_true",
+        help="Copy tech templates from resources/tech/ to --dir, overwriting existing files.",
     )
     return parser
 
@@ -522,6 +533,45 @@ def generate_dir_items(dir_path: Path, project_base: Path) -> list[str]:
             return []
 
     return items
+
+
+def copy_tech_templates(
+    tech_dest: Path, overwrite: bool = False
+) -> int:
+    """Copies tech templates from resources/tech/ to the target directory.
+
+    Args:
+        tech_dest: Target directory where templates will be copied
+        overwrite: If True, overwrite existing files; if False, skip existing files
+
+    Returns:
+        Number of files copied
+    """
+    tech_src = RESOURCE_ROOT / "tech"
+    if not tech_src.is_dir():
+        vlog(f"Tech templates directory not found at {tech_src}, skipping")
+        return 0
+
+    if not tech_dest.is_dir():
+        raise ReqError(
+            f"Error: target tech directory '{tech_dest}' does not exist",
+            8,
+        )
+
+    copied_count = 0
+    for src_file in sorted(tech_src.iterdir()):
+        if src_file.is_file():
+            dst_file = tech_dest / src_file.name
+            existed = dst_file.exists()
+            if existed and not overwrite:
+                vlog(f"SKIPPED (already exists): {dst_file}")
+                continue
+            shutil.copyfile(src_file, dst_file)
+            copied_count += 1
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_file}")
+
+    return copied_count
 
 
 def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
@@ -1143,6 +1193,17 @@ def run(args: Namespace) -> None:
         )
     if VERBOSE:
         log(f"OK: technical directory found {tech_dest}")
+
+    # Copy tech templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
+    if args.write_tech or args.overwrite_tech:
+        tech_src = RESOURCE_ROOT / "tech"
+        if tech_src.is_dir():
+            copied = copy_tech_templates(tech_dest, overwrite=args.overwrite_tech)
+            if VERBOSE:
+                log(f"OK: copied {copied} tech template(s) to {tech_dest}")
+        else:
+            if VERBOSE:
+                log(f"OK: no tech templates found at {tech_src}, skipping copy")
 
     enable_claude = args.enable_claude
     enable_codex = args.enable_codex
