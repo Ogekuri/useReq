@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-07"
-version: 0.48
+version: 0.49
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.48
+**Versione**: 0.49
 **Autore**: Ogekuri
 **Data**: 2026-02-07
 
@@ -63,6 +63,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-01-27 | 0.46 | Traduzione in Italiano, riorganizzazione e rinumerazione. |
 | 2026-02-01 | 0.47 | Aggiunta del parametro --legacy per supportare configurazioni legacy. |
 | 2026-02-07 | 0.48 | Aggiunti parametri --write-tech e --overwrite-tech per copia template tecnici. |
+| 2026-02-07 | 0.49 | Rimossi flag e sostituzioni dedicate al workflow. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -186,7 +187,6 @@ Il progetto include una suite di test in `tests/`.
 - **DES-008**: Tutti i commenti nel codice sorgente devono essere scritti esclusivamente in Inglese. Eccezioni sono fatte per header di file sorgente.
 - **DES-009**: Ogni parte importante del codice (classi, funzioni complesse, logica di business, algoritmi critici) dovrebbe essere commentata dove necessario.
 - **DES-010**: Ogni nuova funzionalità aggiunta dovrebbe includere commenti esplicativi dove applicabile.
-- **DES-011**: Le stringhe statiche usate per la sostituzione del token `%%WORKFLOW%%` devono essere salvate come file di testo semplice nelle risorse del pacchetto sotto `src/usereq/resources/common/` con nomi `workflow_on.md` e `workflow_off.md`. A runtime la CLI deve caricare questi file; se non presenti, deve usare default sensati.
 - **DES-012**: La funzione `load_cli_configs` deve essere sostituita con `load_centralized_models` che carica i dati dal file `src/usereq/resources/common/models.json`. Quando `legacy_mode` è attivo, deve caricare `models-legacy.json` se esiste, altrimenti fare fallback su `models.json`. Il fallback deve avvenire a livello di file completo, non per singole voci. La struttura di ritorno deve rimanere compatibile: un dizionario `cli_name -> config` dove `config` contiene le chiavi `prompts`, `usage_modes`, e opzionalmente `agent_template`.
 - **DES-013**: La funzione `generate_doc_file_list` deve essere rinominata in `generate_req_file_list`. Il comportamento della funzione deve rimanere invariato: scansiona la directory specificata (quella passata con `--req-dir`) e restituisce la lista dei file Markdown (`.md`) presenti in quella directory, ignorando le sottocartelle.
 - **DES-014**: La funzione `generate_dir_list` deve essere rinominata in `generate_tech_file_list`. Il comportamento deve essere allineato a `generate_req_file_list`: scansionare la directory specificata (quella passata con `--tech-dir`) e restituire la lista dei file presenti in quella directory (senza ricerca ricorsiva di sottocartelle). Se la directory è vuota o non contiene file, deve restituire il nome della directory stessa come fallback (preservando il comportamento originale solo per il caso di directory vuota).
@@ -215,7 +215,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-012**: La stringa di aiuto deve includere `--uninstall` come opzione disponibile.
 - **REQ-013**: Dopo il completamento con successo di un'installazione o aggiornamento, la CLI deve stampare una singola riga in Inglese informando l'utente del successo includendo il percorso root risolto.
 - **REQ-014**: Immediatamente dopo il messaggio di successo, la CLI deve stampare una lista dei file e directory scoperti per la sostituzione dei token `%%REQ_DIR%%` e `%%TECH_DIR%%`, prefissati da `- `.
-- **REQ-015**: Immediatamente dopo la lista file, la CLI deve stampare una tabella leggibile ASCII descrivendo quali prompt e moduli sono stati installati per ogni target CLI e se il workflow è stato installato.
+- **REQ-015**: Immediatamente dopo la lista file, la CLI deve stampare una tabella leggibile ASCII descrivendo quali prompt e moduli sono stati installati per ogni target CLI.
 
 ### 3.4 Controllo Versione
 - Questa sezione specifica i requisiti per la verifica online di nuove versioni del software.
@@ -254,8 +254,6 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-041**: L'inclusione di `model` e `tools` è condizionale alla validità del file di configurazione centralizzato (`models.json` o `models-legacy.json` a seconda della modalità legacy).
 - **REQ-082**: La CLI deve caricare le configurazioni per la generazione dei prompt. Quando `--preserve-models` è attivo in combinazione con `--update` e il file `.req/models.json` esiste, deve caricare le configurazioni da `.req/models.json`; in questo caso il flag `--legacy` non ha effetto. Quando `--preserve-models` NON è attivo o il file `.req/models.json` non esiste: deve caricare dal file centralizzato `src/usereq/resources/common/models.json`, leggendo la voce corrispondente al CLI (`<cli>`) per ottenere `prompts` e `usage_modes`; se il flag `--legacy` è attivo, la CLI deve prima verificare la presenza del file `src/usereq/resources/common/models-legacy.json`; se esiste, deve caricarlo al posto di `models.json` (fallback a livello di file, non di singole voci); se `models-legacy.json` non esiste, deve usare `models.json`. I file `src/usereq/resources/<cli>/config.json` non devono più essere utilizzati e possono essere rimossi dal disco.
 - **REQ-083**: La stringa di aiuto deve includere `--legacy` e `--preserve-models` come opzioni disponibili.
-- **REQ-042**: La CLI deve accettare flag `--enable-workflow` (default false). Il token `%%WORKFLOW%%` deve essere sostituito a runtime con testo statico. Se non presente, non generare prompt workflow.
-- **REQ-043**: I file di configurazione provider possono includere voce `workflow`. Se `--enable-workflow` è attivo, i generatori devono includere il prompt `workflow`.
 - **REQ-044**: La generazione risorse descritta nelle sezioni specifiche deve eseguire solo quando il flag `--enable-<provider>` corrispondente è attivo.
 - **REQ-045**: Il prompt `recreate` deve essere aggiunto a `src/usereq/resources/prompts` e trattato come prompt standard. Deve essere generato per ogni provider abilitato.
 

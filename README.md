@@ -52,7 +52,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `refactor` | Perform optimizations without changing the requirements |
   | `write` | Produce a *SRS* draft based on the User Request description |
   | `reset` | Reset useReq/req bootstrap context |
-  | `workflow` | Write a `WORKFLOW.md` using the project's source code (--enable-workflow) |
+  | `workflow` | Write a `WORKFLOW.md` using the project's source code |
 
 
 ## Default Workflow
@@ -106,7 +106,6 @@ uv tool uninstall usereq
 - You need to run `req` again if you add or remove `.md` requirement files in the `docs/` directory or any subfolders in the `tech/` directory.
 - Option `--prompts-use-agents`  generate prompt files as **agent-only references** (agent: req-<name>).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
-- Add `--enable-workflow` to enable `WORKFLOW.md` management.
 - Add `--update` to update an existi installation.
   - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
 - Add `--legacy` to enable the *legacy mode* support (see below).

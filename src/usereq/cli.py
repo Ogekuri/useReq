@@ -61,7 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
         "--req-dir REQ_DIR --tech-dir TECH_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
-        "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] [--enable-workflow] "
+        "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--write-tech | --overwrite-tech] "
         f"({version})"
     )
@@ -150,11 +150,6 @@ def build_parser() -> argparse.ArgumentParser:
         "--prompts-use-agents",
         action="store_true",
         help="When set, generate .github and .claude prompt files as agent-only references (agent: req-<name>).",
-    )
-    parser.add_argument(
-        "--enable-workflow",
-        action="store_true",
-        help="When set, enable workflow command and WORKFLOW.md management in prompts.",
     )
     parser.add_argument(
         "--legacy",
@@ -991,19 +986,11 @@ def find_vscode_settings_source() -> Optional[Path]:
 
 
 def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
-    """Generates chat.promptFilesRecommendations from available prompts.
-
-    Note: callers should exclude 'workflow' from recommendations when
-    workflow generation is not enabled.
-    """
+    """Generates chat.promptFilesRecommendations from available prompts."""
     recommendations: dict[str, bool] = {}
     if not prompts_dir.is_dir():
         return recommendations
     for prompt_path in sorted(prompts_dir.glob("*.md")):
-        # Exclude 'workflow' from recommendations by default; the caller will
-        # decide whether to include it when workflow generation is enabled.
-        if prompt_path.stem == "workflow":
-            continue
         recommendations[f"req.{prompt_path.stem}"] = True
     return recommendations
 
@@ -1359,13 +1346,10 @@ def run(args: Namespace) -> None:
         include_models = args.enable_models
         include_tools = args.enable_tools
         prompts_use_agents = args.prompts_use_agents
-        enable_workflow = args.enable_workflow
     except Exception:
         include_models = False
         include_tools = False
         prompts_use_agents = False
-        enable_workflow = False
-        enable_workflow = False
     if include_models or include_tools:
         # Determine preserve_models_path (REQ-082)
         preserve_models_path = None
@@ -1379,25 +1363,6 @@ def run(args: Namespace) -> None:
             legacy_mode=args.legacy,
             preserve_models_path=preserve_models_path
         )
-    # Load workflow substitution texts from resources/common, falling back to defaults.
-    common_dir = RESOURCE_ROOT / "common"
-    workflow_on_text = (
-        'If `WORKFLOW.md` file exists, analyze the recently implemented code changes, identify new features and behavioral updates, then update `WORKFLOW.md` by adding or editing only concise bullet lists that accurately reflect the implemented functionality (no verbosity, no unverified assumptions, preserve the existing style and structure). If no changes detected, leave `WORKFLOW.md` unchanged.'
-    )
-    workflow_off_text = (
-        'If `WORKFLOW.md` file exists, does not modify that file, leave `WORKFLOW.md` unchanged.'
-    )
-    try:
-        on_path = common_dir / "workflow_on.md"
-        off_path = common_dir / "workflow_off.md"
-        if on_path.is_file():
-            workflow_on_text = on_path.read_text(encoding="utf-8").strip()
-        if off_path.is_file():
-            workflow_off_text = off_path.read_text(encoding="utf-8").strip()
-    except Exception:
-        # If reading fails, keep defaults defined above.
-        pass
-    workflow_targets: set[str] = set()
     prompts_installed: dict[str, set[str]] = {
         "claude": set(),
         "codex": set(),
@@ -1411,11 +1376,6 @@ def run(args: Namespace) -> None:
     }
     for prompt_path in sorted(prompts_dir.glob("*.md")):
         PROMPT = prompt_path.stem
-        is_workflow_prompt = PROMPT == "workflow"
-        # Skip generation of the 'workflow' prompt/agents unless explicitly enabled.
-        if is_workflow_prompt and not enable_workflow:
-            dlog("Skipping 'workflow' prompt generation because --enable-workflow is not set")
-            continue
         content = prompt_path.read_text(encoding="utf-8")
         frontmatter, prompt_body = extract_frontmatter(content)
         description = extract_description(frontmatter)
@@ -1423,9 +1383,6 @@ def run(args: Namespace) -> None:
         prompt_body = prompt_body if prompt_body.endswith("\n") else prompt_body + "\n"
 
         # (Removed: bootstrap file inlining and YOLO stop/approval substitution)
-
-        # Compute the terminate replacement based on --enable-workflow
-        workflow_replacement = workflow_on_text if enable_workflow else workflow_off_text
 
         base_replacements = {
             "%%REQ_DIR%%": req_file_list,
@@ -1435,7 +1392,6 @@ def run(args: Namespace) -> None:
         prompt_replacements = {
             **base_replacements,
             "%%ARGS%%": "$ARGUMENTS",
-            "%%WORKFLOW%%": workflow_replacement,
         }
         prompt_with_replacements = apply_replacements(content, prompt_replacements)
         prompt_body_replaced = apply_replacements(prompt_body, prompt_replacements)
@@ -1454,8 +1410,6 @@ def run(args: Namespace) -> None:
             dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_codex_prompt.exists()
             write_text_file(dst_codex_prompt, prompt_with_replacements)
-            if is_workflow_prompt:
-                workflow_targets.add("codex")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
             prompts_installed["codex"].add(PROMPT)
@@ -1471,7 +1425,6 @@ def run(args: Namespace) -> None:
                 "%%TECH_DIR%%": tech_file_list,
                 "%%REQ_PATH%%": normalized_req,
                 "%%ARGS%%": "{{args}}",
-                "%%WORKFLOW%%": workflow_replacement,
             }
             replace_tokens(dst_toml, toml_replacements)
             if configs and (include_models or include_tools):
@@ -1497,16 +1450,12 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
             prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("commands")
-            if is_workflow_prompt:
-                workflow_targets.add("gemini")
 
         if enable_kiro:
             # .kiro/prompts
             dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
             write_text_file(dst_kiro_prompt, prompt_with_replacements)
-            if is_workflow_prompt:
-                workflow_targets.add("kiro")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_prompt}")
             prompts_installed["kiro"].add(PROMPT)
@@ -1534,8 +1483,6 @@ def run(args: Namespace) -> None:
             if not claude_text.endswith("\n"):
                 claude_text += "\n"
             dst_claude_agent.write_text(claude_text, encoding="utf-8")
-            if is_workflow_prompt:
-                workflow_targets.add("claude")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
             modules_installed["claude"].add("agents")
@@ -1564,8 +1511,6 @@ def run(args: Namespace) -> None:
             if not gh_text.endswith("\n"):
                 gh_text += "\n"
             dst_gh_agent.write_text(gh_text, encoding="utf-8")
-            if is_workflow_prompt:
-                workflow_targets.add("github")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
             modules_installed["github"].add("agents")
@@ -1628,8 +1573,6 @@ def run(args: Namespace) -> None:
                 include_model=include_models,
             )
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
-            if is_workflow_prompt:
-                workflow_targets.add("kiro")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
             modules_installed["kiro"].add("agents")
@@ -1662,8 +1605,6 @@ def run(args: Namespace) -> None:
             if not opencode_text.endswith("\n"):
                 opencode_text += "\n"
             dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
-            if is_workflow_prompt:
-                workflow_targets.add("opencode")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
             modules_installed["opencode"].add("agent")
@@ -1750,8 +1691,6 @@ def run(args: Namespace) -> None:
             if not claude_command_text.endswith("\n"):
                 claude_command_text += "\n"
             dst_claude_command.write_text(claude_command_text, encoding="utf-8")
-            if is_workflow_prompt:
-                workflow_targets.add("claude")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
             prompts_installed["claude"].add(PROMPT)
@@ -1791,12 +1730,6 @@ def run(args: Namespace) -> None:
         final_settings = deep_merge_dict(final_settings, src_settings)
 
         prompt_recs = build_prompt_recommendations(prompts_dir)
-        # Include 'workflow' recommendation only when workflow generation is enabled
-        # and the prompt file exists in the resources.
-        if enable_workflow:
-            workflow_src = prompts_dir / "workflow.md"
-            if workflow_src.is_file():
-                prompt_recs[f"req.workflow"] = True
         if prompt_recs:
             final_settings["chat.promptFilesRecommendations"] = prompt_recs
 
@@ -1839,24 +1772,17 @@ def run(args: Namespace) -> None:
         print("The folder %%TECH_DIR%% does not contain any files")
 
     # Build and print a simple installation report table describing which
-    # modules were installed for each CLI target and whether workflow was
-    # enabled for the operation. The table is printed in plain ASCII with
-    # a header row matching the requirement.
+    # modules were installed for each CLI target. The table is printed in
+    # plain ASCII with a header row matching the requirement.
     def _format_install_table(
         installed_map: dict[str, set[str]],
         prompts_map: dict[str, set[str]],
-        workflow_targets: set[str],
     ) -> tuple[str, str, list[str]]:
         """Format the installation summary table aligning header, prompts, and rows."""
 
-        columns = (
-            "CLI",
-            "Prompts Installed",
-            "Modules Installed",
-            "Workflow Installed",
-        )
+        columns = ("CLI", "Prompts Installed", "Modules Installed")
         widths = [len(value) for value in columns]
-        rows: list[tuple[str, str, str, str]] = []
+        rows: list[tuple[str, str, str]] = []
 
         for cli_name in sorted(installed_map.keys()):
             modules = installed_map[cli_name]
@@ -1865,12 +1791,10 @@ def run(args: Namespace) -> None:
                 continue
             prompts_text = ", ".join(prompts) if prompts else "-"
             mods_text = ", ".join(sorted(modules)) if modules else "-"
-            workflow_text = "Yes" if cli_name in workflow_targets else "No"
             widths[0] = max(widths[0], len(cli_name))
             widths[1] = max(widths[1], len(prompts_text))
             widths[2] = max(widths[2], len(mods_text))
-            widths[3] = max(widths[3], len(workflow_text))
-            rows.append((cli_name, prompts_text, mods_text, workflow_text))
+            rows.append((cli_name, prompts_text, mods_text))
 
         def fmt(row: tuple[str, ...]) -> str:
             return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))
@@ -1878,11 +1802,11 @@ def run(args: Namespace) -> None:
         header = fmt(columns)
         separator = " | ".join("-" * max(3, widths[idx]) for idx in range(len(columns)))
         if not rows:
-            return header, separator, [fmt(("-", "-", "-", "No"))]
+            return header, separator, [fmt(("-", "-", "-"))]
         return header, separator, [fmt(r) for r in rows]
 
     header, separator, rows = _format_install_table(
-        modules_installed, prompts_installed, workflow_targets
+        modules_installed, prompts_installed
     )
     print(header)
     print(separator)

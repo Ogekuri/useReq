@@ -66,12 +66,11 @@
         *   **Final Reporting**
             *   `collect_modules_installed`: Gathers which CLI targets installed modules by checking generated folders.
             *   `collect_prompts_installed`: Records the list of prompt names generated for each target so the report lists them.
-            *   `print_installation_summary`: Prints the ASCII table that now includes `Prompts Installed` between `CLI` and `Modules Installed` along with workflow installation flags.
+            *   `print_installation_summary`: Prints the ASCII table that includes `Prompts Installed` between `CLI` and `Modules Installed`.
 
 ## Documentation Utilities
 
 *   `generate_pdoc_docs`: Main function to generate HTML documentation using pdoc.
     *   `_normalize_modules`: Standardizes input module names into a list.
     *   `_run_pdoc`: Executes the pdoc process in a subprocess.
-
 
