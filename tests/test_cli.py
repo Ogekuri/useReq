@@ -81,9 +81,9 @@ class TestCLI(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                 ]
                 + PROVIDER_FLAGS
@@ -482,11 +482,11 @@ class TestCLI(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(".req/config.json must be a valid JSON")
 
-        # Verify fields doc and dir.
-        self.assertIn("doc", data, "config.json must contain 'doc' field")
-        self.assertIn("dir", data, "config.json must contain 'dir' field")
-        self.assertEqual(data["doc"], "docs", "The 'doc' field must be 'docs'")
-        self.assertEqual(data["dir"], "tech", "The 'dir' field must be 'tech'")
+        # Verify fields req-dir and tech-dir.
+        self.assertIn("req-dir", data, "config.json must contain 'req-dir' field")
+        self.assertIn("tech-dir", data, "config.json must contain 'tech-dir' field")
+        self.assertEqual(data["req-dir"], "docs", "The 'req-dir' field must be 'docs'")
+        self.assertEqual(data["tech-dir"], "tech", "The 'tech-dir' field must be 'tech'")
 
     def test_opencode_agent_files_created(self) -> None:
         """REQ-047: Verifies OpenCode agents generation in .opencode/agent."""
@@ -588,9 +588,11 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn(
             "%%REQ_DIR%%", content, "The token %%REQ_DIR%% must be replaced"
         )
-        # Verify that it contains reference to subdirectory tech/src/.
+        # After DES-014 change: generate_tech_file_list now lists files, not subdirectories.
+        # The tech/ folder now contains files from its direct children, not subdirectories.
+        # Since tech/src/ exists but is empty, the fallback will show tech/ directory itself.
         self.assertIn(
-            "tech/src/", content, "The file must contain reference to tech/src/"
+            "tech/", content, "The file must contain reference to tech/"
         )
 
     def test_kiro_resources_include_prompt(self) -> None:
@@ -703,9 +705,9 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--enable-models",
                     "--enable-tools",
@@ -775,9 +777,9 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(self.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(self.TEST_DIR / "tech"),
                 ]
                 + PROVIDER_FLAGS
@@ -798,9 +800,9 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(self.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(self.TEST_DIR / "tech"),
                     "--enable-tools",
                 ]
@@ -851,9 +853,9 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                 ]
                 + PROVIDER_FLAGS
@@ -924,9 +926,9 @@ class TestPromptsUseAgents(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--prompts-use-agents",
                     "--enable-models",
@@ -998,9 +1000,9 @@ class TestKiroToolsEnabled(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--enable-tools",
                 ]
@@ -1146,9 +1148,9 @@ class TestCLIWithoutClaude(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--dir",
+                    "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--enable-github",
                 ]
@@ -1203,9 +1205,9 @@ class TestProviderEnableFlags(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--doc",
+                        "--req-dir",
                         str(self.TEST_DIR / "docs"),
-                        "--dir",
+                        "--tech-dir",
                         str(self.TEST_DIR / "tech"),
                     ]
                 )
@@ -1256,9 +1258,9 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--doc",
+                        "--req-dir",
                         str(self.TEST_DIR / "docs"),
-                        "--dir",
+                        "--tech-dir",
                         str(self.TEST_DIR / "tech"),
                     ]
                     + PROVIDER_FLAGS
@@ -1282,9 +1284,9 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--doc",
+                        "--req-dir",
                         str(self.TEST_DIR / "docs"),
-                        "--dir",
+                        "--tech-dir",
                         str(self.TEST_DIR / "tech"),
                     ]
                     + PROVIDER_FLAGS
@@ -1344,9 +1346,9 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--doc",
+                        "--req-dir",
                         "docs",
-                        "--dir",
+                        "--tech-dir",
                         "tech",
                         "--enable-workflow",
                     ]
@@ -1418,9 +1420,9 @@ class TestTechTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     "docs",
-                    "--dir",
+                    "--tech-dir",
                     "tech",
                     "--write-tech",
                     "--enable-claude",
@@ -1449,9 +1451,9 @@ class TestTechTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     "docs",
-                    "--dir",
+                    "--tech-dir",
                     "tech",
                     "--overwrite-tech",
                     "--enable-claude",
@@ -1476,9 +1478,9 @@ class TestTechTemplates(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--doc",
+                        "--req-dir",
                         "docs",
-                        "--dir",
+                        "--tech-dir",
                         "tech",
                         "--write-tech",
                         "--overwrite-tech",
@@ -1494,9 +1496,9 @@ class TestTechTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     "docs",
-                    "--dir",
+                    "--tech-dir",
                     "tech",
                     "--enable-claude",
                 ]
@@ -1532,9 +1534,9 @@ class TestPreserveModels(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     "docs",
-                    "--dir",
+                    "--tech-dir",
                     "tech",
                     "--enable-claude",
                 ]
@@ -1590,9 +1592,9 @@ class TestPreserveModels(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--doc",
+                    "--req-dir",
                     "docs",
-                    "--dir",
+                    "--tech-dir",
                     "tech",
                     "--enable-claude",
                 ]

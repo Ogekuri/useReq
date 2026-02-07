@@ -23,21 +23,21 @@
 
 *   `run` (Installation/Update)
     *   **Configuration & Validation**
-        *   `load_config`: Loads existing configuration from `.req/config.json` during updates.
-        *   `ensure_doc_directory`: Verifies that the documentation directory exists and is valid.
+        *   `load_config`: Loads existing configuration from `.req/config.json` during updates (fields `req-dir` and `tech-dir`).
+        *   `ensure_req_directory`: Verifies that the requirements directory exists and is valid.
         *   `make_relative_if_contains_project`: Normalizes paths to be relative to the project root.
         *   `ensure_relative`: Raises an error if a path is absolute.
         *   `resolve_absolute`: Resolves a normalized path to an absolute path.
         *   `maybe_notify_newer_version`: Checks for package updates before proceeding.
-        *   `save_config`: Saves current parameters to `.req/config.json`.
+        *   `save_config`: Saves current parameters to `.req/config.json` (fields `req-dir` and `tech-dir`).
         *   Copies `models.json` or `models-legacy.json` from package resources to `.req/models.json` after creating the `.req` directory. When `--legacy` is active and `models-legacy.json` exists, copies it instead of `models.json`. When `--preserve-models` is active, skips overwriting `.req/models.json` to preserve custom configurations.
     *   **Environment Preparation**
         *   `compute_sub_path`: Calculates relative paths for token substitution.
         *   `make_relative_token`: Formats paths as tokens for templates.
         *   `find_template_source`: Locates the source directory for templates.
-        *   `copy_tech_templates`: Copies technical templates from `src/usereq/resources/tech/` to the target directory specified by `--dir`. The function accepts an `overwrite` parameter that controls whether existing files are preserved (`False` for `--write-tech`) or overwritten (`True` for `--overwrite-tech`). Executed only when `--write-tech` or `--overwrite-tech` flags are active, before generating directory lists.
-        *   `generate_doc_file_list`: Creates a list of documentation files for `%%REQ_DOC%%`.
-        *   `generate_dir_list`: Creates a list of technical directories for `%%REQ_DIR%%`.
+        *   `copy_tech_templates`: Copies technical templates from `src/usereq/resources/tech/` to the target directory specified by `--tech-dir`. The function accepts an `overwrite` parameter that controls whether existing files are preserved (`False` for `--write-tech`) or overwritten (`True` for `--overwrite-tech`). Executed only when `--write-tech` or `--overwrite-tech` flags are active, before generating file lists.
+        *   `generate_req_file_list`: Creates a list of requirements documentation files for `%%REQ_DOC%%` token replacement.
+        *   `generate_tech_file_list`: Creates a list of technical files for `%%REQ_DIR%%` token replacement. Scans files in the directory specified by `--tech-dir` (non-recursive). Falls back to the directory name if no files are present.
     *   **Resource Generation**
         *   `load_kiro_template`: Loads Kiro agent templates from centralized models configuration.
         *   `load_centralized_models`: Loads configurations for external CLIs (Claude, Copilot, Kiro, etc.) from centralized `common/models.json` or `common/models-legacy.json` when `--legacy` flag is active. When `--preserve-models` is active with `--update` and `.req/models.json` exists, loads from that file instead, bypassing `--legacy`.

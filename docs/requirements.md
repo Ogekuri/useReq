@@ -160,23 +160,23 @@ Il progetto include una suite di test in `tests/`.
 ### 2.1 Funzioni del Progetto
 - Questa sezione definisce le funzioni principali che il progetto deve implementare.
 - **PRJ-001**: Il comando deve inizializzare un progetto creando o aggiornando documenti di requisiti, template tecnici e risorse di prompt basati sulla root indicata dall'utente.
-- **PRJ-002**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here` e parametri `--doc` e `--dir` per determinare la root del progetto e i percorsi da gestire.
+- **PRJ-002**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here` e parametri `--req-dir` e `--tech-dir` per determinare la root del progetto e i percorsi da gestire.
 - **PRJ-003**: Il comando deve generare risorse di prompt per Codex, GitHub e Gemini sostituendo i token di percorso con valori relativi calcolati.
 - **PRJ-004**: Il comando deve aggiornare i template locali in `.req/templates` e integrare le impostazioni di VS Code quando disponibili.
 - **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
 ### 2.2 Vincoli del Progetto
 - Questa sezione definisce i vincoli e le limitazioni che il progetto deve rispettare.
-- **CTN-001**: I valori di `--doc` e `--dir` possono essere percorsi assoluti o relativi. I percorsi devono essere normalizzati rispetto alla root del progetto passata con `--base` verificando se presente nei percorsi passati con `--doc` e `--dir`.
-- **CTN-002**: Il percorso passato a `--doc` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
-- **CTN-003**: Il percorso passato a `--dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
+- **CTN-001**: I valori di `--req-dir` e `--tech-dir` possono essere percorsi assoluti o relativi. I percorsi devono essere normalizzati rispetto alla root del progetto passata con `--base` verificando se presente nei percorsi passati con `--req-dir` e `--tech-dir`.
+- **CTN-002**: Il percorso passato a `--req-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
+- **CTN-003**: Il percorso passato a `--tech-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
 - **CTN-004**: La rimozione di directory preesistenti `.req` o `.req/templates` deve essere permessa solo se tali percorsi sono sotto la root del progetto.
 - **CTN-005**: Il comando deve fallire se il progetto specificato non esiste sul filesystem.
 
 ## 3. Requisiti
 ### 3.1 Progettazione e Implementazione
 - Questa sezione delinea i requisiti relativi alle scelte di progettazione e ai dettagli implementativi.
-- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` deve essere sostituito con la lista di documenti e directory trovati nelle cartelle specificate con `--doc` e `--dir`. Quando espansi inline, queste liste devono essere formattate usando notazione inline code (backticks) per ogni elemento invece di link markdown. Per documenti usare la forma `file1`, `file2`, `file3`; per directory usare la forma `dir1/`, `dir2/` (con slash finale).
+- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` deve essere sostituito con la lista di documenti e directory trovati nelle cartelle specificate con `--req-dir` e `--tech-dir`. Quando espansi inline, queste liste devono essere formattate usando notazione inline code (backticks) per ogni elemento invece di link markdown. Per documenti usare la forma `file1`, `file2`, `file3`; per directory usare la forma `dir1/`, `dir2/` (con slash finale).
 - **DES-002**: La sorgente del template `requirements.md` deve essere la cartella `resources/templates` inclusa nel pacchetto e il comando deve fallire se il template non è disponibile.
 - **DES-003**: La conversione di prompt Markdown in TOML deve estrarre il campo `description` dal front matter e salvare il corpo del prompt in una stringa multilinea.
 - **DES-004**: L'unione delle impostazioni VS Code deve supportare file JSONC rimuovendo i commenti e deve unire ricorsivamente gli oggetti con priorità ai valori del template.
@@ -188,6 +188,8 @@ Il progetto include una suite di test in `tests/`.
 - **DES-010**: Ogni nuova funzionalità aggiunta dovrebbe includere commenti esplicativi dove applicabile.
 - **DES-011**: Le stringhe statiche usate per la sostituzione del token `%%WORKFLOW%%` devono essere salvate come file di testo semplice nelle risorse del pacchetto sotto `src/usereq/resources/common/` con nomi `workflow_on.md` e `workflow_off.md`. A runtime la CLI deve caricare questi file; se non presenti, deve usare default sensati.
 - **DES-012**: La funzione `load_cli_configs` deve essere sostituita con `load_centralized_models` che carica i dati dal file `src/usereq/resources/common/models.json`. Quando `legacy_mode` è attivo, deve caricare `models-legacy.json` se esiste, altrimenti fare fallback su `models.json`. Il fallback deve avvenire a livello di file completo, non per singole voci. La struttura di ritorno deve rimanere compatibile: un dizionario `cli_name -> config` dove `config` contiene le chiavi `prompts`, `usage_modes`, e opzionalmente `agent_template`.
+- **DES-013**: La funzione `generate_doc_file_list` deve essere rinominata in `generate_req_file_list`. Il comportamento della funzione deve rimanere invariato: scansiona la directory specificata (quella passata con `--req-dir`) e restituisce la lista dei file Markdown (`.md`) presenti in quella directory, ignorando le sottocartelle.
+- **DES-014**: La funzione `generate_dir_list` deve essere rinominata in `generate_tech_file_list`. Il comportamento deve essere allineato a `generate_req_file_list`: scansionare la directory specificata (quella passata con `--tech-dir`) e restituire la lista dei file presenti in quella directory (senza ricerca ricorsiva di sottocartelle). Se la directory è vuota o non contiene file, deve restituire il nome della directory stessa come fallback (preservando il comportamento originale solo per il caso di directory vuota).
 
 ### 3.2 Interfaccia CLI e Comportamento Generale
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
@@ -195,13 +197,13 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
 - **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--write-tech`, e `--overwrite-tech` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
-- **REQ-005**: Il comando deve verificare che il parametro `--doc` indichi una directory esistente, altrimenti deve terminare con errore.
+- **REQ-005**: Il comando deve verificare che il parametro `--req-dir` indichi una directory esistente, altrimenti deve terminare con errore.
 - **REQ-006**: Il comando deve accettare flag booleani `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--legacy`, e `--preserve-models` (default false). Quando un flag `--enable-*` è omesso, la CLI deve saltare la creazione di risorse per quel provider. Quando `--legacy` è attivo, la CLI deve attivare la "legacy mode" per il caricamento delle configurazioni. Quando `--preserve-models` è attivo in combinazione con `--update`, la CLI deve preservare il file `.req/models.json` esistente e il flag `--legacy` non ha effetto.
 - **REQ-007**: Durante installazioni normali (non upgrade/remove/help), il comando deve richiedere che almeno un flag `--enable-*` sia fornito. Il flag `--legacy` non conta come flag di abilitazione del provider. Se nessun flag `--enable-*` è fornito, deve stampare un messaggio di errore in Inglese e uscire.
 - **REQ-008**: La tabella riassuntiva di installazione ASCII deve includere righe solo per i target CLI i cui prompt sono stati installati durante l'invocazione corrente.
-- **REQ-085**: Il comando deve supportare i flag booleani `--write-tech` e `--overwrite-tech` (default false). Questi flag attivano la copia dei contenuti della directory `src/usereq/resources/tech/` nella directory specificata da `--dir`. L'operazione di copia deve essere eseguita prima della chiamata a `generate_dir_list`.
-- **REQ-086**: Quando `--write-tech` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/tech/` nella directory target specificata da `--dir`, preservando i file esistenti (senza sovrascriverli) se hanno lo stesso nome.
-- **REQ-087**: Quando `--overwrite-tech` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/tech/` nella directory target specificata da `--dir`, sovrascrivendo i file esistenti se hanno lo stesso nome.
+- **REQ-085**: Il comando deve supportare i flag booleani `--write-tech` e `--overwrite-tech` (default false). Questi flag attivano la copia dei contenuti della directory `src/usereq/resources/tech/` nella directory specificata da `--tech-dir`. L'operazione di copia deve essere eseguita prima della chiamata a `generate_tech_file_list`.
+- **REQ-086**: Quando `--write-tech` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/tech/` nella directory target specificata da `--tech-dir`, preservando i file esistenti (senza sovrascriverli) se hanno lo stesso nome.
+- **REQ-087**: Quando `--overwrite-tech` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/tech/` nella directory target specificata da `--tech-dir`, sovrascrivendo i file esistenti se hanno lo stesso nome.
 - **REQ-088**: I flag `--write-tech` e `--overwrite-tech` sono mutualmente esclusivi: se entrambi sono forniti contemporaneamente, il comando deve terminare con errore.
 - **REQ-089**: La copia dei template tecnici deve avvenire solo quando almeno uno dei due flag (`--write-tech` o `--overwrite-tech`) è attivo. Se nessuno dei due flag è fornito, l'operazione di copia non deve essere eseguita.
 
@@ -222,15 +224,15 @@ Il progetto include una suite di test in `tests/`.
 
 ### 3.5 Inizializzazione e Configurazione del Progetto
 - Questa sezione descrive come il progetto deve essere inizializzato e configurato.
-- **REQ-018**: Se la directory indicata da `--doc` è vuota, il comando deve generare un file `requirements.md` dal template.
+- **REQ-018**: Se la directory indicata da `--req-dir` è vuota, il comando deve generare un file `requirements.md` dal template.
 - **REQ-019**: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
 - **REQ-020**: Lo script `req.sh` deve essere eseguibile da qualsiasi percorso, risolvere la propria directory, verificare `.venv` e crearlo se assente.
 - **REQ-021**: Se `.venv` esiste, `req.sh` deve eseguire il comando usando il Python del venv inoltrando gli argomenti.
-- **REQ-022**: Il comando deve salvare i valori di `--doc` e `--dir` in `.req/config.json` come percorsi relativi.
-- **REQ-023**: Il file `.req/config.json` deve includere campi `doc` e `dir` preservando slash finali.
+- **REQ-022**: Il comando deve salvare i valori di `--req-dir` e `--tech-dir` in `.req/config.json` come percorsi relativi.
+- **REQ-023**: Il file `.req/config.json` deve includere campi `req-dir` e `tech-dir` preservando slash finali.
 - **REQ-024**: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione usando parametri salvati.
 - **REQ-025**: Quando `--update` è presente, il comando deve verificare presenza di `.req/config.json` e terminare con errore se assente.
-- **REQ-026**: Con `--update`, il comando deve caricare `doc` e `dir` da config ed eseguire il flusso come se passati manualmente.
+- **REQ-026**: Con `--update`, il comando deve caricare `req-dir` e `tech-dir` da config ed eseguire il flusso come se passati manualmente.
 - **REQ-027**: Il comando deve copiare i template in `.req/templates`, rimpiazzando pre-esistenti.
 - **REQ-084**: Il comando deve copiare il file di configurazione modelli in `.req/models.json`, rimpiazzando il file pre-esistente se presente, a meno che `--preserve-models` sia attivo. Quando `--preserve-models` NON è attivo: se `--legacy` NON è attivo, deve copiare `models.json` dalle risorse del pacchetto (`src/usereq/resources/common/models.json`); se `--legacy` è attivo E il file `models-legacy.json` è caricato con successo (cioè quando esiste), deve copiare `models-legacy.json` dalle risorse del pacchetto (`src/usereq/resources/common/models-legacy.json`); se `--legacy` è attivo ma `models-legacy.json` non esiste, deve copiare `models.json`. Questa copia deve avvenire dopo la creazione della directory `.req` e dopo il salvataggio di `config.json`.
 - **REQ-028**: Se il template VS Code è disponibile, deve creare o aggiornare `.vscode/settings.json` unendo impostazioni.
@@ -240,11 +242,11 @@ Il progetto include una suite di test in `tests/`.
 
 ### 3.6 Generazione Risorse - Comune
 - Questa sezione contiene i requisiti comuni per la generazione delle risorse per i vari provider AI.
-- **REQ-032**: Il comando deve sostituire `%%REQ_DOC%%` con la lista di file in `--doc` formattati come inline code, relativi alla root.
+- **REQ-032**: Il comando deve sostituire `%%REQ_DOC%%` con la lista di file in `--req-dir` formattati come inline code, relativi alla root.
 - **REQ-033**: La lista file per `%%REQ_DOC%%` deve usare percorsi relativi netti.
 - **REQ-034**: Lo script deve relativizzare percorsi che contengono il path home progetto.
-- **REQ-035**: Il comando deve sostituire `%%REQ_DIR%%` con la lista di sottocartelle in `--dir` formattate come inline code con slash finale.
-- **REQ-036**: Se la directory `--dir` è vuota, usare la directory stessa per `%%REQ_DIR%%`.
+- **REQ-035**: Il comando deve sostituire `%%REQ_DIR%%` con la lista di sottocartelle in `--tech-dir` formattate come inline code con slash finale.
+- **REQ-036**: Se la directory `--tech-dir` è vuota, usare la directory stessa per `%%REQ_DIR%%`.
 - **REQ-037**: La lista directory per `%%REQ_DIR%%` deve usare percorsi relativi.
 - **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
 - **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
@@ -296,7 +298,7 @@ Il progetto include una suite di test in `tests/`.
 ### 3.12 Rimozione
 - Questa sezione specifica il comportamento per la rimozione delle risorse generate.
 - **REQ-067**: Il comando deve supportare l'opzione `--remove` per rimuovere risorse create.
-- **REQ-068**: Con `--remove`, richiedere obbligatoriamente `--base` o `--here` e rifiutare `--doc`, `--dir`, `--update`.
+- **REQ-068**: Con `--remove`, richiedere obbligatoriamente `--base` o `--here` e rifiutare `--req-dir`, `--tech-dir`, `--update`.
 - **REQ-069**: Con `--remove`, verificare esistenza `.req/config.json`.
 - **REQ-070**: Con `--remove`, NON ripristinare `.vscode/settings.json` dai backup.
 - **REQ-071**: Con `--remove`, rimuovere risorse create: `.codex`, `.github`, `.gemini`, `.kiro`, `.req`, etc.
