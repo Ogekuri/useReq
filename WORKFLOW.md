@@ -36,8 +36,8 @@
         *   `make_relative_token`: Formats paths as tokens for templates.
         *   `find_template_source`: Locates the source directory for templates.
         *   `copy_tech_templates`: Copies technical templates from `src/usereq/resources/tech/` to the target directory specified by `--tech-dir`. The function accepts an `overwrite` parameter that controls whether existing files are preserved (`False` for `--write-tech`) or overwritten (`True` for `--overwrite-tech`). Executed only when `--write-tech` or `--overwrite-tech` flags are active, before generating file lists.
-        *   `generate_req_file_list`: Creates a list of requirements documentation files for `%%REQ_DOC%%` token replacement.
-        *   `generate_tech_file_list`: Creates a list of technical files for `%%REQ_DIR%%` token replacement. Scans files in the directory specified by `--tech-dir` (non-recursive). Falls back to the directory name if no files are present.
+        *   `generate_req_file_list`: Creates a list of requirements documentation files for `%%REQ_DIR%%` token replacement.
+        *   `generate_tech_file_list`: Creates a list of technical files for `%%TECH_DIR%%` token replacement. Scans files in the directory specified by `--tech-dir` (non-recursive). Falls back to the directory name if no files are present.
     *   **Resource Generation**
         *   `load_kiro_template`: Loads Kiro agent templates from centralized models configuration.
         *   `load_centralized_models`: Loads configurations for external CLIs (Claude, Copilot, Kiro, etc.) from centralized `common/models.json` or `common/models-legacy.json` when `--legacy` flag is active. When `--preserve-models` is active with `--update` and `.req/models.json` exists, loads from that file instead, bypassing `--legacy`.

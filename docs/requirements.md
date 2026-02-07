@@ -176,7 +176,7 @@ Il progetto include una suite di test in `tests/`.
 ## 3. Requisiti
 ### 3.1 Progettazione e Implementazione
 - Questa sezione delinea i requisiti relativi alle scelte di progettazione e ai dettagli implementativi.
-- **DES-001**: Il calcolo dei token `%%REQ_DOC%%` e `%%REQ_DIR%%` deve essere sostituito con la lista di documenti e directory trovati nelle cartelle specificate con `--req-dir` e `--tech-dir`. Quando espansi inline, queste liste devono essere formattate usando notazione inline code (backticks) per ogni elemento invece di link markdown. Per documenti usare la forma `file1`, `file2`, `file3`; per directory usare la forma `dir1/`, `dir2/` (con slash finale).
+- **DES-001**: Il calcolo dei token `%%REQ_DIR%%` e `%%TECH_DIR%%` deve essere sostituito con la lista di documenti e directory trovati nelle cartelle specificate con `--req-dir` e `--tech-dir`. Quando espansi inline, queste liste devono essere formattate usando notazione inline code (backticks) per ogni elemento invece di link markdown. Per documenti usare la forma `file1`, `file2`, `file3`; per directory usare la forma `dir1/`, `dir2/` (con slash finale).
 - **DES-002**: La sorgente del template `requirements.md` deve essere la cartella `resources/templates` inclusa nel pacchetto e il comando deve fallire se il template non è disponibile.
 - **DES-003**: La conversione di prompt Markdown in TOML deve estrarre il campo `description` dal front matter e salvare il corpo del prompt in una stringa multilinea.
 - **DES-004**: L'unione delle impostazioni VS Code deve supportare file JSONC rimuovendo i commenti e deve unire ricorsivamente gli oggetti con priorità ai valori del template.
@@ -214,7 +214,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-011**: L'opzione `--uninstall` deve eseguire `uv tool uninstall usereq` e terminare con errore se fallisce.
 - **REQ-012**: La stringa di aiuto deve includere `--uninstall` come opzione disponibile.
 - **REQ-013**: Dopo il completamento con successo di un'installazione o aggiornamento, la CLI deve stampare una singola riga in Inglese informando l'utente del successo includendo il percorso root risolto.
-- **REQ-014**: Immediatamente dopo il messaggio di successo, la CLI deve stampare una lista dei file e directory scoperti per la sostituzione dei token `%%REQ_DOC%%` e `%%REQ_DIR%%`, prefissati da `- `.
+- **REQ-014**: Immediatamente dopo il messaggio di successo, la CLI deve stampare una lista dei file e directory scoperti per la sostituzione dei token `%%REQ_DIR%%` e `%%TECH_DIR%%`, prefissati da `- `.
 - **REQ-015**: Immediatamente dopo la lista file, la CLI deve stampare una tabella leggibile ASCII descrivendo quali prompt e moduli sono stati installati per ogni target CLI e se il workflow è stato installato.
 
 ### 3.4 Controllo Versione
@@ -242,12 +242,12 @@ Il progetto include una suite di test in `tests/`.
 
 ### 3.6 Generazione Risorse - Comune
 - Questa sezione contiene i requisiti comuni per la generazione delle risorse per i vari provider AI.
-- **REQ-032**: Il comando deve sostituire `%%REQ_DOC%%` con la lista di file in `--req-dir` formattati come inline code, relativi alla root.
-- **REQ-033**: La lista file per `%%REQ_DOC%%` deve usare percorsi relativi netti.
+- **REQ-032**: Il comando deve sostituire `%%REQ_DIR%%` con la lista di file in `--req-dir` formattati come inline code, relativi alla root.
+- **REQ-033**: La lista file per `%%REQ_DIR%%` deve usare percorsi relativi netti.
 - **REQ-034**: Lo script deve relativizzare percorsi che contengono il path home progetto.
-- **REQ-035**: Il comando deve sostituire `%%REQ_DIR%%` con la lista di sottocartelle in `--tech-dir` formattate come inline code con slash finale.
-- **REQ-036**: Se la directory `--tech-dir` è vuota, usare la directory stessa per `%%REQ_DIR%%`.
-- **REQ-037**: La lista directory per `%%REQ_DIR%%` deve usare percorsi relativi.
+- **REQ-035**: Il comando deve sostituire `%%TECH_DIR%%` con la lista di sottocartelle in `--tech-dir` formattate come inline code con slash finale.
+- **REQ-036**: Se la directory `--tech-dir` è vuota, usare la directory stessa per `%%TECH_DIR%%`.
+- **REQ-037**: La lista directory per `%%TECH_DIR%%` deve usare percorsi relativi.
 - **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
 - **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
 - **REQ-040**: Con `--enable-tools`, includere `tools` derivato da `usage_modes` se presente in `config.json`.

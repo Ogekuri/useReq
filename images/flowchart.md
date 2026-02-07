@@ -12,8 +12,8 @@ flowchart TD
     START((**Start**))
     NP@{ shape: hex, label: "***New*** *Project*"}
     EP@{ shape: hex, label: "***Existing*** *Project*"}
-    CMDNP@{ shape: subproc, label: "**req** --base project/ --doc project/docs/ --dir project/tech/" }
-    CMDEP@{ shape: subproc, label: "**req** --here --doc docs/ --dir tech/" }
+    CMDNP@{ shape: subproc, label: "**req** --base project/ --req-dir project/docs/ --tech-dir project/tech/" }
+    CMDEP@{ shape: subproc, label: "**req** --here --req-dir docs/ --tech-dir tech/" }
     CMDUPDATE@{ shape: subproc, label: "**req** --update --here" }
     EDIT@{ shape: doc, label: "**edit** requirements.md" }
     REQ[(Requiremets)]

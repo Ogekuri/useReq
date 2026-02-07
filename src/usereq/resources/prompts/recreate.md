@@ -58,7 +58,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
    - If no language is specified, use English.
 2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
-3. Read the **Software Requirements Specification** document %%REQ_DOC%% and extract a complete, explicit list of atomic requirements.
+3. Read the **Software Requirements Specification** document %%REQ_DIR%% and extract a complete, explicit list of atomic requirements.
    - Preserve every requirement’s original intent; do not delete any requirement.
    - If requirements have IDs, capture them as "Original IDs".
    - If requirements do not have IDs, assign temporary, stable "Original IDs" in the order they appear (e.g., `SRC-001`, `SRC-002`, ...). These temporary IDs are only for traceability during reorganization and verification.

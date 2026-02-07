@@ -438,7 +438,7 @@ def load_config(project_base: Path) -> dict[str, str]:
 
 
 def generate_req_file_list(req_dir: Path, project_base: Path) -> str:
-    """Generates the markdown file list for %%REQ_DOC%% replacement."""
+    """Generates the markdown file list for %%REQ_DIR%% replacement."""
     if not req_dir.is_dir():
         return ""
 
@@ -477,7 +477,7 @@ def generate_req_file_items(req_dir: Path, project_base: Path) -> list[str]:
 
 
 def generate_tech_file_list(tech_dir: Path, project_base: Path) -> str:
-    """Generates the markdown file list for %%REQ_DIR%% replacement."""
+    """Generates the markdown file list for %%TECH_DIR%% replacement."""
     if not tech_dir.is_dir():
         return ""
 
@@ -1285,10 +1285,10 @@ def run(args: Namespace) -> None:
                 f"Created {req_target} — update the file with the project requirements. (source: {src_file})"
             )
 
-    # Generate the file list for the %%REQ_DOC%% token after possible creation.
+    # Generate the file list for the %%REQ_DIR%% token after possible creation.
     req_file_list = generate_req_file_list(req_dir_path, project_base)
 
-    # Generate the file list for the %%REQ_DIR%% token.
+    # Generate the file list for the %%TECH_DIR%% token.
     tech_file_list = generate_tech_file_list(project_base / normalized_tech, project_base)
 
     dlog(f"project_base={project_base}")
@@ -1428,8 +1428,8 @@ def run(args: Namespace) -> None:
         workflow_replacement = workflow_on_text if enable_workflow else workflow_off_text
 
         base_replacements = {
-            "%%REQ_DOC%%": req_file_list,
-            "%%REQ_DIR%%": tech_file_list,
+            "%%REQ_DIR%%": req_file_list,
+            "%%TECH_DIR%%": tech_file_list,
             "%%REQ_PATH%%": normalized_req,
         }
         prompt_replacements = {
@@ -1467,8 +1467,8 @@ def run(args: Namespace) -> None:
             existed = dst_toml.exists()
             md_to_toml(prompt_path, dst_toml, force=existed)
             toml_replacements = {
-                "%%REQ_DOC%%": req_file_list,
-                "%%REQ_DIR%%": tech_file_list,
+                "%%REQ_DIR%%": req_file_list,
+                "%%TECH_DIR%%": tech_file_list,
                 "%%REQ_PATH%%": normalized_req,
                 "%%ARGS%%": "{{args}}",
                 "%%WORKFLOW%%": workflow_replacement,
@@ -1836,7 +1836,7 @@ def run(args: Namespace) -> None:
         for entry in tech_items:
             print(f"- {entry}")
     else:
-        print("The folder %%REQ_DIR%% does not contain any files")
+        print("The folder %%TECH_DIR%% does not contain any files")
 
     # Build and print a simple installation report table describing which
     # modules were installed for each CLI target and whether workflow was

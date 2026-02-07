@@ -457,13 +457,13 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("allowedTools", data_without_flags)
 
     def test_req_doc_replacement(self) -> None:
-        """REQ-022: Verifies %%REQ_DOC%% replacement."""
+        """REQ-022: Verifies %%REQ_DIR%% replacement."""
         # After execution, files must contain link to requirements.md.
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
-        # Verify that %%REQ_DOC%% has been replaced.
+        # Verify that %%REQ_DIR%% has been replaced.
         self.assertNotIn(
-            "%%REQ_DOC%%", content, "The token %%REQ_DOC%% must be replaced"
+            "%%REQ_DIR%%", content, "The token %%REQ_DIR%% must be replaced"
         )
         # Verify that it contains reference to docs/requirements.md.
         self.assertIn(
@@ -581,12 +581,12 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("agent:", content, "The command must not contain agent without stubs")
 
     def test_req_dir_replacement(self) -> None:
-        """REQ-026, REQ-027: Verifies %%REQ_DIR%% replacement."""
+        """REQ-026, REQ-027: Verifies %%TECH_DIR%% replacement."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
-        # Verify that %%REQ_DIR%% has been replaced.
+        # Verify that %%TECH_DIR%% has been replaced.
         self.assertNotIn(
-            "%%REQ_DIR%%", content, "The token %%REQ_DIR%% must be replaced"
+            "%%TECH_DIR%%", content, "The token %%TECH_DIR%% must be replaced"
         )
         # After DES-014 change: generate_tech_file_list now lists files, not subdirectories.
         # The tech/ folder now contains files from its direct children, not subdirectories.
@@ -896,7 +896,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
         )
 
     def test_req_doc_contains_existing_file(self) -> None:
-        """REQ-022: Verifies that %%REQ_DOC%% contains the existing file."""
+        """REQ-022: Verifies that %%REQ_DIR%% contains the existing file."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertIn(
