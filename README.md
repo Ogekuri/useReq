@@ -52,7 +52,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `refactor` | Perform optimizations without changing the requirements |
   | `write` | Produce a *SRS* draft based on the User Request description |
   | `reset` | Reset useReq/req bootstrap context |
-  | `workflow` | Write a `WORKFLOW.md` using the project's source code |
+  | `workflow` | Write a `%%DOC_PATH%%/WORKFLOW.md` using the project's source code |
 
 
 ## Default Workflow

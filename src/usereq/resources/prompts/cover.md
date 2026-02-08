@@ -84,7 +84,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - Fix the source code to pass valid tests. Execute a strict fix loop: 1) Analyze the failure, 2) Fix code, 3) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Requirements coverage failed due unable to complete tests!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Requirements coverage failed due incompatible requirement with tests!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
-9.  If `WORKFLOW.md` file exists analyze the recently implemented code changes and identify new features and behavioral updates, otherwise analyze the entire project's main existing source code to infer the software’s behavior and main features to reconstruct the software's execution logic: 
+9.  If `%%DOC_PATH%%/WORKFLOW.md` file exists analyze the recently implemented code changes and identify new features and behavioral updates, otherwise analyze the entire project's main existing source code to infer the software’s behavior and main features to reconstruct the software's execution logic: 
    -  Identify all functions and components utilized when all features are enabled.
    -  Identify all file-system operations (reading or writing files).
    -  Identify all external API call.
@@ -92,7 +92,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify any common code logic.
    -  Ignore tests source codes and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts, ..).
    Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-   Create or review the file `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
+   Create or review the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.

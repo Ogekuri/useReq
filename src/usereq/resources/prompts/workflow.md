@@ -6,7 +6,7 @@ argument-hint: "Target language for the generated WORKFLOW.md"
 # Write a WORKFLOW.md using the project's source code
 
 ## Purpose
-Analyze the existing source code to generate a workflow description (`WORKFLOW.md`) in the specified language, reflecting the current state of the project.
+Analyze the existing source code to generate a workflow description (`%%DOC_PATH%%/WORKFLOW.md`) in the specified language, reflecting the current state of the project.
 
 
 ## Professional Personas
@@ -18,13 +18,13 @@ Analyze the existing source code to generate a workflow description (`WORKFLOW.m
 
 ## Behavior (absolute rules, non-negotiable)
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
-- You can read, write, or edit `WORKFLOW.md`.
+- You can read, write, or edit `%%DOC_PATH%%/WORKFLOW.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
-- **CRITICAL**: Do not modify any project files except creating/updating `WORKFLOW.md`.
+- **CRITICAL**: Do not modify any project files except creating/updating `%%DOC_PATH%%/WORKFLOW.md`.
 - Write the document in the requested language.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
-- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
+- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 
 ## Execution Protocol (Global vs Local)
@@ -67,7 +67,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify any common code logic.
    -  Ignore tests source codes and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts, ..).
 Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-3. Create the file `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
+3. Create the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
