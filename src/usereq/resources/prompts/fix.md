@@ -98,6 +98,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
             *  description: <brief development oriented technical description of its specific action>
             *  input: <list of input variables>
             *  output: <returned values or list of updated variables>
+            *  calls: nested sub-function calls as list of `function_name()`
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer more traces over longer prose.
 10. **CRITICAL**: Stage & commit
