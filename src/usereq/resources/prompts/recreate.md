@@ -78,7 +78,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
-7. Analyze the project's main existing source code, ignoring tests source codes and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts, ..), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
+7. Analyze the project's main existing source code, ignoring unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
    - Add missing requirements to the reorganized draft and place them into the appropriate section/subsection (respecting the max 3-level hierarchy).
    - Requirements for the output:
      - Scan the codebase for high-importance functionalities, critical behaviors, or logic that are NOT currently documented in the reorganized requirements.
