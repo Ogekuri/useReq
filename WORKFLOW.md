@@ -23,13 +23,14 @@
 
 *   `run` (Installation/Update)
     *   **Configuration & Validation**
-        *   `load_config`: Loads existing configuration from `.req/config.json` during updates (fields `req-dir` and `tech-dir`).
+        *   `load_config`: Loads existing configuration from `.req/config.json` during updates (fields `req-dir`, `tech-dir`, and `doc-dir`).
         *   `ensure_req_directory`: Verifies that the requirements directory exists and is valid.
-        *   `make_relative_if_contains_project`: Normalizes paths to be relative to the project root for `%%REQ_PATH%%` and `%%TECH_PATH%%` substitution.
+        *   `ensure_doc_directory`: Verifies that the documentation directory exists and is valid.
+        *   `make_relative_if_contains_project`: Normalizes paths to be relative to the project root for `%%REQ_PATH%%`, `%%TECH_PATH%%`, and `%%DOC_PATH%%` substitution.
         *   `ensure_relative`: Raises an error if a path is absolute.
         *   `resolve_absolute`: Resolves a normalized path to an absolute path.
         *   `maybe_notify_newer_version`: Checks for package updates before proceeding.
-        *   `save_config`: Saves current parameters to `.req/config.json` (fields `req-dir` and `tech-dir`).
+        *   `save_config`: Saves current parameters to `.req/config.json` (fields `req-dir`, `tech-dir`, and `doc-dir`).
         *   Copies `models.json` or `models-legacy.json` from package resources to `.req/models.json` after creating the `.req` directory. When `--legacy` is active and `models-legacy.json` exists, copies it instead of `models.json`. When `--preserve-models` is active, skips overwriting `.req/models.json` to preserve custom configurations.
     *   **Environment Preparation**
         *   `compute_sub_path`: Calculates relative paths for token substitution.
@@ -44,7 +45,7 @@
         *   **Prompt Processing Loop** (Iterates over available prompts)
             *   `extract_frontmatter`: Separates metadata from the prompt body.
             *   `extract_description`: Retrieves the description from frontmatter.
-            *   `apply_replacements`: Substitutes tokens (including `%%REQ_DIR%%`, `%%TECH_DIR%%`, `%%REQ_PATH%%`, `%%TECH_PATH%%`) in text with calculated values.
+            *   `apply_replacements`: Substitutes tokens (including `%%REQ_DIR%%`, `%%TECH_DIR%%`, `%%REQ_PATH%%`, `%%TECH_PATH%%`, `%%DOC_PATH%%`) in text with calculated values.
             *   `write_text_file`: Writes generated content to the destination file.
             *   **New `recreate` prompt**: Introduces the reorganizing-and-renumbering workflow along with the same provider metadata as `create`, so artifact generation for enabled providers now includes `recreate` content as well.
             *   **Format-Specific Generators**

@@ -83,6 +83,9 @@ class TestCLI(unittest.TestCase):
                     str(cls.TEST_DIR),
                     "--req-dir",
                     str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
+                    str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                 ]
@@ -458,6 +461,14 @@ class TestCLI(unittest.TestCase):
             "The file must contain reference to docs/requirements.md",
         )
 
+    def test_doc_path_replacement(self) -> None:
+        """REQ-091: Verifies %%DOC_PATH%% replacement."""
+        config_path = self.TEST_DIR / ".req" / "config.json"
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        doc_dir = data["doc-dir"]
+        replaced = cli.apply_replacements("DOC: %%DOC_PATH%%", {"%%DOC_PATH%%": doc_dir})
+        self.assertEqual(replaced, f"DOC: {doc_dir}")
+
     def test_config_json_saved(self) -> None:
         """REQ-033: Verifies saving of .req/config.json."""
         config_path = self.TEST_DIR / ".req" / "config.json"
@@ -468,11 +479,13 @@ class TestCLI(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(".req/config.json must be a valid JSON")
 
-        # Verify fields req-dir and tech-dir.
+        # Verify fields req-dir, tech-dir, and doc-dir.
         self.assertIn("req-dir", data, "config.json must contain 'req-dir' field")
         self.assertIn("tech-dir", data, "config.json must contain 'tech-dir' field")
+        self.assertIn("doc-dir", data, "config.json must contain 'doc-dir' field")
         self.assertEqual(data["req-dir"], "docs", "The 'req-dir' field must be 'docs'")
         self.assertEqual(data["tech-dir"], "tech", "The 'tech-dir' field must be 'tech'")
+        self.assertEqual(data["doc-dir"], "docs", "The 'doc-dir' field must be 'docs'")
 
     def test_opencode_agent_files_created(self) -> None:
         """REQ-047: Verifies OpenCode agents generation in .opencode/agent."""
@@ -675,6 +688,9 @@ class TestTechPathReplacement(unittest.TestCase):
                     str(cls.TEST_DIR),
                     "--req-dir",
                     str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
+                    str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--enable-codex",
@@ -792,6 +808,9 @@ class TestModelsAndTools(unittest.TestCase):
                     str(cls.TEST_DIR),
                     "--req-dir",
                     str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
+                    str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--enable-models",
@@ -864,6 +883,9 @@ class TestModelsAndTools(unittest.TestCase):
                     str(self.TEST_DIR),
                     "--req-dir",
                     str(self.TEST_DIR / "docs"),
+
+                    "--doc-dir",
+                    str(self.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(self.TEST_DIR / "tech"),
                 ]
@@ -886,6 +908,9 @@ class TestModelsAndTools(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
                     "--req-dir",
+                    str(self.TEST_DIR / "docs"),
+
+                    "--doc-dir",
                     str(self.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(self.TEST_DIR / "tech"),
@@ -939,6 +964,9 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
                     "--req-dir",
+                    str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
@@ -1013,6 +1041,9 @@ class TestPromptsUseAgents(unittest.TestCase):
                     str(cls.TEST_DIR),
                     "--req-dir",
                     str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
+                    str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--prompts-use-agents",
@@ -1086,6 +1117,9 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
                     "--req-dir",
+                    str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
@@ -1235,6 +1269,9 @@ class TestCLIWithoutClaude(unittest.TestCase):
                     str(cls.TEST_DIR),
                     "--req-dir",
                     str(cls.TEST_DIR / "docs"),
+
+                    "--doc-dir",
+                    str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
                     "--enable-github",
@@ -1292,6 +1329,9 @@ class TestProviderEnableFlags(unittest.TestCase):
                         str(self.TEST_DIR),
                         "--req-dir",
                         str(self.TEST_DIR / "docs"),
+
+                        "--doc-dir",
+                        str(self.TEST_DIR / "docs"),
                         "--tech-dir",
                         str(self.TEST_DIR / "tech"),
                     ]
@@ -1345,6 +1385,9 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR),
                         "--req-dir",
                         str(self.TEST_DIR / "docs"),
+
+                        "--doc-dir",
+                        str(self.TEST_DIR / "docs"),
                         "--tech-dir",
                         str(self.TEST_DIR / "tech"),
                     ]
@@ -1370,6 +1413,9 @@ class TestUpdateNotification(unittest.TestCase):
                         "--base",
                         str(self.TEST_DIR),
                         "--req-dir",
+                        str(self.TEST_DIR / "docs"),
+
+                        "--doc-dir",
                         str(self.TEST_DIR / "docs"),
                         "--tech-dir",
                         str(self.TEST_DIR / "tech"),
@@ -1448,6 +1494,9 @@ class TestTechTemplates(unittest.TestCase):
                     str(self.TEST_DIR),
                     "--req-dir",
                     "docs",
+
+                    "--doc-dir",
+                    "docs",
                     "--tech-dir",
                     "tech",
                     "--write-tech",
@@ -1479,6 +1528,9 @@ class TestTechTemplates(unittest.TestCase):
                     str(self.TEST_DIR),
                     "--req-dir",
                     "docs",
+
+                    "--doc-dir",
+                    "docs",
                     "--tech-dir",
                     "tech",
                     "--overwrite-tech",
@@ -1506,6 +1558,9 @@ class TestTechTemplates(unittest.TestCase):
                         str(self.TEST_DIR),
                         "--req-dir",
                         "docs",
+
+                        "--doc-dir",
+                        "docs",
                         "--tech-dir",
                         "tech",
                         "--write-tech",
@@ -1523,6 +1578,9 @@ class TestTechTemplates(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
                     "--req-dir",
+                    "docs",
+
+                    "--doc-dir",
                     "docs",
                     "--tech-dir",
                     "tech",
@@ -1561,6 +1619,9 @@ class TestPreserveModels(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
                     "--req-dir",
+                    "docs",
+
+                    "--doc-dir",
                     "docs",
                     "--tech-dir",
                     "tech",
@@ -1619,6 +1680,9 @@ class TestPreserveModels(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
                     "--req-dir",
+                    "docs",
+
+                    "--doc-dir",
                     "docs",
                     "--tech-dir",
                     "tech",
