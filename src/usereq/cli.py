@@ -1330,6 +1330,8 @@ def run(args: Namespace) -> None:
 
     sub_req_doc = compute_sub_path(normalized_req, abs_req, project_base)
     sub_tech_dir = compute_sub_path(normalized_tech, abs_tech, project_base)
+    sub_test_dir = format_substituted_path(normalized_test).rstrip("/\\")
+    token_test_path = f"{sub_test_dir}/" if sub_test_dir else ""
     if tech_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
         sub_tech_dir += "/"
     token_req_doc = make_relative_token(sub_req_doc)
@@ -1495,7 +1497,7 @@ def run(args: Namespace) -> None:
             "%%REQ_PATH%%": normalized_req,
             "%%TECH_PATH%%": normalized_tech,
             "%%DOC_PATH%%": normalized_doc,
-            "%%TEST_PATH%%": normalized_test,
+            "%%TEST_PATH%%": token_test_path,
         }
         prompt_replacements = {
             **base_replacements,
@@ -1534,7 +1536,7 @@ def run(args: Namespace) -> None:
                 "%%REQ_PATH%%": normalized_req,
                 "%%TECH_PATH%%": normalized_tech,
                 "%%DOC_PATH%%": normalized_doc,
-                "%%TEST_PATH%%": normalized_test,
+                "%%TEST_PATH%%": token_test_path,
                 "%%ARGS%%": "{{args}}",
             }
             replace_tokens(dst_toml, toml_replacements)

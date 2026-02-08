@@ -4,14 +4,14 @@
   - Module: `src/usereq/__main__.py`
     - `main()`: Delegates to `cli.main()` and exits with its return code [src/usereq/__main__.py, 1-7]
   - Module: `src/usereq/cli.py`
-    - `main()`: Parses arguments and routes to upgrade/uninstall/run flows [src/usereq/cli.py, 1928-1958]
+    - `main()`: Parses arguments and routes to upgrade/uninstall/run flows [src/usereq/cli.py, 1930-1960]
       - `build_parser()`: Defines CLI flags and options for help output [src/usereq/cli.py, 57-181]
       - `parse_args()`: Parses argv into a Namespace [src/usereq/cli.py, 184-186]
       - `maybe_print_version()`: Prints version-only output when requested [src/usereq/cli.py, 199-204]
         - `load_package_version()`: Loads the package version string [src/usereq/cli.py, 189-196]
       - `run_upgrade()`: Executes `uv tool install` via subprocess [src/usereq/cli.py, 207-226]
       - `run_uninstall()`: Executes `uv tool uninstall` via subprocess [src/usereq/cli.py, 229-245]
-      - `run()`: Orchestrates install/update/remove workflows [src/usereq/cli.py, 1180-1925]
+      - `run()`: Orchestrates install/update/remove workflows [src/usereq/cli.py, 1180-1927]
 
 - Version check and release parsing
   - Module: `src/usereq/cli.py`
@@ -30,7 +30,7 @@
 
 - Installation and update workflow (all providers enabled)
   - Module: `src/usereq/cli.py`
-    - `run()`: Validates inputs, prepares paths/config, generates prompts/resources, merges settings, prints report [src/usereq/cli.py, 1180-1925]
+    - `run()`: Validates inputs, prepares paths/config, generates prompts/resources, merges settings, prints report [src/usereq/cli.py, 1180-1927]
       - `load_config()`: Reads `.req/config.json` during updates [src/usereq/cli.py, 463-492]
       - `ensure_req_directory()`: Validates requirements directory exists [src/usereq/cli.py, 335-349]
       - `ensure_doc_directory()`: Validates documentation directory exists [src/usereq/cli.py, 352-365]

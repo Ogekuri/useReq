@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-08"
-version: 0.53
+version: 0.54
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.53
+**Versione**: 0.54
 **Autore**: Ogekuri
 **Data**: 2026-02-08
 
@@ -68,6 +68,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-08 | 0.51 | Aggiunto parametro --doc-dir e sostituzione token %%DOC_PATH%%. |
 | 2026-02-08 | 0.52 | Ignorati file che iniziano con punto nella lista di --req-dir e --tech-dir. |
 | 2026-02-08 | 0.53 | Aggiunto parametro --test-dir e sostituzione token %%TEST_PATH%%. |
+| 2026-02-08 | 0.54 | Aggiornata sostituzione token %%TEST_PATH%% con slash finale. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -256,7 +257,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-037**: La lista directory per `%%TECH_DIR%%` deve usare percorsi relativi.
 - **REQ-090**: Il comando deve sostituire `%%TECH_PATH%%` con il percorso passato con `--tech-dir`, normalizzato rispetto alla root del progetto.
 - **REQ-091**: Il comando deve sostituire `%%DOC_PATH%%` con il percorso passato con `--doc-dir`, normalizzato rispetto alla root del progetto.
-- **REQ-092**: Il comando deve sostituire `%%TEST_PATH%%` con il percorso passato con `--test-dir`, normalizzato rispetto alla root del progetto.
+- **REQ-092**: Il comando deve sostituire `%%TEST_PATH%%` con il percorso passato con `--test-dir`, normalizzato rispetto alla root del progetto, aggiungendo sempre una slash finale anche quando il valore passato non la include.
 - **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
 - **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
 - **REQ-040**: Con `--enable-tools`, includere `tools` derivato da `usage_modes` se presente in `config.json`.
