@@ -51,7 +51,7 @@ During the execution flow you MUST follow this directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..9`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read user request).
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..9`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read user request). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
 1. Read [User Request](#users-request) to identify and extract all project and application requirements.
 2. Extract the **target language** from the [User Request](#users-request).
    - Prefer an explicit marker like "language: <name>".

@@ -55,7 +55,7 @@ During the execution flow you MUST follow this directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..3`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request).
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..3`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
 1. Read %%REQ_DIR%% and the [User Request](#users-request) analysis request.
    - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
    - Use search-first (`git grep`/`rg`) to find the minimal relevant file set, then read only those files. Avoid scanning entire directories unless evidence indicates it is required. Do not load the entire codebase unless absolutely necessary.
