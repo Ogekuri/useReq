@@ -47,6 +47,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `cover` | Implement changes to cover new requirements |
   | `create` | Write a *SRS* draft using the project's source code |
   | `fix` | Fix a defect without changing the requirements |
+  | `implement` | Implement source code from scratch from requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
   | `recreate` | Reorganize, update, and renumber the *SRS* |
   | `refactor` | Perform optimizations without changing the requirements |
