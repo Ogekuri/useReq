@@ -954,8 +954,10 @@ class TestCLIWithExistingDocs(unittest.TestCase):
         # Create an existing file in docs.
         existing_file = docs_dir / "existing.md"
         existing_file.write_text("# Existing file\n", encoding="utf-8")
+        (docs_dir / ".gitignore").write_text("# ignore\n", encoding="utf-8")
 
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tech" / ".place-holder").write_text("", encoding="utf-8")
 
         # Prevent network calls during tests.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -1017,6 +1019,27 @@ class TestCLIWithExistingDocs(unittest.TestCase):
             content,
             "The file must contain reference to docs/existing.md",
         )
+
+    def test_req_doc_ignores_dotfiles(self) -> None:
+        """DES-013: Verifies that %%REQ_DIR%% ignores dotfiles."""
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
+        content = codex_prompt.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "docs/.gitignore",
+            content,
+            "Dotfiles in docs must be ignored in %%REQ_DIR%%",
+        )
+
+    def test_tech_dir_ignores_dotfiles(self) -> None:
+        """DES-014: Verifies that %%TECH_DIR%% ignores dotfiles."""
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
+        content = codex_prompt.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "tech/.place-holder",
+            content,
+            "Dotfiles in tech must be ignored in %%TECH_DIR%%",
+        )
+        self.assertIn("tech/", content, "Fallback tech/ must be present")
 
 
 class TestPromptsUseAgents(unittest.TestCase):

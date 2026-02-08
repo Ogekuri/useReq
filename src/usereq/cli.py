@@ -461,7 +461,7 @@ def generate_req_file_list(req_dir: Path, project_base: Path) -> str:
 
     files = []
     for file_path in sorted(req_dir.iterdir()):
-        if file_path.is_file():
+        if file_path.is_file() and not file_path.name.startswith("."):
             try:
                 rel_path = file_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/")
@@ -483,7 +483,7 @@ def generate_req_file_items(req_dir: Path, project_base: Path) -> list[str]:
 
     items: list[str] = []
     for file_path in sorted(req_dir.iterdir()):
-        if file_path.is_file():
+        if file_path.is_file() and not file_path.name.startswith("."):
             try:
                 rel_path = file_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/")
@@ -500,7 +500,7 @@ def generate_tech_file_list(tech_dir: Path, project_base: Path) -> str:
 
     files = []
     for file_path in sorted(tech_dir.iterdir()):
-        if file_path.is_file():
+        if file_path.is_file() and not file_path.name.startswith("."):
             try:
                 rel_path = file_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/")
@@ -531,7 +531,7 @@ def generate_tech_file_items(tech_dir: Path, project_base: Path) -> list[str]:
 
     items: list[str] = []
     for file_path in sorted(tech_dir.iterdir()):
-        if file_path.is_file():
+        if file_path.is_file() and not file_path.name.startswith("."):
             try:
                 rel_path = file_path.relative_to(project_base)
                 rel_str = str(rel_path).replace(os.sep, "/")
