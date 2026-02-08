@@ -11,28 +11,30 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when analyzing source code to infer behavior: ensure every software requirement generated is atomic, unambiguous, and empirically testable.
-- **Act as a Technical Writer** when structuring the SRS: apply ISO-standard terminology (e.g., "shall", "must") and maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
+- **Act as a Technical Writer** when structuring the SRS document %%REQ_DIR%%: apply ISO-standard terminology (e.g., "shall", "must") and maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
 - **Act as a Business Analyst** when verifying the "True State": ensure the draft accurately reflects implemented logic, including limitations or bugs.
 
 
-## Behavior (absolute rules, non-negotiable)
+## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You can read, write, or edit `%%REQ_PATH%%/requirements_DRAFT.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any project files except creating/updating `%%REQ_PATH%%/requirements_DRAFT.md`.
+
+## Behavior
 - Write the draft in the requested language.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
+
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
--  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `12` Steps (one item per Step) below in your response. 
-   - Mark items as `[x]` ONLY when the step is fully completed.
-   - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
--  **Local Sub-tasks (Tool Usage)**: 
-   - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+-  **Global Roadmap** (*check-list*): 
+   - You MUST maintain a *check-list* internally with `12` Steps (one item per Step).
+   - **Do NOT** use the *task-list tool* for this high-level roadmap.
+-  **Local Sub-tasks** (Tool Usage): 
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Exceution Directives (absolute rules, non-negotiable)

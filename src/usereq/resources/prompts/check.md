@@ -16,12 +16,14 @@ Verify that the project's source code satisfies the documented requirements and 
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
 
 
-## Behavior (absolute rules, non-negotiable)
+## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DIR%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any git tracked files (i.e., returned by `git ls-files`). You may run commands that create untracked artifacts ONLY if: (a) they are confined to standard disposable locations (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`,`node_modules/.cache`, `/tmp`), (b) they do not change any tracked file contents, and (c) you do NOT rely on those artifacts as permanent outputs. If unsure, run tools in a temporary directory (e.g., `tmp/`, `temp/`, `/tmp`) or use tool flags that disable caches.
 - Allowed git commands in this workflow (read-only only): `git status`, `git diff`, `git ls-files`, `git grep`, `git rev-parse`. Do NOT run any other git commands.
+
+## Behavior
 - Only analyze the code and test execution and present the results; make no changes.
 - Do NOT create or modify tests in this workflow.
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
@@ -31,12 +33,11 @@ Verify that the project's source code satisfies the documented requirements and 
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
--  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `6` Steps (one item per Step) below in your response. 
-   - Mark items as `[x]` ONLY when the step is fully completed.
-   - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
--  **Local Sub-tasks (Tool Usage)**: 
-   - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+-  **Global Roadmap** (*check-list*): 
+   - You MUST maintain a *check-list* internally with `6` Steps (one item per Step).
+   - **Do NOT** use the *task-list tool* for this high-level roadmap.
+-  **Local Sub-tasks** (Tool Usage): 
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Exceution Directives (absolute rules, non-negotiable)

@@ -16,7 +16,7 @@ Propose and implement refactoring to the source code to improve structure or per
 - **Act as an Expert Debugger (SSD)** only if tests fail or a defect emerges during refactor.
 
 
-## Behavior (absolute rules, non-negotiable)
+## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DIR%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
@@ -27,6 +27,8 @@ Propose and implement refactoring to the source code to improve structure or per
    - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
+
+## Behavior
 - Always strictly respect requirements.
 - Use technical documents to implement features and changes.
 - Any new text added to an existing document MUST match that document’s current language.
@@ -37,12 +39,11 @@ Propose and implement refactoring to the source code to improve structure or per
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
--  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `11` Steps (one item per Step) below in your response. 
-   - Mark items as `[x]` ONLY when the step is fully completed.
-   - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
--  **Local Sub-tasks (Tool Usage)**: 
-   - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+-  **Global Roadmap** (*check-list*): 
+   - You MUST maintain a *check-list* internally with `12` Steps (one item per Step).
+   - **Do NOT** use the *task-list tool* for this high-level roadmap.
+-  **Local Sub-tasks** (Tool Usage): 
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Exceution Directives (absolute rules, non-negotiable)
@@ -60,26 +61,27 @@ During the execution flow you MUST follow this directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..11`, and start to following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..12`, and start to following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it printing text including a word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
-2. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that implement the refactor described by the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
+2. If `%%DOC_PATH%%/WORKFLOW.md` file NOT exists, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.workflow prompt!", and then terminate the execution.
+3. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that implement the refactor described by the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
    - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
-3. Read unit tests source code from %%TEST_PATH%% directory and plan the necessary refactoring and expansion to cover performance-critical paths and include these details in the **Comprehensive Technical Implementation Report**.
+4. Read unit tests source code from %%TEST_PATH%% directory and plan the necessary refactoring and expansion to cover performance-critical paths and include these details in the **Comprehensive Technical Implementation Report**.
    - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
-4. A change is allowed ONLY if it: (a) preserves externally observable behavior required by %%REQ_DIR%% AND (b) improves structure/performance/reliability with measurable evidence or a clear invariant-based justification. Do not claim performance wins without explicit benchmarks, profiling notes, or complexity-relevant code changes. If the request requires new user-visible features, new configuration options, or changes to documented behavior, recommend to use the `req.new` or `req.change` workflow instead, then OUTPUT exactly "ERROR: Refactor failed due incompatible requirement!", and then terminate the execution.
-5. IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
-6. Review %%REQ_DIR%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check all requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
+5. A change is allowed ONLY if it: (a) preserves externally observable behavior required by %%REQ_DIR%% AND (b) improves structure/performance/reliability with measurable evidence or a clear invariant-based justification. Do not claim performance wins without explicit benchmarks, profiling notes, or complexity-relevant code changes. If the request requires new user-visible features, new configuration options, or changes to documented behavior, recommend to use the `req.new` or `req.change` workflow instead, then OUTPUT exactly "ERROR: Refactor failed due incompatible requirement!", and then terminate the execution.
+6. IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
+7. Review %%REQ_DIR%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check all requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
    - It is forbidden to mark a requirement as `OK` without quoting the exact code snippet that satisfies it. For each requirement, provide a concise evidence pointer (file path + symbol + line range), and include full code excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "shall not..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
    - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
-7. Run the updated test suite. 
+8. Run the updated test suite. 
    - Verify that the implemented changes satisfy the requirements and pass tests.
    - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. Assume the test is correct unless the requirement explicitly contradicts the test expectation. Changes to existing tests require a higher burden of proof and specific explanation.
    - Fix the source code to pass valid tests. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Reasoning on the root cause based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Refactor  failed due unable to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
    - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Refactor failed due incompatible requirement with tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
-8.  If `%%DOC_PATH%%/WORKFLOW.md` file already exists read it to determine related file and functions and analyze only the recently implemented code changes and identify new features and behavioral updates, otherwise analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic: 
+9.  Analyze the recently implemented code changes and identify new features and behavioral updates to infer the software’s behavior and main features to reconstruct the software's execution logic: 
    -  Identify all functions and components utilized when all features are enabled.
    -  Identify all file-system operations (reading or writing files).
    -  Identify all external API call.
@@ -87,7 +89,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify any common code logic.
    -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
    Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-   Create or review the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
+   Review and update the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
@@ -98,18 +100,17 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
             *  output: <returned values or list of updated variables>
             *  calls: nested sub-function calls as list of `function_name()`
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
-   -  Prefer more traces over longer prose.
-9.  **CRITICAL**: Stage & commit
+   -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
+10. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "refactor(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
       - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
       - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
-      - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS
-and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-10.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Refactor request completed with unclean git repository!".
-11.  PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Refactor completed!".
+      - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
+11. Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Refactor request completed with unclean git repository!".
+12. PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Refactor completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

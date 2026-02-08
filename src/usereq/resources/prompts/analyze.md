@@ -17,11 +17,13 @@ Analyze the source code and requirements to answer the user request, producing a
 - **Act as a Expert Debugger** when you identify a failure symptom with concrete evidence (failing test, stack trace, reproducible output). Only to explain root cause, not to propose or implement fixes.
 
 
-## Behavior (absolute rules, non-negotiable)
+## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read %%REQ_DIR%%, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any git tracked files (i.e., returned by `git ls-files`). You may run commands that create untracked artifacts ONLY if: (a) they are confined to standard disposable locations (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`), (b) they do not change any tracked file contents, and (c) you do NOT rely on those artifacts as permanent outputs. If unsure, run tools in a temporary directory (e.g., `tmp/`, `temp/`, `/tmp`) or use tool flags that disable caches.
+
+## Behavior
 - Only analyze the code and present the results; make no changes.
 - Do NOT create or modify tests in this workflow.
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
@@ -32,12 +34,11 @@ Analyze the source code and requirements to answer the user request, producing a
 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
--  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `2` Steps (one item per Step) below in your response. 
-   - Mark items as `[x]` ONLY when the step is fully completed.
-   - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
--  **Local Sub-tasks (Tool Usage)**: 
-   - If a task-list tool is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+-  **Global Roadmap** (*check-list*): 
+   - You MUST maintain a *check-list* internally with `3` Steps (one item per Step).
+   - **Do NOT** use the *task-list tool* for this high-level roadmap.
+-  **Local Sub-tasks** (Tool Usage): 
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Exceution Directives (absolute rules, non-negotiable)
@@ -55,10 +56,11 @@ During the execution flow you MUST follow this directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..2`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
-1. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze the involved source code from %%SRC_PATHS%% to answer the [User Request](#users-request), ensuring compliance with %%TECH_DIR%% documents if present.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..3`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
+1. If `%%DOC_PATH%%/WORKFLOW.md` file NOT exists, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.workflow prompt!", and then terminate the execution.
+2. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze the involved source code from %%SRC_PATHS%% to answer the [User Request](#users-request), ensuring compliance with %%TECH_DIR%% documents if present.
    - Read %%TECH_DIR%% documents and check those guidelines, ensure the proposed code changes conform to those documents. Do not check unrelated guidelines.
-2. PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
+3. PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%
