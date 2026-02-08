@@ -51,13 +51,13 @@ You must manage the execution flow using two distinct methods:
 During the execution flow you MUST follow this directives:
 - **CRITICAL** Autonomous Execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
+   - Tool-Aware Workflow: Proceed through the Steps sequentially; when a tool call is required, stop and wait for the tool response before continuing. Never fabricate tool outputs or tool results. Do not reveal internal reasoning; output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Order of Execution:
   - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
 - **CRITICAL**: Immediate start and never stop:
-  - Complete all tasks of steps without pausing or any stop, except explicit indicated.
+  - Complete all Steps in order; you may pause only to perform required tool calls and to wait for their responses. Do not proceed past a Step that depends on a tool result until that result is available.
   - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start to following the roadmap from the Step 1.
 
 
@@ -70,10 +70,11 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - Never introduce new requirements solely to explicitly forbid functions/features/behaviors. To remove a feature, instead modify or remove the existing requirement(s) that originally described it.
    - In this step, do not edit, create, delete, or rename any source code files in the project (including refactors or formatting-only changes).
 4. Apply the **Software Requirements Specification Update** to %%REQ_DIR%%, following its formatting, language, and guidelines. Do NOT introduce any additional edits beyond what the **Software Requirements Specification Update** describes.
-5. Read `%%DOC_PATH%%/WORKFLOW.md` and analyze source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all new requirements in **Software Requirements Specification Update** and the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
-   - If directory/directories %%TECH_DIR%% exists, list files in %%TECH_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines.Ensure the proposed code changes conform to those documents; adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply guidelines from files you have not explicitly read via a tool action. 
+5. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all new requirements in **Software Requirements Specification Update** and the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
+   - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
 6.  Read unit tests source code from %%TEST_PATH%% directory and plan the necessary refactoring and expansion to cover new requirements and include these details in the **Comprehensive Technical Implementation Report**.
-7.  If a migration/compatibility need is discovered but not specified in requirements, propose a requirements update describing it, then OUTPUT exactly "ERROR: Change request failed due incompatible requirement!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
+   - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
+7.  If a migration/compatibility need is discovered but not specified in requirements, propose a requirements update describing it, then OUTPUT exactly "ERROR: Change request failed due incompatible requirement!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
 8.  IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.  
 9.  Review %%REQ_DIR%%. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code to check NEW or CHANGED requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence. Read only the identified files to verify compliance. Do not assume compliance without locating the specific code implementation.
    - For each requirement, report `OK` if satisfied or `FAIL` if not.
@@ -84,10 +85,10 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. You are authorized to update or refactor existing tests ONLY if they cover logic that was explicitly modified by the updated requirements. When a test fails, verify: does the failure align with the new requirement?
      - IF YES (the test expects the old behavior): Update the test to match the new requirement.
      - IF NO (the test fails on unrelated logic): You likely broke something else. Fix the source code.
-   - Fix the source code to pass valid tests. Execute a strict fix loop: 1) Analyze the failure, 2) Fix code, 3) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Change request failed due unable to complete tests!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
-   - Limitations: Do not introduce new features or change the architecture logic during this fix phase. If a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Change request failed due incompatible requirement with tests!", revert changes executing `git checkout .` and `git clean -fd`, and then terminate the execution.
+   - Fix the source code to pass valid tests. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Reasoning on the root cause based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Change request failed due unable to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
+   - Limitations: Do not introduce new features or change the architecture logic during this fix phase. If a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Change request failed due incompatible requirement with tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
    - You may freely modify the new tests you added in the previous steps. For pre-existing tests, update or refactor them ONLY if they conflict with the new or modified requirements. Preserve the intent of tests covering unchanged logic. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong or outdated, citing line numbers.
-11. If `%%DOC_PATH%%/WORKFLOW.md` file already exists read it and analyze only the recently implemented code changes and identify new features and behavioral updates, otherwise analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic: 
+11. If `%%DOC_PATH%%/WORKFLOW.md` file already exists read it to determine related file and functions and analyze only the recently implemented code changes and identify new features and behavioral updates, otherwise analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic: 
    -  Identify all functions and components utilized when all features are enabled.
    -  Identify all file-system operations (reading or writing files).
    -  Identify all external API call.
@@ -100,7 +101,10 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
       -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as:
-      -  `function_name()`: <Single-line technical description of its specific action> [<filename>, <lines range>]
+         -  `function_name()`: <short single-line technical description of its specific action> [<filename>, <lines range>]
+            *  description: <brief development oriented technical description of its specific action>
+            *  input: <list of input variables>
+            *  output: <returned values or list of updated variables>
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer more traces over longer prose.
 12. **CRITICAL**: Stage & commit
@@ -112,8 +116,8 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS
 and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-13. Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Change request completed with unclean git repository!".
-14. PRINT in the response presenting the **Software Requirements Specification Update** and the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Change request completed!".
+1.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Change request completed with unclean git repository!".
+2.  PRINT in the response presenting the **Software Requirements Specification Update** and the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Change request completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

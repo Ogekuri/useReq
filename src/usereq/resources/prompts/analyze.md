@@ -44,23 +44,20 @@ You must manage the execution flow using two distinct methods:
 During the execution flow you MUST follow this directives:
 - **CRITICAL** Autonomous Execution:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
-   - Uninterrupted Workflow: Proceed through the entire sequence of tasks without pausing; keep reasoning internal ("Chain-of-Thought") and output only the deliverables explicitly requested by the Steps section.
+   - Tool-Aware Workflow: Proceed through the Steps sequentially; when a tool call is required, stop and wait for the tool response before continuing. Never fabricate tool outputs or tool results. Do not reveal internal reasoning; output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
    - After Prompt's Execution: Strictly omit all concluding remarks, does not propose any other steps/actions.
 - **CRITICAL**: Order of Execution:
   - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
 - **CRITICAL**: Immediate start and never stop:
-  - Complete all tasks of steps without pausing or any stop, except explicit indicated.
+  - Complete all Steps in order; you may pause only to perform required tool calls and to wait for their responses. Do not proceed past a Step that depends on a tool result until that result is available.
   - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start to following the roadmap from the Step 1.
 
 
 ## Steps
 Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..3`, and start to following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
-1. Read %%REQ_DIR%% and the [User Request](#users-request) analysis request.
-   - Identify and read configuration files needed to detect language and test frameworks (e.g., package.json, pyproject.toml, cargo.toml).
-   - Use search-first (`git grep`/`rg`) to find the minimal relevant file set, then read only those files. Avoid scanning entire directories unless evidence indicates it is required. Do not load the entire codebase unless absolutely necessary.
-2. Analyze the source code to answer the [User Request](#users-request), ensuring compliance with %%TECH_DIR%% documents if present.
-   - If directory/directories %%TECH_DIR%% exists, list files in %%TECH_DIR%% using `ls` or `tree`. Determine relevance by running a quick keyword search (e.g., `rg`/`git grep`) for impacted modules/features; read only the tech docs that match, then apply only those guidelines. Ensure the report complies with its guidance. Do not apply guidelines from files you have not explicitly read via a tool action.
+1. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze the involved source code from %%SRC_PATHS%% to answer the [User Request](#users-request), ensuring compliance with %%TECH_DIR%% documents if present.
+   - Read %%TECH_DIR%% documents and check those guidelines, ensure the proposed code changes conform to those documents. Do not check unrelated guidelines.
 3. PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
 
 <h2 id="users-request">User's Request</h2>
