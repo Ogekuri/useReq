@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--req-dir REQ_DIR --doc-dir DOC_DIR --tech-dir TECH_DIR --test-dir TEST_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
+        "--req-dir REQ_DIR --doc-dir DOC_DIR --tech-dir TECH_DIR --test-dir TEST_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--write-tech | --overwrite-tech] "
@@ -91,6 +91,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--test-dir", help="Test directory relative to the project root."
+    )
+    parser.add_argument(
+        "--src-dir",
+        action="append",
+        help="Source directory relative to the project root (repeatable).",
     )
     parser.add_argument(
         "--upgrade", action="store_true", help="Upgrade the tool with uv."
@@ -381,6 +386,22 @@ def ensure_test_directory(path: str, project_base: Path) -> None:
         raise ReqError("Error: --test-dir must specify a directory, not a file", 5)
 
 
+def ensure_src_directory(path: str, project_base: Path) -> None:
+    """Ensures the source directory exists under the project base."""
+    normalized = make_relative_if_contains_project(path, project_base)
+    src_path = project_base / normalized
+    resolved = src_path.resolve(strict=False)
+    if not resolved.is_relative_to(project_base):
+        raise ReqError("Error: --src-dir must be under the project base", 5)
+    if not src_path.exists():
+        raise ReqError(
+            f"Error: the --src-dir directory '{normalized}' does not exist under {project_base}",
+            5,
+        )
+    if not src_path.is_dir():
+        raise ReqError("Error: --src-dir must specify a directory, not a file", 5)
+
+
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
     """Normalizes the path relative to the project root when possible."""
     if not path_value:
@@ -445,6 +466,7 @@ def save_config(
     tech_dir_value: str,
     doc_dir_value: str,
     test_dir_value: str,
+    src_dir_values: list[str],
 ) -> None:
     """Saves normalized parameters to .req/config.json."""
     config_path = project_base / ".req" / "config.json"
@@ -454,13 +476,14 @@ def save_config(
         "tech-dir": tech_dir_value,
         "doc-dir": doc_dir_value,
         "test-dir": test_dir_value,
+        "src-dir": src_dir_values,
     }
     config_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
 
-def load_config(project_base: Path) -> dict[str, str]:
+def load_config(project_base: Path) -> dict[str, str | list[str]]:
     """Loads parameters saved in .req/config.json."""
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
@@ -476,6 +499,7 @@ def load_config(project_base: Path) -> dict[str, str]:
     tech_dir_value = payload.get("tech-dir")
     doc_dir_value = payload.get("doc-dir")
     test_dir_value = payload.get("test-dir")
+    src_dir_value = payload.get("src-dir")
     if not isinstance(req_dir_value, str) or not req_dir_value.strip():
         raise ReqError("Error: missing or invalid 'req-dir' field in .req/config.json", 11)
     if not isinstance(tech_dir_value, str) or not tech_dir_value.strip():
@@ -484,11 +508,18 @@ def load_config(project_base: Path) -> dict[str, str]:
         raise ReqError("Error: missing or invalid 'doc-dir' field in .req/config.json", 11)
     if not isinstance(test_dir_value, str) or not test_dir_value.strip():
         raise ReqError("Error: missing or invalid 'test-dir' field in .req/config.json", 11)
+    if (
+        not isinstance(src_dir_value, list)
+        or not src_dir_value
+        or not all(isinstance(item, str) and item.strip() for item in src_dir_value)
+    ):
+        raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
     return {
         "req-dir": req_dir_value,
         "tech-dir": tech_dir_value,
         "doc-dir": doc_dir_value,
         "test-dir": test_dir_value,
+        "src-dir": src_dir_value,
     }
 
 
@@ -1142,9 +1173,10 @@ def run_remove(args: Namespace) -> None:
     tech_dir = getattr(args, 'tech_dir', None)
     doc_dir = getattr(args, 'doc_dir', None)
     test_dir = getattr(args, 'test_dir', None)
-    if req_dir or tech_dir or doc_dir or test_dir or args.update:
+    src_dir = getattr(args, 'src_dir', None)
+    if req_dir or tech_dir or doc_dir or test_dir or src_dir or args.update:
         raise ReqError(
-            "Error: --remove does not accept --req-dir, --tech-dir, --doc-dir, --test-dir, or --update",
+            "Error: --remove does not accept --req-dir, --tech-dir, --doc-dir, --test-dir, --src-dir, or --update",
             4,
         )
     if args.base:
@@ -1199,15 +1231,16 @@ def run(args: Namespace) -> None:
     tech_dir = getattr(args, 'tech_dir', None)
     doc_dir = getattr(args, 'doc_dir', None)
     test_dir = getattr(args, 'test_dir', None)
+    src_dir = getattr(args, 'src_dir', None)
 
-    if args.update and (req_dir or tech_dir or doc_dir or test_dir):
+    if args.update and (req_dir or tech_dir or doc_dir or test_dir or src_dir):
         raise ReqError(
-            "Error: --update does not accept --req-dir, --tech-dir, --doc-dir, or --test-dir",
+            "Error: --update does not accept --req-dir, --tech-dir, --doc-dir, --test-dir, or --src-dir",
             4,
         )
-    if not args.update and (not req_dir or not tech_dir or not doc_dir or not test_dir):
+    if not args.update and (not req_dir or not tech_dir or not doc_dir or not test_dir or not src_dir):
         raise ReqError(
-            "Error: --req-dir, --tech-dir, --doc-dir, and --test-dir are required without --update",
+            "Error: --req-dir, --tech-dir, --doc-dir, --test-dir, and --src-dir are required without --update",
             4,
         )
 
@@ -1217,20 +1250,27 @@ def run(args: Namespace) -> None:
         tech_dir_value = config["tech-dir"]
         doc_dir_value = config["doc-dir"]
         test_dir_value = config["test-dir"]
+        src_dir_values = config["src-dir"]
     else:
         req_dir_value = req_dir
         tech_dir_value = tech_dir
         doc_dir_value = doc_dir
         test_dir_value = test_dir
+        src_dir_values = src_dir
 
     ensure_req_directory(req_dir_value, project_base)
     ensure_doc_directory(doc_dir_value, project_base)
     ensure_test_directory(test_dir_value, project_base)
+    for src_dir_value in src_dir_values:
+        ensure_src_directory(src_dir_value, project_base)
 
     normalized_req = make_relative_if_contains_project(req_dir_value, project_base)
     normalized_tech = make_relative_if_contains_project(tech_dir_value, project_base)
     normalized_doc = make_relative_if_contains_project(doc_dir_value, project_base)
     normalized_test = make_relative_if_contains_project(test_dir_value, project_base)
+    normalized_src_dirs: list[str] = []
+    config_src_dirs: list[str] = []
+    src_has_trailing_slashes: list[bool] = []
     req_has_trailing_slash = req_dir_value.endswith("/") or req_dir_value.endswith("\\")
     tech_has_trailing_slash = tech_dir_value.endswith("/") or tech_dir_value.endswith("\\")
     doc_has_trailing_slash = doc_dir_value.endswith("/") or doc_dir_value.endswith("\\")
@@ -1239,16 +1279,28 @@ def run(args: Namespace) -> None:
     normalized_tech = normalized_tech.rstrip("/\\")
     normalized_doc = normalized_doc.rstrip("/\\")
     normalized_test = normalized_test.rstrip("/\\")
+    for src_dir_value in src_dir_values:
+        has_trailing = src_dir_value.endswith("/") or src_dir_value.endswith("\\")
+        normalized_src = make_relative_if_contains_project(src_dir_value, project_base)
+        normalized_src = normalized_src.rstrip("/\\")
+        normalized_src_dirs.append(normalized_src)
+        src_has_trailing_slashes.append(has_trailing)
 
     ensure_relative(normalized_req, "REQ_DOC", 4)
     ensure_relative(normalized_tech, "REQ_DIR", 5)
     ensure_relative(normalized_doc, "DOC_DIR", 4)
     ensure_relative(normalized_test, "TEST_DIR", 4)
+    for normalized_src in normalized_src_dirs:
+        ensure_relative(normalized_src, "SRC_DIR", 4)
 
     abs_req = resolve_absolute(normalized_req, project_base)
     abs_tech = resolve_absolute(normalized_tech, project_base)
     abs_doc = resolve_absolute(normalized_doc, project_base)
     abs_test = resolve_absolute(normalized_test, project_base)
+    abs_src_dirs = [
+        resolve_absolute(normalized_src, project_base)
+        for normalized_src in normalized_src_dirs
+    ]
     if abs_req and not abs_req.resolve().is_relative_to(project_base):
         raise ReqError("Error: --req-dir must be under the project base", 5)
     if abs_tech and not abs_tech.resolve().is_relative_to(project_base):
@@ -1257,6 +1309,9 @@ def run(args: Namespace) -> None:
         raise ReqError("Error: --doc-dir must be under the project base", 5)
     if abs_test and not abs_test.resolve().is_relative_to(project_base):
         raise ReqError("Error: --test-dir must be under the project base", 5)
+    for abs_src in abs_src_dirs:
+        if abs_src and not abs_src.resolve().is_relative_to(project_base):
+            raise ReqError("Error: --src-dir must be under the project base", 5)
 
     config_req = (
         f"{normalized_req}/"
@@ -1278,6 +1333,11 @@ def run(args: Namespace) -> None:
         if test_has_trailing_slash and normalized_test
         else normalized_test
     )
+    for normalized_src, has_trailing in zip(
+        normalized_src_dirs, src_has_trailing_slashes
+    ):
+        config_src = f"{normalized_src}/" if has_trailing and normalized_src else normalized_src
+        config_src_dirs.append(config_src)
 
     tech_dest = project_base / normalized_tech
     if not tech_dest.is_dir():
@@ -1326,12 +1386,25 @@ def run(args: Namespace) -> None:
     maybe_notify_newer_version(timeout_seconds=1.0)
 
     if not args.update:
-        save_config(project_base, config_req, config_tech, config_doc, config_test)
+        save_config(
+            project_base,
+            config_req,
+            config_tech,
+            config_doc,
+            config_test,
+            config_src_dirs,
+        )
 
     sub_req_doc = compute_sub_path(normalized_req, abs_req, project_base)
     sub_tech_dir = compute_sub_path(normalized_tech, abs_tech, project_base)
     sub_test_dir = format_substituted_path(normalized_test).rstrip("/\\")
     token_test_path = f"`{sub_test_dir}/`" if sub_test_dir else ""
+    sub_src_paths: list[str] = []
+    for normalized_src, abs_src in zip(normalized_src_dirs, abs_src_dirs):
+        sub_src = compute_sub_path(normalized_src, abs_src, project_base).rstrip("/\\")
+        if sub_src:
+            sub_src_paths.append(f"`{sub_src}/`")
+    token_src_paths = ", ".join(sub_src_paths)
     if tech_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
         sub_tech_dir += "/"
     token_req_doc = make_relative_token(sub_req_doc)
@@ -1388,6 +1461,7 @@ def run(args: Namespace) -> None:
     dlog(f"DOC_DIR={normalized_doc}")
     dlog(f"REQ_DIR={normalized_tech}")
     dlog(f"TEST_DIR={normalized_test}")
+    dlog(f"SRC_DIRS={normalized_src_dirs}")
     dlog(f"REQ_FILE_LIST={req_file_list}")
     dlog(f"TECH_FILE_LIST={tech_file_list}")
     dlog(f"SUB_TECH_DIR={sub_tech_dir}")
@@ -1498,6 +1572,7 @@ def run(args: Namespace) -> None:
             "%%TECH_PATH%%": normalized_tech,
             "%%DOC_PATH%%": normalized_doc,
             "%%TEST_PATH%%": token_test_path,
+            "%%SRC_PATHS%%": token_src_paths,
         }
         prompt_replacements = {
             **base_replacements,
@@ -1537,6 +1612,7 @@ def run(args: Namespace) -> None:
                 "%%TECH_PATH%%": normalized_tech,
                 "%%DOC_PATH%%": normalized_doc,
                 "%%TEST_PATH%%": token_test_path,
+                "%%SRC_PATHS%%": token_src_paths,
                 "%%ARGS%%": "{{args}}",
             }
             replace_tokens(dst_toml, toml_replacements)
