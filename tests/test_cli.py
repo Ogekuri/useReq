@@ -477,7 +477,7 @@ class TestCLI(unittest.TestCase):
         config_path = self.TEST_DIR / ".req" / "config.json"
         data = json.loads(config_path.read_text(encoding="utf-8"))
         test_dir = data["test-dir"]
-        test_value = f"{test_dir.rstrip('/\\\\')}/"
+        test_value = f"`{test_dir.rstrip('/\\\\')}/`"
         replaced = cli.apply_replacements(
             "TEST: %%TEST_PATH%%", {"%%TEST_PATH%%": test_value}
         )
@@ -749,7 +749,7 @@ class TestTechPathReplacement(unittest.TestCase):
             "%%TEST_PATH%%", content, "The token %%TEST_PATH%% must be replaced"
         )
         self.assertIn(
-            "TestPath: tests/",
+            "TestPath: `tests/`",
             content,
             "The token %%TEST_PATH%% must be replaced with the normalized test path",
         )

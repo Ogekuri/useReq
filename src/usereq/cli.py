@@ -1331,7 +1331,7 @@ def run(args: Namespace) -> None:
     sub_req_doc = compute_sub_path(normalized_req, abs_req, project_base)
     sub_tech_dir = compute_sub_path(normalized_tech, abs_tech, project_base)
     sub_test_dir = format_substituted_path(normalized_test).rstrip("/\\")
-    token_test_path = f"{sub_test_dir}/" if sub_test_dir else ""
+    token_test_path = f"`{sub_test_dir}/`" if sub_test_dir else ""
     if tech_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
         sub_tech_dir += "/"
     token_req_doc = make_relative_token(sub_req_doc)
