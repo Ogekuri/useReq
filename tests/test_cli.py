@@ -70,6 +70,7 @@ class TestCLI(unittest.TestCase):
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         # Creates a subfolder in tech to verify REQ-026.
         (cls.TEST_DIR / "tech" / "src").mkdir(exist_ok=True)
@@ -88,6 +89,8 @@ class TestCLI(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                 ]
                 + PROVIDER_FLAGS
             )
@@ -469,6 +472,16 @@ class TestCLI(unittest.TestCase):
         replaced = cli.apply_replacements("DOC: %%DOC_PATH%%", {"%%DOC_PATH%%": doc_dir})
         self.assertEqual(replaced, f"DOC: {doc_dir}")
 
+    def test_test_path_replacement(self) -> None:
+        """REQ-092: Verifies %%TEST_PATH%% replacement."""
+        config_path = self.TEST_DIR / ".req" / "config.json"
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        test_dir = data["test-dir"]
+        replaced = cli.apply_replacements(
+            "TEST: %%TEST_PATH%%", {"%%TEST_PATH%%": test_dir}
+        )
+        self.assertEqual(replaced, f"TEST: {test_dir}")
+
     def test_config_json_saved(self) -> None:
         """REQ-033: Verifies saving of .req/config.json."""
         config_path = self.TEST_DIR / ".req" / "config.json"
@@ -479,13 +492,15 @@ class TestCLI(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(".req/config.json must be a valid JSON")
 
-        # Verify fields req-dir, tech-dir, and doc-dir.
+        # Verify fields req-dir, tech-dir, doc-dir, and test-dir.
         self.assertIn("req-dir", data, "config.json must contain 'req-dir' field")
         self.assertIn("tech-dir", data, "config.json must contain 'tech-dir' field")
         self.assertIn("doc-dir", data, "config.json must contain 'doc-dir' field")
+        self.assertIn("test-dir", data, "config.json must contain 'test-dir' field")
         self.assertEqual(data["req-dir"], "docs", "The 'req-dir' field must be 'docs'")
         self.assertEqual(data["tech-dir"], "tech", "The 'tech-dir' field must be 'tech'")
         self.assertEqual(data["doc-dir"], "docs", "The 'doc-dir' field must be 'docs'")
+        self.assertEqual(data["test-dir"], "tests", "The 'test-dir' field must be 'tests'")
 
     def test_opencode_agent_files_created(self) -> None:
         """REQ-047: Verifies OpenCode agents generation in .opencode/agent."""
@@ -639,6 +654,7 @@ class TestTechPathReplacement(unittest.TestCase):
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         prompts_dir = cls.RESOURCE_DIR / "prompts"
         templates_dir = cls.RESOURCE_DIR / "templates"
@@ -653,6 +669,7 @@ class TestTechPathReplacement(unittest.TestCase):
             "---\n"
             "\n"
             "TechPath: %%TECH_PATH%%\n"
+            "TestPath: %%TEST_PATH%%\n"
         )
         (prompts_dir / "techpath.md").write_text(prompt_content, encoding="utf-8")
         (templates_dir / "requirements.md").write_text(
@@ -693,6 +710,8 @@ class TestTechPathReplacement(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                     "--enable-codex",
                 ]
             )
@@ -721,6 +740,19 @@ class TestTechPathReplacement(unittest.TestCase):
             "The token %%TECH_PATH%% must be replaced with the normalized tech path",
         )
 
+    def test_test_path_replacement(self) -> None:
+        """REQ-092: Verifies that %%TEST_PATH%% is replaced."""
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.techpath.md"
+        content = codex_prompt.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "%%TEST_PATH%%", content, "The token %%TEST_PATH%% must be replaced"
+        )
+        self.assertIn(
+            "TestPath: tests",
+            content,
+            "The token %%TEST_PATH%% must be replaced with the normalized test path",
+        )
+
 
 class TestModelsAndTools(unittest.TestCase):
     """Verifies conditional inclusion of model and tools in generated files."""
@@ -735,6 +767,7 @@ class TestModelsAndTools(unittest.TestCase):
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         # Create temporary config resources under a temporary resources folder
         tmp_resources = Path(__file__).resolve().parents[1] / "temp" / "resources"
@@ -813,6 +846,8 @@ class TestModelsAndTools(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                     "--enable-models",
                     "--enable-tools",
                 ]
@@ -888,6 +923,8 @@ class TestModelsAndTools(unittest.TestCase):
                     str(self.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(self.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(self.TEST_DIR / "tests"),
                 ]
                 + PROVIDER_FLAGS
             )
@@ -914,6 +951,8 @@ class TestModelsAndTools(unittest.TestCase):
                     str(self.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(self.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(self.TEST_DIR / "tests"),
                     "--enable-tools",
                 ]
                 + PROVIDER_FLAGS
@@ -958,6 +997,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech" / ".place-holder").write_text("", encoding="utf-8")
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         # Prevent network calls during tests.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -972,6 +1012,8 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                 ]
                 + PROVIDER_FLAGS
             )
@@ -1054,6 +1096,7 @@ class TestPromptsUseAgents(unittest.TestCase):
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         from unittest.mock import patch
 
@@ -1069,6 +1112,8 @@ class TestPromptsUseAgents(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                     "--prompts-use-agents",
                     "--enable-models",
                     "--enable-tools",
@@ -1131,6 +1176,7 @@ class TestKiroToolsEnabled(unittest.TestCase):
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         from unittest.mock import patch
 
@@ -1146,6 +1192,8 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                     "--enable-tools",
                 ]
                 + PROVIDER_FLAGS
@@ -1283,6 +1331,7 @@ class TestCLIWithoutClaude(unittest.TestCase):
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         # Run CLI with a provider other than Claude to surface unbound variable issues.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -1297,6 +1346,8 @@ class TestCLIWithoutClaude(unittest.TestCase):
                     str(cls.TEST_DIR / "docs"),
                     "--tech-dir",
                     str(cls.TEST_DIR / "tech"),
+                    "--test-dir",
+                    str(cls.TEST_DIR / "tests"),
                     "--enable-github",
                 ]
             )
@@ -1338,6 +1389,7 @@ class TestProviderEnableFlags(unittest.TestCase):
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
         (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
 
     def tearDown(self) -> None:
         if self.TEST_DIR.exists():
@@ -1357,6 +1409,8 @@ class TestProviderEnableFlags(unittest.TestCase):
                         str(self.TEST_DIR / "docs"),
                         "--tech-dir",
                         str(self.TEST_DIR / "tech"),
+                        "--test-dir",
+                        str(self.TEST_DIR / "tests"),
                     ]
                 )
 
@@ -1393,6 +1447,7 @@ class TestUpdateNotification(unittest.TestCase):
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
         (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         def fake_notify(*_args, **_kwargs):
             print(
@@ -1413,6 +1468,8 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR / "docs"),
                         "--tech-dir",
                         str(self.TEST_DIR / "tech"),
+                        "--test-dir",
+                        str(self.TEST_DIR / "tests"),
                     ]
                     + PROVIDER_FLAGS
                 )
@@ -1428,6 +1485,7 @@ class TestUpdateNotification(unittest.TestCase):
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
         (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stdout") as fake_stdout:
@@ -1442,6 +1500,8 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR / "docs"),
                         "--tech-dir",
                         str(self.TEST_DIR / "tech"),
+                        "--test-dir",
+                        str(self.TEST_DIR / "tests"),
                     ]
                     + PROVIDER_FLAGS
                 )
@@ -1495,8 +1555,10 @@ class TestTechTemplates(unittest.TestCase):
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-tech-templates-"))
         self.docs_dir = self.TEST_DIR / "docs"
         self.tech_dir = self.TEST_DIR / "tech"
+        self.test_dir = self.TEST_DIR / "tests"
         self.docs_dir.mkdir(parents=True, exist_ok=True)
         self.tech_dir.mkdir(parents=True, exist_ok=True)
+        self.test_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self) -> None:
         """Clean up test directory."""
@@ -1522,6 +1584,8 @@ class TestTechTemplates(unittest.TestCase):
                     "docs",
                     "--tech-dir",
                     "tech",
+                    "--test-dir",
+                    "tests",
                     "--write-tech",
                     "--enable-claude",
                 ]
@@ -1556,6 +1620,8 @@ class TestTechTemplates(unittest.TestCase):
                     "docs",
                     "--tech-dir",
                     "tech",
+                    "--test-dir",
+                    "tests",
                     "--overwrite-tech",
                     "--enable-claude",
                 ]
@@ -1586,6 +1652,8 @@ class TestTechTemplates(unittest.TestCase):
                         "docs",
                         "--tech-dir",
                         "tech",
+                        "--test-dir",
+                        "tests",
                         "--write-tech",
                         "--overwrite-tech",
                         "--enable-claude",
@@ -1607,6 +1675,8 @@ class TestTechTemplates(unittest.TestCase):
                     "docs",
                     "--tech-dir",
                     "tech",
+                    "--test-dir",
+                    "tests",
                     "--enable-claude",
                 ]
             )
@@ -1627,8 +1697,10 @@ class TestPreserveModels(unittest.TestCase):
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-preserve-models-"))
         self.docs_dir = self.TEST_DIR / "docs"
         self.tech_dir = self.TEST_DIR / "tech"
+        self.test_dir = self.TEST_DIR / "tests"
         self.docs_dir.mkdir(parents=True, exist_ok=True)
         self.tech_dir.mkdir(parents=True, exist_ok=True)
+        self.test_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
@@ -1648,6 +1720,8 @@ class TestPreserveModels(unittest.TestCase):
                     "docs",
                     "--tech-dir",
                     "tech",
+                    "--test-dir",
+                    "tests",
                     "--enable-claude",
                 ]
             )
@@ -1709,6 +1783,8 @@ class TestPreserveModels(unittest.TestCase):
                     "docs",
                     "--tech-dir",
                     "tech",
+                    "--test-dir",
+                    "tests",
                     "--enable-claude",
                 ]
             )

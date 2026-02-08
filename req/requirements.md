@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-08"
-version: 0.52
+version: 0.53
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.52
+**Versione**: 0.53
 **Autore**: Ogekuri
 **Data**: 2026-02-08
 
@@ -67,6 +67,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-08 | 0.50 | Aggiunta sostituzione token %%TECH_PATH%% con il percorso di --tech-dir. |
 | 2026-02-08 | 0.51 | Aggiunto parametro --doc-dir e sostituzione token %%DOC_PATH%%. |
 | 2026-02-08 | 0.52 | Ignorati file che iniziano con punto nella lista di --req-dir e --tech-dir. |
+| 2026-02-08 | 0.53 | Aggiunto parametro --test-dir e sostituzione token %%TEST_PATH%%. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -164,17 +165,18 @@ Il progetto include una suite di test in `tests/`.
 ### 2.1 Funzioni del Progetto
 - Questa sezione definisce le funzioni principali che il progetto deve implementare.
 - **PRJ-001**: Il comando deve inizializzare un progetto creando o aggiornando documenti di requisiti, template tecnici e risorse di prompt basati sulla root indicata dall'utente.
-- **PRJ-002**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here` e i parametri `--req-dir`, `--tech-dir`, e `--doc-dir` per determinare la root del progetto e i percorsi da gestire.
+- **PRJ-002**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here` e i parametri `--req-dir`, `--tech-dir`, `--doc-dir`, e `--test-dir` per determinare la root del progetto e i percorsi da gestire.
 - **PRJ-003**: Il comando deve generare risorse di prompt per Codex, GitHub e Gemini sostituendo i token di percorso con valori relativi calcolati.
 - **PRJ-004**: Il comando deve aggiornare i template locali in `.req/templates` e integrare le impostazioni di VS Code quando disponibili.
 - **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
 ### 2.2 Vincoli del Progetto
 - Questa sezione definisce i vincoli e le limitazioni che il progetto deve rispettare.
-- **CTN-001**: I valori di `--req-dir`, `--tech-dir`, e `--doc-dir` possono essere percorsi assoluti o relativi. I percorsi devono essere normalizzati rispetto alla root del progetto passata con `--base` verificando se presente nei percorsi passati con `--req-dir`, `--tech-dir`, e `--doc-dir`.
+- **CTN-001**: I valori di `--req-dir`, `--tech-dir`, `--doc-dir`, e `--test-dir` possono essere percorsi assoluti o relativi. I percorsi devono essere normalizzati rispetto alla root del progetto passata con `--base` verificando se presente nei percorsi passati con `--req-dir`, `--tech-dir`, `--doc-dir`, e `--test-dir`.
 - **CTN-002**: Il percorso passato a `--req-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
 - **CTN-003**: Il percorso passato a `--tech-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
 - **CTN-006**: Il percorso passato a `--doc-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
+- **CTN-007**: Il percorso passato a `--test-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
 - **CTN-004**: La rimozione di directory preesistenti `.req` o `.req/templates` deve essere permessa solo se tali percorsi sono sotto la root del progetto.
 - **CTN-005**: Il comando deve fallire se il progetto specificato non esiste sul filesystem.
 
@@ -201,7 +203,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
 - **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--write-tech`, e `--overwrite-tech` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
-- **REQ-005**: Il comando deve richiedere i parametri `--req-dir` e `--doc-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
+- **REQ-005**: Il comando deve richiedere i parametri `--req-dir`, `--doc-dir`, e `--test-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
 - **REQ-006**: Il comando deve accettare flag booleani `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--legacy`, e `--preserve-models` (default false). Quando un flag `--enable-*` è omesso, la CLI deve saltare la creazione di risorse per quel provider. Quando `--legacy` è attivo, la CLI deve attivare la "legacy mode" per il caricamento delle configurazioni. Quando `--preserve-models` è attivo in combinazione con `--update`, la CLI deve preservare il file `.req/models.json` esistente e il flag `--legacy` non ha effetto.
 - **REQ-007**: Durante installazioni normali (non upgrade/remove/help), il comando deve richiedere che almeno un flag `--enable-*` sia fornito. Il flag `--legacy` non conta come flag di abilitazione del provider. Se nessun flag `--enable-*` è fornito, deve stampare un messaggio di errore in Inglese e uscire.
 - **REQ-008**: La tabella riassuntiva di installazione ASCII deve includere righe solo per i target CLI i cui prompt sono stati installati durante l'invocazione corrente.
@@ -232,11 +234,11 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-019**: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
 - **REQ-020**: Lo script `req.sh` deve essere eseguibile da qualsiasi percorso, risolvere la propria directory, verificare `.venv` e crearlo se assente.
 - **REQ-021**: Se `.venv` esiste, `req.sh` deve eseguire il comando usando il Python del venv inoltrando gli argomenti.
-- **REQ-022**: Il comando deve salvare i valori di `--req-dir`, `--tech-dir`, e `--doc-dir` in `.req/config.json` come percorsi relativi.
-- **REQ-023**: Il file `.req/config.json` deve includere campi `req-dir`, `tech-dir`, e `doc-dir` preservando slash finali.
+- **REQ-022**: Il comando deve salvare i valori di `--req-dir`, `--tech-dir`, `--doc-dir`, e `--test-dir` in `.req/config.json` come percorsi relativi.
+- **REQ-023**: Il file `.req/config.json` deve includere campi `req-dir`, `tech-dir`, `doc-dir`, e `test-dir` preservando slash finali.
 - **REQ-024**: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione usando parametri salvati.
 - **REQ-025**: Quando `--update` è presente, il comando deve verificare presenza di `.req/config.json` e terminare con errore se assente.
-- **REQ-026**: Con `--update`, il comando deve caricare `req-dir`, `tech-dir`, e `doc-dir` da config ed eseguire il flusso come se passati manualmente.
+- **REQ-026**: Con `--update`, il comando deve caricare `req-dir`, `tech-dir`, `doc-dir`, e `test-dir` da config ed eseguire il flusso come se passati manualmente.
 - **REQ-027**: Il comando deve copiare i template in `.req/templates`, rimpiazzando pre-esistenti.
 - **REQ-084**: Il comando deve copiare il file di configurazione modelli in `.req/models.json`, rimpiazzando il file pre-esistente se presente, a meno che `--preserve-models` sia attivo. Quando `--preserve-models` NON è attivo: se `--legacy` NON è attivo, deve copiare `models.json` dalle risorse del pacchetto (`src/usereq/resources/common/models.json`); se `--legacy` è attivo E il file `models-legacy.json` è caricato con successo (cioè quando esiste), deve copiare `models-legacy.json` dalle risorse del pacchetto (`src/usereq/resources/common/models-legacy.json`); se `--legacy` è attivo ma `models-legacy.json` non esiste, deve copiare `models.json`. Questa copia deve avvenire dopo la creazione della directory `.req` e dopo il salvataggio di `config.json`.
 - **REQ-028**: Se il template VS Code è disponibile, deve creare o aggiornare `.vscode/settings.json` unendo impostazioni.
@@ -254,6 +256,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-037**: La lista directory per `%%TECH_DIR%%` deve usare percorsi relativi.
 - **REQ-090**: Il comando deve sostituire `%%TECH_PATH%%` con il percorso passato con `--tech-dir`, normalizzato rispetto alla root del progetto.
 - **REQ-091**: Il comando deve sostituire `%%DOC_PATH%%` con il percorso passato con `--doc-dir`, normalizzato rispetto alla root del progetto.
+- **REQ-092**: Il comando deve sostituire `%%TEST_PATH%%` con il percorso passato con `--test-dir`, normalizzato rispetto alla root del progetto.
 - **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
 - **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
 - **REQ-040**: Con `--enable-tools`, includere `tools` derivato da `usage_modes` se presente in `config.json`.
