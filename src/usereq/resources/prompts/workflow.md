@@ -65,7 +65,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify all external API call.
    -  Identify all external database access.
    -  Identify any common code logic.
-   -  Ignore tests source codes and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts, ..).
+   -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
 Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
 3. Create the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
