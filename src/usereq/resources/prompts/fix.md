@@ -109,8 +109,8 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS
 and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-1.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Defect fix completed with unclean git repository!".
-2.  PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Defect fixed!".
+11.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Defect fix completed with unclean git repository!".
+12.  PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Defect fixed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

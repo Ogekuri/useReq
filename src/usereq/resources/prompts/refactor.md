@@ -38,7 +38,7 @@ Propose and implement refactoring to the source code to improve structure or per
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap (Markdown Checklist)**: 
-   - You MUST maintain a plain-text Markdown checklist of the `12` Steps (one item per Step) below in your response. 
+   - You MUST maintain a plain-text Markdown checklist of the `11` Steps (one item per Step) below in your response. 
    - Mark items as `[x]` ONLY when the step is fully completed.
    - **Do NOT** use the task-list tool for this high-level roadmap. It must be visible in the chat text.
 -  **Local Sub-tasks (Tool Usage)**: 
@@ -60,7 +60,7 @@ During the execution flow you MUST follow this directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..12`, and start to following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..11`, and start to following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it printing text including a word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. Read %%REQ_DIR%% documents, the [User Request](#users-request), the `%%DOC_PATH%%/WORKFLOW.md` to determine related files and functions, then analyze source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that implement the refactor described by the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
@@ -107,8 +107,8 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS
 and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-1.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Refactor request completed with unclean git repository!".
-2.  PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Refactor completed!".
+10.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Refactor request completed with unclean git repository!".
+11.  PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Refactor completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%
