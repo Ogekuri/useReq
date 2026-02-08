@@ -1,8 +1,8 @@
 ---
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
-date: "2026-02-07"
-version: 0.49
+date: "2026-02-08"
+version: 0.50
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.49
+**Versione**: 0.50
 **Autore**: Ogekuri
-**Data**: 2026-02-07
+**Data**: 2026-02-08
 
 ## Indice
 <!-- TOC -->
@@ -64,6 +64,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-01 | 0.47 | Aggiunta del parametro --legacy per supportare configurazioni legacy. |
 | 2026-02-07 | 0.48 | Aggiunti parametri --write-tech e --overwrite-tech per copia template tecnici. |
 | 2026-02-07 | 0.49 | Rimossi flag e sostituzioni dedicate al workflow. |
+| 2026-02-08 | 0.50 | Aggiunta sostituzione token %%TECH_PATH%% con il percorso di --tech-dir. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -248,6 +249,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-035**: Il comando deve sostituire `%%TECH_DIR%%` con la lista di sottocartelle in `--tech-dir` formattate come inline code con slash finale.
 - **REQ-036**: Se la directory `--tech-dir` è vuota, usare la directory stessa per `%%TECH_DIR%%`.
 - **REQ-037**: La lista directory per `%%TECH_DIR%%` deve usare percorsi relativi.
+- **REQ-090**: Il comando deve sostituire `%%TECH_PATH%%` con il percorso passato con `--tech-dir`, normalizzato rispetto alla root del progetto.
 - **REQ-038**: Il comando deve supportare opzioni `--enable-models` e `--enable-tools` per includere campi `model` e `tools` nei file generati.
 - **REQ-039**: Con `--enable-models`, includere `model: <valore>` se presente in `config.json` della risorsa.
 - **REQ-040**: Con `--enable-tools`, includere `tools` derivato da `usage_modes` se presente in `config.json`.

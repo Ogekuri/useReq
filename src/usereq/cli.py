@@ -1388,6 +1388,7 @@ def run(args: Namespace) -> None:
             "%%REQ_DIR%%": req_file_list,
             "%%TECH_DIR%%": tech_file_list,
             "%%REQ_PATH%%": normalized_req,
+            "%%TECH_PATH%%": normalized_tech,
         }
         prompt_replacements = {
             **base_replacements,
@@ -1424,6 +1425,7 @@ def run(args: Namespace) -> None:
                 "%%REQ_DIR%%": req_file_list,
                 "%%TECH_DIR%%": tech_file_list,
                 "%%REQ_PATH%%": normalized_req,
+                "%%TECH_PATH%%": normalized_tech,
                 "%%ARGS%%": "{{args}}",
             }
             replace_tokens(dst_toml, toml_replacements)

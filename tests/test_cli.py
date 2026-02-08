@@ -607,6 +607,105 @@ class TestCLI(unittest.TestCase):
         )
 
 
+class TestTechPathReplacement(unittest.TestCase):
+    """REQ-090: Verifies %%TECH_PATH%% replacement."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-tech-path"
+    RESOURCE_DIR = (
+        Path(__file__).resolve().parents[1] / "temp" / "resources-tech-path"
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Prepares a temporary project with a custom prompt containing %%TECH_PATH%%."""
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        if cls.RESOURCE_DIR.exists():
+            shutil.rmtree(cls.RESOURCE_DIR)
+
+        cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+
+        prompts_dir = cls.RESOURCE_DIR / "prompts"
+        templates_dir = cls.RESOURCE_DIR / "templates"
+        common_dir = cls.RESOURCE_DIR / "common"
+        prompts_dir.mkdir(parents=True, exist_ok=True)
+        templates_dir.mkdir(parents=True, exist_ok=True)
+        common_dir.mkdir(parents=True, exist_ok=True)
+
+        prompt_content = (
+            "---\n"
+            "description: \"Tech path prompt\"\n"
+            "---\n"
+            "\n"
+            "TechPath: %%TECH_PATH%%\n"
+        )
+        (prompts_dir / "techpath.md").write_text(prompt_content, encoding="utf-8")
+        (templates_dir / "requirements.md").write_text(
+            "---\n---\n\nTemp requirements template.\n",
+            encoding="utf-8",
+        )
+        (common_dir / "models.json").write_text(
+            json.dumps(
+                {
+                    "kiro": {
+                        "agent_template": {
+                            "name": "%%NAME%%",
+                            "description": "%%DESCRIPTION%%",
+                            "prompt": "%%PROMPT%%",
+                            "resources": ["%%RESOURCES%%"],
+                        },
+                        "prompts": {},
+                        "usage_modes": {},
+                    }
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+        cls._orig_resource_root = cli.RESOURCE_ROOT
+        cli.RESOURCE_ROOT = cls.RESOURCE_DIR
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cls.exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--req-dir",
+                    str(cls.TEST_DIR / "docs"),
+                    "--tech-dir",
+                    str(cls.TEST_DIR / "tech"),
+                    "--enable-codex",
+                ]
+            )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """Restores resources and removes temporary folders."""
+        cli.RESOURCE_ROOT = cls._orig_resource_root
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        if cls.RESOURCE_DIR.exists():
+            shutil.rmtree(cls.RESOURCE_DIR)
+
+    def test_tech_path_replacement(self) -> None:
+        """REQ-090: Verifies that %%TECH_PATH%% is replaced."""
+        self.assertEqual(self.exit_code, 0, "The script must end with exit code 0")
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.techpath.md"
+        self.assertTrue(codex_prompt.exists(), "The Codex prompt must exist")
+        content = codex_prompt.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "%%TECH_PATH%%", content, "The token %%TECH_PATH%% must be replaced"
+        )
+        self.assertIn(
+            "TechPath: tech",
+            content,
+            "The token %%TECH_PATH%% must be replaced with the normalized tech path",
+        )
+
+
 class TestModelsAndTools(unittest.TestCase):
     """Verifies conditional inclusion of model and tools in generated files."""
 

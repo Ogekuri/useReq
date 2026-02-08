@@ -25,7 +25,7 @@
     *   **Configuration & Validation**
         *   `load_config`: Loads existing configuration from `.req/config.json` during updates (fields `req-dir` and `tech-dir`).
         *   `ensure_req_directory`: Verifies that the requirements directory exists and is valid.
-        *   `make_relative_if_contains_project`: Normalizes paths to be relative to the project root.
+        *   `make_relative_if_contains_project`: Normalizes paths to be relative to the project root for `%%REQ_PATH%%` and `%%TECH_PATH%%` substitution.
         *   `ensure_relative`: Raises an error if a path is absolute.
         *   `resolve_absolute`: Resolves a normalized path to an absolute path.
         *   `maybe_notify_newer_version`: Checks for package updates before proceeding.
@@ -44,7 +44,7 @@
         *   **Prompt Processing Loop** (Iterates over available prompts)
             *   `extract_frontmatter`: Separates metadata from the prompt body.
             *   `extract_description`: Retrieves the description from frontmatter.
-            *   `apply_replacements`: Substitutes tokens in text with calculated values.
+            *   `apply_replacements`: Substitutes tokens (including `%%REQ_DIR%%`, `%%TECH_DIR%%`, `%%REQ_PATH%%`, `%%TECH_PATH%%`) in text with calculated values.
             *   `write_text_file`: Writes generated content to the destination file.
             *   **New `recreate` prompt**: Introduces the reorganizing-and-renumbering workflow along with the same provider metadata as `create`, so artifact generation for enabled providers now includes `recreate` content as well.
             *   **Format-Specific Generators**
@@ -73,4 +73,3 @@
 *   `generate_pdoc_docs`: Main function to generate HTML documentation using pdoc.
     *   `_normalize_modules`: Standardizes input module names into a list.
     *   `_run_pdoc`: Executes the pdoc process in a subprocess.
-
