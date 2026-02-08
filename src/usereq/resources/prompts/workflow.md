@@ -71,7 +71,8 @@ Produce a hierarchical bullet lists that reflect the implemented functionality. 
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
-      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as: `function_name()`: [Single-line technical description of its specific action].
+      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as:
+      -  `function_name()`: <Single-line technical description of its specific action> [<filename>, <lines range>]
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer more traces over longer prose.
 4. PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "WORKFLOW.md written!".

@@ -90,12 +90,13 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify all external database access.
    -  Identify any common code logic.
    -  Ignore tests source codes and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts, ..).
-Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-Create or review the file `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
+   Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
+   Create or review the file `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
-      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as: `function_name()`: [Single-line technical description of its specific action].
+      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as:
+      -  `function_name()`: <Single-line technical description of its specific action> [<filename>, <lines range>]
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer more traces over longer prose.
 10. **CRITICAL**: Stage & commit
@@ -107,8 +108,8 @@ Create or review the file `WORKFLOW.md` following a strict Technical Call Tree s
       - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS
 and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-11. Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Defect fix completed with unclean git repository!".
-12. PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Defect fixed!".
+1.  Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Defect fix completed with unclean git repository!".
+2.  PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Defect fixed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

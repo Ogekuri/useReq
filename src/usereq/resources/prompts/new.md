@@ -92,12 +92,13 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify all external database access.
    -  Identify any common code logic.
    -  Ignore tests source codes and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts, ..).
-Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-Create or review the file `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
+   Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
+   Create or review the file `WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
    -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
-      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as: `function_name()`: [Single-line technical description of its specific action].
+      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as:
+      -  `function_name()`: <Single-line technical description of its specific action> [<filename>, <lines range>]
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer more traces over longer prose.
 12. **CRITICAL**: Stage & commit
