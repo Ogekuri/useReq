@@ -102,30 +102,30 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
       -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.
          -  Node Description, every *function node* entry must be described with below informations:
-            *  `function_name()`: mandatory, the function name exactly as defined in the source code.
-            *  `short single-line`: mandatory, a short single-line technical description of its specific action.
-            *  `filename`: mandatory, filename where the function is defined.
-            *  `lines range`: mandatory, lines where the function is defined inside `filename`.
-            *  `description`: mandatory, brief development oriented technical description of its specific action.
-            *  `input`: mandatory, list of input variables.
-            *  `output`: mandatory, returned values or list of updated variables.
-            *  `calls`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
+            -  `function_name()`: mandatory, the function name exactly as defined in the source code.
+            -  `short single-line`: mandatory, a short single-line technical description of its specific action.
+            -  `filename`: mandatory, filename where the function is defined.
+            -  `lines range`: mandatory, lines where the function is defined inside `filename`, format: `start line number`-`end line number`, example: 123-231.
+            -  `description`: a high-density technical summary (max 3 lines) detailing critical algorithmic logic and side effects, optimized to contextually enable an LLM to perform future refactoring or extension.
+            -  `input`: mandatory, semicolon separated list of input variable names and type exactly as defined in the source code. Example: "Articles: list, list of article codes; OrderInfo: json, order informations; DryRun: bool, dry-run execution flag".
+            -  `output`: mandatory, semicolon separated list of returned variable names and type exactly as defined in the source code formatted as the `input` field. If a function return true or false indicate true/false logic (e.g., "True: bool, pattern find; False: bool, pattern not found").
+            -  `calls`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
          -  Hierarchical Structure, child *function node* MUST be added to parent *function node* under optional field `calls:`. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
-          * `parent_func1()`: `short single-line1` [`filename1`, `lines range1`]
-            * description: `description1`
-            * input: `input1`
-            * output: `output1`
-            * calls:
-              * `child_func1()`: `short single-line2` [`filename2`, `lines range2`]
-                * description: `description2`
-                * input: `input2`
-                * output: `output2`
-              * `child_func2()`: `short single-line3` [`filename3`, `lines range3`]
-                * description: `description3`
-                * input: `input3`
-                * output: `output3`
-                * calls:
-                  * ...
+            -  `parent_func1()`: `short single-line1` [`filename1`, `lines range1`]
+               -  description: `description1`
+               -  input: `input1`
+               -  output: `output1`
+               -  calls:
+                  -  `child_func1()`: `short single-line2` [`filename2`, `lines range2`]
+                     -  description: `description2`
+                     -  input: `input2`
+                     -  output: `output2`
+                  -  `child_func2()`: `short single-line3` [`filename3`, `lines range3`]
+                     -  description: `description3`
+                     -  input: `input3`
+                     -  output: `output3`
+                     -  calls:
+                        -  ...
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
 12. **CRITICAL**: Stage & commit
