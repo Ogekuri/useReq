@@ -57,8 +57,8 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
    - an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
-   - If no language is specified, use English.
+   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, use English language as **target language**.
+   - If no language is specified, use English language as **target language**.
 2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
 3. Read the **Software Requirements Specification** document %%REQ_DIR%% and extract a complete, explicit list of atomic requirements.
    - Preserve every requirement’s original intent; do not delete any requirement.

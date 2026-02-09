@@ -67,8 +67,8 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
    - an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
-   - If no language is specified, use English.
+   - If multiple natural languages are mentioned and the **target language** is not explicitly identified, use English language as **target language**.
+   - If no language is specified, use English language as **target language**.
 3. Analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic:
    -  Identify all functions and components utilized when all features are used (consider all the features that can be enabled or disabled with the status that guarantees maximum coverage of the features).
    -  Identify all file-system operations (reading or writing files).

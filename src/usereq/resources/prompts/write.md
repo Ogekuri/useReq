@@ -59,8 +59,8 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
 2. Extract the **target language** from the [User Request](#users-request).
    - Prefer an explicit marker like "language: <name>".
    - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-   - If multiple natural languages are mentioned, infer the **target language** based on context (e.g., phrases like "translate into...", "write in..."). Only if the target remains completely ambiguous, report it, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
-   - If no language is specified, use English.
+   - If multiple natural languages are mentioned, infer the **target language** based on context (e.g., phrases like "translate into...", "write in..."). Only if the target remains completely ambiguous, report it, use English language as **target language**.
+   - If no language is specified, use English language as **target language**.
 3. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
 4. Analyze the [User Request](#users-request) to infer the software’s behavior and main features, then produce a hierarchical requirements list.
    - Requirements for the output:
