@@ -1,176 +1,161 @@
-# Workflow Analysis
+# Project Workflow Analysis
 
 ## CLI Execution Flow
-- **Component**: `src/usereq/cli.py`
-- **Call Trace**:
-  - `main()`: `CLI entry point for console_scripts and -m execution` [`src/usereq/cli.py`, 2006-2036]
-    - description: Entry point that parses arguments and dispatches to the appropriate handler (uninstall, upgrade, or run).
-    - input: `argv` (optional list of arguments)
-    - output: Exit code (integer)
-    - calls:
-      - `build_parser()`: `Builds the argument parser` [`src/usereq/cli.py`, 57-187]
-        - description: Configures argparse with all supported flags and arguments.
-        - input: None
-        - output: `argparse.ArgumentParser`
-      - `run_uninstall()`: `Uninstall the package` [`src/usereq/cli.py`, 234-251]
-        - description: Uninstalls the package using pip.
-        - input: None
-        - output: None
-      - `run_upgrade()`: `Upgrade the package` [`src/usereq/cli.py`, 212-232]
-        - description: Upgrades the package using pip.
-        - input: None
-        - output: None
-      - `maybe_print_version()`: `Print version if requested` [`src/usereq/cli.py`, 204-210]
-        - description: Checks if --version is present and prints the version.
-        - input: `argv` (list of strings)
-        - output: Boolean (True if version was printed)
-      - `parse_args()`: `Parse command line arguments` [`src/usereq/cli.py`, 189-192]
-        - description: Parses the raw arguments into a Namespace object.
-        - input: `argv` (list of strings)
-        - output: `argparse.Namespace`
-      - `run()`: `Handles the main initialization flow` [`src/usereq/cli.py`, 1212-2005]
-        - description: Orchestrates the main logic: validation, directory setup, resource generation, and configuration.
-        - input: `args` (Namespace)
-        - output: None
-        - calls:
-          - `load_config()`: `Load configuration from project` [`src/usereq/cli.py`, 486-524]
-            - description: Loads existing configuration from .req/config.json.
-            - input: `project_base` (Path)
-            - output: Dictionary of config values
-          - `ensure_req_directory()`: `Ensure requirements directory exists` [`src/usereq/cli.py`, 340-355]
-            - description: Creates the requirements directory if it doesn't exist.
-            - input: `path` (str), `project_base` (Path)
-            - output: None
-          - `ensure_doc_directory()`: `Ensure documentation directory exists` [`src/usereq/cli.py`, 357-371]
-            - description: Creates the documentation directory if it doesn't exist.
-            - input: `path` (str), `project_base` (Path)
-            - output: None
-          - `ensure_test_directory()`: `Ensure test directory exists` [`src/usereq/cli.py`, 373-387]
-            - description: Creates the test directory if it doesn't exist.
-            - input: `path` (str), `project_base` (Path)
-            - output: None
-          - `ensure_src_directory()`: `Ensure source directory exists` [`src/usereq/cli.py`, 389-403]
-            - description: Creates the source directory if it doesn't exist.
-            - input: `path` (str), `project_base` (Path)
-            - output: None
-          - `make_relative_if_contains_project()`: `Normalize path relative to project` [`src/usereq/cli.py`, 405-429]
-            - description: Converts absolute paths to relative if they are within the project base.
-            - input: `path_value` (str), `project_base` (Path)
-            - output: Normalized path string
-          - `ensure_relative()`: `Validate path is relative` [`src/usereq/cli.py`, 673-680]
-            - description: Raises error if path is absolute.
-            - input: `value` (str), `name` (str), `code` (int)
-            - output: None
-          - `resolve_absolute()`: `Resolve absolute path` [`src/usereq/cli.py`, 431-439]
-            - description: Resolves the absolute path from a potentially relative one.
-            - input: `normalized` (str), `project_base` (Path)
-            - output: Path object or None
-          - `copy_tech_templates()`: `Copy technical templates` [`src/usereq/cli.py`, 623-660]
-            - description: Copies template files from resources to the tech directory.
-            - input: `dest` (Path), `overwrite` (bool)
-            - output: Number of files copied (int)
-          - `maybe_notify_newer_version()`: `Check for new version` [`src/usereq/cli.py`, 298-338]
-            - description: Checks GitHub API for the latest release and warns if upgrade is available.
-            - input: `timeout_seconds` (float)
+- **Entry Point and Argument Handling**
+    - `src/usereq/cli.py`
+        - `main()`: Entry point for console_scripts and `-m` execution. [`src/usereq/cli.py`, 2006-2036]
+            - description: Handles the primary entry point for the CLI, parsing arguments and delegating to specific run functions (upgrade, uninstall, remove, or main initialization). Catches and prints expected `ReqError`s and unexpected exceptions.
+            - input: argv: list[str] | None, optional command line arguments
+            - output: int, exit code (0 for success, non-zero for error)
+            - calls:
+                - `build_parser()`: Builds the CLI argument parser. [`src/usereq/cli.py`, 57-187]
+                    - description: Constructs the `argparse.ArgumentParser` with all supported flags and arguments (e.g., --upgrade, --remove, --enable-*).
+                    - input: None
+                    - output: argparse.ArgumentParser, configured parser
+                - `run_uninstall()`: Executes the uninstallation using uv. [`src/usereq/cli.py`, 234-250]
+                    - description: Invokes `uv tool uninstall usereq` via subprocess to remove the tool.
+                    - input: None
+                    - output: None
+                - `run_upgrade()`: Executes the upgrade using uv. [`src/usereq/cli.py`, 212-233]
+                    - description: Invokes `uv tool install usereq --force --from ...` via subprocess to upgrade the tool.
+                    - input: None
+                    - output: None
+                - `maybe_print_version()`: Checks for version flag and prints version. [`src/usereq/cli.py`, 204-210]
+                    - description: Checks if --version is present in arguments and prints the package version if so.
+                    - input: argv: list[str], command line arguments
+                    - output: bool, True if version was printed
+                - `parse_args()`: Parses command line arguments. [`src/usereq/cli.py`, 189-192]
+                    - description: Uses the parser built by `build_parser` to parse the provided arguments into a Namespace.
+                    - input: argv: list[str] | None, arguments to parse
+                    - output: Namespace, parsed arguments
+                - `run()`: Handles the main initialization flow. [`src/usereq/cli.py`, 1212-1964]
+                    - description: Orchestrates the core logic: validates inputs, manages configuration, ensures directories, generates prompts and agent files for enabled providers, and updates VSCode settings.
+                    - input: args: Namespace, parsed command line arguments
+                    - output: None
+                    - calls:
+                        - `run_remove()`: Handles the removal of generated resources. [`src/usereq/cli.py`, 1170-1210]
+                            - description: Validates the project base and config, checks for newer versions, and removes generated resources and empty directories.
+                            - input: args: Namespace, parsed arguments
+                            - output: None
+                            - calls:
+                                - `remove_generated_resources()`: Removes generated files. [`src/usereq/cli.py`, 1131-1168]
+                                    - description: Deletes files and directories generated by previous runs (e.g., .kiro, .codex, requirements.md if from template).
+                                    - input: project_base: Path, project root
+                                    - output: None
+                                - `prune_empty_dirs()`: Removes empty directories. [`src/usereq/cli.py`, 1118-1129]
+                                    - description: Recursively removes empty directories within a given root.
+                                    - input: root: Path, directory to prune
+                                    - output: None
+                        - `load_config()`: Loads configuration from .req/config.json. [`src/usereq/cli.py`, 486-524]
+                            - description: Reads and parses the JSON configuration file, handling legacy formats and ensuring all required keys exist.
+                            - input: project_base: Path, project root
+                            - output: dict[str, str | list[str]], configuration dictionary
+                        - `ensure_req_directory()`: Ensures requirement directory exists. [`src/usereq/cli.py`, 340-355]
+                            - description: Checks if the requirements directory exists; calls `ensure_relative` to validate path safety.
+                            - input: path: str, directory path; project_base: Path, project root
+                            - output: None
+                        - `ensure_doc_directory()`: Ensures documentation directory exists. [`src/usereq/cli.py`, 357-371]
+                            - description: Checks if the documentation directory exists; calls `ensure_relative`.
+                            - input: path: str, directory path; project_base: Path, project root
+                            - output: None
+                        - `ensure_test_directory()`: Ensures test directory exists. [`src/usereq/cli.py`, 373-387]
+                            - description: Checks if the test directory exists; calls `ensure_relative`.
+                            - input: path: str, directory path; project_base: Path, project root
+                            - output: None
+                        - `ensure_src_directory()`: Ensures source directory exists. [`src/usereq/cli.py`, 389-403]
+                            - description: Checks if the source directory exists; calls `ensure_relative`.
+                            - input: path: str, directory path; project_base: Path, project root
+                            - output: None
+                        - `make_relative_if_contains_project()`: Normalizes paths relative to project base. [`src/usereq/cli.py`, 405-429]
+                            - description: Converts an absolute path to a relative path if it falls within the project base; otherwise returns the original.
+                            - input: path_value: str, path to check; project_base: Path, project root
+                            - output: str, relative or original path
+                        - `copy_tech_templates()`: Copies technical templates. [`src/usereq/cli.py`, 623-660]
+                            - description: Copies template files from the resources directory to the technical directory, handling overwrite logic.
+                            - input: dest_dir: Path, destination directory; overwrite: bool, whether to overwrite existing files
+                            - output: int, number of files copied
+                        - `maybe_notify_newer_version()`: Checks for package updates. [`src/usereq/cli.py`, 298-338]
+                            - description: Queries PyPI for the latest version and prints a notification if the current version is outdated.
+                            - input: timeout_seconds: float, request timeout
+                            - output: None
+                        - `save_config()`: Saves configuration to .req/config.json. [`src/usereq/cli.py`, 463-484]
+                            - description: Writes the current configuration (paths for req, tech, doc, test, src) to a JSON file.
+                            - input: project_base: Path; req_dir: str; tech_dir: str; doc_dir: str; test_dir: str; src_dirs: list[str]
+                            - output: None
+                        - `find_template_source()`: Locates template source directory. [`src/usereq/cli.py`, 869-878]
+                            - description: Resolves the path to the 'templates' directory within the package resources.
+                            - input: None
+                            - output: Path, path to templates
+                        - `generate_req_file_list()`: Generates file list for REQ_DIR token. [`src/usereq/cli.py`, 526-542]
+                            - description: Scans the requirements directory and creates a formatted list of files for template substitution.
+                            - input: req_dir: Path; project_base: Path
+                            - output: str, formatted file list
+                        - `generate_tech_file_list()`: Generates file list for TECH_DIR token. [`src/usereq/cli.py`, 565-590]
+                            - description: Scans the technical directory and creates a formatted list of files.
+                            - input: tech_dir: Path; project_base: Path
+                            - output: str, formatted file list
+                        - `load_kiro_template()`: Loads Kiro agent template. [`src/usereq/cli.py`, 880-912]
+                            - description: Reads the Kiro JSON template and configuration from resources.
+                            - input: None
+                            - output: tuple[str, dict], template string and config dict
+                        - `load_centralized_models()`: Loads model configurations. [`src/usereq/cli.py`, 945-994]
+                            - description: Loads and merges model definitions from centralized JSON files, supporting legacy and user overrides.
+                            - input: resource_root: Path; legacy_mode: bool; preserve_models_path: Path | None
+                            - output: dict, merged model configuration
+                        - `extract_frontmatter()`: Extracts frontmatter from prompt files. [`src/usereq/cli.py`, 742-749]
+                            - description: Splits the prompt file content into YAML frontmatter and the body.
+                            - input: content: str
+                            - output: tuple[str, str], frontmatter and body
+                        - `apply_replacements()`: Applies token replacements. [`src/usereq/cli.py`, 682-687]
+                            - description: Replaces placeholders (e.g., %%REQ_DIR%%) in text with actual values.
+                            - input: text: str; replacements: Mapping[str, str]
+                            - output: str, text with replacements applied
+                        - `write_text_file()`: Writes text to a file. [`src/usereq/cli.py`, 689-693]
+                            - description: Writes string content to a destination path using UTF-8 encoding.
+                            - input: dst: Path; text: str
+                            - output: None
+                        - `md_to_toml()`: Converts Markdown prompt to TOML. [`src/usereq/cli.py`, 714-740]
+                            - description: Converts a Markdown prompt file to a TOML format suitable for Gemini commands.
+                            - input: md_path: Path; toml_path: Path; force: bool
+                            - output: None
+                        - `generate_kiro_resources()`: Generates Kiro resource list. [`src/usereq/cli.py`, 792-812]
+                            - description: Creates a list of resource objects for Kiro agents, including local files and the prompt.
+                            - input: req_dir: Path; project_base: Path; prompt_rel_path: str
+                            - output: list[dict], list of resources
+                        - `render_kiro_agent()`: Renders Kiro agent JSON. [`src/usereq/cli.py`, 814-854]
+                            - description: Populates the Kiro agent JSON template with name, description, prompt, tools, and model.
+                            - input: template: str; name: str; description: str; prompt: str; resources: list; tools: list; model: str; include_tools: bool; include_model: bool
+                            - output: str, rendered JSON
+                        - `find_vscode_settings_source()`: Locates VSCode settings template. [`src/usereq/cli.py`, 1071-1077]
+                            - description: Resolves the path to the 'vscode/settings.json' template.
+                            - input: None
+                            - output: Path | None, path to settings or None
+                        - `load_settings()`: Loads JSON settings with comment stripping. [`src/usereq/cli.py`, 934-943]
+                            - description: Reads a JSON file, strips comments, and parses it into a dictionary.
+                            - input: path: Path
+                            - output: dict, parsed settings
+                        - `deep_merge_dict()`: Merges two dictionaries recursively. [`src/usereq/cli.py`, 1061-1069]
+                            - description: Deeply merges an incoming dictionary into a base dictionary.
+                            - input: base: dict; incoming: dict
+                            - output: dict, merged dictionary
+                        - `save_vscode_backup()`: Backs up VSCode settings. [`src/usereq/cli.py`, 1098-1105]
+                            - description: Copies the existing VSCode settings.json to a backup file in the .req directory.
+                            - input: req_root: Path; settings_path: Path
+                            - output: None
+
+## Documentation Utilities
+- **PDoc Generation**
+    - `src/usereq/pdoc_utils.py`
+        - `generate_pdoc_docs()`: Generates API documentation using pdoc. [`src/usereq/pdoc_utils.py`, 31-84]
+            - description: Runs the `pdoc` module as a subprocess to generate HTML documentation for the specified modules. Handles environment setup and arguments.
+            - input: output_dir: Path, target directory; modules: Sequence[str] | str, modules to document; all_submodules: bool, recursion flag
             - output: None
             - calls:
-              - `load_package_version()`: `Get current version` [`src/usereq/cli.py`, 194-202]
-                - description: Retrieves the package version.
-                - input: None
-                - output: Version string
-              - `normalize_release_tag()`: `Normalize git tag` [`src/usereq/cli.py`, 253-259]
-                - description: Strips 'v' prefix from tags.
-                - input: `tag` (str)
-                - output: Normalized version string
-              - `is_newer_version()`: `Compare versions` [`src/usereq/cli.py`, 285-296]
-                - description: Compares current and latest version strings.
-                - input: `current` (str), `latest` (str)
-                - output: Boolean
-          - `save_config()`: `Save configuration` [`src/usereq/cli.py`, 463-484]
-            - description: Writes configuration to .req/config.json.
-            - input: `project_base` (Path), `req_dir` (str), `tech_dir` (str), `doc_dir` (str), `test_dir` (str), `src_dirs` (list)
-            - output: None
-          - `compute_sub_path()`: `Compute path for token substitution` [`src/usereq/cli.py`, 448-461]
-            - description: Generates the relative path string for token replacement.
-            - input: `normalized` (str), `absolute` (Path), `project_base` (Path)
-            - output: Path string
-          - `find_template_source()`: `Find templates directory` [`src/usereq/cli.py`, 869-878]
-            - description: Locates the templates directory in resources.
-            - input: None
-            - output: Path
-          - `generate_req_file_list()`: `List files in req dir` [`src/usereq/cli.py`, 526-542]
-            - description: Generates a string listing files in the requirements directory.
-            - input: `req_dir` (Path), `project_base` (Path)
-            - output: Formatted string
-          - `generate_tech_file_list()`: `List files in tech dir` [`src/usereq/cli.py`, 565-590]
-            - description: Generates a string listing files in the technical directory.
-            - input: `tech_dir` (Path), `project_base` (Path)
-            - output: Formatted string
-          - `load_kiro_template()`: `Load Kiro agent template` [`src/usereq/cli.py`, 880-912]
-            - description: Reads the Kiro agent template and configuration.
-            - input: None
-            - output: Tuple of (template string, config dict)
-          - `load_centralized_models()`: `Load models configuration` [`src/usereq/cli.py`, 945-994]
-            - description: Loads and merges model configurations from legacy or current sources.
-            - input: `resource_root` (Path), `legacy_mode` (bool), `preserve_models_path` (Optional[Path])
-            - output: Dictionary of model configs
-          - `extract_frontmatter()`: `Parse markdown frontmatter` [`src/usereq/cli.py`, 742-749]
-            - description: Separates YAML frontmatter from markdown body.
-            - input: `content` (str)
-            - output: Tuple (frontmatter, body)
-          - `apply_replacements()`: `Substitute tokens in text` [`src/usereq/cli.py`, 682-687]
-            - description: Replaces placeholders with actual values.
-            - input: `text` (str), `replacements` (Mapping)
-            - output: Processed text
-          - `get_model_tools_for_prompt()`: `Resolve model and tools` [`src/usereq/cli.py`, 996-1031]
-            - description: Determines the appropriate model and tools for a specific prompt.
-            - input: `config` (dict), `prompt_name` (str), `provider` (str)
-            - output: Tuple (model, tools)
-          - `write_text_file()`: `Write content to file` [`src/usereq/cli.py`, 689-693]
-            - description: Writes string content to a destination path.
-            - input: `dst` (Path), `text` (str)
-            - output: None
-          - `md_to_toml()`: `Convert Markdown to TOML` [`src/usereq/cli.py`, 714-740]
-            - description: Converts a Markdown prompt file to a TOML configuration file for Gemini.
-            - input: `md_path` (Path), `toml_path` (Path), `force` (bool)
-            - output: None
-          - `generate_kiro_resources()`: `Generate Kiro resources` [`src/usereq/cli.py`, 792-812]
-            - description: Creates resource definitions for Kiro agents.
-            - input: `req_path` (Path), `project_base` (Path), `prompt_rel` (str)
-            - output: List of resource dictionaries
-          - `render_kiro_agent()`: `Render Kiro agent JSON` [`src/usereq/cli.py`, 814-854]
-            - description: Populates the Kiro agent template with specific values.
-            - input: `template` (str), `name`, `description`, `prompt`, etc.
-            - output: Rendered JSON string
-          - `ensure_wrapped()`: `Backup existing directory` [`src/usereq/cli.py`, 1089-1096]
-            - description: Renames a directory with a backup suffix if it exists.
-            - input: `target` (Path), `project_base` (Path), `code` (int)
-            - output: None
-          - `find_vscode_settings_source()`: `Locate VSCode settings template` [`src/usereq/cli.py`, 1071-1077]
-            - description: Finds the source file for VSCode settings.
-            - input: None
-            - output: Path or None
-          - `load_settings()`: `Load JSON settings` [`src/usereq/cli.py`, 934-943]
-            - description: Reads and parses a JSON settings file.
-            - input: `path` (Path)
-            - output: Dictionary
-          - `deep_merge_dict()`: `Merge dictionaries recursively` [`src/usereq/cli.py`, 1061-1069]
-            - description: Merges two dictionaries, preferring values from the incoming dict.
-            - input: `base` (dict), `incoming` (dict)
-            - output: Merged dictionary
-          - `build_prompt_recommendations()`: `Generate VSCode recommendations` [`src/usereq/cli.py`, 1079-1087]
-            - description: Creates a dictionary of recommended prompt files.
-            - input: `prompts_dir` (Path)
-            - output: Dictionary
-          - `save_vscode_backup()`: `Backup VSCode settings` [`src/usereq/cli.py`, 1098-1105]
-            - description: Copies existing settings.json to a backup location.
-            - input: `req_root` (Path), `settings_path` (Path)
-            - output: None
-          - `generate_req_file_items()`: `List req file items` [`src/usereq/cli.py`, 544-563]
-            - description: Returns a list of strings describing files in the requirements directory.
-            - input: `req_dir` (Path), `project_base` (Path)
-            - output: List of strings
-          - `generate_tech_file_items()`: `List tech file items` [`src/usereq/cli.py`, 592-621]
-            - description: Returns a list of strings describing files in the technical directory.
-            - input: `tech_dir` (Path), `project_base` (Path)
-            - output: List of strings
+                - `_normalize_modules()`: Normalizes module input. [`src/usereq/pdoc_utils.py`, 12-16]
+                    - description: Converts a single string module name or an iterable of names into a list of strings.
+                    - input: modules: str | Iterable[str]
+                    - output: list[str], list of module names
+                - `_run_pdoc()`: Executes the pdoc command. [`src/usereq/pdoc_utils.py`, 19-28]
+                    - description: Wrapper around `subprocess.run` to execute pdoc with the constructed command and environment.
+                    - input: command: list[str]; env: dict; cwd: Path
+                    - output: subprocess.CompletedProcess
