@@ -60,7 +60,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
    - If no language is specified, use English as **target language**.
 2. Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
-3. Analyze the project's main existing source code, ignoring unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..), to infer the software’s behavior and main features, then produce a hierarchical requirements list.
+3. Analyze the project's main existing source code, ignoring unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..), to infer the software’s behavior and main features, then produce a hierarchical requirements structure with a maximum depth of 3 levels.
    - Requirements for the output:
       - Describe any text-based UI and/or GUI functionality implemented.
       - Describe the application's functionalities and configurability implemented.

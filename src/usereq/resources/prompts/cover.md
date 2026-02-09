@@ -94,17 +94,37 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    -  Identify all external database access.
    -  Identify any common code logic.
    -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
-   Produce a hierarchical bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
+   Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
    Review and update the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
-   -  Use a hierarchical bullet lists with at least 3 levels of depth, and for EACH feature you MUST include:
+   -  Use a hierarchical structure of bullet lists with at least 4 levels of depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
-      -  Level 3+: Call Trace, specific Function/Method name (including sub_functions) Called. Every function entry must be formatted as:
-         -  `function_name()`: <short single-line technical description of its specific action> [<filename>, <lines range>]
-            *  description: <brief development oriented technical description of its specific action>
-            *  input: <list of input variables>
-            *  output: <returned values or list of updated variables>
-            *  calls: nested sub-function calls as list of `function_name()`
+      -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.
+         -  Node Description, every *function node* entry must be described with below informations:
+            *  `function_name()`: mandatory, the function name exactly as defined in the source code.
+            *  `short single-line`: mandatory, a short single-line technical description of its specific action.
+            *  `filename`: mandatory, filename where the function is defined.
+            *  `lines range`: mandatory, lines where the function is defined inside `filename`.
+            *  `description`: mandatory, brief development oriented technical description of its specific action.
+            *  `input`: mandatory, list of input variables.
+            *  `output`: mandatory, returned values or list of updated variables.
+            *  `calls`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
+         -  Hierarchical Structure, child *function node* MUST be added to parent *function node* under optional field `calls:`. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
+          * `parent_func1()`: `short single-line1` [`filename1`, `lines range1`]
+            * description: `description1`
+            * input: `input1`
+            * output: `output1`
+            * calls:
+              * `child_func1()`: `short single-line2` [`filename2`, `lines range2`]
+                * description: `description2`
+                * input: `input2`
+                * output: `output2`
+              * `child_func2()`: `short single-line3` [`filename3`, `lines range3`]
+                * description: `description3`
+                * input: `input3`
+                * output: `output3`
+                * calls:
+                  * ...
    -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
    -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
 11. **CRITICAL**: Stage & commit
