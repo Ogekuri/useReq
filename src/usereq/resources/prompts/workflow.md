@@ -70,15 +70,15 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - If multiple natural languages are mentioned and the **target language** is not explicitly identified, report the ambiguity clearly, then OUTPUT exactly "Requirements creation FAILED, unclear language!", and then terminate the execution.
    - If no language is specified, use English.
 3. Analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic:
-   -  Identify all functions and components utilized when all features are enabled.
+   -  Identify all functions and components utilized when all features are used (consider all the features that can be enabled or disabled with the status that guarantees maximum coverage of the features).
    -  Identify all file-system operations (reading or writing files).
    -  Identify all external API call.
    -  Identify all external database access.
    -  Identify any common code logic.
    -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
    Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-4. Create overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lowest-level internal functions, and document structure and traceability:
-   -  Use a hierarchical structure of bullet lists with at least 4 levels of depth, and for EACH feature you MUST include:
+4. Create overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
+   -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels fo depth, and for EACH feature you MUST include:
       -  Level 1: High-level Feature or Process description (keep it concise).
       -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
       -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.

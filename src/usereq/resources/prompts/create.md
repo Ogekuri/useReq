@@ -76,7 +76,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
    - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
 5. List used components and libraries ONLY if evidenced by manifest/lock/config files or direct imports; cite the file path(s) used as evidence and do not guess.
-6. Locate and read the unit tests (do not execute them unless explicitly required). Summarize what they test and how. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
+6. Locate and read only the unit tests relevant to the inferred features/requirements; summarize test coverage at a high level and deep-dive only into failing or high-risk areas. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
 7. Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
    - Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
      * A comprehensive functional clear description .

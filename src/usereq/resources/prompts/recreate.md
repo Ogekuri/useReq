@@ -67,7 +67,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
 4. Reorganize the extracted requirements into a hierarchical structure with a maximum depth of 3 levels.
    - You MUST explicitly determine the most effective grouping strategy considering: **Typology**, **Functionality**, **Abstraction Level** (high-level vs. low-level), and **Context**.
    - Constraints:
-     - Maximum hierarchy depth: 4 levels total (e.g., Level 1 section → Level 2 subsection → Level 3 requirements list).
+     - Maximum hierarchy depth: 3 levels total (e.g., Level 1 section → Level 2 subsection → Level 3 requirements list).
      - Do not introduce a 4th level (no deeper headings or nested sub-subsections beyond the 3rd level).
    - Integrate the hierarchy into the document’s structure:
      - Keep the document’s top-level sections in the same order.
