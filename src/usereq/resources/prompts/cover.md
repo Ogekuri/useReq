@@ -46,7 +46,7 @@ You must manage the execution flow using two distinct methods:
    - You MUST maintain a *check-list* internally with `7` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
-   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Execution Directives (absolute rules, non-negotiable)
@@ -100,7 +100,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       -  Identify all external database access.
       -  Identify any common code logic.
       -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
-      Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, rectursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
+      Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, recursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
       Review and update the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
       -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels fo depth, and for EACH feature you MUST include:
          -  Level 1: High-level Feature or Process description (keep it concise).

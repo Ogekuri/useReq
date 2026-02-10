@@ -37,7 +37,7 @@ You must manage the execution flow using two distinct methods:
    - You MUST maintain a *check-list* internally with `3` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
-   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Execution Directives (absolute rules, non-negotiable)
@@ -70,7 +70,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
            - Describe the application's functionalities and configurability requested.
            - Describe any requested unit tests.
            - Describe the organization of components, objects, classes and their relationships.
-           - Propose a logical file/folder structure for the project as a ascii tree view based on the requirements.
+           - Propose a logical file/folder structure for the project as an ascii tree view based on the requirements.
            - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
          - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
        - Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.

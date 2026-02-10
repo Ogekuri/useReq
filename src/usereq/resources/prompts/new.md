@@ -45,7 +45,7 @@ You must manage the execution flow using two distinct methods:
    - You MUST maintain a *check-list* internally with `8` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
-   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step 8: "1. Edit file A", "2. Edit file B"; or in Step 10: "1. Fix test X", "2. Fix test Y").
+   - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
    - Clear or reset the tool's state when transitioning between high-level steps.
 
 ## Execution Directives (absolute rules, non-negotiable)
@@ -76,7 +76,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - Do not change the intent of existing requirements unless the new feature logically requires it. You may make minimal edits for consistency (references, numbering, glossary) as long as you explicitly list them.
       - If you must *adjust* an existing requirement's intent, list the exact requirement(s) and explain why.
    - APPLY the **Software Requirements Specification Update** to %%REQ_DIR%%, following its formatting, language, and guidelines from the template at `.req/templates/requirements.md`. Do NOT introduce any additional edits beyond what the **Software Requirements Specification Update** describes.
-4. Generate and implement the **Comprehensive Technical Implementation Report** to according the **Software Requirements Specification Update**
+4. Generate and implement the **Comprehensive Technical Implementation Report** according to the **Software Requirements Specification Update**
    - Using [User Request](#users-request) as a unified semantic framework, extract all directly and tangentially related information from both %%REQ_DIR%% and `%%DOC_PATH%%/WORKFLOW.md`, prioritizing high recall to capture every borderline connection across both sources, to identify the most likely related files and functions based on explicit evidence, and treat any uncertain links as candidates without claiming completeness, then analyze the involved source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all new requirements in **Software Requirements Specification Update** and the [User Request](#users-request). The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary)
       - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
    -  From %%TEST_PATH%%, locate and read only the unit tests that are relevant to the affected requirement IDs and touched modules (via targeted search), and plan the necessary refactoring/additions
@@ -102,7 +102,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       -  Identify all external database access.
       -  Identify any common code logic.
       -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
-      Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, rectursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
+      Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, recursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
       Review and update the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
       -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels fo depth, and for EACH feature you MUST include:
          -  Level 1: High-level Feature or Process description (keep it concise).
