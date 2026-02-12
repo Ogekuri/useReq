@@ -26,6 +26,8 @@
 !requirements.txt
 !.g.conf
 !/**/*.sh
+!req/
+!req/**/*
 !src/
 !src/**/*
 !docs/
