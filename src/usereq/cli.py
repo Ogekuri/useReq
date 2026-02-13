@@ -1133,6 +1133,7 @@ def remove_generated_resources(project_base: Path) -> None:
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
         project_base / ".claude" / "commands" / "req",
+        project_base / ".codex" / "skills" / "req",
         project_base / ".req" / "templates",
     ]
     remove_globs = [
@@ -1467,9 +1468,12 @@ def run(args: Namespace) -> None:
     dlog(f"SUB_TECH_DIR={sub_tech_dir}")
     dlog(f"TOKEN_REQ_DIR={token_req_dir}")
 
+    codex_skills_root = None
     target_folders: list[Path] = []
     if enable_codex:
         target_folders.append(project_base / ".codex" / "prompts")
+        codex_skills_root = project_base / ".codex" / "skills" / "req"
+        target_folders.append(codex_skills_root)
     if enable_github:
         target_folders.extend(
             [
@@ -1599,6 +1603,35 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_codex_prompt}")
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("prompts")
+
+            # .codex/skills/req/<prompt>/SKILL.md
+            if codex_skills_root is not None:
+                codex_skill_dir = codex_skills_root / PROMPT
+                codex_skill_dir.mkdir(parents=True, exist_ok=True)
+                codex_model = None
+                codex_tools = None
+                if configs:
+                    codex_model, codex_tools = get_model_tools_for_prompt(
+                        configs.get("codex"), PROMPT, "codex"
+                    )
+                codex_header_lines = [
+                    "---",
+                    f"name: req-{PROMPT}",
+                    f'description: "{desc_yaml}"',
+                ]
+                if include_models and codex_model:
+                    codex_header_lines.append(f"model: {codex_model}")
+                if include_tools and codex_tools:
+                    codex_header_lines.append(
+                        f"tools: {format_tools_inline_list(codex_tools)}"
+                    )
+                codex_skill_text = (
+                    "\n".join(codex_header_lines) + "\n---\n\n" + prompt_body_replaced
+                )
+                if not codex_skill_text.endswith("\n"):
+                    codex_skill_text += "\n"
+                write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
+                modules_installed["codex"].add("skills")
 
         if enable_gemini:
             # Gemini TOML

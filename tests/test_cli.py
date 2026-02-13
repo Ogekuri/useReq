@@ -144,6 +144,13 @@ class TestCLI(unittest.TestCase):
             codex_prompts.is_dir(), "The directory .codex/prompts must exist"
         )
 
+    def test_codex_skills_directory_created(self) -> None:
+        """REQ-095: Verifies the creation of the .codex/skills/req directory."""
+        codex_skills = self.TEST_DIR / ".codex" / "skills" / "req"
+        self.assertTrue(
+            codex_skills.is_dir(), "The directory .codex/skills/req must exist"
+        )
+
     def test_github_directories_created(self) -> None:
         """REQ-002: Verifies the creation of .github/agents and .github/prompts directories."""
         github_agents = self.TEST_DIR / ".github" / "agents"
@@ -209,6 +216,39 @@ class TestCLI(unittest.TestCase):
                 prompt_path.exists(),
                 f"The file {prompt} must exist in .codex/prompts",
             )
+
+    def test_codex_skill_files_created(self) -> None:
+        """REQ-095: Verifies creation of SKILL.md for each Codex prompt."""
+        codex_skills = self.TEST_DIR / ".codex" / "skills" / "req"
+        expected_skills = [
+            "analyze",
+            "change",
+            "check",
+            "cover",
+            "fix",
+            "new",
+            "refactor",
+            "recreate",
+            "write",
+        ]
+        for skill in expected_skills:
+            skill_path = codex_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .codex/skills/req/{skill}",
+            )
+
+    def test_codex_skill_contents_match_github_agent(self) -> None:
+        """REQ-096: Verifies Codex SKILL.md matches GitHub agent rendering."""
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        github_agent = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        self.assertTrue(codex_skill.exists(), "The Codex SKILL.md must exist")
+        self.assertTrue(github_agent.exists(), "The GitHub agent must exist")
+        self.assertEqual(
+            codex_skill.read_text(encoding="utf-8"),
+            github_agent.read_text(encoding="utf-8"),
+            "Codex SKILL.md must match the GitHub agent content",
+        )
 
     def test_github_agent_files_created(self) -> None:
         """REQ-003, REQ-053: Verifies copy of files into .github/agents with front matter name."""
@@ -833,7 +873,10 @@ class TestModelsAndTools(unittest.TestCase):
         # Create centralized models.json
         models_config = {
             "settings": {"version": "1.0.0"},
-            "codex": {},
+            "codex": {
+                "prompts": {"analyze": {"model": "GPT-5.2-Codex (codex)", "mode": "read_write"}},
+                "usage_modes": base_usage
+            },
             "copilot": {
                 "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
                 "usage_modes": base_usage
@@ -926,6 +969,12 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn("tools:", ghp_content)
         self.assertIn("argument-hint:", ghp_content)
 
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        self.assertTrue(codex_skill.exists(), "Codex SKILL.md should exist")
+        codex_content = codex_skill.read_text(encoding="utf-8")
+        self.assertIn("model:", codex_content)
+        self.assertIn("tools:", codex_content)
+
         kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
         self.assertTrue(kiro_agent.exists(), "Kiro agent should exist")
         data = json.loads(kiro_agent.read_text(encoding="utf-8"))
@@ -983,6 +1032,11 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertNotIn("tools:", content)
         self.assertNotIn("model:", content)
 
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        codex_content = codex_skill.read_text(encoding="utf-8")
+        self.assertNotIn("tools:", codex_content)
+        self.assertNotIn("model:", codex_content)
+
     def test_tools_only_adds_tools_without_models(self) -> None:
         """With only --enable-tools, tools should appear but not models."""
         from unittest.mock import patch
@@ -1013,6 +1067,11 @@ class TestModelsAndTools(unittest.TestCase):
         content = gha.read_text(encoding="utf-8")
         self.assertIn("tools:", content)
         self.assertNotIn("model:", content)
+
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        codex_content = codex_skill.read_text(encoding="utf-8")
+        self.assertIn("tools:", codex_content)
+        self.assertNotIn("model:", codex_content)
 
         gemini_toml = self.TEST_DIR / ".gemini" / "commands" / "req" / "analyze.toml"
         gemini_content = gemini_toml.read_text(encoding="utf-8")

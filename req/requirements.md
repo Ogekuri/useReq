@@ -1,8 +1,8 @@
 ---
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
-date: "2026-02-08"
-version: 0.56
+date: "2026-02-13"
+version: 0.57
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.56
+**Versione**: 0.57
 **Autore**: Ogekuri
-**Data**: 2026-02-08
+**Data**: 2026-02-13
 
 ## Indice
 <!-- TOC -->
@@ -71,6 +71,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-08 | 0.54 | Aggiornata sostituzione token %%TEST_PATH%% con slash finale. |
 | 2026-02-08 | 0.55 | Aggiornata sostituzione token %%TEST_PATH%% con backticks e slash finale. |
 | 2026-02-08 | 0.56 | Aggiunto parametro --src-dir multiplo e sostituzione token %%SRC_PATHS%%. |
+| 2026-02-13 | 0.57 | Aggiunta generazione skill Codex in .codex/skills/req con SKILL.md per ogni prompt. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -279,6 +280,8 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-048**: Per ogni prompt Markdown, creare file `.github/prompts/req.<name>.prompt.md`.
 - **REQ-049**: Creare configurazione `.github/prompts` con front matter che referenzia l'agente solo se `--prompts-use-agents` è abilitato.
 - **REQ-050**: Per ogni prompt, generare `.github/agents/req.<name>.agent.md` con front matter incluso `name`.
+- **REQ-095**: Durante la generazione dei prompt Codex, il comando deve creare la directory `.codex/skills/req` e, per ogni prompt Markdown, la sottodirectory `.codex/skills/req/<nome>` se non esiste.
+- **REQ-096**: Per ogni sottodirectory skill Codex, il comando deve generare `SKILL.md` contenente il testo del prompt con lo stesso rendering di `.github/agents/req.<name>.agent.md`, usando la configurazione `codex` caricata da `models.json` o `models-legacy.json` secondo la modalità legacy.
 
 ### 3.8 Generazione Risorse - Gemini
 - Requisiti specifici per Gemin.
