@@ -4,6 +4,39 @@
     "default_mode": "read_only"
   },
   "codex": {
+    "prompts": {
+      "analyze":  { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_only" },
+      "change":   { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
+      "check":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_only" },
+      "cover":    { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
+      "create":   { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
+      "workflow": { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
+      "fix":      { "model": "GPT-5.1-Codex-Max (copilot)", "mode": "read_write" },
+      "new":      { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
+      "recreate": { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
+      "refactor": { "model": "GPT-5.2-Codex (copilot)", "mode": "read_write" },
+      "write":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" }
+    },
+    "usage_modes": {
+      "read_write": {
+        "tools": [
+          "vscode", "execute", "read", "edit", "search", 
+          "ms-python.python/getPythonEnvironmentInfo", 
+          "ms-python.python/getPythonExecutableCommand", 
+          "ms-python.python/installPythonPackage", 
+          "ms-python.python/configurePythonEnvironment", "todo"
+        ]
+      },
+      "read_only": {
+        "tools": [
+          "vscode", "execute", "read", "search", 
+          "ms-python.python/getPythonEnvironmentInfo", 
+          "ms-python.python/getPythonExecutableCommand", 
+          "ms-python.python/installPythonPackage", 
+          "ms-python.python/configurePythonEnvironment", "todo"
+        ]
+      }
+    }
   },
   "copilot": {
     "prompts": {
