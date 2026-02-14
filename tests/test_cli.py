@@ -66,10 +66,10 @@ class TestCLI(unittest.TestCase):
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
 
-        # Creates the test directory and docs/tech subfolders (REQ-054.2).
+        # Creates the test directory and docs/guidelines subfolders (REQ-054.2).
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
         (cls.TEST_DIR / "lib").mkdir(exist_ok=True)
@@ -79,8 +79,8 @@ class TestCLI(unittest.TestCase):
         (cls.TEST_DIR / "lib").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
 
-        # Creates a subfolder in tech to verify REQ-026.
-        (cls.TEST_DIR / "tech" / "src").mkdir(exist_ok=True)
+        # Creates a subfolder in guidelines to verify REQ-026.
+        (cls.TEST_DIR / "guidelines" / "src").mkdir(exist_ok=True)
 
         # Executes the script with specified parameters (REQ-054.3).
         # Avoids network calls during tests.
@@ -94,8 +94,8 @@ class TestCLI(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -553,14 +553,14 @@ class TestCLI(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(".req/config.json must be a valid JSON")
 
-        # Verify fields req-dir, tech-dir, doc-dir, and test-dir.
+        # Verify fields req-dir, guidelines-dir, doc-dir, and test-dir.
         self.assertIn("req-dir", data, "config.json must contain 'req-dir' field")
-        self.assertIn("tech-dir", data, "config.json must contain 'tech-dir' field")
+        self.assertIn("guidelines-dir", data, "config.json must contain 'guidelines-dir' field")
         self.assertIn("doc-dir", data, "config.json must contain 'doc-dir' field")
         self.assertIn("test-dir", data, "config.json must contain 'test-dir' field")
         self.assertIn("src-dir", data, "config.json must contain 'src-dir' field")
         self.assertEqual(data["req-dir"], "docs", "The 'req-dir' field must be 'docs'")
-        self.assertEqual(data["tech-dir"], "tech", "The 'tech-dir' field must be 'tech'")
+        self.assertEqual(data["guidelines-dir"], "guidelines", "The 'guidelines-dir' field must be 'guidelines'")
         self.assertEqual(data["doc-dir"], "docs", "The 'doc-dir' field must be 'docs'")
         self.assertEqual(data["test-dir"], "tests", "The 'test-dir' field must be 'tests'")
         self.assertEqual(data["src-dir"], ["src"], "The 'src-dir' field must be ['src']")
@@ -658,18 +658,18 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("agent:", content, "The command must not contain agent without stubs")
 
     def test_req_dir_replacement(self) -> None:
-        """REQ-026, REQ-027: Verifies %%TECH_DIR%% replacement."""
+        """REQ-026, REQ-027: Verifies %%GUIDELINES_FILES%% replacement."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
-        # Verify that %%TECH_DIR%% has been replaced.
+        # Verify that %%GUIDELINES_FILES%% has been replaced.
         self.assertNotIn(
-            "%%TECH_DIR%%", content, "The token %%TECH_DIR%% must be replaced"
+            "%%GUIDELINES_FILES%%", content, "The token %%GUIDELINES_FILES%% must be replaced"
         )
-        # After DES-014 change: generate_tech_file_list now lists files, not subdirectories.
-        # The tech/ folder now contains files from its direct children, not subdirectories.
-        # Since tech/src/ exists but is empty, the fallback will show tech/ directory itself.
+        # After DES-014 change: generate_guidelines_file_list now lists files, not subdirectories.
+        # The guidelines/ folder now contains files from its direct children, not subdirectories.
+        # Since guidelines/src/ exists but is empty, the fallback will show guidelines/ directory itself.
         self.assertIn(
-            "tech/", content, "The file must contain reference to tech/"
+            "guidelines/", content, "The file must contain reference to guidelines/"
         )
 
     def test_kiro_resources_include_prompt(self) -> None:
@@ -698,17 +698,17 @@ class TestCLI(unittest.TestCase):
         )
 
 
-class TestTechPathReplacement(unittest.TestCase):
-    """REQ-090: Verifies %%TECH_PATH%% replacement."""
+class TestGuidelinesPathReplacement(unittest.TestCase):
+    """REQ-090: Verifies %%GUIDELINES_PATH%% replacement."""
 
-    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-tech-path"
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-guidelines-path"
     RESOURCE_DIR = (
-        Path(__file__).resolve().parents[1] / "temp" / "resources-tech-path"
+        Path(__file__).resolve().parents[1] / "temp" / "resources-guidelines-path"
     )
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Prepares a temporary project with a custom prompt containing %%TECH_PATH%%."""
+        """Prepares a temporary project with a custom prompt containing %%GUIDELINES_PATH%%."""
         if cls.TEST_DIR.exists():
             shutil.rmtree(cls.TEST_DIR)
         if cls.RESOURCE_DIR.exists():
@@ -716,7 +716,7 @@ class TestTechPathReplacement(unittest.TestCase):
 
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
         (cls.TEST_DIR / "lib").mkdir(exist_ok=True)
@@ -730,10 +730,10 @@ class TestTechPathReplacement(unittest.TestCase):
 
         prompt_content = (
             "---\n"
-            "description: \"Tech path prompt\"\n"
+            "description: \"Guidelines path prompt\"\n"
             "---\n"
             "\n"
-            "TechPath: %%TECH_PATH%%\n"
+            "GuidelinesPath: %%GUIDELINES_PATH%%\n"
             "TestPath: %%TEST_PATH%%\n"
             "SrcPaths: %%SRC_PATHS%%\n"
         )
@@ -774,8 +774,8 @@ class TestTechPathReplacement(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -795,19 +795,19 @@ class TestTechPathReplacement(unittest.TestCase):
         if cls.RESOURCE_DIR.exists():
             shutil.rmtree(cls.RESOURCE_DIR)
 
-    def test_tech_path_replacement(self) -> None:
-        """REQ-090: Verifies that %%TECH_PATH%% is replaced."""
+    def test_guidelines_path_replacement(self) -> None:
+        """REQ-090: Verifies that %%GUIDELINES_PATH%% is replaced."""
         self.assertEqual(self.exit_code, 0, "The script must end with exit code 0")
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.techpath.md"
         self.assertTrue(codex_prompt.exists(), "The Codex prompt must exist")
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
-            "%%TECH_PATH%%", content, "The token %%TECH_PATH%% must be replaced"
+            "%%GUIDELINES_PATH%%", content, "The token %%GUIDELINES_PATH%% must be replaced"
         )
         self.assertIn(
-            "TechPath: tech",
+            "GuidelinesPath: guidelines",
             content,
-            "The token %%TECH_PATH%% must be replaced with the normalized tech path",
+            "The token %%GUIDELINES_PATH%% must be replaced with the normalized guidelines path",
         )
 
     def test_test_path_replacement(self) -> None:
@@ -849,7 +849,7 @@ class TestModelsAndTools(unittest.TestCase):
             shutil.rmtree(cls.TEST_DIR)
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -931,8 +931,8 @@ class TestModelsAndTools(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1016,8 +1016,8 @@ class TestModelsAndTools(unittest.TestCase):
 
                     "--doc-dir",
                     str(self.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(self.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(self.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(self.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1051,8 +1051,8 @@ class TestModelsAndTools(unittest.TestCase):
 
                     "--doc-dir",
                     str(self.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(self.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(self.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(self.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1104,8 +1104,8 @@ class TestCLIWithExistingDocs(unittest.TestCase):
         existing_file.write_text("# Existing file\n", encoding="utf-8")
         (docs_dir / ".gitignore").write_text("# ignore\n", encoding="utf-8")
 
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech" / ".place-holder").write_text("", encoding="utf-8")
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines" / ".place-holder").write_text("", encoding="utf-8")
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1120,8 +1120,8 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1184,16 +1184,16 @@ class TestCLIWithExistingDocs(unittest.TestCase):
             "Dotfiles in docs must be ignored in %%REQ_DIR%%",
         )
 
-    def test_tech_dir_ignores_dotfiles(self) -> None:
-        """DES-014: Verifies that %%TECH_DIR%% ignores dotfiles."""
+    def test_guidelines_dir_ignores_dotfiles(self) -> None:
+        """DES-014: Verifies that %%GUIDELINES_FILES%% ignores dotfiles."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
-            "tech/.place-holder",
+            "guidelines/.place-holder",
             content,
-            "Dotfiles in tech must be ignored in %%TECH_DIR%%",
+            "Dotfiles in guidelines must be ignored in %%GUIDELINES_FILES%%",
         )
-        self.assertIn("tech/", content, "Fallback tech/ must be present")
+        self.assertIn("guidelines/", content, "Fallback guidelines/ must be present")
 
 
 class TestPromptsUseAgents(unittest.TestCase):
@@ -1207,7 +1207,7 @@ class TestPromptsUseAgents(unittest.TestCase):
             shutil.rmtree(cls.TEST_DIR)
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1223,8 +1223,8 @@ class TestPromptsUseAgents(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1290,7 +1290,7 @@ class TestKiroToolsEnabled(unittest.TestCase):
             shutil.rmtree(cls.TEST_DIR)
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1306,8 +1306,8 @@ class TestKiroToolsEnabled(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1448,7 +1448,7 @@ class TestCLIWithoutClaude(unittest.TestCase):
             shutil.rmtree(cls.TEST_DIR)
         cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (cls.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
         (cls.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1463,8 +1463,8 @@ class TestCLIWithoutClaude(unittest.TestCase):
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
-                    "--tech-dir",
-                    str(cls.TEST_DIR / "tech"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
                     "--test-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
@@ -1509,7 +1509,7 @@ class TestProviderEnableFlags(unittest.TestCase):
             shutil.rmtree(self.TEST_DIR)
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (self.TEST_DIR / "tests").mkdir(exist_ok=True)
         (self.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1529,8 +1529,8 @@ class TestProviderEnableFlags(unittest.TestCase):
 
                         "--doc-dir",
                         str(self.TEST_DIR / "docs"),
-                        "--tech-dir",
-                        str(self.TEST_DIR / "tech"),
+                        "--guidelines-dir",
+                        str(self.TEST_DIR / "guidelines"),
                         "--test-dir",
                         str(self.TEST_DIR / "tests"),
                         "--src-dir",
@@ -1570,7 +1570,7 @@ class TestUpdateNotification(unittest.TestCase):
             shutil.rmtree(self.TEST_DIR)
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (self.TEST_DIR / "tests").mkdir(exist_ok=True)
         (self.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1591,8 +1591,8 @@ class TestUpdateNotification(unittest.TestCase):
 
                         "--doc-dir",
                         str(self.TEST_DIR / "docs"),
-                        "--tech-dir",
-                        str(self.TEST_DIR / "tech"),
+                        "--guidelines-dir",
+                        str(self.TEST_DIR / "guidelines"),
                         "--test-dir",
                         str(self.TEST_DIR / "tests"),
                         "--src-dir",
@@ -1611,7 +1611,7 @@ class TestUpdateNotification(unittest.TestCase):
             shutil.rmtree(self.TEST_DIR)
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
-        (self.TEST_DIR / "tech").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (self.TEST_DIR / "tests").mkdir(exist_ok=True)
         (self.TEST_DIR / "src").mkdir(exist_ok=True)
 
@@ -1626,8 +1626,8 @@ class TestUpdateNotification(unittest.TestCase):
 
                         "--doc-dir",
                         str(self.TEST_DIR / "docs"),
-                        "--tech-dir",
-                        str(self.TEST_DIR / "tech"),
+                        "--guidelines-dir",
+                        str(self.TEST_DIR / "guidelines"),
                         "--test-dir",
                         str(self.TEST_DIR / "tests"),
                         "--src-dir",
@@ -1677,18 +1677,18 @@ class TestUpdateNotification(unittest.TestCase):
             )
 
 
-class TestTechTemplates(unittest.TestCase):
-    """Tests for --write-tech and --overwrite-tech functionality."""
+class TestGuidelinesTemplates(unittest.TestCase):
+    """Tests for --write-guidelines and --overwrite-guidelines functionality."""
 
     def setUp(self) -> None:
-        """Create temporary project for tech template tests."""
-        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-tech-templates-"))
+        """Create temporary project for guidelines template tests."""
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-guidelines-templates-"))
         self.docs_dir = self.TEST_DIR / "docs"
-        self.tech_dir = self.TEST_DIR / "tech"
+        self.guidelines_dir = self.TEST_DIR / "guidelines"
         self.test_dir = self.TEST_DIR / "tests"
         self.src_dir = self.TEST_DIR / "src"
         self.docs_dir.mkdir(parents=True, exist_ok=True)
-        self.tech_dir.mkdir(parents=True, exist_ok=True)
+        self.guidelines_dir.mkdir(parents=True, exist_ok=True)
         self.test_dir.mkdir(parents=True, exist_ok=True)
         self.src_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1696,14 +1696,14 @@ class TestTechTemplates(unittest.TestCase):
         """Clean up test directory."""
         shutil.rmtree(self.TEST_DIR)
 
-    def test_write_tech_preserves_existing(self) -> None:
-        """REQ-086: --write-tech does not overwrite existing files."""
-        # Create existing file in tech dir with specific content
-        existing_file = self.tech_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+    def test_write_guidelines_preserves_existing(self) -> None:
+        """REQ-086: --write-guidelines does not overwrite existing files."""
+        # Create existing file in guidelines dir with specific content
+        existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
         original_content = "# Original Content\nThis should be preserved.\n"
         existing_file.write_text(original_content, encoding="utf-8")
 
-        # Run with --write-tech
+        # Run with --write-guidelines
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 [
@@ -1714,13 +1714,13 @@ class TestTechTemplates(unittest.TestCase):
 
                     "--doc-dir",
                     "docs",
-                    "--tech-dir",
-                    "tech",
+                    "--guidelines-dir",
+                    "guidelines",
                     "--test-dir",
                     "tests",
                     "--src-dir",
                     "src",
-                    "--write-tech",
+                    "--write-guidelines",
                     "--enable-claude",
                 ]
             )
@@ -1731,17 +1731,17 @@ class TestTechTemplates(unittest.TestCase):
         self.assertEqual(
             preserved_content,
             original_content,
-            "Existing file should be preserved with --write-tech",
+            "Existing file should be preserved with --write-guidelines",
         )
 
-    def test_overwrite_tech_overwrites_existing(self) -> None:
-        """REQ-087: --overwrite-tech overwrites existing files."""
-        # Create existing file in tech dir with specific content
-        existing_file = self.tech_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+    def test_overwrite_guidelines_overwrites_existing(self) -> None:
+        """REQ-087: --overwrite-guidelines overwrites existing files."""
+        # Create existing file in guidelines dir with specific content
+        existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
         original_content = "# Original Content\nThis should be overwritten.\n"
         existing_file.write_text(original_content, encoding="utf-8")
 
-        # Run with --overwrite-tech
+        # Run with --overwrite-guidelines
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 [
@@ -1752,13 +1752,13 @@ class TestTechTemplates(unittest.TestCase):
 
                     "--doc-dir",
                     "docs",
-                    "--tech-dir",
-                    "tech",
+                    "--guidelines-dir",
+                    "guidelines",
                     "--test-dir",
                     "tests",
                     "--src-dir",
                     "src",
-                    "--overwrite-tech",
+                    "--overwrite-guidelines",
                     "--enable-claude",
                 ]
             )
@@ -1769,11 +1769,11 @@ class TestTechTemplates(unittest.TestCase):
         self.assertNotEqual(
             new_content,
             original_content,
-            "Existing file should be overwritten with --overwrite-tech",
+            "Existing file should be overwritten with --overwrite-guidelines",
         )
 
-    def test_write_tech_and_overwrite_tech_mutually_exclusive(self) -> None:
-        """REQ-088: --write-tech and --overwrite-tech cannot be used together."""
+    def test_write_guidelines_and_overwrite_guidelines_mutually_exclusive(self) -> None:
+        """REQ-088: --write-guidelines and --overwrite-guidelines cannot be used together."""
         # Attempt to run with both flags - argparse should handle mutual exclusivity
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with self.assertRaises(SystemExit):
@@ -1786,20 +1786,20 @@ class TestTechTemplates(unittest.TestCase):
 
                         "--doc-dir",
                         "docs",
-                    "--tech-dir",
-                    "tech",
+                    "--guidelines-dir",
+                    "guidelines",
                     "--test-dir",
                     "tests",
                     "--src-dir",
                     "src",
-                    "--write-tech",
-                    "--overwrite-tech",
+                    "--write-guidelines",
+                    "--overwrite-guidelines",
                     "--enable-claude",
                 ]
             )
 
     def test_no_copy_without_flags(self) -> None:
-        """REQ-089: Tech templates are not copied without --write-tech or --overwrite-tech."""
+        """REQ-089: Guidelines templates are not copied without --write-guidelines or --overwrite-guidelines."""
         # Run without either flag
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
@@ -1811,8 +1811,8 @@ class TestTechTemplates(unittest.TestCase):
 
                     "--doc-dir",
                     "docs",
-                    "--tech-dir",
-                    "tech",
+                    "--guidelines-dir",
+                    "guidelines",
                     "--test-dir",
                     "tests",
                     "--src-dir",
@@ -1822,11 +1822,11 @@ class TestTechTemplates(unittest.TestCase):
             )
         self.assertEqual(exit_code, 0)
 
-        # Verify no tech template files were copied
-        tech_file = self.tech_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        # Verify no guidelines template files were copied
+        guidelines_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
         self.assertFalse(
-            tech_file.exists(),
-            "Tech templates should not be copied without --write-tech or --overwrite-tech",
+            guidelines_file.exists(),
+            "Guidelines templates should not be copied without --write-guidelines or --overwrite-guidelines",
         )
 
 
@@ -1836,11 +1836,11 @@ class TestPreserveModels(unittest.TestCase):
     def setUp(self) -> None:
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-preserve-models-"))
         self.docs_dir = self.TEST_DIR / "docs"
-        self.tech_dir = self.TEST_DIR / "tech"
+        self.guidelines_dir = self.TEST_DIR / "guidelines"
         self.test_dir = self.TEST_DIR / "tests"
         self.src_dir = self.TEST_DIR / "src"
         self.docs_dir.mkdir(parents=True, exist_ok=True)
-        self.tech_dir.mkdir(parents=True, exist_ok=True)
+        self.guidelines_dir.mkdir(parents=True, exist_ok=True)
         self.test_dir.mkdir(parents=True, exist_ok=True)
         self.src_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1860,8 +1860,8 @@ class TestPreserveModels(unittest.TestCase):
 
                     "--doc-dir",
                     "docs",
-                    "--tech-dir",
-                    "tech",
+                    "--guidelines-dir",
+                    "guidelines",
                     "--test-dir",
                     "tests",
                     "--src-dir",
@@ -1925,8 +1925,8 @@ class TestPreserveModels(unittest.TestCase):
 
                     "--doc-dir",
                     "docs",
-                    "--tech-dir",
-                    "tech",
+                    "--guidelines-dir",
+                    "guidelines",
                     "--test-dir",
                     "tests",
                     "--src-dir",

@@ -76,7 +76,7 @@ Click to zoom flowchart image.
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
   --req-dir myproject/docs/ \
-  --tech-dir myproject/tech_docs/ \
+  --guidelines-dir myproject/guidelines_docs/ \
   --verbose --debug
 ```
 
@@ -96,7 +96,7 @@ uv tool uninstall usereq
 - Run `req` to create/re-create `.codex`, `.github`, `.gemini`, `.kiro`, `.opencode`, and `.req` in your project repository.
   - Launch `req` from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
   - `--req-dir` must be an existing directory under the project base and **must** contain requirements `.md` files.  If one doesn't exist, it is automatically created from the `requirements.md` template.
-  - `--tech-dir` must be an existing directory under the project base and **can** contain technical documentation folders.
+  - `--guidelines-dir` must be an existing directory under the project base and **can** contain technical documentation folders.
   - Select CLI to install with:
     * `--enable-claude`       Enable generation of Claude prompts and agents for this run.
     * `--enable-codex`        Enable generation of Codex prompts for this run.
@@ -104,7 +104,7 @@ uv tool uninstall usereq
     * `--enable-github`       Enable generation of GitHub prompts and agents for this run.
     * `--enable-kiro`         Enable generation of Kiro prompts and agents for this run.
     * `--enable-opencode`     Enable generation of OpenCode prompts and agents for this run.
-- You need to run `req` again if you add or remove `.md` requirement files in the `docs/` directory or any subfolders in the `tech/` directory.
+- You need to run `req` again if you add or remove `.md` requirement files in the `docs/` directory or any subfolders in the `guidelines/` directory.
 - Option `--prompts-use-agents`  generate prompt files as **agent-only references** (agent: req-<name>).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 - Add `--update` to update an existi installation.

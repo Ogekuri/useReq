@@ -11,7 +11,7 @@ Identify uncovered requirements and implement source code from scratch to ensure
 
 ## Professional Personas
 - **Act as a QA Automation Engineer** when identifying uncovered requirements: you must prove the lack of coverage through code analysis or failing test scenarios.
-- **Act as a Business Analyst** when mapping requirement IDs from %%REQ_DIR%% to observable behaviors.
+- **Act as a Business Analyst** when mapping requirement IDs from `%%DOC_PATH%%/REQUIREMENTS.md` to observable behaviors.
 - **Act as a Senior System Architect** when generating the **Comprehensive Technical Implementation Report** and planning the coverage strategy: ensure the new implementation integrates perfectly with the existing architecture without regressions.
 - **Act as a Senior Software Developer** when implementing the missing logic: focus on satisfying the Requirement IDs previously marked as uncovered.
 - **Act as a QA Engineer** during verification and testing Steps: verify compliance with zero leniency, using mandatory code evidence and strict test-fix loops to ensure stability.
@@ -19,7 +19,7 @@ Identify uncovered requirements and implement source code from scratch to ensure
 
 ## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
-- You MUST read %%REQ_DIR%%, but you MUST NOT modify it in this workflow.
+- You MUST read `%%DOC_PATH%%/REQUIREMENTS.md`, but you MUST NOT modify it in this workflow.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: GIT operations and GIT rules:
    - Do not run any shell/git commands and do not modify any files before starting Step 1 (including creating/modifying files, installing deps, formatting, etc.): **CRITICAL**: Check GIT Status.
@@ -68,13 +68,13 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. Read requirements, generate and implement the **Comprehensive Technical Implementation Report** to cover all requirements
-   - Read %%REQ_DIR%% and GENERATE a detailed **Comprehensive Technical Implementation Report** that covers all explicitly specified requirements, and explicitly list any requirement that cannot be implemented due to missing information or repository constraints. The **Comprehensive Technical Implementation Report** MUST be implementation-only: for each file, list exact developments (functions/classes created), and map each implementation to the requirement ID(s) it satisfies (no narrative summary).
-      - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
+   - Read `%%DOC_PATH%%/REQUIREMENTS.md` and GENERATE a detailed **Comprehensive Technical Implementation Report** that covers all explicitly specified requirements, and explicitly list any requirement that cannot be implemented due to missing information or repository constraints. The **Comprehensive Technical Implementation Report** MUST be implementation-only: for each file, list exact developments (functions/classes created), and map each implementation to the requirement ID(s) it satisfies (no narrative summary).
+      - Read %%GUIDELINES_FILES%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
    - Implement the unit tests source code from scratch planning the necessary implementations to cover ALL requirements and include these details in the **Comprehensive Technical Implementation Report**.
-      - Read %%TECH_DIR%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
+      - Read %%GUIDELINES_FILES%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
    - IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary) from scratch.
 3. Test the implementation result and implement needed bug-fix
-   - Read ALL requirements from %%REQ_DIR%% and analyze one-by-one and cross-reference with the source code to check requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance and do not assume compliance without locating the specific code implementation.
+   - Read ALL requirements from `%%DOC_PATH%%/REQUIREMENTS.md` and analyze one-by-one and cross-reference with the source code to check requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance and do not assume compliance without locating the specific code implementation.
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
       - Do not mark a requirement as `OK` without code evidence; for `OK` items provide only a compact pointer (file path + symbol + line range). For each requirement, provide a concise evidence pointer (file path + symbol + line range) excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "shall not..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
       - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.

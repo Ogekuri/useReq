@@ -96,7 +96,7 @@
 - *(useReq)* extract workflow strings to resources/common and load them from files [2026-01-25 11:32:01]
 
 ### 📚  Documentation
-- *(core)* add tech dir.
+- *(core)* add guidelines dir.
 
 ## [0.0.55](https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55) - 2026-01-24
 ### 🚜  Changes
@@ -294,7 +294,7 @@
 
 ## [0.0.6](https://github.com/Ogekuri/useReq/compare/v0.0.5..v0.0.6) - 2026-01-01
 ### ⛰️  Features
-- *(core)* add support for multiple requirement files and multiple tech dirs.
+- *(core)* add support for multiple requirement files and multiple guidelines dirs.
 
 ## [0.0.5](https://github.com/Ogekuri/useReq/compare/v0.0.4..v0.0.5) - 2026-01-01
 ### ⛰️  Features

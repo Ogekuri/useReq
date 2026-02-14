@@ -70,7 +70,7 @@
                             - description: Converts an absolute path to a relative path if it falls within the project base; otherwise returns the original.
                             - input: path_value: str, path to check; project_base: Path, project root
                             - output: str, relative or original path
-                        - `copy_tech_templates()`: Copies technical templates. [`src/usereq/cli.py`, 623-660]
+                        - `copy_guidelines_templates()`: Copies technical templates. [`src/usereq/cli.py`, 623-660]
                             - description: Copies template files from the resources directory to the technical directory, handling overwrite logic.
                             - input: dest_dir: Path, destination directory; overwrite: bool, whether to overwrite existing files
                             - output: int, number of files copied
@@ -79,8 +79,8 @@
                             - input: timeout_seconds: float, request timeout
                             - output: None
                         - `save_config()`: Saves configuration to .req/config.json. [`src/usereq/cli.py`, 463-484]
-                            - description: Writes the current configuration (paths for req, tech, doc, test, src) to a JSON file.
-                            - input: project_base: Path; req_dir: str; tech_dir: str; doc_dir: str; test_dir: str; src_dirs: list[str]
+                            - description: Writes the current configuration (paths for req, guidelines, doc, test, src) to a JSON file.
+                            - input: project_base: Path; req_dir: str; guidelines_dir: str; doc_dir: str; test_dir: str; src_dirs: list[str]
                             - output: None
                         - `find_template_source()`: Locates template source directory. [`src/usereq/cli.py`, 869-878]
                             - description: Resolves the path to the 'templates' directory within the package resources.
@@ -90,9 +90,9 @@
                             - description: Scans the requirements directory and creates a formatted list of files for template substitution.
                             - input: req_dir: Path; project_base: Path
                             - output: str, formatted file list
-                        - `generate_tech_file_list()`: Generates file list for TECH_DIR token. [`src/usereq/cli.py`, 565-590]
+                        - `generate_guidelines_file_list()`: Generates file list for GUIDELINES_FILES token. [`src/usereq/cli.py`, 565-590]
                             - description: Scans the technical directory and creates a formatted list of files.
-                            - input: tech_dir: Path; project_base: Path
+                            - input: guidelines_dir: Path; project_base: Path
                             - output: str, formatted file list
                         - `load_kiro_template()`: Loads Kiro agent template. [`src/usereq/cli.py`, 880-912]
                             - description: Reads the Kiro JSON template and configuration from resources.

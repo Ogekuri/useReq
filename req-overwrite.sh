@@ -16,12 +16,12 @@ if [ ! -d "$FOLDER_PATH" ]; then
 else
     # make dirs
     mkdir -p "${FOLDER_PATH}/req"
-    mkdir -p "${FOLDER_PATH}/tech"
+    mkdir -p "${FOLDER_PATH}/guidelines"
     mkdir -p "${FOLDER_PATH}/docs"
     mkdir -p "${FOLDER_PATH}/tests"
     mkdir -p "${FOLDER_PATH}/src"
-    mkdir -p ".github/workflows"
+    mkdir -p "${FOLDER_PATH}/.github/workflows"
 
-    #echo req --base "${FOLDER_PATH}" --req-dir "${FOLDER_PATH}/req" --tech-dir "${FOLDER_PATH}/tech" --doc-dir "${FOLDER_PATH}/docs" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-tech --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
-    req --base "${FOLDER_PATH}" --req-dir "${FOLDER_PATH}/req" --tech-dir "${FOLDER_PATH}/tech" --doc-dir "${FOLDER_PATH}/docs" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-tech --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    #echo req --base "${FOLDER_PATH}" --req-dir "${FOLDER_PATH}/req" --guidelines-dir "${FOLDER_PATH}/guidelines" --doc-dir "${FOLDER_PATH}/docs" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    req --base "${FOLDER_PATH}" --req-dir "${FOLDER_PATH}/req" --guidelines-dir "${FOLDER_PATH}/guidelines" --doc-dir "${FOLDER_PATH}/docs" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
 fi

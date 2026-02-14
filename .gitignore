@@ -32,8 +32,8 @@
 !src/**/*
 !docs/
 !docs/**/*
-!tech/
-!tech/**/*
+!guidelines/
+!guidelines/**/*
 !tests/
 !tests/**/*
 !pdoc/

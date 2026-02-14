@@ -59,10 +59,10 @@ def build_parser() -> argparse.ArgumentParser:
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--req-dir REQ_DIR --doc-dir DOC_DIR --tech-dir TECH_DIR --test-dir TEST_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
+        "--req-dir REQ_DIR --doc-dir DOC_DIR --guidelines-dir GUIDELINES_FILES --test-dir TEST_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
-        "[--legacy] [--preserve-models] [--write-tech | --overwrite-tech] "
+        "[--legacy] [--preserve-models] [--write-guidelines | --overwrite-guidelines] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -87,7 +87,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--doc-dir", help="Documentation directory relative to the project root."
     )
     parser.add_argument(
-        "--tech-dir", help="Technical directory relative to the project root."
+        "--guidelines-dir", help="Technical directory relative to the project root."
     )
     parser.add_argument(
         "--test-dir", help="Test directory relative to the project root."
@@ -172,16 +172,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="When set with --update, preserve existing .req/models.json and bypass --legacy mode.",
     )
-    tech_group = parser.add_mutually_exclusive_group()
-    tech_group.add_argument(
-        "--write-tech",
+    guidelines_group = parser.add_mutually_exclusive_group()
+    guidelines_group.add_argument(
+        "--write-guidelines",
         action="store_true",
-        help="Copy tech templates from resources/tech/ to --tech-dir without overwriting existing files.",
+        help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir without overwriting existing files.",
     )
-    tech_group.add_argument(
-        "--overwrite-tech",
+    guidelines_group.add_argument(
+        "--overwrite-guidelines",
         action="store_true",
-        help="Copy tech templates from resources/tech/ to --tech-dir, overwriting existing files.",
+        help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir, overwriting existing files.",
     )
     return parser
 
@@ -463,7 +463,7 @@ def compute_sub_path(
 def save_config(
     project_base: Path,
     req_dir_value: str,
-    tech_dir_value: str,
+    guidelines_dir_value: str,
     doc_dir_value: str,
     test_dir_value: str,
     src_dir_values: list[str],
@@ -473,7 +473,7 @@ def save_config(
     config_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "req-dir": req_dir_value,
-        "tech-dir": tech_dir_value,
+        "guidelines-dir": guidelines_dir_value,
         "doc-dir": doc_dir_value,
         "test-dir": test_dir_value,
         "src-dir": src_dir_values,
@@ -496,14 +496,14 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
     except json.JSONDecodeError as exc:
         raise ReqError("Error: .req/config.json is not valid", 11) from exc
     req_dir_value = payload.get("req-dir")
-    tech_dir_value = payload.get("tech-dir")
+    guidelines_dir_value = payload.get("guidelines-dir")
     doc_dir_value = payload.get("doc-dir")
     test_dir_value = payload.get("test-dir")
     src_dir_value = payload.get("src-dir")
     if not isinstance(req_dir_value, str) or not req_dir_value.strip():
         raise ReqError("Error: missing or invalid 'req-dir' field in .req/config.json", 11)
-    if not isinstance(tech_dir_value, str) or not tech_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'tech-dir' field in .req/config.json", 11)
+    if not isinstance(guidelines_dir_value, str) or not guidelines_dir_value.strip():
+        raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)
     if not isinstance(doc_dir_value, str) or not doc_dir_value.strip():
         raise ReqError("Error: missing or invalid 'doc-dir' field in .req/config.json", 11)
     if not isinstance(test_dir_value, str) or not test_dir_value.strip():
@@ -516,7 +516,7 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
         raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
     return {
         "req-dir": req_dir_value,
-        "tech-dir": tech_dir_value,
+        "guidelines-dir": guidelines_dir_value,
         "doc-dir": doc_dir_value,
         "test-dir": test_dir_value,
         "src-dir": src_dir_value,
@@ -562,13 +562,13 @@ def generate_req_file_items(req_dir: Path, project_base: Path) -> list[str]:
     return items
 
 
-def generate_tech_file_list(tech_dir: Path, project_base: Path) -> str:
-    """Generates the markdown file list for %%TECH_DIR%% replacement."""
-    if not tech_dir.is_dir():
+def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
+    """Generates the markdown file list for %%GUIDELINES_FILES%% replacement."""
+    if not guidelines_dir.is_dir():
         return ""
 
     files = []
-    for file_path in sorted(tech_dir.iterdir()):
+    for file_path in sorted(guidelines_dir.iterdir()):
         if file_path.is_file() and not file_path.name.startswith("."):
             try:
                 rel_path = file_path.relative_to(project_base)
@@ -580,7 +580,7 @@ def generate_tech_file_list(tech_dir: Path, project_base: Path) -> str:
     # If there are no files, use the directory itself.
     if not files:
         try:
-            rel_path = tech_dir.relative_to(project_base)
+            rel_path = guidelines_dir.relative_to(project_base)
             rel_str = str(rel_path).replace(os.sep, "/") + "/"
             return f"`{rel_str}`"
         except ValueError:
@@ -589,17 +589,17 @@ def generate_tech_file_list(tech_dir: Path, project_base: Path) -> str:
     return ", ".join(files)
 
 
-def generate_tech_file_items(tech_dir: Path, project_base: Path) -> list[str]:
+def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]:
     """Generates a list of relative file paths (no formatting) for printing.
 
-    Each entry is formatted as `tech/file.md` (forward slashes).
+    Each entry is formatted as `guidelines/file.md` (forward slashes).
     If there are no files, returns the directory itself with a trailing slash.
     """
-    if not tech_dir.is_dir():
+    if not guidelines_dir.is_dir():
         return []
 
     items: list[str] = []
-    for file_path in sorted(tech_dir.iterdir()):
+    for file_path in sorted(guidelines_dir.iterdir()):
         if file_path.is_file() and not file_path.name.startswith("."):
             try:
                 rel_path = file_path.relative_to(project_base)
@@ -611,7 +611,7 @@ def generate_tech_file_items(tech_dir: Path, project_base: Path) -> list[str]:
     # If there are no files, use the directory itself.
     if not items:
         try:
-            rel_path = tech_dir.relative_to(project_base)
+            rel_path = guidelines_dir.relative_to(project_base)
             rel_str = str(rel_path).replace(os.sep, "/") + "/"
             return [rel_str]
         except ValueError:
@@ -620,33 +620,33 @@ def generate_tech_file_items(tech_dir: Path, project_base: Path) -> list[str]:
     return items
 
 
-def copy_tech_templates(
-    tech_dest: Path, overwrite: bool = False
+def copy_guidelines_templates(
+    guidelines_dest: Path, overwrite: bool = False
 ) -> int:
-    """Copies tech templates from resources/tech/ to the target directory.
+    """Copies guidelines templates from resources/guidelines/ to the target directory.
 
     Args:
-        tech_dest: Target directory where templates will be copied
+        guidelines_dest: Target directory where templates will be copied
         overwrite: If True, overwrite existing files; if False, skip existing files
 
     Returns:
         Number of files copied
     """
-    tech_src = RESOURCE_ROOT / "tech"
-    if not tech_src.is_dir():
-        vlog(f"Tech templates directory not found at {tech_src}, skipping")
+    guidelines_src = RESOURCE_ROOT / "guidelines"
+    if not guidelines_src.is_dir():
+        vlog(f"Guidelines templates directory not found at {guidelines_src}, skipping")
         return 0
 
-    if not tech_dest.is_dir():
+    if not guidelines_dest.is_dir():
         raise ReqError(
-            f"Error: target tech directory '{tech_dest}' does not exist",
+            f"Error: target guidelines directory '{guidelines_dest}' does not exist",
             8,
         )
 
     copied_count = 0
-    for src_file in sorted(tech_src.iterdir()):
+    for src_file in sorted(guidelines_src.iterdir()):
         if src_file.is_file():
-            dst_file = tech_dest / src_file.name
+            dst_file = guidelines_dest / src_file.name
             existed = dst_file.exists()
             if existed and not overwrite:
                 vlog(f"SKIPPED (already exists): {dst_file}")
@@ -1171,13 +1171,13 @@ def remove_generated_resources(project_base: Path) -> None:
 def run_remove(args: Namespace) -> None:
     """Handles the removal of generated resources."""
     req_dir = getattr(args, 'req_dir', None)
-    tech_dir = getattr(args, 'tech_dir', None)
+    guidelines_dir = getattr(args, 'guidelines_dir', None)
     doc_dir = getattr(args, 'doc_dir', None)
     test_dir = getattr(args, 'test_dir', None)
     src_dir = getattr(args, 'src_dir', None)
-    if req_dir or tech_dir or doc_dir or test_dir or src_dir or args.update:
+    if req_dir or guidelines_dir or doc_dir or test_dir or src_dir or args.update:
         raise ReqError(
-            "Error: --remove does not accept --req-dir, --tech-dir, --doc-dir, --test-dir, --src-dir, or --update",
+            "Error: --remove does not accept --req-dir, --guidelines-dir, --doc-dir, --test-dir, --src-dir, or --update",
             4,
         )
     if args.base:
@@ -1229,32 +1229,32 @@ def run(args: Namespace) -> None:
         raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
 
     req_dir = getattr(args, 'req_dir', None)
-    tech_dir = getattr(args, 'tech_dir', None)
+    guidelines_dir = getattr(args, 'guidelines_dir', None)
     doc_dir = getattr(args, 'doc_dir', None)
     test_dir = getattr(args, 'test_dir', None)
     src_dir = getattr(args, 'src_dir', None)
 
-    if args.update and (req_dir or tech_dir or doc_dir or test_dir or src_dir):
+    if args.update and (req_dir or guidelines_dir or doc_dir or test_dir or src_dir):
         raise ReqError(
-            "Error: --update does not accept --req-dir, --tech-dir, --doc-dir, --test-dir, or --src-dir",
+            "Error: --update does not accept --req-dir, --guidelines-dir, --doc-dir, --test-dir, or --src-dir",
             4,
         )
-    if not args.update and (not req_dir or not tech_dir or not doc_dir or not test_dir or not src_dir):
+    if not args.update and (not req_dir or not guidelines_dir or not doc_dir or not test_dir or not src_dir):
         raise ReqError(
-            "Error: --req-dir, --tech-dir, --doc-dir, --test-dir, and --src-dir are required without --update",
+            "Error: --req-dir, --guidelines-dir, --doc-dir, --test-dir, and --src-dir are required without --update",
             4,
         )
 
     if args.update:
         config = load_config(project_base)
         req_dir_value = config["req-dir"]
-        tech_dir_value = config["tech-dir"]
+        guidelines_dir_value = config["guidelines-dir"]
         doc_dir_value = config["doc-dir"]
         test_dir_value = config["test-dir"]
         src_dir_values = config["src-dir"]
     else:
         req_dir_value = req_dir
-        tech_dir_value = tech_dir
+        guidelines_dir_value = guidelines_dir
         doc_dir_value = doc_dir
         test_dir_value = test_dir
         src_dir_values = src_dir
@@ -1266,18 +1266,18 @@ def run(args: Namespace) -> None:
         ensure_src_directory(src_dir_value, project_base)
 
     normalized_req = make_relative_if_contains_project(req_dir_value, project_base)
-    normalized_tech = make_relative_if_contains_project(tech_dir_value, project_base)
+    normalized_guidelines = make_relative_if_contains_project(guidelines_dir_value, project_base)
     normalized_doc = make_relative_if_contains_project(doc_dir_value, project_base)
     normalized_test = make_relative_if_contains_project(test_dir_value, project_base)
     normalized_src_dirs: list[str] = []
     config_src_dirs: list[str] = []
     src_has_trailing_slashes: list[bool] = []
     req_has_trailing_slash = req_dir_value.endswith("/") or req_dir_value.endswith("\\")
-    tech_has_trailing_slash = tech_dir_value.endswith("/") or tech_dir_value.endswith("\\")
+    guidelines_has_trailing_slash = guidelines_dir_value.endswith("/") or guidelines_dir_value.endswith("\\")
     doc_has_trailing_slash = doc_dir_value.endswith("/") or doc_dir_value.endswith("\\")
     test_has_trailing_slash = test_dir_value.endswith("/") or test_dir_value.endswith("\\")
     normalized_req = normalized_req.rstrip("/\\")
-    normalized_tech = normalized_tech.rstrip("/\\")
+    normalized_guidelines = normalized_guidelines.rstrip("/\\")
     normalized_doc = normalized_doc.rstrip("/\\")
     normalized_test = normalized_test.rstrip("/\\")
     for src_dir_value in src_dir_values:
@@ -1288,14 +1288,14 @@ def run(args: Namespace) -> None:
         src_has_trailing_slashes.append(has_trailing)
 
     ensure_relative(normalized_req, "REQ_DOC", 4)
-    ensure_relative(normalized_tech, "REQ_DIR", 5)
+    ensure_relative(normalized_guidelines, "REQ_DIR", 5)
     ensure_relative(normalized_doc, "DOC_DIR", 4)
     ensure_relative(normalized_test, "TEST_DIR", 4)
     for normalized_src in normalized_src_dirs:
         ensure_relative(normalized_src, "SRC_DIR", 4)
 
     abs_req = resolve_absolute(normalized_req, project_base)
-    abs_tech = resolve_absolute(normalized_tech, project_base)
+    abs_guidelines = resolve_absolute(normalized_guidelines, project_base)
     abs_doc = resolve_absolute(normalized_doc, project_base)
     abs_test = resolve_absolute(normalized_test, project_base)
     abs_src_dirs = [
@@ -1304,8 +1304,8 @@ def run(args: Namespace) -> None:
     ]
     if abs_req and not abs_req.resolve().is_relative_to(project_base):
         raise ReqError("Error: --req-dir must be under the project base", 5)
-    if abs_tech and not abs_tech.resolve().is_relative_to(project_base):
-        raise ReqError("Error: --tech-dir must be under the project base", 8)
+    if abs_guidelines and not abs_guidelines.resolve().is_relative_to(project_base):
+        raise ReqError("Error: --guidelines-dir must be under the project base", 8)
     if abs_doc and not abs_doc.resolve().is_relative_to(project_base):
         raise ReqError("Error: --doc-dir must be under the project base", 5)
     if abs_test and not abs_test.resolve().is_relative_to(project_base):
@@ -1319,10 +1319,10 @@ def run(args: Namespace) -> None:
         if req_has_trailing_slash and normalized_req
         else normalized_req
     )
-    config_tech = (
-        f"{normalized_tech}/"
-        if tech_has_trailing_slash and normalized_tech
-        else normalized_tech
+    config_guidelines = (
+        f"{normalized_guidelines}/"
+        if guidelines_has_trailing_slash and normalized_guidelines
+        else normalized_guidelines
     )
     config_doc = (
         f"{normalized_doc}/"
@@ -1340,25 +1340,25 @@ def run(args: Namespace) -> None:
         config_src = f"{normalized_src}/" if has_trailing and normalized_src else normalized_src
         config_src_dirs.append(config_src)
 
-    tech_dest = project_base / normalized_tech
-    if not tech_dest.is_dir():
+    guidelines_dest = project_base / normalized_guidelines
+    if not guidelines_dest.is_dir():
         raise ReqError(
-            f"Error: REQ_DIR directory '{normalized_tech}' does not exist under {project_base}",
+            f"Error: REQ_DIR directory '{normalized_guidelines}' does not exist under {project_base}",
             8,
         )
     if VERBOSE:
-        log(f"OK: technical directory found {tech_dest}")
+        log(f"OK: technical directory found {guidelines_dest}")
 
-    # Copy tech templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
-    if args.write_tech or args.overwrite_tech:
-        tech_src = RESOURCE_ROOT / "tech"
-        if tech_src.is_dir():
-            copied = copy_tech_templates(tech_dest, overwrite=args.overwrite_tech)
+    # Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
+    if args.write_guidelines or args.overwrite_guidelines:
+        guidelines_src = RESOURCE_ROOT / "guidelines"
+        if guidelines_src.is_dir():
+            copied = copy_guidelines_templates(guidelines_dest, overwrite=args.overwrite_guidelines)
             if VERBOSE:
-                log(f"OK: copied {copied} tech template(s) to {tech_dest}")
+                log(f"OK: copied {copied} guidelines template(s) to {guidelines_dest}")
         else:
             if VERBOSE:
-                log(f"OK: no tech templates found at {tech_src}, skipping copy")
+                log(f"OK: no guidelines templates found at {guidelines_src}, skipping copy")
 
     enable_claude = args.enable_claude
     enable_codex = args.enable_codex
@@ -1390,14 +1390,14 @@ def run(args: Namespace) -> None:
         save_config(
             project_base,
             config_req,
-            config_tech,
+            config_guidelines,
             config_doc,
             config_test,
             config_src_dirs,
         )
 
     sub_req_doc = compute_sub_path(normalized_req, abs_req, project_base)
-    sub_tech_dir = compute_sub_path(normalized_tech, abs_tech, project_base)
+    sub_guidelines_dir = compute_sub_path(normalized_guidelines, abs_guidelines, project_base)
     sub_test_dir = format_substituted_path(normalized_test).rstrip("/\\")
     token_test_path = f"`{sub_test_dir}/`" if sub_test_dir else ""
     sub_src_paths: list[str] = []
@@ -1406,10 +1406,10 @@ def run(args: Namespace) -> None:
         if sub_src:
             sub_src_paths.append(f"`{sub_src}/`")
     token_src_paths = ", ".join(sub_src_paths)
-    if tech_has_trailing_slash and sub_tech_dir and not sub_tech_dir.endswith("/"):
-        sub_tech_dir += "/"
+    if guidelines_has_trailing_slash and sub_guidelines_dir and not sub_guidelines_dir.endswith("/"):
+        sub_guidelines_dir += "/"
     token_req_doc = make_relative_token(sub_req_doc)
-    token_req_dir = make_relative_token(sub_tech_dir, keep_trailing=True)
+    token_req_dir = make_relative_token(sub_guidelines_dir, keep_trailing=True)
 
     req_root = project_base / ".req"
     req_root.mkdir(parents=True, exist_ok=True)
@@ -1454,18 +1454,18 @@ def run(args: Namespace) -> None:
     # Generate the file list for the %%REQ_DIR%% token after possible creation.
     req_file_list = generate_req_file_list(req_dir_path, project_base)
 
-    # Generate the file list for the %%TECH_DIR%% token.
-    tech_file_list = generate_tech_file_list(project_base / normalized_tech, project_base)
+    # Generate the file list for the %%GUIDELINES_FILES%% token.
+    guidelines_file_list = generate_guidelines_file_list(project_base / normalized_guidelines, project_base)
 
     dlog(f"project_base={project_base}")
     dlog(f"REQ_DOC={normalized_req}")
     dlog(f"DOC_DIR={normalized_doc}")
-    dlog(f"REQ_DIR={normalized_tech}")
+    dlog(f"REQ_DIR={normalized_guidelines}")
     dlog(f"TEST_DIR={normalized_test}")
     dlog(f"SRC_DIRS={normalized_src_dirs}")
     dlog(f"REQ_FILE_LIST={req_file_list}")
-    dlog(f"TECH_FILE_LIST={tech_file_list}")
-    dlog(f"SUB_TECH_DIR={sub_tech_dir}")
+    dlog(f"GUIDELINES_FILE_LIST={guidelines_file_list}")
+    dlog(f"SUB_GUIDELINES_DIR={sub_guidelines_dir}")
     dlog(f"TOKEN_REQ_DIR={token_req_dir}")
 
     codex_skills_root = None
@@ -1571,9 +1571,9 @@ def run(args: Namespace) -> None:
 
         base_replacements = {
             "%%REQ_DIR%%": req_file_list,
-            "%%TECH_DIR%%": tech_file_list,
+            "%%GUIDELINES_FILES%%": guidelines_file_list,
             "%%REQ_PATH%%": normalized_req,
-            "%%TECH_PATH%%": normalized_tech,
+            "%%GUIDELINES_PATH%%": normalized_guidelines,
             "%%DOC_PATH%%": normalized_doc,
             "%%TEST_PATH%%": token_test_path,
             "%%SRC_PATHS%%": token_src_paths,
@@ -1640,9 +1640,9 @@ def run(args: Namespace) -> None:
             md_to_toml(prompt_path, dst_toml, force=existed)
             toml_replacements = {
                 "%%REQ_DIR%%": req_file_list,
-                "%%TECH_DIR%%": tech_file_list,
+                "%%GUIDELINES_FILES%%": guidelines_file_list,
                 "%%REQ_PATH%%": normalized_req,
-                "%%TECH_PATH%%": normalized_tech,
+                "%%GUIDELINES_PATH%%": normalized_guidelines,
                 "%%DOC_PATH%%": normalized_doc,
                 "%%TEST_PATH%%": token_test_path,
                 "%%SRC_PATHS%%": token_src_paths,
@@ -1982,16 +1982,16 @@ def run(args: Namespace) -> None:
     # Print the discovered files and directories used for token substitutions
     # as required by REQ-078: one item per line prefixed with '- '.
     req_items = generate_req_file_items(req_dir_path, project_base)
-    tech_items = generate_tech_file_items(project_base / normalized_tech, project_base)
+    guidelines_items = generate_guidelines_file_items(project_base / normalized_guidelines, project_base)
 
     for entry in req_items:
         print(f"- {entry}")
 
-    if tech_items:
-        for entry in tech_items:
+    if guidelines_items:
+        for entry in guidelines_items:
             print(f"- {entry}")
     else:
-        print("The folder %%TECH_DIR%% does not contain any files")
+        print("The folder %%GUIDELINES_FILES%% does not contain any files")
 
     # Build and print a simple installation report table describing which
     # modules were installed for each CLI target. The table is printed in

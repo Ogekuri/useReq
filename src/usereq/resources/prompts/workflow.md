@@ -11,7 +11,7 @@ Analyze the existing source code to generate a workflow description (`%%DOC_PATH
 
 ## Professional Personas
 - **Act as a Senior System Engineer** when analyzing source code; your primary goal is to trace the execution flow (call stack) across files and modules, identifying exactly how data and control move from one function to another.
-- **Act as a Business Analyst** when cross-referencing code findings with %%REQ_DIR%% to ensure functional alignment.
+- **Act as a Business Analyst** when cross-referencing code findings with `%%DOC_PATH%%/REQUIREMENTS.md` to ensure functional alignment.
 - **Act as a Technical Writer** when producing the final analysis report or workflow descriptions, ensuring clarity, technical precision, and structured formatting.
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
 

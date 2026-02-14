@@ -16,11 +16,11 @@ if [ ! -d "$FOLDER_PATH" ]; then
 else
     # make dirs
     mkdir -p "${FOLDER_PATH}/req"
-    mkdir -p "${FOLDER_PATH}/tech"
+    mkdir -p "${FOLDER_PATH}/guidelines"
     mkdir -p "${FOLDER_PATH}/docs"
     mkdir -p "${FOLDER_PATH}/tests"
     mkdir -p "${FOLDER_PATH}/src"
-    mkdir -p ".github/workflows"
+    mkdir -p "${FOLDER_PATH}/.github/workflows"
 
     #echo req --update --preserve-models --base "${FOLDER_PATH}" --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
     req --update --preserve-models --base "${FOLDER_PATH}" --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy

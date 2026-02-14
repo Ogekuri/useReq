@@ -11,24 +11,24 @@ Draft a new **Software Requirements Specification** draft based entirely on the 
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when drafting software requirements: ensure every requirement is atomic, unambiguous, and formatted for maximum testability using standard "shall/must" terminology.
-- **Act as a Technical Writer** when structuring the SRS document %%REQ_DIR%%: apply a clean, hierarchical Markdown structure (max depth 3) and ensure technical precision, clarity, and adherence to professional documentation standards.
+- **Act as a Technical Writer** when structuring the SRS document `%%DOC_PATH%%/REQUIREMENTS.md`: apply a clean, hierarchical Markdown structure (max depth 3) and ensure technical precision, clarity, and adherence to professional documentation standards.
 - **Act as a Business Analyst** when interpreting project goals: bridge the gap between technical implementation and user needs, ensuring the document provides clear value and aligns with the system's intended purpose.
 - **Act as a Senior System Architect** when describing components or relationships: ensure the technical descriptions reflect a modular, scalable, and robust architecture consistent with industry best practices.
 
 
 ## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
-- You can read, write, or edit `%%REQ_PATH%%/requirements_DRAFT.md`.
+- You can read, write, or edit `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
-- **CRITICAL**: Do not modify any project files except creating/updating `%%REQ_PATH%%/requirements_DRAFT.md`.
+- **CRITICAL**: Do not modify any project files except creating/updating `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
-- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
+- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 - **CRITICAL**: Formulate all new or edited requirements using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives.
 
 ## Behavior
 - Do not perform unrelated edits.
-- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%REQ_PATH%%/requirements_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
+- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 
 ## Execution Protocol (Global vs Local)
@@ -80,7 +80,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
           - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
      - List requested components and libraries. Integrate mandatory libraries into the requirements.
      - Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
-   - Create the **Software Requirements Specification** document with the requirements draft at `%%REQ_PATH%%/requirements_DRAFT.md`.
+   - Create the **Software Requirements Specification** document with the requirements draft at `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
       - Write requirements, section titles, tables, and other content in **target language**.
       - Follow `.req/templates/requirements.md` translated into requested language.
       - Describe every project requirement clearly, succinctly, and unambiguously.
