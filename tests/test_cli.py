@@ -1521,6 +1521,51 @@ class TestProviderEnableFlags(unittest.TestCase):
         )
 
 
+class TestBasePrefixedRelativePaths(unittest.TestCase):
+    """Verifies normalization when paths include the relative --base prefix."""
+
+    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-base-prefix"
+    BASE_ARG = "temp/project-test-base-prefix"
+
+    def setUp(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def test_base_prefixed_relative_paths_are_accepted(self) -> None:
+        """CTN-001: Paths including relative --base prefix must normalize correctly."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    self.BASE_ARG,
+                    "--doc-dir",
+                    f"{self.BASE_ARG}/docs",
+                    "--guidelines-dir",
+                    f"{self.BASE_ARG}/guidelines",
+                    "--test-dir",
+                    f"{self.BASE_ARG}/tests",
+                    "--src-dir",
+                    f"{self.BASE_ARG}/src",
+                    "--enable-codex",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        config = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
+        self.assertEqual(config["doc-dir"], "docs")
+        self.assertEqual(config["guidelines-dir"], "guidelines")
+        self.assertEqual(config["test-dir"], "tests")
+        self.assertEqual(config["src-dir"], ["src"])
+
+
 if __name__ == "__main__":
     unittest.main()
 

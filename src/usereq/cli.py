@@ -390,6 +390,15 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
         parts = candidate.parts
         if parts and parts[0] == project_base.name and len(parts) > 1:
             candidate = Path(*parts[1:])
+        elif project_base.name in parts:
+            project_name_index = max(
+                idx for idx, part in enumerate(parts) if part == project_base.name
+            )
+            if project_name_index + 1 < len(parts):
+                suffix_candidate = Path(*parts[project_name_index + 1 :])
+                suffix_resolved = (project_base / suffix_candidate).resolve(strict=False)
+                if suffix_resolved.exists():
+                    candidate = suffix_candidate
     if candidate.is_absolute():
         try:
             return str(candidate.relative_to(project_base))
