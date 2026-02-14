@@ -28,7 +28,7 @@
                     - description: Uses the parser built by `build_parser` to parse the provided arguments into a Namespace.
                     - input: argv: list[str] | None, arguments to parse
                     - output: Namespace, parsed arguments
-                - `run()`: Handles the main initialization flow. [`src/usereq/cli.py`, 1155-1947]
+                - `run()`: Handles the main initialization flow. [`src/usereq/cli.py`, 1155-1959]
                     - description: Orchestrates the core logic: validates inputs, manages configuration, ensures directories, generates prompts, Codex skills, and agent files for enabled providers, and updates VSCode settings.
                     - input: args: Namespace, parsed command line arguments
                     - output: None

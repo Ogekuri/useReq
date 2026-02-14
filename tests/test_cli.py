@@ -1373,18 +1373,27 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
     def test_legacy_mode_prefers_legacy_configs(self) -> None:
         """REQ-082: With --legacy the models-legacy.json overrides models.json."""
         configs = cli.load_centralized_models(self.resources_dir, legacy_mode=True)
+        claude_config = configs["claude"]
+        gemini_config = configs["gemini"]
+        copilot_config = configs["copilot"]
+        self.assertIsNotNone(claude_config)
+        self.assertIsNotNone(gemini_config)
+        self.assertIsNotNone(copilot_config)
+        assert claude_config is not None
+        assert gemini_config is not None
+        assert copilot_config is not None
         self.assertEqual(
-            configs["claude"]["id"],
+            claude_config["id"],
             "claude-legacy",
             "Claude should load from models-legacy.json in legacy mode",
         )
         self.assertEqual(
-            configs["gemini"]["id"],
+            gemini_config["id"],
             "gemini-legacy",
             "Gemini should load from models-legacy.json in legacy mode",
         )
         self.assertEqual(
-            configs["copilot"]["id"],
+            copilot_config["id"],
             "copilot-config",
             "Copilot should use models-legacy.json even though it has same value",
         )
@@ -1392,13 +1401,19 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
     def test_standard_mode_uses_config_json(self) -> None:
         """Verify that the normal path uses models.json."""
         configs = cli.load_centralized_models(self.resources_dir, legacy_mode=False)
+        claude_config = configs["claude"]
+        copilot_config = configs["copilot"]
+        self.assertIsNotNone(claude_config)
+        self.assertIsNotNone(copilot_config)
+        assert claude_config is not None
+        assert copilot_config is not None
         self.assertEqual(
-            configs["claude"]["id"],
+            claude_config["id"],
             "claude-config",
             "Claude should load from models.json when not in legacy mode",
         )
         self.assertEqual(
-            configs["copilot"]["id"],
+            copilot_config["id"],
             "copilot-config",
             "Copilot should load from models.json when not in legacy mode",
         )

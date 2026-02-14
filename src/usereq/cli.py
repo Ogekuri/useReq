@@ -1198,6 +1198,17 @@ def run(args: Namespace) -> None:
         test_dir_value = test_dir
         src_dir_values = src_dir
 
+    if not isinstance(guidelines_dir_value, str) or not isinstance(doc_dir_value, str):
+        raise ReqError("Error: invalid docs configuration values", 11)
+    if not isinstance(test_dir_value, str):
+        raise ReqError("Error: invalid tests configuration value", 11)
+    if (
+        not isinstance(src_dir_values, list)
+        or not src_dir_values
+        or not all(isinstance(value, str) for value in src_dir_values)
+    ):
+        raise ReqError("Error: invalid src configuration values", 11)
+
     ensure_doc_directory(doc_dir_value, project_base)
     ensure_test_directory(test_dir_value, project_base)
     for src_dir_value in src_dir_values:
