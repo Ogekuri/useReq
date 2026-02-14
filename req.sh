@@ -1,6 +1,6 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# VERSION: 0.0.67
+# VERSION: 0.0.68
 # AUTHORS: Ogekuri
 
 now=$(date '+%Y-%m-%d_%H-%M-%S')

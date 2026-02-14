@@ -1,5 +1,64 @@
 # Changelog
 
+## [0.0.68](https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68) - 2026-02-14
+### ⛰️  Features
+- *(core)* add Google_C++_Style_Guide.md template.
+- *(core)* add common scripts.
+- *(core)* add SKILLs to codex.
+- *(core)* add Google Python Guide
+- *(core)* add req/ dir.
+- *(core)* tocken optimization.
+- *(core)* add /req.implement prompt.
+- *(core)* add %%SRC_PATH%% on promtps.
+- *(cli)* add src-dir support and update specs/tests [2026-02-08 12:07:55]
+- *(cli)* add --test-dir support and update specs/tests [2026-02-08 11:27:54]
+- *(core)* add WORKFLOW.md.
+- *(core)* add %%DOC_PATH%% on prompts.
+- *(cli)* add doc-dir support [2026-02-08 10:18:36]
+- *(core)* change WORKFLOW.md logic.
+- *(core)* add --write-tech and --overwrite-tech CLI parameters for tech template copy [2026-02-07 17:15:42]
+
+### 🐛  Bug Fixes
+- *(cli)* narrow run path type handling [2026-02-14 19:13:18]
+- *(cli)* normalize base-prefixed relative paths [2026-02-14 18:29:13]
+- *(core)* codex model.json.
+- *(core)* minor fixes.
+- *(core)* fix tests in prompts.
+- *(core)* fix WORKFLOW.md structure.
+- *(core)* fix WORKFLOW.md structure.
+- *(core)* major fix on prompts.
+- *(core)* fix calls on WORKFLOW.md.
+- *(core)* fix prompts step numbering.
+- *(core)* minor fixes on prompts.
+- *(core)* minor fix on create and recreate.
+- *(core)* minor fix on prompts.
+- *(core)* add %%TEST_PATH%% to prompts.
+- *(core)* fix global roadmap.
+- *(core)* fix commit language.
+- *(core)* fix workflow prompt.
+- *(core)* fix on workflow prompt.
+
+### 🚜  Changes
+- *(cli)* rename guidelines copy flags [2026-02-14 18:55:48]
+- *(cli)* rename docs/tests dir flags and update specs/tests [2026-02-14 18:42:42]
+- *(cli)* remove --req-dir and req token handling [2026-02-14 18:14:30]
+- *(cli)* add codex skills generation [2026-02-13 16:06:16]
+- *(cli)* format %%TEST_PATH%% with backticks [2026-02-08 11:43:18]
+- *(cli)* enforce %%TEST_PATH%% trailing slash [2026-02-08 11:35:50]
+- *(cli)* ignore dotfiles, update specs/tests [2026-02-08 10:34:42]
+- *(cli)* update TECH_PATH replacement and specs/tests [2026-02-08 09:45:30]
+- *(cli)* remove workflow flag logic and update specs/tests [2026-02-07 19:45:51]
+- *(core)* refactor deep parameter and function renaming [$(date +"%Y-%m-%d %H:%M:%S")]
+
+### ✨  Refactor
+- *(core)* complete prompts refactory.
+- *(core)* major changes on command line parameters.
+
+### 📚  Documentation
+- *(core)* update WORKFLOW.md with detailed call tree [2026-02-09 10:18:10]
+- *(usereq/cli)* documented CLI execution workflow [2026-02-09 08:17:19]
+- *(docs)* Update workflow analysis based on current source code [2026-02-08 19:00:42]
+
 ## [0.0.67](https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67) - 2026-02-04
 ### 🐛  Bug Fixes
 - *(core)* fix Professional Personas specifications.
@@ -96,7 +155,7 @@
 - *(useReq)* extract workflow strings to resources/common and load them from files [2026-01-25 11:32:01]
 
 ### 📚  Documentation
-- *(core)* add guidelines dir.
+- *(core)* add tech dir.
 
 ## [0.0.55](https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55) - 2026-01-24
 ### 🚜  Changes
@@ -294,7 +353,7 @@
 
 ## [0.0.6](https://github.com/Ogekuri/useReq/compare/v0.0.5..v0.0.6) - 2026-01-01
 ### ⛰️  Features
-- *(core)* add support for multiple requirement files and multiple guidelines dirs.
+- *(core)* add support for multiple requirement files and multiple tech dirs.
 
 ## [0.0.5](https://github.com/Ogekuri/useReq/compare/v0.0.4..v0.0.5) - 2026-01-01
 ### ⛰️  Features
@@ -387,6 +446,7 @@
 - \[0.0.65\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.65
 - \[0.0.66\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.66
 - \[0.0.67\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.67
+- \[0.0.68\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.68
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -455,3 +515,4 @@
 [0.0.65]: https://github.com/Ogekuri/useReq/compare/v0.0.64..v0.0.65
 [0.0.66]: https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66
 [0.0.67]: https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67
+[0.0.68]: https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68
