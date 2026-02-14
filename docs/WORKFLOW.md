@@ -9,7 +9,7 @@
             - output: int, exit code (0 for success, non-zero for error)
             - calls:
                 - `build_parser()`: Builds the CLI argument parser. [`src/usereq/cli.py`, 57-187]
-                    - description: Constructs the `argparse.ArgumentParser` with all supported flags and arguments (e.g., --docs-dir, --tests-dir, --upgrade, --remove, --enable-*).
+                    - description: Constructs the `argparse.ArgumentParser` with all supported flags and arguments (e.g., --docs-dir, --tests-dir, --add-guidelines, --copy-guidelines, --upgrade, --remove, --enable-*).
                     - input: None
                     - output: argparse.ArgumentParser, configured parser
                 - `run_uninstall()`: Executes the uninstallation using uv. [`src/usereq/cli.py`, 234-250]
@@ -66,8 +66,8 @@
                             - description: Converts absolute paths under project base to relative values and trims duplicated `--base` path segments from relative inputs before validation.
                             - input: path_value: str, path to check; project_base: Path, project root
                             - output: str, relative or original path
-                        - `copy_guidelines_templates()`: Copies technical templates. [`src/usereq/cli.py`, 557-594]
-                            - description: Copies template files from the resources directory to the technical directory, handling overwrite logic.
+                        - `copy_guidelines_templates()`: Copies technical templates. [`src/usereq/cli.py`, 566-594]
+                            - description: Copies template files from the resources directory to the technical directory, triggered by --add-guidelines/--copy-guidelines and handling overwrite logic.
                             - input: dest_dir: Path, destination directory; overwrite: bool, whether to overwrite existing files
                             - output: int, number of files copied
                         - `maybe_notify_newer_version()`: Checks for package updates. [`src/usereq/cli.py`, 294-334]

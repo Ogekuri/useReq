@@ -74,6 +74,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-13 | 0.57 | Aggiunta generazione skill Codex in .codex/skills/req con SKILL.md per ogni prompt. |
 | 2026-02-14 | 0.58 | Rimosso parametro --req-dir e rimossa sostituzione token %%REQ_DIR%%/%%REQ_PATH%%. |
 | 2026-02-14 | 0.59 | Rinominati i parametri CLI `--doc-dir`/`--test-dir` in `--docs-dir`/`--tests-dir` e aggiornati i campi configurazione correlati. |
+| 2026-02-14 | 0.60 | Rinominati i parametri CLI `--write-guidelines`/`--overwrite-guidelines` in `--add-guidelines`/`--copy-guidelines`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -208,18 +209,18 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
 - **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
-- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--write-guidelines`, e `--overwrite-guidelines` nel formato `usage: req -c ...`.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, e `--copy-guidelines` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
 - **REQ-005**: Il comando deve richiedere i parametri `--docs-dir`, `--tests-dir`, e `--src-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
 - **REQ-093**: Il parametro `--src-dir` deve poter essere fornito più volte; ogni directory passata deve essere normalizzata come gli altri percorsi e deve esistere, altrimenti il comando deve terminare con errore.
 - **REQ-006**: Il comando deve accettare flag booleani `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--legacy`, e `--preserve-models` (default false). Quando un flag `--enable-*` è omesso, la CLI deve saltare la creazione di risorse per quel provider. Quando `--legacy` è attivo, la CLI deve attivare la "legacy mode" per il caricamento delle configurazioni. Quando `--preserve-models` è attivo in combinazione con `--update`, la CLI deve preservare il file `.req/models.json` esistente e il flag `--legacy` non ha effetto.
 - **REQ-007**: Durante installazioni normali (non upgrade/remove/help), il comando deve richiedere che almeno un flag `--enable-*` sia fornito. Il flag `--legacy` non conta come flag di abilitazione del provider. Se nessun flag `--enable-*` è fornito, deve stampare un messaggio di errore in Inglese e uscire.
 - **REQ-008**: La tabella riassuntiva di installazione ASCII deve includere righe solo per i target CLI i cui prompt sono stati installati durante l'invocazione corrente.
-- **REQ-085**: Il comando deve supportare i flag booleani `--write-guidelines` e `--overwrite-guidelines` (default false). Questi flag attivano la copia dei contenuti della directory `src/usereq/resources/guidelines/` nella directory specificata da `--guidelines-dir`. L'operazione di copia deve essere eseguita prima della chiamata a `generate_guidelines_file_list`.
-- **REQ-086**: Quando `--write-guidelines` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/guidelines/` nella directory target specificata da `--guidelines-dir`, preservando i file esistenti (senza sovrascriverli) se hanno lo stesso nome.
-- **REQ-087**: Quando `--overwrite-guidelines` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/guidelines/` nella directory target specificata da `--guidelines-dir`, sovrascrivendo i file esistenti se hanno lo stesso nome.
-- **REQ-088**: I flag `--write-guidelines` e `--overwrite-guidelines` sono mutualmente esclusivi: se entrambi sono forniti contemporaneamente, il comando deve terminare con errore.
-- **REQ-089**: La copia dei template tecnici deve avvenire solo quando almeno uno dei due flag (`--write-guidelines` o `--overwrite-guidelines`) è attivo. Se nessuno dei due flag è fornito, l'operazione di copia non deve essere eseguita.
+- **REQ-085**: Il comando deve supportare i flag booleani `--add-guidelines` e `--copy-guidelines` (default false). Questi flag attivano la copia dei contenuti della directory `src/usereq/resources/guidelines/` nella directory specificata da `--guidelines-dir`. L'operazione di copia deve essere eseguita prima della chiamata a `generate_guidelines_file_list`.
+- **REQ-086**: Quando `--add-guidelines` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/guidelines/` nella directory target specificata da `--guidelines-dir`, preservando i file esistenti (senza sovrascriverli) se hanno lo stesso nome.
+- **REQ-087**: Quando `--copy-guidelines` è attivo, il comando deve copiare tutti i file presenti in `src/usereq/resources/guidelines/` nella directory target specificata da `--guidelines-dir`, sovrascrivendo i file esistenti se hanno lo stesso nome.
+- **REQ-088**: I flag `--add-guidelines` e `--copy-guidelines` sono mutualmente esclusivi: se entrambi sono forniti contemporaneamente, il comando deve terminare con errore.
+- **REQ-089**: La copia dei template tecnici deve avvenire solo quando almeno uno dei due flag (`--add-guidelines` o `--copy-guidelines`) è attivo. Se nessuno dei due flag è fornito, l'operazione di copia non deve essere eseguita.
 
 ### 3.3 Installazione e Aggiornamenti
 - Questa sezione copre i requisiti per l'installazione, l'aggiornamento e la disinstallazione del tool e delle risorse.

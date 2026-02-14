@@ -62,7 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
-        "[--legacy] [--preserve-models] [--write-guidelines | --overwrite-guidelines] "
+        "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -170,12 +170,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     guidelines_group = parser.add_mutually_exclusive_group()
     guidelines_group.add_argument(
-        "--write-guidelines",
+        "--add-guidelines",
         action="store_true",
         help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir without overwriting existing files.",
     )
     guidelines_group.add_argument(
-        "--overwrite-guidelines",
+        "--copy-guidelines",
         action="store_true",
         help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir, overwriting existing files.",
     )
@@ -1276,10 +1276,10 @@ def run(args: Namespace) -> None:
         log(f"OK: technical directory found {guidelines_dest}")
 
     # Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
-    if args.write_guidelines or args.overwrite_guidelines:
+    if args.add_guidelines or args.copy_guidelines:
         guidelines_src = RESOURCE_ROOT / "guidelines"
         if guidelines_src.is_dir():
-            copied = copy_guidelines_templates(guidelines_dest, overwrite=args.overwrite_guidelines)
+            copied = copy_guidelines_templates(guidelines_dest, overwrite=args.copy_guidelines)
             if VERBOSE:
                 log(f"OK: copied {copied} guidelines template(s) to {guidelines_dest}")
         else:
