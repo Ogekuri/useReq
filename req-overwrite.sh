@@ -22,6 +22,6 @@ else
     mkdir -p "${FOLDER_PATH}/src"
     mkdir -p "${FOLDER_PATH}/.github/workflows"
 
-    #echo req --base "${FOLDER_PATH}" --req-dir "${FOLDER_PATH}/req" --guidelines-dir "${FOLDER_PATH}/guidelines" --doc-dir "${FOLDER_PATH}/docs" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
-    req --base "${FOLDER_PATH}" --req-dir "${FOLDER_PATH}/req" --guidelines-dir "${FOLDER_PATH}/guidelines" --doc-dir "${FOLDER_PATH}/docs" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    #echo req --base "${FOLDER_PATH}" --doc-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    req --base "${FOLDER_PATH}" --doc-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --test-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --overwrite-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
 fi
