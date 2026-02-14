@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--req-dir REQ_DIR --doc-dir DOC_DIR --guidelines-dir GUIDELINES_FILES --test-dir TEST_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
+        "--doc-dir DOC_DIR --guidelines-dir GUIDELINES_DIR --test-dir TEST_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--write-guidelines | --overwrite-guidelines] "
@@ -78,10 +78,6 @@ def build_parser() -> argparse.ArgumentParser:
         "--here",
         action="store_true",
         help="Use current working directory as the project root.",
-    )
-    parser.add_argument(
-        "--req-dir",
-        help="Directory containing requirements documentation files relative to the project root.",
     )
     parser.add_argument(
         "--doc-dir", help="Documentation directory relative to the project root."
@@ -337,23 +333,6 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
         return
 
 
-def ensure_req_directory(path: str, project_base: Path) -> None:
-    """Ensures the requirements directory exists under the project base."""
-    # First normalize the path using existing logic.
-    normalized = make_relative_if_contains_project(path, project_base)
-    req_path = project_base / normalized
-    resolved = req_path.resolve(strict=False)
-    if not resolved.is_relative_to(project_base):
-        raise ReqError("Error: --req-dir must be under the project base", 5)
-    if not req_path.exists():
-        raise ReqError(
-            f"Error: the --req-dir directory '{normalized}' does not exist under {project_base}",
-            5,
-        )
-    if not req_path.is_dir():
-        raise ReqError(f"Error: --req-dir must specify a directory, not a file", 5)
-
-
 def ensure_doc_directory(path: str, project_base: Path) -> None:
     """Ensures the documentation directory exists under the project base."""
     normalized = make_relative_if_contains_project(path, project_base)
@@ -462,7 +441,6 @@ def compute_sub_path(
 
 def save_config(
     project_base: Path,
-    req_dir_value: str,
     guidelines_dir_value: str,
     doc_dir_value: str,
     test_dir_value: str,
@@ -472,7 +450,6 @@ def save_config(
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "req-dir": req_dir_value,
         "guidelines-dir": guidelines_dir_value,
         "doc-dir": doc_dir_value,
         "test-dir": test_dir_value,
@@ -495,13 +472,10 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
         payload = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise ReqError("Error: .req/config.json is not valid", 11) from exc
-    req_dir_value = payload.get("req-dir")
     guidelines_dir_value = payload.get("guidelines-dir")
     doc_dir_value = payload.get("doc-dir")
     test_dir_value = payload.get("test-dir")
     src_dir_value = payload.get("src-dir")
-    if not isinstance(req_dir_value, str) or not req_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'req-dir' field in .req/config.json", 11)
     if not isinstance(guidelines_dir_value, str) or not guidelines_dir_value.strip():
         raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)
     if not isinstance(doc_dir_value, str) or not doc_dir_value.strip():
@@ -515,51 +489,11 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
     ):
         raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
     return {
-        "req-dir": req_dir_value,
         "guidelines-dir": guidelines_dir_value,
         "doc-dir": doc_dir_value,
         "test-dir": test_dir_value,
         "src-dir": src_dir_value,
     }
-
-
-def generate_req_file_list(req_dir: Path, project_base: Path) -> str:
-    """Generates the markdown file list for %%REQ_DIR%% replacement."""
-    if not req_dir.is_dir():
-        return ""
-
-    files = []
-    for file_path in sorted(req_dir.iterdir()):
-        if file_path.is_file() and not file_path.name.startswith("."):
-            try:
-                rel_path = file_path.relative_to(project_base)
-                rel_str = str(rel_path).replace(os.sep, "/")
-                files.append(f"`{rel_str}`")
-            except ValueError:
-                continue
-
-    return ", ".join(files)
-
-
-def generate_req_file_items(req_dir: Path, project_base: Path) -> list[str]:
-    """Generates a list of relative file paths (no formatting) for printing.
-
-    Each entry is formatted as `docs/foo.md` (forward slashes), without
-    surrounding backticks.
-    """
-    if not req_dir.is_dir():
-        return []
-
-    items: list[str] = []
-    for file_path in sorted(req_dir.iterdir()):
-        if file_path.is_file() and not file_path.name.startswith("."):
-            try:
-                rel_path = file_path.relative_to(project_base)
-                rel_str = str(rel_path).replace(os.sep, "/")
-                items.append(rel_str)
-            except ValueError:
-                continue
-    return items
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
@@ -1170,14 +1104,13 @@ def remove_generated_resources(project_base: Path) -> None:
 
 def run_remove(args: Namespace) -> None:
     """Handles the removal of generated resources."""
-    req_dir = getattr(args, 'req_dir', None)
     guidelines_dir = getattr(args, 'guidelines_dir', None)
     doc_dir = getattr(args, 'doc_dir', None)
     test_dir = getattr(args, 'test_dir', None)
     src_dir = getattr(args, 'src_dir', None)
-    if req_dir or guidelines_dir or doc_dir or test_dir or src_dir or args.update:
+    if guidelines_dir or doc_dir or test_dir or src_dir or args.update:
         raise ReqError(
-            "Error: --remove does not accept --req-dir, --guidelines-dir, --doc-dir, --test-dir, --src-dir, or --update",
+            "Error: --remove does not accept --guidelines-dir, --doc-dir, --test-dir, --src-dir, or --update",
             4,
         )
     if args.base:
@@ -1228,55 +1161,48 @@ def run(args: Namespace) -> None:
     if not project_base.exists():
         raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
 
-    req_dir = getattr(args, 'req_dir', None)
     guidelines_dir = getattr(args, 'guidelines_dir', None)
     doc_dir = getattr(args, 'doc_dir', None)
     test_dir = getattr(args, 'test_dir', None)
     src_dir = getattr(args, 'src_dir', None)
 
-    if args.update and (req_dir or guidelines_dir or doc_dir or test_dir or src_dir):
+    if args.update and (guidelines_dir or doc_dir or test_dir or src_dir):
         raise ReqError(
-            "Error: --update does not accept --req-dir, --guidelines-dir, --doc-dir, --test-dir, or --src-dir",
+            "Error: --update does not accept --guidelines-dir, --doc-dir, --test-dir, or --src-dir",
             4,
         )
-    if not args.update and (not req_dir or not guidelines_dir or not doc_dir or not test_dir or not src_dir):
+    if not args.update and (not guidelines_dir or not doc_dir or not test_dir or not src_dir):
         raise ReqError(
-            "Error: --req-dir, --guidelines-dir, --doc-dir, --test-dir, and --src-dir are required without --update",
+            "Error: --guidelines-dir, --doc-dir, --test-dir, and --src-dir are required without --update",
             4,
         )
 
     if args.update:
         config = load_config(project_base)
-        req_dir_value = config["req-dir"]
         guidelines_dir_value = config["guidelines-dir"]
         doc_dir_value = config["doc-dir"]
         test_dir_value = config["test-dir"]
         src_dir_values = config["src-dir"]
     else:
-        req_dir_value = req_dir
         guidelines_dir_value = guidelines_dir
         doc_dir_value = doc_dir
         test_dir_value = test_dir
         src_dir_values = src_dir
 
-    ensure_req_directory(req_dir_value, project_base)
     ensure_doc_directory(doc_dir_value, project_base)
     ensure_test_directory(test_dir_value, project_base)
     for src_dir_value in src_dir_values:
         ensure_src_directory(src_dir_value, project_base)
 
-    normalized_req = make_relative_if_contains_project(req_dir_value, project_base)
     normalized_guidelines = make_relative_if_contains_project(guidelines_dir_value, project_base)
     normalized_doc = make_relative_if_contains_project(doc_dir_value, project_base)
     normalized_test = make_relative_if_contains_project(test_dir_value, project_base)
     normalized_src_dirs: list[str] = []
     config_src_dirs: list[str] = []
     src_has_trailing_slashes: list[bool] = []
-    req_has_trailing_slash = req_dir_value.endswith("/") or req_dir_value.endswith("\\")
     guidelines_has_trailing_slash = guidelines_dir_value.endswith("/") or guidelines_dir_value.endswith("\\")
     doc_has_trailing_slash = doc_dir_value.endswith("/") or doc_dir_value.endswith("\\")
     test_has_trailing_slash = test_dir_value.endswith("/") or test_dir_value.endswith("\\")
-    normalized_req = normalized_req.rstrip("/\\")
     normalized_guidelines = normalized_guidelines.rstrip("/\\")
     normalized_doc = normalized_doc.rstrip("/\\")
     normalized_test = normalized_test.rstrip("/\\")
@@ -1287,14 +1213,12 @@ def run(args: Namespace) -> None:
         normalized_src_dirs.append(normalized_src)
         src_has_trailing_slashes.append(has_trailing)
 
-    ensure_relative(normalized_req, "REQ_DOC", 4)
-    ensure_relative(normalized_guidelines, "REQ_DIR", 5)
+    ensure_relative(normalized_guidelines, "GUIDELINES_DIR", 5)
     ensure_relative(normalized_doc, "DOC_DIR", 4)
     ensure_relative(normalized_test, "TEST_DIR", 4)
     for normalized_src in normalized_src_dirs:
         ensure_relative(normalized_src, "SRC_DIR", 4)
 
-    abs_req = resolve_absolute(normalized_req, project_base)
     abs_guidelines = resolve_absolute(normalized_guidelines, project_base)
     abs_doc = resolve_absolute(normalized_doc, project_base)
     abs_test = resolve_absolute(normalized_test, project_base)
@@ -1302,8 +1226,6 @@ def run(args: Namespace) -> None:
         resolve_absolute(normalized_src, project_base)
         for normalized_src in normalized_src_dirs
     ]
-    if abs_req and not abs_req.resolve().is_relative_to(project_base):
-        raise ReqError("Error: --req-dir must be under the project base", 5)
     if abs_guidelines and not abs_guidelines.resolve().is_relative_to(project_base):
         raise ReqError("Error: --guidelines-dir must be under the project base", 8)
     if abs_doc and not abs_doc.resolve().is_relative_to(project_base):
@@ -1314,11 +1236,6 @@ def run(args: Namespace) -> None:
         if abs_src and not abs_src.resolve().is_relative_to(project_base):
             raise ReqError("Error: --src-dir must be under the project base", 5)
 
-    config_req = (
-        f"{normalized_req}/"
-        if req_has_trailing_slash and normalized_req
-        else normalized_req
-    )
     config_guidelines = (
         f"{normalized_guidelines}/"
         if guidelines_has_trailing_slash and normalized_guidelines
@@ -1343,7 +1260,7 @@ def run(args: Namespace) -> None:
     guidelines_dest = project_base / normalized_guidelines
     if not guidelines_dest.is_dir():
         raise ReqError(
-            f"Error: REQ_DIR directory '{normalized_guidelines}' does not exist under {project_base}",
+            f"Error: GUIDELINES_DIR directory '{normalized_guidelines}' does not exist under {project_base}",
             8,
         )
     if VERBOSE:
@@ -1389,14 +1306,12 @@ def run(args: Namespace) -> None:
     if not args.update:
         save_config(
             project_base,
-            config_req,
             config_guidelines,
             config_doc,
             config_test,
             config_src_dirs,
         )
 
-    sub_req_doc = compute_sub_path(normalized_req, abs_req, project_base)
     sub_guidelines_dir = compute_sub_path(normalized_guidelines, abs_guidelines, project_base)
     sub_test_dir = format_substituted_path(normalized_test).rstrip("/\\")
     token_test_path = f"`{sub_test_dir}/`" if sub_test_dir else ""
@@ -1408,8 +1323,7 @@ def run(args: Namespace) -> None:
     token_src_paths = ", ".join(sub_src_paths)
     if guidelines_has_trailing_slash and sub_guidelines_dir and not sub_guidelines_dir.endswith("/"):
         sub_guidelines_dir += "/"
-    token_req_doc = make_relative_token(sub_req_doc)
-    token_req_dir = make_relative_token(sub_guidelines_dir, keep_trailing=True)
+    token_guidelines_dir = make_relative_token(sub_guidelines_dir, keep_trailing=True)
 
     req_root = project_base / ".req"
     req_root.mkdir(parents=True, exist_ok=True)
@@ -1438,10 +1352,10 @@ def run(args: Namespace) -> None:
             log("OK: preserved existing .req/models.json (--preserve-models active)")
 
     templates_src = find_template_source()
-    req_dir_path = project_base / normalized_req
+    req_dir_path = project_base / normalized_doc
     req_dir_empty = not any(req_dir_path.iterdir())
-    req_target = project_base / normalized_req / "requirements.md"
-    # Create requirements.md only if the --req-dir folder is empty.
+    req_target = project_base / normalized_doc / "requirements.md"
+    # Create requirements.md only if the --doc-dir folder is empty.
     if req_dir_empty:
         src_file = templates_src / "requirements.md"
         req_target.parent.mkdir(parents=True, exist_ok=True)
@@ -1451,22 +1365,17 @@ def run(args: Namespace) -> None:
                 f"Created {req_target} — update the file with the project requirements. (source: {src_file})"
             )
 
-    # Generate the file list for the %%REQ_DIR%% token after possible creation.
-    req_file_list = generate_req_file_list(req_dir_path, project_base)
-
     # Generate the file list for the %%GUIDELINES_FILES%% token.
     guidelines_file_list = generate_guidelines_file_list(project_base / normalized_guidelines, project_base)
 
     dlog(f"project_base={project_base}")
-    dlog(f"REQ_DOC={normalized_req}")
     dlog(f"DOC_DIR={normalized_doc}")
-    dlog(f"REQ_DIR={normalized_guidelines}")
+    dlog(f"GUIDELINES_DIR={normalized_guidelines}")
     dlog(f"TEST_DIR={normalized_test}")
     dlog(f"SRC_DIRS={normalized_src_dirs}")
-    dlog(f"REQ_FILE_LIST={req_file_list}")
     dlog(f"GUIDELINES_FILE_LIST={guidelines_file_list}")
     dlog(f"SUB_GUIDELINES_DIR={sub_guidelines_dir}")
-    dlog(f"TOKEN_REQ_DIR={token_req_dir}")
+    dlog(f"TOKEN_GUIDELINES_DIR={token_guidelines_dir}")
 
     codex_skills_root = None
     target_folders: list[Path] = []
@@ -1570,9 +1479,7 @@ def run(args: Namespace) -> None:
         # (Removed: bootstrap file inlining and YOLO stop/approval substitution)
 
         base_replacements = {
-            "%%REQ_DIR%%": req_file_list,
             "%%GUIDELINES_FILES%%": guidelines_file_list,
-            "%%REQ_PATH%%": normalized_req,
             "%%GUIDELINES_PATH%%": normalized_guidelines,
             "%%DOC_PATH%%": normalized_doc,
             "%%TEST_PATH%%": token_test_path,
@@ -1639,9 +1546,7 @@ def run(args: Namespace) -> None:
             existed = dst_toml.exists()
             md_to_toml(prompt_path, dst_toml, force=existed)
             toml_replacements = {
-                "%%REQ_DIR%%": req_file_list,
                 "%%GUIDELINES_FILES%%": guidelines_file_list,
-                "%%REQ_PATH%%": normalized_req,
                 "%%GUIDELINES_PATH%%": normalized_guidelines,
                 "%%DOC_PATH%%": normalized_doc,
                 "%%TEST_PATH%%": token_test_path,
@@ -1775,7 +1680,7 @@ def run(args: Namespace) -> None:
             existed = dst_kiro_agent.exists()
             kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
             kiro_resources = generate_kiro_resources(
-                project_base / normalized_req,
+                project_base / normalized_doc,
                 project_base,
                 kiro_prompt_rel,
             )
@@ -1979,13 +1884,9 @@ def run(args: Namespace) -> None:
         resolved_base = str(project_base)
     print(f"Installation completed successfully in {resolved_base}")
 
-    # Print the discovered files and directories used for token substitutions
+    # Print the discovered directories used for token substitutions
     # as required by REQ-078: one item per line prefixed with '- '.
-    req_items = generate_req_file_items(req_dir_path, project_base)
     guidelines_items = generate_guidelines_file_items(project_base / normalized_guidelines, project_base)
-
-    for entry in req_items:
-        print(f"- {entry}")
 
     if guidelines_items:
         for entry in guidelines_items:

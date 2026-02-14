@@ -89,8 +89,6 @@ class TestCLI(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -497,21 +495,12 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("tools", data_without_flags)
         self.assertNotIn("allowedTools", data_without_flags)
 
-    def test_req_doc_replacement(self) -> None:
-        """REQ-022: Verifies %%REQ_DIR%% replacement."""
-        # After execution, files must contain link to requirements.md.
+    def test_req_tokens_not_replaced(self) -> None:
+        """REQ-032: Verifies %%REQ_*%% tokens are not parsed."""
         codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
-        # Verify that %%REQ_DIR%% has been replaced.
-        self.assertNotIn(
-            "%%REQ_DIR%%", content, "The token %%REQ_DIR%% must be replaced"
-        )
-        # Verify that it contains reference to docs/requirements.md.
-        self.assertIn(
-            "docs/requirements.md",
-            content,
-            "The file must contain reference to docs/requirements.md",
-        )
+        self.assertNotIn("%%REQ_DIR%%", content, "The token %%REQ_DIR%% must not be present")
+        self.assertNotIn("%%REQ_PATH%%", content, "The token %%REQ_PATH%% must not be present")
 
     def test_doc_path_replacement(self) -> None:
         """REQ-091: Verifies %%DOC_PATH%% replacement."""
@@ -553,13 +542,11 @@ class TestCLI(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(".req/config.json must be a valid JSON")
 
-        # Verify fields req-dir, guidelines-dir, doc-dir, and test-dir.
-        self.assertIn("req-dir", data, "config.json must contain 'req-dir' field")
+        # Verify fields guidelines-dir, doc-dir, and test-dir.
         self.assertIn("guidelines-dir", data, "config.json must contain 'guidelines-dir' field")
         self.assertIn("doc-dir", data, "config.json must contain 'doc-dir' field")
         self.assertIn("test-dir", data, "config.json must contain 'test-dir' field")
         self.assertIn("src-dir", data, "config.json must contain 'src-dir' field")
-        self.assertEqual(data["req-dir"], "docs", "The 'req-dir' field must be 'docs'")
         self.assertEqual(data["guidelines-dir"], "guidelines", "The 'guidelines-dir' field must be 'guidelines'")
         self.assertEqual(data["doc-dir"], "docs", "The 'doc-dir' field must be 'docs'")
         self.assertEqual(data["test-dir"], "tests", "The 'test-dir' field must be 'tests'")
@@ -769,8 +756,6 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -926,8 +911,6 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -1011,8 +994,6 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    str(self.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(self.TEST_DIR / "docs"),
@@ -1046,8 +1027,6 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    str(self.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(self.TEST_DIR / "docs"),
@@ -1115,8 +1094,6 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -1164,24 +1141,25 @@ class TestCLIWithExistingDocs(unittest.TestCase):
             existing_file.exists(), "The existing file must be preserved"
         )
 
-    def test_req_doc_contains_existing_file(self) -> None:
-        """REQ-022: Verifies that %%REQ_DIR%% contains the existing file."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
-        content = codex_prompt.read_text(encoding="utf-8")
+    def test_kiro_resources_contains_existing_file(self) -> None:
+        """REQ-046: Verifies Kiro resources include existing docs files."""
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        data = json.loads(kiro_agent.read_text(encoding="utf-8"))
         self.assertIn(
-            "docs/existing.md",
-            content,
-            "The file must contain reference to docs/existing.md",
+            "file://docs/existing.md",
+            data.get("resources", []),
+            "Kiro resources must include docs/existing.md",
         )
 
-    def test_req_doc_ignores_dotfiles(self) -> None:
-        """DES-013: Verifies that %%REQ_DIR%% ignores dotfiles."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
-        content = codex_prompt.read_text(encoding="utf-8")
-        self.assertNotIn(
-            "docs/.gitignore",
-            content,
-            "Dotfiles in docs must be ignored in %%REQ_DIR%%",
+    def test_kiro_resources_include_prompt_when_docs_nonempty(self) -> None:
+        """REQ-046: Verifies Kiro resources include generated prompt when docs non-empty."""
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        data = json.loads(kiro_agent.read_text(encoding="utf-8"))
+        resources = data.get("resources", [])
+        self.assertIn(
+            "file://.kiro/prompts/req.analyze.md",
+            resources,
+            "Kiro resources must include prompt file",
         )
 
     def test_guidelines_dir_ignores_dotfiles(self) -> None:
@@ -1218,8 +1196,6 @@ class TestPromptsUseAgents(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -1301,8 +1277,6 @@ class TestKiroToolsEnabled(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -1458,8 +1432,6 @@ class TestCLIWithoutClaude(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-                    "--req-dir",
-                    str(cls.TEST_DIR / "docs"),
 
                     "--doc-dir",
                     str(cls.TEST_DIR / "docs"),
@@ -1524,8 +1496,6 @@ class TestProviderEnableFlags(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--req-dir",
-                        str(self.TEST_DIR / "docs"),
 
                         "--doc-dir",
                         str(self.TEST_DIR / "docs"),
@@ -1586,8 +1556,6 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--req-dir",
-                        str(self.TEST_DIR / "docs"),
 
                         "--doc-dir",
                         str(self.TEST_DIR / "docs"),
@@ -1621,8 +1589,6 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--req-dir",
-                        str(self.TEST_DIR / "docs"),
 
                         "--doc-dir",
                         str(self.TEST_DIR / "docs"),
@@ -1709,8 +1675,6 @@ class TestGuidelinesTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    "docs",
 
                     "--doc-dir",
                     "docs",
@@ -1747,8 +1711,6 @@ class TestGuidelinesTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    "docs",
 
                     "--doc-dir",
                     "docs",
@@ -1781,8 +1743,6 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-                        "--req-dir",
-                        "docs",
 
                         "--doc-dir",
                         "docs",
@@ -1806,8 +1766,6 @@ class TestGuidelinesTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    "docs",
 
                     "--doc-dir",
                     "docs",
@@ -1855,8 +1813,6 @@ class TestPreserveModels(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    "docs",
 
                     "--doc-dir",
                     "docs",
@@ -1920,8 +1876,6 @@ class TestPreserveModels(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-                    "--req-dir",
-                    "docs",
 
                     "--doc-dir",
                     "docs",
