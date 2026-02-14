@@ -75,9 +75,9 @@ Click to zoom flowchart image.
 ```bash
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
-  --doc-dir myproject/docs/ \
+  --docs-dir myproject/docs/ \
   --guidelines-dir myproject/guidelines_docs/ \
-  --test-dir myproject/tests/ \
+  --tests-dir myproject/tests/ \
   --src-dir myproject/src/ \
   --enable-codex \
   --verbose --debug
@@ -98,7 +98,7 @@ uv tool uninstall usereq
 ### Usage
 - Run `req` to create/re-create `.codex`, `.github`, `.gemini`, `.kiro`, `.opencode`, and `.req` in your project repository.
   - Launch `req` from your home directory (or wherever you prefer) and specify `--base <project-folder>` or `--here` to use the current directory as the project base.
-  - `--doc-dir` is used as the requirements documentation directory; if it is empty, `requirements.md` is generated from template.
+  - `--docs-dir` is used as the requirements documentation directory; if it is empty, `requirements.md` is generated from template.
   - `--guidelines-dir` must be an existing directory under the project base and **can** contain technical documentation folders.
   - Select CLI to install with:
     * `--enable-claude`       Enable generation of Claude prompts and agents for this run.

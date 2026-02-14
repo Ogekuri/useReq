@@ -9,7 +9,7 @@
             - output: int, exit code (0 for success, non-zero for error)
             - calls:
                 - `build_parser()`: Builds the CLI argument parser. [`src/usereq/cli.py`, 57-187]
-                    - description: Constructs the `argparse.ArgumentParser` with all supported flags and arguments (e.g., --upgrade, --remove, --enable-*).
+                    - description: Constructs the `argparse.ArgumentParser` with all supported flags and arguments (e.g., --docs-dir, --tests-dir, --upgrade, --remove, --enable-*).
                     - input: None
                     - output: argparse.ArgumentParser, configured parser
                 - `run_uninstall()`: Executes the uninstallation using uv. [`src/usereq/cli.py`, 234-250]

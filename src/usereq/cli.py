@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--doc-dir DOC_DIR --guidelines-dir GUIDELINES_DIR --test-dir TEST_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
+        "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--write-guidelines | --overwrite-guidelines] "
@@ -80,13 +80,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use current working directory as the project root.",
     )
     parser.add_argument(
-        "--doc-dir", help="Documentation directory relative to the project root."
+        "--docs-dir", help="Documentation directory relative to the project root."
     )
     parser.add_argument(
         "--guidelines-dir", help="Technical directory relative to the project root."
     )
     parser.add_argument(
-        "--test-dir", help="Test directory relative to the project root."
+        "--tests-dir", help="Test directory relative to the project root."
     )
     parser.add_argument(
         "--src-dir",
@@ -339,14 +339,14 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
     doc_path = project_base / normalized
     resolved = doc_path.resolve(strict=False)
     if not resolved.is_relative_to(project_base):
-        raise ReqError("Error: --doc-dir must be under the project base", 5)
+        raise ReqError("Error: --docs-dir must be under the project base", 5)
     if not doc_path.exists():
         raise ReqError(
-            f"Error: the --doc-dir directory '{normalized}' does not exist under {project_base}",
+            f"Error: the --docs-dir directory '{normalized}' does not exist under {project_base}",
             5,
         )
     if not doc_path.is_dir():
-        raise ReqError("Error: --doc-dir must specify a directory, not a file", 5)
+        raise ReqError("Error: --docs-dir must specify a directory, not a file", 5)
 
 
 def ensure_test_directory(path: str, project_base: Path) -> None:
@@ -355,14 +355,14 @@ def ensure_test_directory(path: str, project_base: Path) -> None:
     test_path = project_base / normalized
     resolved = test_path.resolve(strict=False)
     if not resolved.is_relative_to(project_base):
-        raise ReqError("Error: --test-dir must be under the project base", 5)
+        raise ReqError("Error: --tests-dir must be under the project base", 5)
     if not test_path.exists():
         raise ReqError(
-            f"Error: the --test-dir directory '{normalized}' does not exist under {project_base}",
+            f"Error: the --tests-dir directory '{normalized}' does not exist under {project_base}",
             5,
         )
     if not test_path.is_dir():
-        raise ReqError("Error: --test-dir must specify a directory, not a file", 5)
+        raise ReqError("Error: --tests-dir must specify a directory, not a file", 5)
 
 
 def ensure_src_directory(path: str, project_base: Path) -> None:
@@ -460,8 +460,8 @@ def save_config(
     config_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "guidelines-dir": guidelines_dir_value,
-        "doc-dir": doc_dir_value,
-        "test-dir": test_dir_value,
+        "docs-dir": doc_dir_value,
+        "tests-dir": test_dir_value,
         "src-dir": src_dir_values,
     }
     config_path.write_text(
@@ -482,15 +482,15 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
     except json.JSONDecodeError as exc:
         raise ReqError("Error: .req/config.json is not valid", 11) from exc
     guidelines_dir_value = payload.get("guidelines-dir")
-    doc_dir_value = payload.get("doc-dir")
-    test_dir_value = payload.get("test-dir")
+    doc_dir_value = payload.get("docs-dir")
+    test_dir_value = payload.get("tests-dir")
     src_dir_value = payload.get("src-dir")
     if not isinstance(guidelines_dir_value, str) or not guidelines_dir_value.strip():
         raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)
     if not isinstance(doc_dir_value, str) or not doc_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'doc-dir' field in .req/config.json", 11)
+        raise ReqError("Error: missing or invalid 'docs-dir' field in .req/config.json", 11)
     if not isinstance(test_dir_value, str) or not test_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'test-dir' field in .req/config.json", 11)
+        raise ReqError("Error: missing or invalid 'tests-dir' field in .req/config.json", 11)
     if (
         not isinstance(src_dir_value, list)
         or not src_dir_value
@@ -499,8 +499,8 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
         raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
     return {
         "guidelines-dir": guidelines_dir_value,
-        "doc-dir": doc_dir_value,
-        "test-dir": test_dir_value,
+        "docs-dir": doc_dir_value,
+        "tests-dir": test_dir_value,
         "src-dir": src_dir_value,
     }
 
@@ -1114,12 +1114,12 @@ def remove_generated_resources(project_base: Path) -> None:
 def run_remove(args: Namespace) -> None:
     """Handles the removal of generated resources."""
     guidelines_dir = getattr(args, 'guidelines_dir', None)
-    doc_dir = getattr(args, 'doc_dir', None)
-    test_dir = getattr(args, 'test_dir', None)
+    doc_dir = getattr(args, 'docs_dir', None)
+    test_dir = getattr(args, 'tests_dir', None)
     src_dir = getattr(args, 'src_dir', None)
     if guidelines_dir or doc_dir or test_dir or src_dir or args.update:
         raise ReqError(
-            "Error: --remove does not accept --guidelines-dir, --doc-dir, --test-dir, --src-dir, or --update",
+            "Error: --remove does not accept --guidelines-dir, --docs-dir, --tests-dir, --src-dir, or --update",
             4,
         )
     if args.base:
@@ -1171,26 +1171,26 @@ def run(args: Namespace) -> None:
         raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
 
     guidelines_dir = getattr(args, 'guidelines_dir', None)
-    doc_dir = getattr(args, 'doc_dir', None)
-    test_dir = getattr(args, 'test_dir', None)
+    doc_dir = getattr(args, 'docs_dir', None)
+    test_dir = getattr(args, 'tests_dir', None)
     src_dir = getattr(args, 'src_dir', None)
 
     if args.update and (guidelines_dir or doc_dir or test_dir or src_dir):
         raise ReqError(
-            "Error: --update does not accept --guidelines-dir, --doc-dir, --test-dir, or --src-dir",
+            "Error: --update does not accept --guidelines-dir, --docs-dir, --tests-dir, or --src-dir",
             4,
         )
     if not args.update and (not guidelines_dir or not doc_dir or not test_dir or not src_dir):
         raise ReqError(
-            "Error: --guidelines-dir, --doc-dir, --test-dir, and --src-dir are required without --update",
+            "Error: --guidelines-dir, --docs-dir, --tests-dir, and --src-dir are required without --update",
             4,
         )
 
     if args.update:
         config = load_config(project_base)
         guidelines_dir_value = config["guidelines-dir"]
-        doc_dir_value = config["doc-dir"]
-        test_dir_value = config["test-dir"]
+        doc_dir_value = config["docs-dir"]
+        test_dir_value = config["tests-dir"]
         src_dir_values = config["src-dir"]
     else:
         guidelines_dir_value = guidelines_dir
@@ -1223,8 +1223,8 @@ def run(args: Namespace) -> None:
         src_has_trailing_slashes.append(has_trailing)
 
     ensure_relative(normalized_guidelines, "GUIDELINES_DIR", 5)
-    ensure_relative(normalized_doc, "DOC_DIR", 4)
-    ensure_relative(normalized_test, "TEST_DIR", 4)
+    ensure_relative(normalized_doc, "DOCS_DIR", 4)
+    ensure_relative(normalized_test, "TESTS_DIR", 4)
     for normalized_src in normalized_src_dirs:
         ensure_relative(normalized_src, "SRC_DIR", 4)
 
@@ -1238,9 +1238,9 @@ def run(args: Namespace) -> None:
     if abs_guidelines and not abs_guidelines.resolve().is_relative_to(project_base):
         raise ReqError("Error: --guidelines-dir must be under the project base", 8)
     if abs_doc and not abs_doc.resolve().is_relative_to(project_base):
-        raise ReqError("Error: --doc-dir must be under the project base", 5)
+        raise ReqError("Error: --docs-dir must be under the project base", 5)
     if abs_test and not abs_test.resolve().is_relative_to(project_base):
-        raise ReqError("Error: --test-dir must be under the project base", 5)
+        raise ReqError("Error: --tests-dir must be under the project base", 5)
     for abs_src in abs_src_dirs:
         if abs_src and not abs_src.resolve().is_relative_to(project_base):
             raise ReqError("Error: --src-dir must be under the project base", 5)
@@ -1364,7 +1364,7 @@ def run(args: Namespace) -> None:
     req_dir_path = project_base / normalized_doc
     req_dir_empty = not any(req_dir_path.iterdir())
     req_target = project_base / normalized_doc / "requirements.md"
-    # Create requirements.md only if the --doc-dir folder is empty.
+    # Create requirements.md only if the --docs-dir folder is empty.
     if req_dir_empty:
         src_file = templates_src / "requirements.md"
         req_target.parent.mkdir(parents=True, exist_ok=True)
@@ -1378,9 +1378,9 @@ def run(args: Namespace) -> None:
     guidelines_file_list = generate_guidelines_file_list(project_base / normalized_guidelines, project_base)
 
     dlog(f"project_base={project_base}")
-    dlog(f"DOC_DIR={normalized_doc}")
+    dlog(f"DOCS_DIR={normalized_doc}")
     dlog(f"GUIDELINES_DIR={normalized_guidelines}")
-    dlog(f"TEST_DIR={normalized_test}")
+    dlog(f"TESTS_DIR={normalized_test}")
     dlog(f"SRC_DIRS={normalized_src_dirs}")
     dlog(f"GUIDELINES_FILE_LIST={guidelines_file_list}")
     dlog(f"SUB_GUIDELINES_DIR={sub_guidelines_dir}")

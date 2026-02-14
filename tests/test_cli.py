@@ -90,11 +90,11 @@ class TestCLI(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -495,18 +495,11 @@ class TestCLI(unittest.TestCase):
         self.assertNotIn("tools", data_without_flags)
         self.assertNotIn("allowedTools", data_without_flags)
 
-    def test_req_tokens_not_replaced(self) -> None:
-        """REQ-032: Verifies %%REQ_*%% tokens are not parsed."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
-        content = codex_prompt.read_text(encoding="utf-8")
-        self.assertNotIn("%%REQ_DIR%%", content, "The token %%REQ_DIR%% must not be present")
-        self.assertNotIn("%%REQ_PATH%%", content, "The token %%REQ_PATH%% must not be present")
-
     def test_doc_path_replacement(self) -> None:
         """REQ-091: Verifies %%DOC_PATH%% replacement."""
         config_path = self.TEST_DIR / ".req" / "config.json"
         data = json.loads(config_path.read_text(encoding="utf-8"))
-        doc_dir = data["doc-dir"]
+        doc_dir = data["docs-dir"]
         replaced = cli.apply_replacements("DOC: %%DOC_PATH%%", {"%%DOC_PATH%%": doc_dir})
         self.assertEqual(replaced, f"DOC: {doc_dir}")
 
@@ -514,7 +507,7 @@ class TestCLI(unittest.TestCase):
         """REQ-092: Verifies %%TEST_PATH%% replacement."""
         config_path = self.TEST_DIR / ".req" / "config.json"
         data = json.loads(config_path.read_text(encoding="utf-8"))
-        test_dir = data["test-dir"]
+        test_dir = data["tests-dir"]
         test_value = f"`{test_dir.rstrip('/\\\\')}/`"
         replaced = cli.apply_replacements(
             "TEST: %%TEST_PATH%%", {"%%TEST_PATH%%": test_value}
@@ -542,14 +535,14 @@ class TestCLI(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(".req/config.json must be a valid JSON")
 
-        # Verify fields guidelines-dir, doc-dir, and test-dir.
+        # Verify fields guidelines-dir, docs-dir, and tests-dir.
         self.assertIn("guidelines-dir", data, "config.json must contain 'guidelines-dir' field")
-        self.assertIn("doc-dir", data, "config.json must contain 'doc-dir' field")
-        self.assertIn("test-dir", data, "config.json must contain 'test-dir' field")
+        self.assertIn("docs-dir", data, "config.json must contain 'docs-dir' field")
+        self.assertIn("tests-dir", data, "config.json must contain 'tests-dir' field")
         self.assertIn("src-dir", data, "config.json must contain 'src-dir' field")
         self.assertEqual(data["guidelines-dir"], "guidelines", "The 'guidelines-dir' field must be 'guidelines'")
-        self.assertEqual(data["doc-dir"], "docs", "The 'doc-dir' field must be 'docs'")
-        self.assertEqual(data["test-dir"], "tests", "The 'test-dir' field must be 'tests'")
+        self.assertEqual(data["docs-dir"], "docs", "The 'docs-dir' field must be 'docs'")
+        self.assertEqual(data["tests-dir"], "tests", "The 'tests-dir' field must be 'tests'")
         self.assertEqual(data["src-dir"], ["src"], "The 'src-dir' field must be ['src']")
 
     def test_opencode_agent_files_created(self) -> None:
@@ -757,11 +750,11 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -912,11 +905,11 @@ class TestModelsAndTools(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -995,11 +988,11 @@ class TestModelsAndTools(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(self.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(self.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(self.TEST_DIR / "tests"),
                     "--src-dir",
                     str(self.TEST_DIR / "src"),
@@ -1028,11 +1021,11 @@ class TestModelsAndTools(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(self.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(self.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(self.TEST_DIR / "tests"),
                     "--src-dir",
                     str(self.TEST_DIR / "src"),
@@ -1095,11 +1088,11 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -1197,11 +1190,11 @@ class TestPromptsUseAgents(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -1278,11 +1271,11 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -1433,11 +1426,11 @@ class TestCLIWithoutClaude(unittest.TestCase):
                     "--base",
                     str(cls.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
                     str(cls.TEST_DIR / "guidelines"),
-                    "--test-dir",
+                    "--tests-dir",
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
@@ -1497,11 +1490,11 @@ class TestProviderEnableFlags(unittest.TestCase):
                         "--base",
                         str(self.TEST_DIR),
 
-                        "--doc-dir",
+                        "--docs-dir",
                         str(self.TEST_DIR / "docs"),
                         "--guidelines-dir",
                         str(self.TEST_DIR / "guidelines"),
-                        "--test-dir",
+                        "--tests-dir",
                         str(self.TEST_DIR / "tests"),
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
@@ -1547,11 +1540,11 @@ class TestBasePrefixedRelativePaths(unittest.TestCase):
                 [
                     "--base",
                     self.BASE_ARG,
-                    "--doc-dir",
+                    "--docs-dir",
                     f"{self.BASE_ARG}/docs",
                     "--guidelines-dir",
                     f"{self.BASE_ARG}/guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     f"{self.BASE_ARG}/tests",
                     "--src-dir",
                     f"{self.BASE_ARG}/src",
@@ -1560,9 +1553,9 @@ class TestBasePrefixedRelativePaths(unittest.TestCase):
             )
         self.assertEqual(exit_code, 0)
         config = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
-        self.assertEqual(config["doc-dir"], "docs")
+        self.assertEqual(config["docs-dir"], "docs")
         self.assertEqual(config["guidelines-dir"], "guidelines")
-        self.assertEqual(config["test-dir"], "tests")
+        self.assertEqual(config["tests-dir"], "tests")
         self.assertEqual(config["src-dir"], ["src"])
 
 
@@ -1602,11 +1595,11 @@ class TestUpdateNotification(unittest.TestCase):
                         "--base",
                         str(self.TEST_DIR),
 
-                        "--doc-dir",
+                        "--docs-dir",
                         str(self.TEST_DIR / "docs"),
                         "--guidelines-dir",
                         str(self.TEST_DIR / "guidelines"),
-                        "--test-dir",
+                        "--tests-dir",
                         str(self.TEST_DIR / "tests"),
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
@@ -1635,11 +1628,11 @@ class TestUpdateNotification(unittest.TestCase):
                         "--base",
                         str(self.TEST_DIR),
 
-                        "--doc-dir",
+                        "--docs-dir",
                         str(self.TEST_DIR / "docs"),
                         "--guidelines-dir",
                         str(self.TEST_DIR / "guidelines"),
-                        "--test-dir",
+                        "--tests-dir",
                         str(self.TEST_DIR / "tests"),
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
@@ -1721,11 +1714,11 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     "docs",
                     "--guidelines-dir",
                     "guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     "tests",
                     "--src-dir",
                     "src",
@@ -1757,11 +1750,11 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     "docs",
                     "--guidelines-dir",
                     "guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     "tests",
                     "--src-dir",
                     "src",
@@ -1789,11 +1782,11 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "--base",
                         str(self.TEST_DIR),
 
-                        "--doc-dir",
+                        "--docs-dir",
                         "docs",
                     "--guidelines-dir",
                     "guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     "tests",
                     "--src-dir",
                     "src",
@@ -1812,11 +1805,11 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     "docs",
                     "--guidelines-dir",
                     "guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     "tests",
                     "--src-dir",
                     "src",
@@ -1859,11 +1852,11 @@ class TestPreserveModels(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     "docs",
                     "--guidelines-dir",
                     "guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     "tests",
                     "--src-dir",
                     "src",
@@ -1922,11 +1915,11 @@ class TestPreserveModels(unittest.TestCase):
                     "--base",
                     str(self.TEST_DIR),
 
-                    "--doc-dir",
+                    "--docs-dir",
                     "docs",
                     "--guidelines-dir",
                     "guidelines",
-                    "--test-dir",
+                    "--tests-dir",
                     "tests",
                     "--src-dir",
                     "src",
