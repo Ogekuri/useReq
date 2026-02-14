@@ -14,14 +14,6 @@ if [ ! -d "$FOLDER_PATH" ]; then
     echo "Path does not exist"
     exit 1
 else
-    # make dirs
-    mkdir -p "${FOLDER_PATH}/req"
-    mkdir -p "${FOLDER_PATH}/guidelines"
-    mkdir -p "${FOLDER_PATH}/docs"
-    mkdir -p "${FOLDER_PATH}/tests"
-    mkdir -p "${FOLDER_PATH}/src"
-    mkdir -p "${FOLDER_PATH}/.github/workflows"
-
     #echo req --update --base --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
     req --update --base --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
 fi
