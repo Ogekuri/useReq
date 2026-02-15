@@ -35,14 +35,20 @@ EXT_LANG_MAP = {
     ".pl": "perl", ".hs": "haskell", ".zig": "zig",
     ".ex": "elixir", ".cs": "csharp",
 }
+"""! @brief Extension-to-language normalization map for compression input."""
 
 # Languages where indentation is semantically significant
 INDENT_SIGNIFICANT = {"python", "haskell", "elixir"}
+"""! @brief Languages requiring indentation-preserving compression behavior."""
 
 _specs_cache = None
+"""! @brief Cached language specification dictionary initialized lazily."""
 
 
 def _get_specs():
+    """! @brief Return cached language specifications, initializing once.
+    @return Dictionary mapping normalized language keys to language specs.
+    """
     global _specs_cache
     if _specs_cache is None:
         _specs_cache = build_language_specs()
@@ -50,6 +56,10 @@ def _get_specs():
 
 
 def detect_language(filepath: str) -> str | None:
+    """! @brief Detect language key from file extension.
+    @param filepath Source file path.
+    @return Normalized language key, or None when extension is unsupported.
+    """
     _, ext = os.path.splitext(filepath)
     return EXT_LANG_MAP.get(ext.lower())
 
@@ -343,6 +353,7 @@ def compress_file(filepath: str, language: str | None = None,
 
 
 def main():
+    """! @brief Execute the standalone compression CLI."""
     import argparse
     parser = argparse.ArgumentParser(
         description="Compress source code for LLM context optimization.")

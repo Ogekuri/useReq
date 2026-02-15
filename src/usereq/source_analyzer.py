@@ -73,6 +73,9 @@ class SourceElement:
 
     @property
     def type_label(self) -> str:
+        """! @brief Return the normalized printable label for element_type.
+        @return Stable uppercase label used in markdown rendering output.
+        """
         labels = {
             ElementType.FUNCTION: "FUNCTION",
             ElementType.METHOD: "METHOD",
@@ -675,6 +678,7 @@ class SourceAnalyzer:
     """
 
     def __init__(self):
+        """! @brief Initialize analyzer state with language specifications."""
         self.specs = build_language_specs()
 
     def get_supported_languages(self) -> list:
@@ -1895,6 +1899,7 @@ def format_markdown(elements: list, filepath: str, language: str,
 
 
 def main():
+    """! @brief Execute the standalone source analyzer CLI command."""
     parser = argparse.ArgumentParser(
         description=(
             "Analyze a source file and extract definitions, comments "

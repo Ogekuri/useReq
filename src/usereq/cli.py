@@ -32,6 +32,10 @@ class ReqError(Exception):
     """Dedicated exception for expected CLI errors."""
 
     def __init__(self, message: str, code: int = 1) -> None:
+        """! @brief Initialize an expected CLI failure payload.
+        @param message Human-readable error message.
+        @param code Process exit code bound to the failure category.
+        """
         super().__init__(message)
         self.message = message
         self.code = code

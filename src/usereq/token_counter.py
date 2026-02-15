@@ -14,6 +14,9 @@ class TokenCounter:
     """Count tokens using tiktoken encoding (cl100k_base by default)."""
 
     def __init__(self, encoding_name: str = "cl100k_base"):
+        """! @brief Initialize token counter with a specific tiktoken encoding.
+        @param encoding_name Name of tiktoken encoding used for tokenization.
+        """
         self.encoding = tiktoken.get_encoding(encoding_name)
 
     def count_tokens(self, content: str) -> int:

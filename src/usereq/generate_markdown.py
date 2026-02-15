@@ -44,6 +44,7 @@ EXT_LANG_MAP = {
     ".ex": "elixir",
     ".cs": "csharp",
 }
+"""! @brief Extension-to-language normalization map for markdown generation."""
 
 
 def detect_language(filepath: str) -> str | None:
@@ -109,6 +110,7 @@ def generate_markdown(filepaths: list[str]) -> str:
 
 
 def main():
+    """! @brief Execute the standalone markdown generation CLI command."""
     if len(sys.argv) < 2:
         print("Usage: python generate_markdown.py file1 [file2 ...]",
               file=sys.stderr)

@@ -22,3 +22,4 @@ __all__ = [
     "source_analyzer", "token_counter", "generate_markdown",
     "compress", "compress_files",
 ]
+"""! @brief Public package exports for CLI entrypoint and utility submodules."""

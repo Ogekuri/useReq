@@ -73,6 +73,7 @@ def compress_files(filepaths: list[str],
 
 
 def main():
+    """! @brief Execute the multi-file compression CLI command."""
     import argparse
     parser = argparse.ArgumentParser(
         description="Compress and concatenate source files for LLM context.")
