@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.0.69](https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69) - 2026-02-15
+### ⛰️  Features
+- *(core)* add REFERENCES.md as source of true.
+- *(core)* set English language for WORKFLOW.md.
+- *(core)* add REFERENCES.md management and /req.references prompt.
+
+### 🐛  Bug Fixes
+- *(core)* minor fixes.
+- *(core)* fix WORKFLOW.md.
+- *(load_config)* add fallback for legacy config keys doc-dir/test-dir [2026-02-15 17:21:55]
+
+### 🚜  Changes
+- *(cli)* prepend files structure in --references [2026-02-15 19:45:56]
+- *(core)* remove doc-comment reqs and normalize doxygen docs [2026-02-15 19:31:18]
+- *(references)* regenerate references after doxygen updates [2026-02-15 19:20:19]
+
+### 📚  Documentation
+- *(core)* update README.md.
+- *(workflow)* add generated call-tree workflow [2026-02-15 19:07:20]
+- *(references)* regenerate code references document [2026-02-15 18:58:58]
+- *(workflow)* regenerate call-tree workflow specification [2026-02-15 18:56:13]
+
 ## [0.0.68](https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68) - 2026-02-14
 ### ⛰️  Features
 - *(core)* add Google_C++_Style_Guide.md template.
@@ -447,6 +469,7 @@
 - \[0.0.66\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.66
 - \[0.0.67\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.67
 - \[0.0.68\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.68
+- \[0.0.69\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.69
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -516,3 +539,4 @@
 [0.0.66]: https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66
 [0.0.67]: https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67
 [0.0.68]: https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68
+[0.0.69]: https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69
