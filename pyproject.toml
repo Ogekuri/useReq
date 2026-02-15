@@ -9,6 +9,9 @@ description = "Initialize a project with prompts, agents, and templates from the
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
+dependencies = [
+  "tiktoken>=0.7.0",
+]
 authors = [
   { name = "Astral" }
 ]

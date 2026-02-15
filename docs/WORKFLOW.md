@@ -151,3 +151,177 @@
                     - description: Wrapper around `subprocess.run` to execute pdoc with the constructed command and environment.
                     - input: command: list[str]; env: dict; cwd: Path
                     - output: subprocess.CompletedProcess
+
+## Standalone File Commands Flow
+- **Token Counting (`--files-tokens`)**
+    - `src/usereq/cli.py`
+        - `run_files_tokens()`: Counts tokens and characters for a list of files. [`src/usereq/cli.py`, 2048-2064]
+            - description: Reads each file, computes token/character metrics via TokenCounter, formats a pack summary, and prints it to stdout. Skips non-existent files with a stderr warning.
+            - input: files: list[str], file paths
+            - output: None (prints to stdout)
+            - calls:
+                - `count_files_metrics()`: Computes per-file metrics. [`src/usereq/token_counter.py`, 45-70]
+                    - description: Iterates over file paths, reads content, counts tokens and characters for each file. Non-existent files produce an error entry.
+                    - input: file_paths: list; encoding_name: str
+                    - output: list[dict], per-file metrics with keys: file, tokens, chars (or error)
+                    - calls:
+                        - `count_file_metrics()`: Computes metrics for a single file content. [`src/usereq/token_counter.py`, 32-43]
+                            - input: content: str; filename: str; encoding_name: str
+                            - output: dict with keys: file, tokens, chars
+                            - calls:
+                                - `TokenCounter.count_tokens()`: Counts tokens via tiktoken. [`src/usereq/token_counter.py`, 19-25]
+                                    - input: content: str
+                                    - output: int, token count
+                                - `TokenCounter.count_chars()`: Counts characters. [`src/usereq/token_counter.py`, 27-30]
+                                    - input: content: str
+                                    - output: int, character count
+                - `format_pack_summary()`: Formats metrics into a summary table. [`src/usereq/token_counter.py`, 73-106]
+                    - description: Produces a "Pack Summary" table with per-file and total token/character counts.
+                    - input: results: list[dict]
+                    - output: str, formatted summary
+
+- **Markdown Reference Generation (`--files-references`)**
+    - `src/usereq/cli.py`
+        - `run_files_references()`: Generates markdown reference from source files. [`src/usereq/cli.py`, 2066-2072]
+            - description: Delegates to generate_markdown() and prints the result to stdout.
+            - input: files: list[str], file paths
+            - output: None (prints to stdout)
+            - calls:
+                - `generate_markdown()`: Produces markdown from source files. [`src/usereq/generate_markdown.py`, 55-108]
+                    - description: Analyzes each file with SourceAnalyzer, formats results as markdown via format_markdown(), joins multiple files with `---` separators. Skips non-existent or unsupported files with stderr warnings.
+                    - input: filepaths: list[str]
+                    - output: str, concatenated markdown
+                    - calls:
+                        - `detect_language()`: Detects language from file extension. [`src/usereq/generate_markdown.py`, 49-53]
+                            - input: filepath: str
+                            - output: str | None, language name
+                        - `SourceAnalyzer.analyze()`: Parses source into structural elements. [`src/usereq/source_analyzer.py`, 690-836]
+                            - input: filepath: str; language: str
+                            - output: list[SourceElement], parsed elements
+                        - `SourceAnalyzer.enrich()`: Enriches parsed elements with metadata. [`src/usereq/source_analyzer.py`, 979-995]
+                            - input: elements: list; language: str; source_code: str
+                            - output: list, enriched elements
+                        - `format_markdown()`: Formats elements as markdown. [`src/usereq/source_analyzer.py`, 1642-2015]
+                            - input: elements: list; source_code: str; filepath: str; language: str
+                            - output: str, markdown representation
+
+- **Source Compression (`--files-compress`)**
+    - `src/usereq/cli.py`
+        - `run_files_compress()`: Compresses source files. [`src/usereq/cli.py`, 2074-2080]
+            - description: Delegates to compress_files() and prints the result to stdout.
+            - input: files: list[str], file paths
+            - output: None (prints to stdout)
+            - calls:
+                - `compress_files()`: Compresses multiple source files. [`src/usereq/compress_files.py`, 24-72]
+                    - description: For each valid file, detects language, compresses source, and prepends an `@@@ path | lang` header. Skips non-existent or unsupported files.
+                    - input: filepaths: list[str]; include_line_numbers: bool
+                    - output: str, compressed output
+                    - calls:
+                        - `compress_file()`: Compresses a single source file. [`src/usereq/compress.py`, 320-343]
+                            - input: filepath: str; language: str | None; include_line_numbers: bool
+                            - output: str, compressed source
+                            - calls:
+                                - `detect_language()`: Detects language from extension. [`src/usereq/compress.py`, 52-55]
+                                    - input: filepath: str
+                                    - output: str | None
+                                - `compress_source()`: Core compression logic. [`src/usereq/compress.py`, 148-318]
+                                    - description: Removes comments (single-line, multi-line, docstrings), blank lines, and trailing whitespace. Preserves indentation for Python/Haskell/Elixir. Optionally adds `Lnn>` line number prefixes.
+                                    - input: source: str; language: str; include_line_numbers: bool
+                                    - output: str, compressed source
+
+## Project-Scoped Commands Flow
+- **Project Reference Generation (`--references`)**
+    - `src/usereq/cli.py`
+        - `run_references()`: Generates markdown reference for all project sources. [`src/usereq/cli.py`, 2082-2092]
+            - description: Resolves project base and src-dirs, collects all source files with supported extensions (excluding ignored directories), then delegates to run_files_references().
+            - input: args: Namespace, parsed CLI arguments
+            - output: None
+            - calls:
+                - `_resolve_project_src_dirs()`: Resolves project base path and source directories. [`src/usereq/cli.py`, 2106-2138]
+                    - description: Determines project base from --base/--here, loads src-dir from CLI args or .req/config.json.
+                    - input: args: Namespace
+                    - output: tuple[Path, list[str]], (project_base, src_dirs)
+                - `_collect_source_files()`: Collects source files from directories. [`src/usereq/cli.py`, 2009-2029]
+                    - description: Walks each src-dir recursively, skipping EXCLUDED_DIRS, collecting files whose extension is in SUPPORTED_EXTENSIONS. Returns sorted list of absolute paths.
+                    - input: src_dirs: list[str]; project_base: Path
+                    - output: list[str], sorted file paths
+                - `run_files_references()`: Generates markdown (see above).
+
+- **Project Source Compression (`--compress`)**
+    - `src/usereq/cli.py`
+        - `run_compress_cmd()`: Compresses all project sources. [`src/usereq/cli.py`, 2094-2104]
+            - description: Resolves project base and src-dirs, collects all source files, then delegates to run_files_compress().
+            - input: args: Namespace, parsed CLI arguments
+            - output: None
+            - calls:
+                - `_resolve_project_src_dirs()`: Resolves project context (see above).
+                - `_collect_source_files()`: Collects source files (see above).
+                - `run_files_compress()`: Compresses files (see above).
+
+## Source Analyzer Module
+- **Multi-Language Source Code Analysis**
+    - `src/usereq/source_analyzer.py`
+        - `build_language_specs()`: Builds language specification registry. [`src/usereq/source_analyzer.py`, 117-667]
+            - description: Returns a dictionary mapping 20+ language names (and aliases) to LanguageSpec dataclass instances. Each spec defines comment syntax, string delimiters, block start/end patterns, and keyword patterns.
+            - input: None
+            - output: dict[str, LanguageSpec], language specifications
+        - `SourceAnalyzer`: Main source analysis class. [`src/usereq/source_analyzer.py`, 669-1639]
+            - `__init__()`: Initializes specs via build_language_specs(). [`src/usereq/source_analyzer.py`, 677-678]
+            - `get_supported_languages()`: Returns list of supported language names. [`src/usereq/source_analyzer.py`, 680-688]
+            - `analyze()`: Parses a source file into SourceElement list. [`src/usereq/source_analyzer.py`, 690-836]
+                - description: Reads file, tracks string/comment context, identifies functions, classes, structs, enums, interfaces, modules, traits, macros, constants, imports via regex patterns.
+                - input: filepath: str; language: str
+                - output: list[SourceElement]
+            - `enrich()`: Enriches elements with signatures, hierarchy, visibility, inheritance. [`src/usereq/source_analyzer.py`, 979-995]
+                - input: elements: list; language: str; source_code: str
+                - output: list, enriched elements
+            - `_in_string_context()`: Checks if position is inside a string. [`src/usereq/source_analyzer.py`, 838-865]
+            - `_find_comment()`: Finds comment start position in a line. [`src/usereq/source_analyzer.py`, 867-899]
+            - `_find_block_end()`: Finds the end of a block (brace/indent). [`src/usereq/source_analyzer.py`, 901-977]
+            - `_clean_names()`: Cleans element names from surrounding syntax. [`src/usereq/source_analyzer.py`, 997-1024]
+            - `_extract_signatures()`: Extracts full signatures from source. [`src/usereq/source_analyzer.py`, 1026-1039]
+            - `_detect_hierarchy()`: Detects parent-child nesting. [`src/usereq/source_analyzer.py`, 1041-1075]
+            - `_extract_visibility()`: Extracts public/private/protected visibility. [`src/usereq/source_analyzer.py`, 1077-1087]
+            - `_extract_inheritance()`: Extracts inheritance/implementation info. [`src/usereq/source_analyzer.py`, 1134-1639]
+        - `format_output()`: Formats elements as structured text. [`src/usereq/source_analyzer.py`, 1642-1700]
+            - input: elements: list; source_code: str; filepath: str; language: str
+            - output: str
+        - `format_markdown()`: Formats elements as markdown with headers and tables. [`src/usereq/source_analyzer.py`, 1703-2015]
+            - input: elements: list; source_code: str; filepath: str; language: str
+            - output: str, markdown representation
+
+## Compress Module
+- **Source Code Compression**
+    - `src/usereq/compress.py`
+        - `compress_source()`: Core compression function. [`src/usereq/compress.py`, 148-318]
+            - description: Removes single-line comments, multi-line comments, docstrings, blank lines, trailing whitespace. Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Preserves shebang lines and comments inside strings.
+            - input: source: str; language: str; include_line_numbers: bool (default True)
+            - output: str, compressed source
+        - `compress_file()`: Compresses a file by path. [`src/usereq/compress.py`, 320-343]
+            - input: filepath: str; language: str | None; include_line_numbers: bool
+            - output: str, compressed source
+        - `detect_language()`: Detects language from file extension. [`src/usereq/compress.py`, 52-55]
+            - input: filepath: str
+            - output: str | None
+
+## Compress Files Module
+- **Multi-File Compression**
+    - `src/usereq/compress_files.py`
+        - `compress_files()`: Compresses multiple files with headers. [`src/usereq/compress_files.py`, 24-72]
+            - description: Iterates over file paths, detects language, compresses each, and prepends `@@@ path | lang` header. Skips invalid files with stderr warning.
+            - input: filepaths: list[str]; include_line_numbers: bool (default True)
+            - output: str, concatenated compressed output
+
+## CLI Command Dispatch Helpers
+- **Command Classification and Routing**
+    - `src/usereq/cli.py`
+        - `_is_standalone_command()`: Checks if a standalone command is requested. [`src/usereq/cli.py`, 2031-2038]
+            - description: Returns True if --files-tokens, --files-references, or --files-compress is set.
+            - input: args: Namespace
+            - output: bool
+        - `_is_project_scan_command()`: Checks if a project-scoped command is requested. [`src/usereq/cli.py`, 2040-2046]
+            - description: Returns True if --references or --compress is set.
+            - input: args: Namespace
+            - output: bool
+        - `EXCLUDED_DIRS`: Hardcoded frozenset of 16 directory names to skip. [`src/usereq/cli.py`, 1992-1999]
+        - `SUPPORTED_EXTENSIONS`: Hardcoded frozenset of 20 file extensions. [`src/usereq/cli.py`, 2001-2007]

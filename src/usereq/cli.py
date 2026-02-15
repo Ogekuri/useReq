@@ -63,6 +63,8 @@ def build_parser() -> argparse.ArgumentParser:
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
+        "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] "
+        "[--references] [--compress] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -70,7 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="req",
         usage=usage,
     )
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--base", type=Path, help="Directory root of the project to update."
     )
@@ -178,6 +180,34 @@ def build_parser() -> argparse.ArgumentParser:
         "--copy-guidelines",
         action="store_true",
         help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir, overwriting existing files.",
+    )
+    parser.add_argument(
+        "--files-tokens",
+        nargs="+",
+        metavar="FILE",
+        help="Count tokens and chars for the given files (standalone, no --base/--here required).",
+    )
+    parser.add_argument(
+        "--files-references",
+        nargs="+",
+        metavar="FILE",
+        help="Generate LLM reference markdown for the given files (standalone, no --base/--here required).",
+    )
+    parser.add_argument(
+        "--files-compress",
+        nargs="+",
+        metavar="FILE",
+        help="Generate compressed output for the given files (standalone, no --base/--here required).",
+    )
+    parser.add_argument(
+        "--references",
+        action="store_true",
+        help="Generate LLM reference markdown for all source files in configured --src-dir directories (requires --base/--here).",
+    )
+    parser.add_argument(
+        "--compress",
+        action="store_true",
+        help="Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).",
     )
     return parser
 
@@ -1957,6 +1987,156 @@ def run(args: Namespace) -> None:
         print(line)
 
 
+# ── Excluded directories for --references and --compress ──────────────────
+
+EXCLUDED_DIRS = frozenset({
+    ".git", ".vscode", "tmp", "temp", ".cache", ".pytest_cache",
+    "node_modules", "__pycache__", ".venv", "venv", "dist", "build",
+    ".tox", ".mypy_cache", ".ruff_cache",
+})
+"""Directories excluded from source scanning in --references and --compress."""
+
+# ── Supported source file extensions ──────────────────────────────────────
+
+SUPPORTED_EXTENSIONS = frozenset({
+    ".c", ".cpp", ".cs", ".ex", ".go", ".hs", ".java", ".js",
+    ".kt", ".lua", ".pl", ".php", ".py", ".rb", ".rs", ".scala",
+    ".sh", ".swift", ".ts", ".zig",
+})
+"""File extensions considered during source directory scanning."""
+
+
+def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
+    """Recursively collect source files from the given directories.
+
+    Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
+    """
+    collected = []
+    for src_dir in src_dirs:
+        base_path = project_base / src_dir
+        if not base_path.is_dir():
+            continue
+        for dirpath, dirnames, filenames in os.walk(str(base_path)):
+            # Filter out excluded directories (modifies dirnames in-place)
+            dirnames[:] = [
+                d for d in dirnames if d not in EXCLUDED_DIRS
+            ]
+            for fname in sorted(filenames):
+                _, ext = os.path.splitext(fname)
+                if ext.lower() in SUPPORTED_EXTENSIONS:
+                    collected.append(os.path.join(dirpath, fname))
+    return collected
+
+
+def _is_standalone_command(args: Namespace) -> bool:
+    """Check if the parsed args contain a standalone file command."""
+    return bool(
+        getattr(args, "files_tokens", None)
+        or getattr(args, "files_references", None)
+        or getattr(args, "files_compress", None)
+    )
+
+
+def _is_project_scan_command(args: Namespace) -> bool:
+    """Check if the parsed args contain a project scan command."""
+    return bool(
+        getattr(args, "references", False)
+        or getattr(args, "compress", False)
+    )
+
+
+def run_files_tokens(files: list[str]) -> None:
+    """Execute --files-tokens: count tokens for arbitrary files."""
+    from .token_counter import count_files_metrics, format_pack_summary
+
+    valid_files = []
+    for f in files:
+        if not os.path.isfile(f):
+            print(f"  Warning: skipping (not found): {f}", file=sys.stderr)
+        else:
+            valid_files.append(f)
+
+    if not valid_files:
+        raise ReqError("Error: no valid files provided.", 1)
+
+    results = count_files_metrics(valid_files)
+    print(format_pack_summary(results))
+
+
+def run_files_references(files: list[str]) -> None:
+    """Execute --files-references: generate markdown for arbitrary files."""
+    from .generate_markdown import generate_markdown
+
+    md = generate_markdown(files)
+    print(md)
+
+
+def run_files_compress(files: list[str]) -> None:
+    """Execute --files-compress: compress arbitrary files."""
+    from .compress_files import compress_files
+
+    output = compress_files(files)
+    print(output)
+
+
+def run_references(args: Namespace) -> None:
+    """Execute --references: generate markdown for project source files."""
+    from .generate_markdown import generate_markdown
+
+    project_base, src_dirs = _resolve_project_src_dirs(args)
+    files = _collect_source_files(src_dirs, project_base)
+    if not files:
+        raise ReqError("Error: no source files found in configured directories.", 1)
+    md = generate_markdown(files)
+    print(md)
+
+
+def run_compress_cmd(args: Namespace) -> None:
+    """Execute --compress: compress project source files."""
+    from .compress_files import compress_files
+
+    project_base, src_dirs = _resolve_project_src_dirs(args)
+    files = _collect_source_files(src_dirs, project_base)
+    if not files:
+        raise ReqError("Error: no source files found in configured directories.", 1)
+    output = compress_files(files)
+    print(output)
+
+
+def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
+    """Resolve project base and src-dirs for --references/--compress."""
+    if not getattr(args, "base", None) and not getattr(args, "here", False):
+        raise ReqError(
+            "Error: --references and --compress require --base or --here.", 1
+        )
+
+    if args.base:
+        project_base = args.base.resolve()
+    else:
+        project_base = Path.cwd().resolve()
+
+    if not project_base.exists():
+        raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
+
+    # Source dirs can come from args or from config
+    src_dirs = getattr(args, "src_dir", None)
+    if not src_dirs:
+        # Try to load from config
+        config_path = project_base / ".req" / "config.json"
+        if config_path.is_file():
+            config = load_config(project_base)
+            src_dirs = config.get("src-dir", [])
+        else:
+            raise ReqError(
+                "Error: --src-dir is required or .req/config.json must exist.", 1
+            )
+
+    if not src_dirs:
+        raise ReqError("Error: no source directories configured.", 1)
+
+    return project_base, src_dirs
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     """CLI entry point for console_scripts and `-m` execution.
 
@@ -1976,6 +2156,27 @@ def main(argv: Optional[list[str]] = None) -> int:
         if maybe_print_version(argv_list):
             return 0
         args = parse_args(argv_list)
+        # Standalone file commands (no --base/--here required)
+        if _is_standalone_command(args):
+            if getattr(args, "files_tokens", None):
+                run_files_tokens(args.files_tokens)
+            elif getattr(args, "files_references", None):
+                run_files_references(args.files_references)
+            elif getattr(args, "files_compress", None):
+                run_files_compress(args.files_compress)
+            return 0
+        # Project scan commands (require --base/--here)
+        if _is_project_scan_command(args):
+            if getattr(args, "references", False):
+                run_references(args)
+            elif getattr(args, "compress", False):
+                run_compress_cmd(args)
+            return 0
+        # Standard init flow requires --base or --here
+        if not getattr(args, "base", None) and not getattr(args, "here", False):
+            raise ReqError(
+                "Error: --base or --here is required for initialization.", 1
+            )
         run(args)
     except ReqError as e:
         print(e.message, file=sys.stderr)

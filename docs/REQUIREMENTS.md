@@ -1,8 +1,8 @@
 ---
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
-date: "2026-02-14"
-version: 0.59
+date: "2026-02-15"
+version: 0.61
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.59
+**Versione**: 0.61
 **Autore**: Ogekuri
-**Data**: 2026-02-14
+**Data**: 2026-02-15
 
 ## Indice
 <!-- TOC -->
@@ -53,6 +53,12 @@ tags: ["markdown", "requisiti", "useReq"]
     - [3.12 Rimozione](#312-rimozione)
     - [3.13 Sviluppo e Test](#313-sviluppo-e-test)
     - [3.14 Workflow CI/CD](#314-workflow-cicd)
+    - [3.15 Analisi Sorgenti e Linguaggi Supportati](#315-analisi-sorgenti-e-linguaggi-supportati)
+    - [3.16 Conteggio Token](#316-conteggio-token)
+    - [3.17 Generazione Markdown di Riferimento](#317-generazione-markdown-di-riferimento)
+    - [3.18 Compressione Sorgenti](#318-compressione-sorgenti)
+    - [3.19 Comandi Standalone su File Arbitrari](#319-comandi-standalone-su-file-arbitrari)
+    - [3.20 Comandi di Progetto su Directory Sorgenti](#320-comandi-di-progetto-su-directory-sorgenti)
 <!-- TOC -->
 
 ## Cronologia delle Revisioni
@@ -75,6 +81,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-14 | 0.58 | Rimosso parametro --req-dir e rimossa sostituzione token %%REQ_DIR%%/%%REQ_PATH%%. |
 | 2026-02-14 | 0.59 | Rinominati i parametri CLI `--doc-dir`/`--test-dir` in `--docs-dir`/`--tests-dir` e aggiornati i campi configurazione correlati. |
 | 2026-02-14 | 0.60 | Rinominati i parametri CLI `--write-guidelines`/`--overwrite-guidelines` in `--add-guidelines`/`--copy-guidelines`. |
+| 2026-02-15 | 0.61 | Aggiunti comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress` e relativi moduli: analisi sorgenti multi-linguaggio, conteggio token, generazione markdown di riferimento, compressione sorgenti. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -96,6 +103,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 - Python 3.11+ come runtime del pacchetto.
 - Librerie standard (`argparse`, `json`, `pathlib`, `shutil`, `os`, `re`, `sys`) per parsing CLI, gestione file e percorsi.
 - `setuptools` e `wheel` per pacchettizzazione e distribuzione.
+- `tiktoken` per il conteggio token compatibile con modelli OpenAI/Claude.
 
 ### 1.4 Struttura del Progetto
 ```
@@ -131,6 +139,11 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
         ├── __init__.py
         ├── __main__.py
         ├── cli.py
+        ├── compress.py
+        ├── compress_files.py
+        ├── generate_markdown.py
+        ├── source_analyzer.py
+        ├── token_counter.py
         ├── kiro
         │   └── agent.json
         └── resources
@@ -160,6 +173,11 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 - `usereq.cli` contiene la logica principale del comando, parsing degli argomenti e flusso di inizializzazione.
 - `usereq.__main__` espone l'esecuzione come modulo Python e delega a `usereq.cli.main`.
 - `usereq.__init__` fornisce metadati di versione e riesporta l'entry point `main`.
+- `usereq.source_analyzer` implementa l'analisi multi-linguaggio del codice sorgente, estraendo definizioni, commenti e struttura.
+- `usereq.token_counter` implementa il conteggio token e caratteri tramite la libreria `tiktoken`.
+- `usereq.generate_markdown` implementa la generazione di markdown strutturato di riferimento per il contesto LLM.
+- `usereq.compress` implementa la compressione del codice sorgente rimuovendo commenti, righe vuote e spazi ridondanti.
+- `usereq.compress_files` implementa la compressione e concatenazione di file sorgente multipli.
 - `resources/prompts`, `resources/templates`, e `resources/vscode` contengono i file sorgente che il comando copia o integra nel progetto target.
 
 ### 1.6 Ottimizzazioni e Prestazioni
@@ -167,6 +185,12 @@ Non ci sono ottimizzazioni delle prestazioni esplicite identificate; il codice s
 
 ### 1.7 Suite di Test
 Il progetto include una suite di test in `tests/`.
+- `tests/test_cli.py` verifica le operazioni CLI in cartella temporanea.
+- `tests/test_source_analyzer.py` verifica l'analisi multi-linguaggio su tutti i 20 linguaggi supportati.
+- `tests/test_token_counter.py` verifica il conteggio token e caratteri.
+- `tests/test_generate_markdown.py` verifica la generazione di markdown di riferimento.
+- `tests/test_compress.py` verifica la compressione del codice sorgente.
+- `tests/test_files_commands.py` verifica i comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`.
 
 ## 2. Requisiti di Progetto
 ### 2.1 Funzioni del Progetto
@@ -209,7 +233,7 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
 - **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
-- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, e `--copy-guidelines` nel formato `usage: req -c ...`.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--references`, e `--compress` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
 - **REQ-005**: Il comando deve richiedere i parametri `--docs-dir`, `--tests-dir`, e `--src-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
 - **REQ-093**: Il parametro `--src-dir` deve poter essere fornito più volte; ogni directory passata deve essere normalizzata come gli altri percorsi e deve esistere, altrimenti il comando deve terminare con errore.
@@ -337,3 +361,74 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-079**: Il workflow deve eseguire build pacchetto Python (sdist e wheel) in `dist/`.
 - **REQ-080**: Il workflow deve creare GitHub Release per il tag e caricare asset da `dist/`.
 - **REQ-081**: Il workflow deve generare attestazioni artefatto per file in `dist/`.
+
+### 3.15 Analisi Sorgenti e Linguaggi Supportati
+- Questa sezione definisce i requisiti per il modulo di analisi multi-linguaggio del codice sorgente.
+- **SRC-001**: Il modulo `usereq.source_analyzer` deve supportare 20 linguaggi di programmazione: C (`.c`), C++ (`.cpp`), C# (`.cs`), Elixir (`.ex`), Go (`.go`), Haskell (`.hs`), Java (`.java`), JavaScript (`.js`), Kotlin (`.kt`), Lua (`.lua`), Perl (`.pl`), PHP (`.php`), Python (`.py`), Ruby (`.rb`), Rust (`.rs`), Scala (`.scala`), Shell (`.sh`), Swift (`.swift`), TypeScript (`.ts`), Zig (`.zig`).
+- **SRC-002**: Per ciascun linguaggio, il modulo deve riconoscere e classificare i seguenti tipi di elementi: `FUNCTION`, `METHOD`, `CLASS`, `STRUCT`, `ENUM`, `TRAIT`, `INTERFACE`, `MODULE`, `IMPL`, `MACRO`, `CONSTANT`, `VARIABLE`, `TYPE_ALIAS`, `IMPORT`, `DECORATOR`, `COMMENT_SINGLE`, `COMMENT_MULTI`, `COMPONENT`, `PROTOCOL`, `EXTENSION`, `UNION`, `NAMESPACE`, `PROPERTY`, `SIGNAL`, `TYPEDEF`.
+- **SRC-003**: Ogni elemento riconosciuto deve contenere: tipo elemento, riga iniziale, riga finale, estratto del codice sorgente (massimo 5 righe), nome opzionale, firma opzionale, visibilità opzionale, nome genitore opzionale, ereditarietà opzionale, profondità gerarchica.
+- **SRC-004**: Il parametro linguaggio deve essere normalizzato: deve accettare maiuscole, minuscole, case misto, punto iniziale e spazi.
+- **SRC-005**: Per ciascun linguaggio, il modulo deve riconoscere i commenti a riga singola con il delimitatore appropriato e i commenti multi-riga con i delimitatori di apertura e chiusura specifici del linguaggio.
+- **SRC-006**: Il modulo deve supportare alias dei linguaggi (es. `js` per `javascript`, `ts` per `typescript`, `rs` per `rust`, `py` per `python`, `rb` per `ruby`, `hs` per `haskell`, `cs` per `csharp`, `kt` per `kotlin`, `ex` per `elixir`, `sh`/`bash`/`zsh` per `shell`, `cc`/`cxx` per `cpp`, `h` per `c`, `hpp` per `cpp`, `pl` per `perl`, `exs` per `elixir`). Gli alias devono produrre risultati identici al linguaggio canonico.
+- **SRC-007**: Il modulo deve gestire la gerarchia degli elementi: gli elementi contenitore (class, struct, module, etc.) devono rimanere a profondità 0, gli elementi contenuti devono avere profondità 1 e il campo `parent_name` impostato.
+- **SRC-008**: Il metodo `enrich()` deve arricchire gli elementi con firme pulite, gerarchia, visibilità, ereditarietà, commenti interni e punti di uscita.
+- **SRC-009**: La funzione `format_output()` deve produrre un output strutturato con sezioni DEFINITIONS, COMMENTS e COMPLETE STRUCTURED LISTING.
+- **SRC-010**: La funzione `format_markdown()` deve produrre un output Markdown compatto ottimizzato per il contesto LLM, con header, imports, definizioni gerarchiche, commenti, annotazioni del corpo e indice dei simboli.
+- **SRC-011**: Il modulo deve gestire correttamente: file vuoti (restituire lista vuota), file con solo spazi (restituire lista vuota), linguaggi non supportati (lanciare `ValueError`), file non trovati (lanciare `FileNotFoundError`).
+- **SRC-012**: La ricerca della fine dei blocchi deve utilizzare strategie specifiche per famiglia di linguaggio: indentazione per Python e Haskell, parentesi graffe per C/C++/Rust/JavaScript/TypeScript/Java/Go/C#/Swift/Kotlin/PHP/Scala/Zig, keyword `end` per Ruby/Elixir/Lua.
+- **SRC-013**: I commenti all'interno di stringhe letterali non devono essere riconosciuti come commenti.
+- **SRC-014**: I fixture di test per tutti i 20 linguaggi devono essere presenti nella directory `tests/fixtures/` con il formato `fixture_<linguaggio>.<estensione>`.
+
+### 3.16 Conteggio Token
+- Questa sezione definisce i requisiti per il modulo di conteggio token.
+- **TOK-001**: Il modulo `usereq.token_counter` deve contare i token usando la codifica `tiktoken` con encoding `cl100k_base` come default.
+- **TOK-002**: La classe `TokenCounter` deve esporre i metodi `count_tokens(content)` e `count_chars(content)`.
+- **TOK-003**: La funzione `count_file_metrics(content, encoding_name)` deve restituire un dizionario con chiavi `tokens` e `chars`.
+- **TOK-004**: La funzione `count_files_metrics(file_paths, encoding_name)` deve restituire una lista di dizionari con chiavi `file`, `tokens`, `chars` e opzionalmente `error` in caso di errore di lettura.
+- **TOK-005**: La funzione `format_pack_summary(results)` deve formattare un riepilogo con dettagli per file e totali, usando il formato: nome file, conteggio token, conteggio caratteri, e una sezione Pack Summary con totali.
+- **TOK-006**: In caso di errore di conteggio token (eccezione nell'encoding), il conteggio deve restituire 0 senza propagare l'eccezione.
+
+### 3.17 Generazione Markdown di Riferimento
+- Questa sezione definisce i requisiti per il modulo di generazione markdown di riferimento per il contesto LLM.
+- **MKD-001**: Il modulo `usereq.generate_markdown` deve analizzare file sorgente utilizzando `usereq.source_analyzer` e produrre un output markdown concatenato.
+- **MKD-002**: Il modulo deve determinare il linguaggio dal file extension utilizzando la mappa estensione-linguaggio supportata.
+- **MKD-003**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
+- **MKD-004**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+- **MKD-005**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
+- **MKD-006**: I risultati di analisi markdown devono essere concatenati con separatore `\n\n---\n\n`.
+- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr.
+
+### 3.18 Compressione Sorgenti
+- Questa sezione definisce i requisiti per il modulo di compressione del codice sorgente.
+- **CMP-001**: Il modulo `usereq.compress` deve comprimere il codice sorgente rimuovendo commenti (inline, a riga singola, multi-riga), righe vuote, spazi finali e spaziatura ridondante, preservando la semantica del linguaggio.
+- **CMP-002**: Per i linguaggi con indentazione significativa (Python, Haskell, Elixir), l'indentazione deve essere preservata durante la compressione.
+- **CMP-003**: Il formato di output deve supportare i prefissi con numero di riga nel formato `L<n>> <testo>`, abilitati di default e disabilitabili con l'opzione `include_line_numbers=False`.
+- **CMP-004**: Le shebang lines (`#!`) alla prima riga del file devono essere preservate.
+- **CMP-005**: I commenti all'interno di stringhe letterali non devono essere rimossi.
+- **CMP-006**: Il modulo deve determinare automaticamente il linguaggio dall'estensione del file, con possibilità di override manuale.
+- **CMP-007**: Il modulo `usereq.compress_files` deve comprimere e concatenare file sorgente multipli, producendo per ciascun file un header nel formato `@@@ <percorso> | <linguaggio>` seguito dal contenuto compresso.
+- **CMP-008**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
+- **CMP-009**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+- **CMP-010**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
+- **CMP-011**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr.
+- **CMP-012**: I blocchi di commenti multi-riga (incluse docstrings Python con `"""` e `'''`) devono essere rimossi nella compressione.
+
+### 3.19 Comandi Standalone su File Arbitrari
+- Questa sezione definisce i comandi CLI che operano su liste arbitrarie di file, indipendentemente dalla configurazione del progetto (`--base`, `--here`).
+- **CMD-001**: Il comando `--files-tokens` deve accettare una lista di file come parametro e calcolare il conteggio token e caratteri per ciascun file, stampando un riepilogo con dettagli per file e totali su stdout.
+- **CMD-002**: Il comando `--files-tokens` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
+- **CMD-003**: Il comando `--files-tokens` deve ignorare i file non trovati con un avviso su stderr e terminare con errore se nessun file valido è fornito.
+- **CMD-004**: Il comando `--files-references` deve accettare una lista arbitraria di file e generare un markdown strutturato di riferimento per il contesto LLM, stampandolo su stdout.
+- **CMD-005**: Il comando `--files-references` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
+- **CMD-006**: Il comando `--files-compress` deve accettare una lista arbitraria di file e generare un output compresso per il contesto LLM, stampandolo su stdout.
+- **CMD-007**: Il comando `--files-compress` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
+
+### 3.20 Comandi di Progetto su Directory Sorgenti
+- Questa sezione definisce i comandi CLI che operano sulle directory sorgenti configurate nel progetto.
+- **CMD-008**: Il comando `--references` deve richiedere `--base` o `--here` per determinare il contesto di esecuzione. Se nessuno dei due è presente, il comando deve terminare con un messaggio di errore che indica i parametri obbligatori.
+- **CMD-009**: Il comando `--references` deve eseguire la generazione markdown di riferimento utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti configurate con `--src-dir` o con il campo `src-dir` del file `config.json`.
+- **CMD-010**: Il comando `--compress` deve richiedere `--base` o `--here` per determinare il contesto di esecuzione. Se nessuno dei due è presente, il comando deve terminare con un messaggio di errore che indica i parametri obbligatori.
+- **CMD-011**: Il comando `--compress` deve eseguire la compressione sorgenti utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti configurate con `--src-dir` o con il campo `src-dir` del file `config.json`.
+- **CMD-012**: Durante la scansione delle directory sorgenti per i comandi `--references` e `--compress`, le seguenti directory devono essere escluse (elenco hardcoded): `.git`, `.vscode`, `tmp`, `temp`, `.cache`, `.pytest_cache`, `node_modules`, `__pycache__`, `.venv`, `venv`, `dist`, `build`, `.tox`, `.mypy_cache`, `.ruff_cache`.
+- **CMD-013**: La scansione delle directory sorgenti per i comandi `--references` e `--compress` deve essere ricorsiva, esaminando tutte le sottodirectory delle directory sorgenti configurate, escludendo le directory elencate in CMD-012.
+- **CMD-014**: I comandi `--references` e `--compress`, quando utilizzati con `--update`, devono caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
