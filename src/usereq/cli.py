@@ -2069,6 +2069,55 @@ def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
     return collected
 
 
+def _build_ascii_tree(paths: list[str]) -> str:
+    """! @brief Build a deterministic tree string from project-relative paths.
+    @param paths Project-relative file paths.
+    @return Rendered tree rooted at '.'.
+    """
+    tree: dict[str, dict[str, Any] | None] = {}
+    for rel_path in sorted(paths):
+        node = tree
+        parts = Path(rel_path).parts
+        for index, part in enumerate(parts):
+            is_leaf = index == len(parts) - 1
+            if is_leaf:
+                node.setdefault(part, None)
+            else:
+                child = node.setdefault(part, {})
+                if child is None:
+                    child = {}
+                    node[part] = child
+                node = child
+
+    lines = ["."]
+
+    def _emit(
+        branch: dict[str, dict[str, Any] | None],
+        prefix: str = "",
+    ) -> None:
+        entries = sorted(branch.items(), key=lambda item: item[0])
+        for idx, (name, child) in enumerate(entries):
+            last = idx == len(entries) - 1
+            connector = "└── " if last else "├── "
+            lines.append(f"{prefix}{connector}{name}")
+            if isinstance(child, dict) and child:
+                _emit(child, prefix + ("    " if last else "│   "))
+
+    _emit(tree)
+    return "\n".join(lines)
+
+
+def _format_files_structure_markdown(files: list[str], project_base: Path) -> str:
+    """! @brief Format markdown section containing the scanned files tree.
+    @param files Absolute file paths selected for --references processing.
+    @param project_base Project root used to normalize relative paths.
+    @return Markdown section with heading and fenced tree.
+    """
+    rel_paths = [Path(path).resolve().relative_to(project_base).as_posix() for path in files]
+    tree = _build_ascii_tree(rel_paths)
+    return f"# Files Structure\n```\n{tree}\n```"
+
+
 def _is_standalone_command(args: Namespace) -> bool:
     """! @brief Check if the parsed args contain a standalone file command.
     """
@@ -2135,7 +2184,8 @@ def run_references(args: Namespace) -> None:
     if not files:
         raise ReqError("Error: no source files found in configured directories.", 1)
     md = generate_markdown(files)
-    print(md)
+    files_structure = _format_files_structure_markdown(files, project_base)
+    print(f"{files_structure}\n\n{md}")
 
 
 def run_compress_cmd(args: Namespace) -> None:

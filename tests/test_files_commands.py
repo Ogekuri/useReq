@@ -1,7 +1,7 @@
 """Tests for the --files-tokens, --files-references, --files-compress,
 --references, and --compress CLI commands.
 
-Covers: CMD-001 through CMD-014.
+Covers: CMD-001 through CMD-015.
 """
 
 import json
@@ -175,7 +175,7 @@ class TestCollectSourceFiles:
 
 
 class TestReferencesCommand:
-    """CMD-008, CMD-009, CMD-014: --references tests."""
+    """CMD-008, CMD-009, CMD-014, CMD-015: --references tests."""
 
     def test_requires_base_or_here(self, capsys):
         """CMD-008: Must error without --base or --here."""
@@ -194,6 +194,26 @@ class TestReferencesCommand:
         assert rc == 0
         captured = capsys.readouterr()
         assert len(captured.out) > 0
+
+    def test_references_prepends_files_structure(self, capsys, tmp_path, monkeypatch):
+        """CMD-015: Must prepend a fenced markdown tree of scanned source files."""
+        src = tmp_path / "src"
+        nested = src / "pkg"
+        nested.mkdir(parents=True)
+        (nested / "main.py").write_text("def hello():\n    return 1\n")
+        (nested / "skip.txt").write_text("ignore\n")
+        excluded = src / "__pycache__"
+        excluded.mkdir()
+        (excluded / "cached.py").write_text("x = 1\n")
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--references", "--src-dir", "src"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert captured.out.startswith("# Files Structure\n```")
+        assert "\n```\n\n# " in captured.out
+        assert "src/pkg/main.py" in captured.out
+        assert "skip.txt" not in captured.out
+        assert "__pycache__/cached.py" not in captured.out
 
     def test_references_from_config(self, capsys, tmp_path, monkeypatch):
         """CMD-014: Must load src-dir from config.json."""

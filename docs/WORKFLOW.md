@@ -94,7 +94,11 @@
           - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
             - description: removes full-line and inline comments while preserving string literals, handles multiline comments/docstrings statefully, preserves indentation for indentation-sensitive languages, strips blank/trailing whitespace, and formats optional line-number prefixes.
     - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2083-L2093`]
-      - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, then runs `generate_markdown()`.
+      - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, builds `# Files Structure` fenced tree through `_format_files_structure_markdown()`, then appends markdown from `generate_markdown()`.
+      - `_format_files_structure_markdown()`: renders markdown wrapper for scanned source tree [`src/usereq/cli.py`]
+        - description: normalizes absolute scanned files to project-relative paths and emits a deterministic code-fenced tree section headed by `# Files Structure`.
+        - `_build_ascii_tree()`: deterministic ASCII tree renderer for relative paths [`src/usereq/cli.py`]
+          - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
     - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2095-L2104`]
       - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()`.
     - `_resolve_project_src_dirs()`: derives source roots from args or config [`src/usereq/cli.py:L2107-L2138`]

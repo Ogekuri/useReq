@@ -1,5 +1,21 @@
+# Files Structure
+```
+.
+└── src
+    └── usereq
+        ├── __init__.py
+        ├── __main__.py
+        ├── cli.py
+        ├── compress.py
+        ├── compress_files.py
+        ├── generate_markdown.py
+        ├── pdoc_utils.py
+        ├── source_analyzer.py
+        └── token_counter.py
+```
+
 # __init__.py | Python | 22L | 0 symbols | 8 imports | 3 comments
-> Path: `src/usereq/__init__.py`
+> Path: `/home/ogekuri/useReq/src/usereq/__init__.py`
 > ! @brief Package entry point for useReq automation. @details This file exposes lightweight metadata and a convenient re-export of the `main` CLI entry point, so callers can use `from usereq import ...
 
 ## Imports
@@ -22,7 +38,7 @@ from .cli import main  # re-export of CLI entry point
 ---
 
 # __main__.py | Python | 8L | 0 symbols | 2 imports | 1 comments
-> Path: `src/usereq/__main__.py`
+> Path: `/home/ogekuri/useReq/src/usereq/__main__.py`
 > ! @brief Allows execution of the tool as a module.
 
 ## Imports
@@ -34,8 +50,8 @@ import sys
 
 ---
 
-# cli.py | Python | 2239L | 82 symbols | 20 imports | 140 comments
-> Path: `src/usereq/cli.py`
+# cli.py | Python | 2289L | 85 symbols | 20 imports | 142 comments
+> Path: `/home/ogekuri/useReq/src/usereq/cli.py`
 > ! @brief CLI entry point implementing the useReq initialization flow.
 
 ## Imports
@@ -380,58 +396,68 @@ L2052-2054> ! @brief Recursively collect source files from the given directories
 L2061> Filter out excluded directories (modifies dirnames in-place)
 L2069> `return collected`
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2072-2081)
-L2073-2074> ! @brief Check if the parsed args contain a standalone file command.
-L2075> `return bool(`
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2072-2109)
+L2073-2076> ! @brief Build a deterministic tree string from project-relative paths. @param paths Project-relative file paths. @return Rendered tree rooted at '.'.
+L2107> `return "\n".join(lines)`
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2082-2090)
-L2083-2084> ! @brief Check if the parsed args contain a project scan command.
-L2085> `return bool(`
+### fn `def _emit(` `priv` (L2094-2096)
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L2091-2109)
-L2092-2093> ! @brief Execute --files-tokens: count tokens for arbitrary files.
-L2104> `raise ReqError("Error: no valid files provided.", 1)`
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2110-2120)
+L2111-2115> ! @brief Format markdown section containing the scanned files tree. @param files Absolute file paths selected for --references processing. @param project_base Project root used to normalize relative paths. @return Markdown section with heading and fenced tree.
+L2118> `return f"# Files Structure\n```\n{tree}\n```"`
 
-### fn `def run_files_references(files: list[str]) -> None` (L2110-2118)
-L2111-2112> ! @brief Execute --files-references: generate markdown for arbitrary files.
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2121-2130)
+L2122-2123> ! @brief Check if the parsed args contain a standalone file command.
+L2124> `return bool(`
 
-### fn `def run_files_compress(files: list[str]) -> None` (L2119-2127)
-L2120-2121> ! @brief Execute --files-compress: compress arbitrary files.
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2131-2139)
+L2132-2133> ! @brief Check if the parsed args contain a project scan command.
+L2134> `return bool(`
 
-### fn `def run_references(args: Namespace) -> None` (L2128-2140)
-L2129-2130> ! @brief Execute --references: generate markdown for project source files.
-L2136> `raise ReqError("Error: no source files found in configured directories.", 1)`
+### fn `def run_files_tokens(files: list[str]) -> None` (L2140-2158)
+L2141-2142> ! @brief Execute --files-tokens: count tokens for arbitrary files.
+L2153> `raise ReqError("Error: no valid files provided.", 1)`
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2141-2153)
-L2142-2143> ! @brief Execute --compress: compress project source files.
-L2149> `raise ReqError("Error: no source files found in configured directories.", 1)`
+### fn `def run_files_references(files: list[str]) -> None` (L2159-2167)
+L2160-2161> ! @brief Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2154-2188)
-L2155-2156> ! @brief Resolve project base and src-dirs for --references/--compress.
-L2158> `raise ReqError(`
-L2168> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
-L2170> Source dirs can come from args or from config
-L2173> Try to load from config
-L2179> `raise ReqError(`
-L2184> `raise ReqError("Error: no source directories configured.", 1)`
-L2186> `return project_base, src_dirs`
+### fn `def run_files_compress(files: list[str]) -> None` (L2168-2176)
+L2169-2170> ! @brief Execute --files-compress: compress arbitrary files.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2189-2239)
-L2190-2192> ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
-L2197> `return 0`
-L2200> `return 0`
-L2203> `return 0`
-L2205> `return 0`
-L2207> Standalone file commands (no --base/--here required)
-L2215> `return 0`
-L2216> Project scan commands (require --base/--here)
-L2222> `return 0`
-L2223> Standard init flow requires --base or --here
-L2225> `raise ReqError(`
-L2231> `return e.code`
-L2232> Unexpected error
-L2238> `return 1`
-L2239> `return 0`
+### fn `def run_references(args: Namespace) -> None` (L2177-2190)
+L2178-2179> ! @brief Execute --references: generate markdown for project source files.
+L2185> `raise ReqError("Error: no source files found in configured directories.", 1)`
+
+### fn `def run_compress_cmd(args: Namespace) -> None` (L2191-2203)
+L2192-2193> ! @brief Execute --compress: compress project source files.
+L2199> `raise ReqError("Error: no source files found in configured directories.", 1)`
+
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2204-2238)
+L2205-2206> ! @brief Resolve project base and src-dirs for --references/--compress.
+L2208> `raise ReqError(`
+L2218> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
+L2220> Source dirs can come from args or from config
+L2223> Try to load from config
+L2229> `raise ReqError(`
+L2234> `raise ReqError("Error: no source directories configured.", 1)`
+L2236> `return project_base, src_dirs`
+
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L2239-2289)
+L2240-2242> ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
+L2247> `return 0`
+L2250> `return 0`
+L2253> `return 0`
+L2255> `return 0`
+L2257> Standalone file commands (no --base/--here required)
+L2265> `return 0`
+L2266> Project scan commands (require --base/--here)
+L2272> `return 0`
+L2273> Standard init flow requires --base or --here
+L2275> `raise ReqError(`
+L2281> `return e.code`
+L2282> Unexpected error
+L2288> `return 1`
+L2289> `return 0`
 
 ## Comments
 - L37: ! @brief Initialize an expected CLI failure payload. @param message Human-readable error message. @param code Process exit code bound to the failur...
@@ -541,20 +567,22 @@ L2239> `return 0`
 - L2039: Directories excluded from source scanning in --references and --compress.
 - L2052: ! @brief Recursively collect source files from the given directories. @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
 - L2061: Filter out excluded directories (modifies dirnames in-place)
-- L2073: ! @brief Check if the parsed args contain a standalone file command.
-- L2083: ! @brief Check if the parsed args contain a project scan command.
-- L2092: ! @brief Execute --files-tokens: count tokens for arbitrary files.
-- L2111: ! @brief Execute --files-references: generate markdown for arbitrary files.
-- L2120: ! @brief Execute --files-compress: compress arbitrary files.
-- L2129: ! @brief Execute --references: generate markdown for project source files.
-- L2142: ! @brief Execute --compress: compress project source files.
-- L2155: ! @brief Resolve project base and src-dirs for --references/--compress.
-- L2170: Source dirs can come from args or from config
-- L2173: Try to load from config
-- L2190: ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
-- L2207: Standalone file commands (no --base/--here required)
-- L2216: Project scan commands (require --base/--here)
-- L2223: Standard init flow requires --base or --here
+- L2073: ! @brief Build a deterministic tree string from project-relative paths. @param paths Project-relative file paths. @return Rendered tree rooted at '.'.
+- L2111: ! @brief Format markdown section containing the scanned files tree. @param files Absolute file paths selected for --references processing. @param p...
+- L2122: ! @brief Check if the parsed args contain a standalone file command.
+- L2132: ! @brief Check if the parsed args contain a project scan command.
+- L2141: ! @brief Execute --files-tokens: count tokens for arbitrary files.
+- L2160: ! @brief Execute --files-references: generate markdown for arbitrary files.
+- L2169: ! @brief Execute --files-compress: compress arbitrary files.
+- L2178: ! @brief Execute --references: generate markdown for project source files.
+- L2192: ! @brief Execute --compress: compress project source files.
+- L2205: ! @brief Resolve project base and src-dirs for --references/--compress.
+- L2220: Source dirs can come from args or from config
+- L2223: Try to load from config
+- L2240: ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
+- L2257: Standalone file commands (no --base/--here required)
+- L2266: Project scan commands (require --base/--here)
+- L2273: Standard init flow requires --base or --here
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -632,21 +660,24 @@ L2239> `return 0`
 |`EXCLUDED_DIRS`|var|pub|2034||
 |`SUPPORTED_EXTENSIONS`|var|pub|2043||
 |`_collect_source_files`|fn|priv|2051-2071|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_is_standalone_command`|fn|priv|2072-2081|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|2082-2090|def _is_project_scan_command(args: Namespace) -> bool|
-|`run_files_tokens`|fn|pub|2091-2109|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|2110-2118|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2119-2127|def run_files_compress(files: list[str]) -> None|
-|`run_references`|fn|pub|2128-2140|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2141-2153|def run_compress_cmd(args: Namespace) -> None|
-|`_resolve_project_src_dirs`|fn|priv|2154-2188|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2189-2239|def main(argv: Optional[list[str]] = None) -> int|
+|`_build_ascii_tree`|fn|priv|2072-2109|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|2094-2096|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|2110-2120|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|2121-2130|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|2131-2139|def _is_project_scan_command(args: Namespace) -> bool|
+|`run_files_tokens`|fn|pub|2140-2158|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|2159-2167|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|2168-2176|def run_files_compress(files: list[str]) -> None|
+|`run_references`|fn|pub|2177-2190|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|2191-2203|def run_compress_cmd(args: Namespace) -> None|
+|`_resolve_project_src_dirs`|fn|priv|2204-2238|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|2239-2289|def main(argv: Optional[list[str]] = None) -> int|
 
 
 ---
 
 # compress.py | Python | 354L | 11 symbols | 5 imports | 41 comments
-> Path: `src/usereq/compress.py`
+> Path: `/home/ogekuri/useReq/src/usereq/compress.py`
 > ! @brief compress.py - Source code compressor for LLM context optimization. @details Parses a source file and removes all comments (inline, single-line, multi-line), blank lines, trailing whitespac...
 
 ## Imports
@@ -783,7 +814,7 @@ L350> `sys.exit(1)`
 ---
 
 # compress_files.py | Python | 70L | 2 symbols | 4 imports | 4 comments
-> Path: `src/usereq/compress_files.py`
+> Path: `/home/ogekuri/useReq/src/usereq/compress_files.py`
 > ! @brief compress_files.py - Compress and concatenate multiple source files. @details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with ...
 
 ## Imports
@@ -820,7 +851,7 @@ L66> `sys.exit(1)`
 ---
 
 # generate_markdown.py | Python | 110L | 4 symbols | 3 imports | 7 comments
-> Path: `src/usereq/generate_markdown.py`
+> Path: `/home/ogekuri/useReq/src/usereq/generate_markdown.py`
 > ! @brief generate_markdown.py - Generate concatenated markdown from arbitrary source files. @details Analyzes each input file with source_analyzer and produces a single markdown output concatenatin...
 
 ## Imports
@@ -866,7 +897,7 @@ L106> `sys.exit(1)`
 ---
 
 # pdoc_utils.py | Python | 82L | 3 symbols | 6 imports | 5 comments
-> Path: `src/usereq/pdoc_utils.py`
+> Path: `/home/ogekuri/useReq/src/usereq/pdoc_utils.py`
 > ! @brief Utilities for generating pdoc documentation.
 
 ## Imports
@@ -909,7 +940,7 @@ L24> `return subprocess.run(`
 ---
 
 # source_analyzer.py | Python | 1985L | 56 symbols | 7 imports | 130 comments
-> Path: `src/usereq/source_analyzer.py`
+> Path: `/home/ogekuri/useReq/src/usereq/source_analyzer.py`
 > ! @brief source_analyzer.py - Multi-language source code analyzer. @details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Definitio...
 
 ## Imports
@@ -1354,7 +1385,7 @@ L1943> Optional filtering
 ---
 
 # token_counter.py | Python | 99L | 7 symbols | 2 imports | 8 comments
-> Path: `src/usereq/token_counter.py`
+> Path: `/home/ogekuri/useReq/src/usereq/token_counter.py`
 > ! @brief token_counter.py - Token and character counting for generated output. @details Uses tiktoken for accurate token counting compatible with OpenAI/Claude models.
 
 ## Imports
@@ -1405,3 +1436,4 @@ L99> `return "\n".join(lines)`
 |`count_file_metrics`|fn|pub|35-46|def count_file_metrics(content: str,|
 |`count_files_metrics`|fn|pub|47-72|def count_files_metrics(file_paths: list,|
 |`format_pack_summary`|fn|pub|73-99|def format_pack_summary(results: list) -> str|
+
