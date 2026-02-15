@@ -1,135 +1,150 @@
-# WORKFLOW CALL TREE (Evidence-Based)
+# WORKFLOW
 
-- Feature: CLI entrypoint dispatch and mode selection
-  - Module: `usereq.cli` (`src/usereq/cli.py`)
-    - `main()`: Route CLI invocation into uninstall/upgrade/version/standalone/project/init flows [`src/usereq/cli.py:L2141-L2192`]
-      - description: Parses argv source, executes high-priority direct commands (`--uninstall`, `--upgrade`, version), then parsed-mode routing through `_is_standalone_command()`, `_is_project_scan_command()`, and `run()`. Converts `ReqError` to stderr+exit code; unknown exceptions return `1`.
-      - `maybe_print_version()`: Print package version and short-circuit [`src/usereq/cli.py:L230-L235`]
-        - description: Detects `--ver|--version`, calls `load_package_version()`, writes to stdout, returns boolean gate.
-      - `parse_args()`: Build and execute argparse parser [`src/usereq/cli.py:L215-L217`]
-        - description: Delegates parser creation to `build_parser()` and returns Namespace.
-      - `_is_standalone_command()`: Detect direct file-list commands [`src/usereq/cli.py:L2032-L2038`]
-        - description: Returns boolean for `--files-tokens|--files-references|--files-compress`.
-      - `_is_project_scan_command()`: Detect project directory scan commands [`src/usereq/cli.py:L2041-L2046`]
-        - description: Returns boolean for `--references|--compress`.
+- Feature: CLI bootstrap and command dispatch
+  - Module: `src/usereq/__main__.py`
+    - `main()`: module execution entrypoint forwarding process exit code [`src/usereq/__main__.py:L1-L7`]
+      - description: imports `cli.main`, invokes it when executed as module, and returns its integer status through `sys.exit`.
+      - `main()`: centralized command router for all operational modes [`src/usereq/cli.py:L2141-L2192`]
+        - description: parses argv, dispatches precedence chain (`--uninstall` -> `--upgrade` -> `--version` -> standalone file commands -> project scan commands -> initialization), maps domain errors to stable non-zero exit codes via `ReqError`.
+        - `run_uninstall()`: delegates package removal to uv [`src/usereq/cli.py:L260-L277`]
+          - description: executes `uv tool uninstall usereq` using subprocess; raises `ReqError` for missing executable or non-zero return.
+        - `run_upgrade()`: delegates package upgrade to uv git source [`src/usereq/cli.py:L238-L257`]
+          - description: executes `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git`; propagates failures as `ReqError`.
+        - `maybe_print_version()`: handles explicit version query [`src/usereq/cli.py:L230-L235`]
+          - description: checks `--ver`/`--version`, prints value from `load_package_version()`, short-circuits command flow.
+        - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L215-L217`]
+          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting.
+        - `_is_standalone_command()`: identifies file-list execution mode [`src/usereq/cli.py:L2032-L2038`]
+          - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress` is set.
+        - `_is_project_scan_command()`: identifies project source scan mode [`src/usereq/cli.py:L2041-L2046`]
+          - description: returns true if `--references` or `--compress` is set.
 
-- Feature: Initialization and resource generation
-  - Module: `usereq.cli` (`src/usereq/cli.py`)
-    - `run()`: Execute validated initialization workflow [`src/usereq/cli.py:L1186-L1989`]
-      - description: Validates base/config/paths/providers, persists config, computes token substitutions, creates provider-specific assets, copies templates, merges VSCode settings, and prints installation summary.
-      - `load_config()`: Load persisted `.req/config.json` for update-mode [`src/usereq/cli.py:L502-L536`]
-        - description: Reads JSON config, supports legacy key aliases (`doc-dir`,`test-dir`), validates required fields and types.
-      - `ensure_doc_directory()` / `ensure_test_directory()` / `ensure_src_directory()`: Validate required project directories [`src/usereq/cli.py:L366-L412`]
-        - description: Normalize path via `make_relative_if_contains_project()`, assert location under project base, existence, and directory type.
-      - `make_relative_if_contains_project()`: Normalize user path to project-relative value [`src/usereq/cli.py:L414-L447`]
-        - description: Handles absolute paths, duplicated base-name segments, and canonical relative-path conversion.
-      - `save_config()`: Persist normalized dirs in `.req/config.json` [`src/usereq/cli.py:L481-L500`]
-        - description: Performs filesystem write (`mkdir`, JSON serialization, write_text) for future `--update` and project-scan commands.
-      - `maybe_notify_newer_version()`: Fetch latest release metadata [`src/usereq/cli.py:L324-L364`]
-        - description: External HTTP GET to GitHub Releases API (`https://api.github.com/repos/Ogekuri/useReq/releases/latest`), compares normalized semantic tuples, conditionally prints upgrade notice.
-      - `find_template_source()`: Resolve packaged requirements template root [`src/usereq/cli.py:L843-L851`]
-        - description: Asserts resource presence (`resources/templates/requirements.md`) before copy stage.
-      - `generate_guidelines_file_list()` / `generate_guidelines_file_items()`: Compute guideline-token payloads [`src/usereq/cli.py:L539-L594`]
-        - description: Enumerates non-hidden files in technical directory, emits normalized forward-slash relative paths for replacement/reporting.
-      - `load_kiro_template()`: Load Kiro template/model metadata [`src/usereq/cli.py:L854-L885`]
-        - description: Reads centralized model files (`models.json` fallback `models-legacy.json`) through `load_settings()` and extracts `kiro.agent_template`.
-      - `load_centralized_models()`: Load provider prompt metadata [`src/usereq/cli.py:L919-L968`]
-        - description: Selects models source (`preserve` > `legacy` > default), parses JSON/JSONC, returns provider map (`claude`,`copilot`,`opencode`,`kiro`,`gemini`,`codex`).
-      - `extract_frontmatter()` + `extract_description()` + `extract_argument_hint()`: Parse prompt metadata [`src/usereq/cli.py:L716-L738`]
-        - description: Regex-splits frontmatter/body and extracts fields used by all provider writers.
-      - `apply_replacements()`: Replace prompt placeholders with runtime paths [`src/usereq/cli.py:L656-L660`]
-        - description: Applies token substitution map (`%%GUIDELINES_FILES%%`, `%%DOC_PATH%%`, `%%TEST_PATH%%`, `%%SRC_PATHS%%`, `%%ARGS%%`).
-      - `md_to_toml()` + `replace_tokens()`: Build Gemini command artifacts [`src/usereq/cli.py:L688-L713`, `src/usereq/cli.py:L830-L835`]
-        - description: Converts markdown prompt into TOML body and performs provider-specific token post-processing writes.
-      - `render_kiro_agent()` + `generate_kiro_resources()`: Build Kiro agent JSON [`src/usereq/cli.py:L788-L825`, `src/usereq/cli.py:L766-L785`]
-        - description: Injects template fields/resources/tools/model and serializes JSON payload for `.kiro/agents`.
-      - `get_model_tools_for_prompt()` / `get_raw_tools_for_prompt()` / `format_tools_inline_list()`: Resolve model/tool fields [`src/usereq/cli.py:L970-L1032`]
-        - description: Maps prompt mode->usage mode->tools/model; normalizes list/string variants for provider headers.
-      - `write_text_file()`: Provider output sink [`src/usereq/cli.py:L663-L667`]
-        - description: Central file-write helper used for generated prompt/agent files (`mkdir -p`, UTF-8 write).
-      - `find_vscode_settings_source()` + `load_settings()` + `deep_merge_dict()` + `save_vscode_backup()`: Merge editor settings [`src/usereq/cli.py:L1045-L1050`, `src/usereq/cli.py:L908-L917`, `src/usereq/cli.py:L1035-L1042`, `src/usereq/cli.py:L1072-L1079`]
-        - description: Loads template and existing settings, strips JSON comments when needed, deep-merges dictionaries, creates backup before overwrite.
+- Feature: Project initialization/update and provider resource generation
+  - Module: `src/usereq/cli.py`
+    - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py:L1186-L1989`]
+      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, optionally loads persisted configuration for `--update`, performs version check and then writes project resources (`.req`, provider prompts/agents, templates, VS Code settings), finally emits installation report.
+      - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py:L1145-L1184`]
+        - description: validates incompatible flags, verifies `.req/config.json`, executes online version notice check, removes generated resources and prunes empty provider directories.
+      - `load_config()`: reads persisted initialization parameters [`src/usereq/cli.py:L502-L536`]
+        - description: loads `.req/config.json`, validates schema (`guidelines-dir`, `docs-dir`, `tests-dir`, `src-dir` list), supports legacy key aliases.
+      - `ensure_doc_directory()`: validates docs directory constraints [`src/usereq/cli.py:L366-L380`]
+        - description: normalizes candidate path and rejects non-directory/nonexistent/out-of-project values.
+      - `ensure_test_directory()`: validates tests directory constraints [`src/usereq/cli.py:L382-L396`]
+        - description: applies same guardrail policy as docs directory for tests path.
+      - `ensure_src_directory()`: validates each source directory constraint [`src/usereq/cli.py:L398-L412`]
+        - description: enforces existence, directory type, and containment under project base per source root.
+      - `make_relative_if_contains_project()`: canonicalizes incoming path forms [`src/usereq/cli.py:L414-L447`]
+        - description: converts absolute/project-prefixed paths to project-relative tokens while preserving fallback behavior for non-relativizable inputs.
+      - `save_config()`: persists normalized config in `.req/config.json` [`src/usereq/cli.py:L481-L500`]
+        - description: serializes effective directories (including repeated `src-dir`) after path normalization and validation.
+      - `maybe_notify_newer_version()`: performs remote version probe [`src/usereq/cli.py:L324-L363`]
+        - description: sends HTTP GET to GitHub releases API, parses JSON `tag_name`, compares with local version using `normalize_release_tag()`, `parse_version_tuple()`, and `is_newer_version()`, prints upgrade hint when newer release exists.
+      - `copy_guidelines_templates()`: optionally copies packaged guideline templates [`src/usereq/cli.py:L597-L633`]
+        - description: copies files from `resources/guidelines` to user guidelines directory, honoring overwrite behavior for `--copy-guidelines` vs `--add-guidelines`.
+      - `generate_guidelines_file_list()`: computes token replacement for guideline inventory [`src/usereq/cli.py:L539-L564`]
+        - description: scans non-hidden files at guideline root, emits inline-code relative paths, falls back to directory token when empty.
+      - `find_template_source()`: resolves requirements template location [`src/usereq/cli.py:L843-L851`]
+        - description: validates `resources/templates/requirements.md` availability before any requirements file creation.
+      - `load_kiro_template()`: resolves Kiro agent template from centralized models config [`src/usereq/cli.py:L854-L885`]
+        - description: loads `models.json` or `models-legacy.json`, extracts `kiro.agent_template` string/object payload, errors on missing template.
+      - `load_centralized_models()`: loads provider model/tool metadata [`src/usereq/cli.py:L919-L967`]
+        - description: chooses source config by precedence (`.req/models.json` preserve path > legacy file > default file), parses JSON/JSONC via `load_settings()`, returns CLI-specific configuration map.
+      - `extract_frontmatter()`: splits prompt metadata/body [`src/usereq/cli.py:L716-L723`]
+        - description: enforces leading YAML frontmatter block for every prompt template.
+      - `extract_description()`: extracts prompt description field [`src/usereq/cli.py:L725-L730`]
+        - description: parses `description:` from frontmatter and normalizes escaping.
+      - `extract_argument_hint()`: extracts optional argument metadata [`src/usereq/cli.py:L733-L738`]
+        - description: returns normalized `argument-hint` value used by prompt command frontmatter.
+      - `apply_replacements()`: applies path token substitutions [`src/usereq/cli.py:L656-L660`]
+        - description: replaces `%%GUIDELINES_FILES%%`, `%%GUIDELINES_PATH%%`, `%%DOC_PATH%%`, `%%TEST_PATH%%`, and `%%SRC_PATHS%%` placeholders in prompt content.
+      - `md_to_toml()`: converts markdown prompt into Gemini TOML [`src/usereq/cli.py:L688-L713`]
+        - description: parses frontmatter/body, writes TOML with description and multiline prompt block, then provider-specific token replacement occurs via `replace_tokens()`.
+      - `render_kiro_agent()`: materializes Kiro JSON agent [`src/usereq/cli.py:L788-L827`]
+        - description: injects escaped template fields (`name`, `description`, `prompt`, `resources`) and conditionally includes `model` and tool lists; returns parsed JSON pretty format.
+      - `write_text_file()`: common file emission helper [`src/usereq/cli.py:L663-L667`]
+        - description: ensures parent directories and writes UTF-8 text, used by multiple provider emitters.
+      - `deep_merge_dict()`: merges VS Code settings recursively [`src/usereq/cli.py:L1035-L1042`]
+        - description: deep-merges template settings into existing settings with incoming precedence; used before writing `.vscode/settings.json`.
+      - `build_prompt_recommendations()`: computes prompt recommendation map [`src/usereq/cli.py:L1053-L1060`]
+        - description: builds `chat.promptFilesRecommendations` entries from prompt template filenames.
 
-- Feature: Removal workflow
-  - Module: `usereq.cli` (`src/usereq/cli.py`)
-    - `run_remove()`: Validate and execute cleanup mode [`src/usereq/cli.py:L1145-L1184`]
-      - description: Rejects incompatible args, validates project/config existence, optionally checks remote version, executes generated-resource deletion, prunes empty provider directories.
-      - `remove_generated_resources()`: Delete generated assets under project root [`src/usereq/cli.py:L1105-L1142`]
-        - description: Removes provider directories/files (`.gemini/.claude/.codex/.github/.kiro/.opencode/.req`) with safety guard `ensure_wrapped()`.
-      - `prune_empty_dirs()`: Remove empty directory shells [`src/usereq/cli.py:L1092-L1102`]
-        - description: Bottom-up walk and `rmdir` cleanup for now-empty provider paths.
+- Feature: Standalone and project source-file command workflows
+  - Module: `src/usereq/cli.py`
+    - `run_files_tokens()`: token metrics for explicit file lists [`src/usereq/cli.py:L2049-L2065`]
+      - description: filters existing files, computes metrics through `count_files_metrics()`, formats report via `format_pack_summary()`, errors when no valid files remain.
+      - `count_files_metrics()`: computes per-file token/char metrics [`src/usereq/token_counter.py:L45-L70`]
+        - description: reads each file, counts tokens through shared encoder instance, captures read/parse errors as structured metric rows.
+      - `format_pack_summary()`: emits aggregate text summary [`src/usereq/token_counter.py:L73-L104`]
+        - description: accumulates totals and per-file status lines (ok/error) for stdout reporting.
+    - `run_files_references()`: markdown references for explicit file lists [`src/usereq/cli.py:L2067-L2073`]
+      - description: delegates to `generate_markdown()` and prints concatenated analysis output.
+      - `generate_markdown()`: file-wise analysis and markdown concatenation [`src/usereq/generate_markdown.py:L55-L108`]
+        - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown()`, and joins all file outputs with `---` separator.
+    - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2075-L2080`]
+      - description: delegates to `compress_files()` and prints concatenated compressed payload.
+      - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L24-L73`]
+        - description: validates each path/language, applies `compress_file()`, prefixes each result with `@@@ <path> | <lang>`, tracks ok/fail counters, errors if no valid file processed.
+        - `compress_file()`: reads single file and delegates normalization/compression [`src/usereq/compress.py:L320-L343`]
+          - description: auto-detects language when not provided, reads source text, invokes `compress_source()`.
+          - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
+            - description: removes full-line and inline comments while preserving string literals, handles multiline comments/docstrings statefully, preserves indentation for indentation-sensitive languages, strips blank/trailing whitespace, and formats optional line-number prefixes.
+    - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2083-L2093`]
+      - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, then runs `generate_markdown()`.
+    - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2095-L2104`]
+      - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()`.
+    - `_resolve_project_src_dirs()`: derives source roots from args or config [`src/usereq/cli.py:L2107-L2138`]
+      - description: enforces `--base/--here`, loads configured `src-dir` from `.req/config.json` when not provided, validates non-empty source root set.
+    - `_collect_source_files()`: recursive source discovery with exclusion filters [`src/usereq/cli.py:L2010-L2029`]
+      - description: walks each source root, prunes `EXCLUDED_DIRS`, keeps files with `SUPPORTED_EXTENSIONS`, and returns deterministic sorted path list.
 
-- Feature: Standalone and project-wide source processing commands
-  - Module: `usereq.cli` + helper modules
-    - `run_files_tokens()`: Count tokens/chars for explicit file list [`src/usereq/cli.py:L2049-L2064`]
-      - description: Validates existence list then delegates to token metrics pipeline and prints formatted summary.
-      - `count_files_metrics()` -> `TokenCounter.count_tokens()` / `TokenCounter.count_chars()` [`src/usereq/token_counter.py:L45-L70`, `src/usereq/token_counter.py:L19-L29`]
-        - description: Reads each file, computes token count via `tiktoken` encoding and character count, emits per-file records/errors.
-      - `format_pack_summary()`: Build textual totals [`src/usereq/token_counter.py:L73-L105`]
-        - description: Aggregates totals and renders per-file + global summary lines.
-    - `run_files_references()`: Produce markdown references for explicit file list [`src/usereq/cli.py:L2067-L2072`]
-      - description: Delegates to `generate_markdown()` and prints aggregated markdown payload.
-      - `generate_markdown()`: Analyze+enrich+render each file [`src/usereq/generate_markdown.py:L55-L108`]
-        - description: For each valid file, detect language, call `SourceAnalyzer.analyze()`, `SourceAnalyzer.enrich()`, and `format_markdown()` then concatenate with separators.
-    - `run_files_compress()`: Compress explicit file list [`src/usereq/cli.py:L2075-L2080`]
-      - description: Delegates to `compress_files()` and prints concatenated compressed payload.
-      - `compress_files()` -> `compress_file()` -> `compress_source()` [`src/usereq/compress_files.py:L24-L72`, `src/usereq/compress.py:L320-L343`, `src/usereq/compress.py:L148-L317`]
-        - description: Detects language per file, reads source, removes comments/blank lines/extra whitespace while preserving indentation-sensitive languages, emits `@@@ path | lang` segments.
-    - `run_references()` / `run_compress_cmd()`: Project-src directory variants [`src/usereq/cli.py:L2083-L2104`]
-      - description: Resolve project source dirs through `_resolve_project_src_dirs()`, collect files through `_collect_source_files()`, then reuse standalone generation/compression pipelines.
-      - `_resolve_project_src_dirs()`: Resolve base and source dirs from args or persisted config [`src/usereq/cli.py:L2107-L2138`]
-        - description: Enforces `--base|--here`, loads `.req/config.json` fallback, validates source-dir availability.
-      - `_collect_source_files()`: Recursive collection with extension+directory filters [`src/usereq/cli.py:L2010-L2029`]
-        - description: Filesystem traversal excludes cache/build/vendor dirs and includes only predefined source extensions.
+- Feature: Source analysis and markdown rendering engine
+  - Module: `src/usereq/source_analyzer.py`
+    - `SourceAnalyzer.analyze()`: lexical-pattern extraction of code elements [`src/usereq/source_analyzer.py:L690-L836`]
+      - description: normalizes language key, loads file lines, tracks multiline/single comments while avoiding string literal false-positives, matches per-language regex patterns from `LanguageSpec.patterns`, computes block ranges via `_find_block_end()`, and returns `SourceElement` entries.
+      - `_find_comment()`: locates effective single-line comment start [`src/usereq/source_analyzer.py:L867-L900`]
+        - description: scans line while maintaining string delimiter state to avoid comment delimiters inside literals.
+      - `_find_block_end()`: language-family block boundary detection [`src/usereq/source_analyzer.py:L901-L975`]
+        - description: applies indentation strategy for Python/Haskell, brace matching for brace languages, and `end`-keyword strategy for Ruby/Elixir/Lua.
+    - `SourceAnalyzer.enrich()`: metadata enrichment pass [`src/usereq/source_analyzer.py:L979-L996`]
+      - description: sequentially enriches extracted elements with clean names, signatures, hierarchy depth, visibility, inheritance, and optional body comments/exit points.
+      - `_extract_body_annotations()`: scans definition bodies for comment and exit semantics [`src/usereq/source_analyzer.py:L1181-L1310`]
+        - description: re-reads full file and stores normalized body comment spans plus control-flow exits (`return`, `raise`, `throw`, `panic!`, process exits) per definition.
+    - `format_markdown()`: compact LLM-optimized markdown formatter [`src/usereq/source_analyzer.py:L1642-L1894`]
+      - description: emits header/imports/definitions/comments/symbol-index sections, maps nearby doc comments to definitions via `_build_comment_maps()`, renders child definitions and body annotations with line-local traceability.
+      - `_build_comment_maps()`: associates comments with nearest definitions [`src/usereq/source_analyzer.py:L1520-L1583`]
+        - description: builds adjacency map for preceding comments, standalone comments, and file-level description signal.
+      - `_render_body_annotations()`: emits ordered body comment/exit annotations [`src/usereq/source_analyzer.py:L1586-L1640`]
+        - description: merges comment and exit signals by line, excludes child ranges for parent containers, and outputs normalized line markers.
 
-- Feature: Source structure analyzer engine
-  - Module: `usereq.source_analyzer` (`src/usereq/source_analyzer.py`)
-    - `build_language_specs()`: Build regex-based recognition catalog [`src/usereq/source_analyzer.py:L117-L667`]
-      - description: Defines language-specific comment delimiters, string delimiters, and construct regexes for 20 languages + aliases.
-    - `SourceAnalyzer.analyze()`: Parse source into typed elements [`src/usereq/source_analyzer.py:L690-L836`]
-      - description: Reads file lines, tracks multiline comments, detects inline/full comments using `_find_comment()`, matches definitions against language patterns, computes block ranges via `_find_block_end()`, emits `SourceElement` list.
-      - `_in_string_context()`: Guard against false comment markers inside strings [`src/usereq/source_analyzer.py:L838-L865`]
-        - description: Stateful delimiter scan used by comment and multiline detection logic.
-      - `_find_comment()`: Detect single-line comment index outside strings [`src/usereq/source_analyzer.py:L867-L899`]
-        - description: Iterates with string-state tracking and returns first valid comment-marker offset.
-      - `_find_block_end()`: Heuristic block boundary resolver [`src/usereq/source_analyzer.py:L901-L975`]
-        - description: Uses indentation/brace/end-keyword strategies per language family to assign `line_end` ranges.
-    - `SourceAnalyzer.enrich()`: Add semantic metadata to parsed elements [`src/usereq/source_analyzer.py:L979-L995`]
-      - description: Sequentially executes normalization, signature extraction, hierarchy linking, visibility derivation, inheritance parsing, and optional body annotation extraction.
-      - `_extract_body_annotations()`: Gather in-body comments and exit points [`src/usereq/source_analyzer.py:L1181-L1310`]
-        - description: Re-reads source, scans element body lines, captures cleaned comment snippets and control-flow exits (`return`,`raise`,`throw`,`panic!`,`sys.exit`).
-    - `format_markdown()`: Render LLM-oriented file synopsis [`src/usereq/source_analyzer.py:L1642-L1894`]
-      - description: Produces deterministic markdown sections (header/imports/definitions/comments/symbol-index), attaches doc-comment adjacency from `_build_comment_maps()`, and inserts body annotations via `_render_body_annotations()`.
+- Feature: CI/CD release automation
+  - Module: `.github/workflows/release-uvx.yml`
+    - `build-release` job: tag-triggered build and release pipeline [`.github/workflows/release-uvx.yml:L1-L48`]
+      - description: on `push` tags `v*`, workflow checks out repository, sets Python+uv, installs build dependencies from `requirements.txt`, builds distributions (`python -m build`), attests provenance for `dist/*`, and creates GitHub release uploading built artifacts.
 
-- Feature: Auxiliary modules and packaging entrypoints
-  - Module: `usereq.__main__`, `usereq.__init__`, `usereq.pdoc_utils`
-    - `__main__` module execution -> `cli.main()` [`src/usereq/__main__.py:L1-L7`]
-      - description: Python module entrypoint returning CLI exit code.
-    - `generate_pdoc_docs()`: API documentation generation wrapper [`src/usereq/pdoc_utils.py:L31-L84`]
-      - description: Builds pdoc subprocess command, prepares `PYTHONPATH`, runs `_run_pdoc()`, retries without `--all-submodules` on compatibility failure, raises RuntimeError on non-zero exit.
-      - `_run_pdoc()`: subprocess execution wrapper [`src/usereq/pdoc_utils.py:L19-L28`]
-        - description: Executes command with captured output to support explicit error handling.
+- Cross-cutting common logic and side-effect map
+  - Module: Shared utility functions in `src/usereq/cli.py`
+    - `load_settings()`: JSON+JSONC loader [`src/usereq/cli.py:L908-L917`]
+      - description: parses strict JSON first, then retries after `strip_json_comments()` cleanup for JSONC-like files.
+    - `ensure_wrapped()`: deletion safety boundary check [`src/usereq/cli.py:L1063-L1070`]
+      - description: guards destructive operations by requiring target path to remain within resolved project root.
+    - `prune_empty_dirs()`: provider directory cleanup [`src/usereq/cli.py:L1092-L1103`]
+      - description: post-order traversal removing empty folders after removal workflow.
 
-- Feature: CI/CD release workflow
-  - Module: GitHub Actions workflow (`.github/workflows/release-uvx.yml`)
-    - `build-release` job: Build and publish release artifacts [`/.github/workflows/release-uvx.yml:L13-L48`]
-      - description: On version tag push, checks out repository, sets Python+uv, installs build deps, runs `python -m build`, creates provenance attestation, uploads `dist/*` to GitHub Release.
-
-- Cross-cutting operational evidence
-  - File-system write operations (non-exhaustive, direct evidence)
-    - `save_config()` writes `.req/config.json` [`src/usereq/cli.py:L489-L499`]
-    - `write_text_file()` writes generated prompt/agent files [`src/usereq/cli.py:L663-L667`]
-    - `md_to_toml()` writes Gemini TOML files [`src/usereq/cli.py:L711-L713`]
-    - `replace_tokens()` rewrites TOML content [`src/usereq/cli.py:L830-L835`]
-    - `remove_generated_resources()` deletes generated trees/files [`src/usereq/cli.py:L1105-L1142`]
-    - `compress_file()` and `generate_markdown()` perform source reads [`src/usereq/compress.py:L339-L340`, `src/usereq/generate_markdown.py:L88-L89`]
-  - External API/network access
-    - `maybe_notify_newer_version()` -> GitHub Releases API via `urllib.request.urlopen` [`src/usereq/cli.py:L324-L364`]
+- I/O boundary inventory
+  - Filesystem read operations
+    - `Path.read_text()` / `open(..., 'r')` in config/template/prompt/model/settings/source loading across `cli.py`, `generate_markdown.py`, `compress.py`, `token_counter.py`, `source_analyzer.py`.
+  - Filesystem write operations
+    - `Path.write_text()`, `shutil.copyfile()`, `shutil.copytree()`, `mkdir()`, `unlink()`, `rmtree()` in initialization/update/remove flows (`src/usereq/cli.py:L481-L500`, `L1105-L1143`, `L1311-L1928`), plus generated output writers in `compress_files.py` and markdown/compress CLIs (stdout).
+  - External API calls
+    - GitHub Releases API HTTP GET: `https://api.github.com/repos/Ogekuri/useReq/releases/latest` via `urllib.request.urlopen` in `maybe_notify_newer_version()` (`src/usereq/cli.py:L331-L363`).
   - External process execution
-    - `run_upgrade()` / `run_uninstall()` use `uv tool ...` via `subprocess.run` [`src/usereq/cli.py:L238-L276`]
-    - `generate_pdoc_docs()` uses `python -m pdoc` via `subprocess.run` [`src/usereq/pdoc_utils.py:L19-L28`, `src/usereq/pdoc_utils.py:L57-L83`]
+    - `subprocess.run()` for `uv tool install/uninstall` and pdoc invocation (`src/usereq/cli.py:L238-L277`, `src/usereq/pdoc_utils.py:L19-L84`).
   - External database access
-    - No database client initialization, connection string, SQL execution, or ORM session detected in `src/usereq/*.py`.
-  - Common reusable logic
-    - Path normalization and safety (`make_relative_if_contains_project()`, `ensure_relative()`, `ensure_wrapped()`) centralize path trust boundaries [`src/usereq/cli.py:L414-L447`, `src/usereq/cli.py:L647-L653`, `src/usereq/cli.py:L1063-L1069`]
-    - Token substitution abstraction (`apply_replacements()`, `replace_tokens()`) reused across provider output targets [`src/usereq/cli.py:L656-L660`, `src/usereq/cli.py:L830-L835`]
+    - No database client usage or DB connection logic detected in analyzed modules.
+
+- Requirements alignment evidence (`docs/REQUIREMENTS.md`)
+  - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).
+  - Version check flow aligns with REQ-016..REQ-017 (`docs/REQUIREMENTS.md:L259-L263`; `src/usereq/cli.py:L324-L363`).
+  - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`).
+  - Source analyzer, token, markdown, compression capabilities align with SRC-001..SRC-014, TOK-001..TOK-006, MKD-001..MKD-007, CMP-001..CMP-012 (`docs/REQUIREMENTS.md:L365-L415`; `src/usereq/source_analyzer.py`, `token_counter.py`, `generate_markdown.py`, `compress.py`, `compress_files.py`).
+  - CI workflow aligns with REQ-078..REQ-081 (`docs/REQUIREMENTS.md:L358-L363`; `.github/workflows/release-uvx.yml:L1-L48`).
