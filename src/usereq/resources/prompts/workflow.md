@@ -1,6 +1,6 @@
 ---
 description: "Write a WORKFLOW.md using the project's source code"
-argument-hint: "Target language for the generated WORKFLOW.md"
+argument-hint: "No arguments utilized by the prompt logic"
 ---
 
 # Write a WORKFLOW.md using the project's source code
@@ -31,7 +31,7 @@ Analyze the existing source code to generate a workflow description (`%%DOC_PATH
 - **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
-- Write the document in the requested language.
+- Write `%%DOC_PATH%%/WORKFLOW.md` document in English language.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
@@ -64,13 +64,6 @@ During the execution flow you MUST follow these directives:
 Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..5`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
-2. Extract **target language**, if present
-   - Extract the **target language** from the %%ARGS%%.
-      - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
-      - an explicit marker like "language: <name>".
-      - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-      - If multiple natural languages are mentioned and the **target language** is not explicitly identified, use English language as **target language**.
-      - If no language is specified, use English language as **target language**.
 3. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
    - Analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic:
       -  Identify the primary functions and architectural components utilized based on static code analysis of the main entry points. Focus on explicit calls and visible dependencies..
@@ -80,7 +73,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       -  Identify any common code logic.
       -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
       Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, recursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-   - Create overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
+   - Create overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. Use English language. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
       -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels fo depth, and for EACH feature you MUST include:
          -  Level 1: High-level Feature or Process description (keep it concise).
          -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
