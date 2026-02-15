@@ -65,6 +65,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 3. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
+   - Do NOT read any present `%%DOC_PATH%%/WORKFLOW.md` to understand the file's content, strictly follow below istruction to create the file.
    - Analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic:
       -  Identify the primary functions and architectural components utilized based on static code analysis of the main entry points. Focus on explicit calls and visible dependencies..
       -  Identify all file-system operations (reading or writing files).
