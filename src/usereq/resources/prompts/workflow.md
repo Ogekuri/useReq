@@ -28,7 +28,7 @@ Analyze the existing source code to generate a workflow description (`%%DOC_PATH
    - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
-- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives.
+- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
 - Write the document in the requested language.
@@ -89,27 +89,18 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
                -  `function_name()`: mandatory, the function name exactly as defined in the source code.
                -  `short single-line`: mandatory, a short single-line technical description of its specific action.
                -  `filename`: mandatory, filename where the function is defined.
-               -  `lines range`: mandatory, lines where the function is defined inside `filename`, format: `start line number`-`end line number`, example: 123-231.
-               -  `description`: a high-density technical summary (max 3 lines) detailing critical algorithmic logic and side effects, optimized to contextually enable an LLM to perform future refactoring or extension.
-               -  `input`: mandatory, semicolon separated list of input variable names exactly as defined in the source code and their types if explicitly declared. Example: "Articles: list, list of article codes; OrderInfo: json, order informations; DryRun: bool, dry-run execution flag".
-               -  `output`: mandatory, semicolon separated list of returned variable names exactly as defined in the source code and their types if explicitly declared, formatted as the `input` field. If a function return true or false indicate true/false logic (e.g., "True: bool, pattern find; False: bool, pattern not found").
-               -  `calls`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
-            -  Hierarchical Structure, child *function node* MUST be added to parent *function node* under optional field `calls:`. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
-               -  `parent_func1()`: `short single-line1` [`filename1`, `lines range1`]
-                  -  description: `description1`
-                  -  input: `input1`
-                  -  output: `output1`
-                  -  calls:
-                     -  `child_func1()`: `short single-line2` [`filename2`, `lines range2`]
-                        -  description: `description2`
-                        -  input: `input2`
-                        -  output: `output2`
-                     -  `child_func2()`: `short single-line3` [`filename3`, `lines range3`]
-                        -  description: `description3`
-                        -  input: `input3`
-                        -  output: `output3`
-                        -  calls:
-                           -  ...
+               -  `description`: a high-density technical summary detailing critical algorithmic logic and side effects. Write description for other LLM **Agents** and Automated Parsers, NOT humans. Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
+               -  `child nodes as child bullet-list`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
+            -  Hierarchical Structure, child *function node* MUST be added to parent *function node* as child bullet-list. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
+               -  `parent_func1()`: `short single-line for parent_func1` [`filename where is declared parent_func1`]
+                  -  `description of parent_func1`
+                  -  `child_func2()`: `short single-line for child_func2` [`filename where is declared child_func2`]
+                     -  `description of child_func2`
+                  -  `child_func3()`: `short single-line for child_func3` [`filename where is declared child_func3`]
+                     -  `description of child_func3`
+                     -  `child_child_func4()`: `short single-line for child_child_func4` [`filename where is declared child_child_func4`]
+                        -  `description of child_child_func4`
+                        -  ...
       -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
       -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
 4. **CRITICAL**: Stage & commit

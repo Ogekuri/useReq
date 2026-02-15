@@ -57,12 +57,13 @@ During the execution flow you MUST follow these directives:
 
 ## Steps
 Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..2`, and start following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
-1. **CRITICAL**: Check both `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` files presence
+1. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` files presence
    - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md not exist, generate it with /req.write prompt!", and then terminate the execution.
    - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.workflow prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.references prompt!", and then terminate the execution.
 2. Analyze the [User Request](#users-request) and present the analysis report
    - Using [User Request](#users-request) as a unified semantic framework, extract all directly and tangentially related information from both `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md`, prioritizing high recall to capture every borderline connection across both sources, to identify the most likely related files and functions based on explicit evidence, and treat any uncertain links as candidates without claiming completeness, then analyze the involved source code from %%SRC_PATHS%% to answer the [User Request](#users-request), ensuring compliance with %%GUIDELINES_FILES%% documents if present.
-   - Read %%GUIDELINES_FILES%% documents and check those guidelines, ensure the proposed code changes conform to those documents. Do not check unrelated guidelines.
+   - Read %%GUIDELINES_FILES%% files and check those **guidelines**, ensure the proposed code changes conform to those **guidelines**. Do not check unrelated **guidelines**.
    - PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
 
 <h2 id="users-request">User's Request</h2>

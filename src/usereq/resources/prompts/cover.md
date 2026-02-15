@@ -28,7 +28,8 @@ Identify uncovered requirements and implement source code changes to ensure all 
    - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
-- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives.
+- **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according the **guidelines**. The **target audience** for the documentation are other **LLM Agents** and Automated Parsers, NOT humans, ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
 - Do not modify files that contain requirements.
@@ -43,7 +44,7 @@ Identify uncovered requirements and implement source code changes to ensure all 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap** (*check-list*): 
-   - You MUST maintain a *check-list* internally with `7` Steps (one item per Step).
+   - You MUST maintain a *check-list* internally with `8` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
    - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
@@ -64,12 +65,13 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..7`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..8`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
-2. **CRITICAL**: Check both `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` files presence
+2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` files presence
    - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md not exist, generate it with /req.write prompt!", and then terminate the execution.
    - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.workflow prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.references prompt!", and then terminate the execution.
 3. Check requirements coverage, generate and implement the **Comprehensive Technical Implementation Report** to cover uncovered requirements
    - Read `%%DOC_PATH%%/REQUIREMENTS.md` and cross-reference with the source code from %%SRC_PATHS%%, %%TEST_PATH%% to check ALL requirements, but use progressive disclosure: provide full evidence only for `FAIL` items and a compact pointer-only index for `OK` items. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance and do not assume compliance without locating the specific code implementation.
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
@@ -77,10 +79,10 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
    - **CRITICAL**: If all requirements report `OK`, OUTPUT exactly "All requirements are already covered. No changes needed.", and then terminate the execution.
    - If there are uncovered requirements, using uncovered requirements from `%%DOC_PATH%%/REQUIREMENTS.md` and [User Request](#users-request) as a semantic guides, extract all information from `%%DOC_PATH%%/WORKFLOW.md` that is directly or even tangentially related, prioritizing high recall to capture every relevant nuance and borderline connection, to identify the most likely related files and functions based on explicit evidence, and treat any uncertain links as candidates without claiming completeness, then analyze the involved source code from %%SRC_PATHS%% and GENERATE a detailed **Comprehensive Technical Implementation Report** documenting the exact modifications to the source code that will cover all `FAIL` requirements. The **Comprehensive Technical Implementation Report** MUST be implementation-only and patch-oriented: for each file, list exact edits (functions/classes touched), include only changed snippets, and map each change to the requirement ID(s) it satisfies (no narrative summary).
-      - Read %%GUIDELINES_FILES%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
+      - Read %%GUIDELINES_FILES%% files and apply those **guidelines**; ensure the proposed code changes conform to those **guidelines**, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated **guidelines**.
    - From %%TEST_PATH%%, locate and read only the unit tests that are relevant to the affected requirement IDs and touched modules (via targeted search), and plan the necessary refactoring/additions
  to cover uncovered requirements and include these details in the **Comprehensive Technical Implementation Report**.
-      - Read %%GUIDELINES_FILES%% documents and apply those guidelines, ensure the proposed code changes conform to those documents, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated guidelines.
+      - Read %%GUIDELINES_FILES%% files and apply those **guidelines**; ensure the proposed code changes conform to those **guidelines**, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated **guidelines**.
    - IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
 4. Test the implementation result and implement needed bug-fix
    - Read previously `FAIL` requirements from `%%DOC_PATH%%/REQUIREMENTS.md` and analyze one-by-one and cross-reference with the source code to check requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance and do not assume compliance without locating the specific code implementation.
@@ -111,30 +113,23 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
                -  `function_name()`: mandatory, the function name exactly as defined in the source code.
                -  `short single-line`: mandatory, a short single-line technical description of its specific action.
                -  `filename`: mandatory, filename where the function is defined.
-               -  `lines range`: mandatory, lines where the function is defined inside `filename`, format: `start line number`-`end line number`, example: 123-231.
-               -  `description`: a high-density technical summary (max 3 lines) detailing critical algorithmic logic and side effects, optimized to contextually enable an LLM to perform future refactoring or extension.
-               -  `input`: mandatory, semicolon separated list of input variable names exactly as defined in the source code and their types if explicitly declared. Example: "Articles: list, list of article codes; OrderInfo: json, order informations; DryRun: bool, dry-run execution flag".
-               -  `output`: mandatory, semicolon separated list of returned variable names exactly as defined in the source code and their types if explicitly declared, formatted as the `input` field. If a function return true or false indicate true/false logic (e.g., "True: bool, pattern find; False: bool, pattern not found").
-               -  `calls`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
-            -  Hierarchical Structure, child *function node* MUST be added to parent *function node* under optional field `calls:`. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
-               -  `parent_func1()`: `short single-line1` [`filename1`, `lines range1`]
-                  -  description: `description1`
-                  -  input: `input1`
-                  -  output: `output1`
-                  -  calls:
-                     -  `child_func1()`: `short single-line2` [`filename2`, `lines range2`]
-                        -  description: `description2`
-                        -  input: `input2`
-                        -  output: `output2`
-                     -  `child_func2()`: `short single-line3` [`filename3`, `lines range3`]
-                        -  description: `description3`
-                        -  input: `input3`
-                        -  output: `output3`
-                        -  calls:
-                           -  ...
+               -  `description`: a high-density technical summary detailing critical algorithmic logic and side effects. Write description for other LLM **Agents** and Automated Parsers, NOT humans. Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
+               -  `child nodes as child bullet-list`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
+            -  Hierarchical Structure, child *function node* MUST be added to parent *function node* as child bullet-list. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
+               -  `parent_func1()`: `short single-line for parent_func1` [`filename where is declared parent_func1`]
+                  -  `description of parent_func1`
+                  -  `child_func2()`: `short single-line for child_func2` [`filename where is declared child_func2`]
+                     -  `description of child_func2`
+                  -  `child_func3()`: `short single-line for child_func3` [`filename where is declared child_func3`]
+                     -  `description of child_func3`
+                     -  `child_child_func4()`: `short single-line for child_child_func4` [`filename where is declared child_child_func4`]
+                        -  `description of child_child_func4`
+                        -  ...
       -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
       -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
-6. **CRITICAL**: Stage & commit
+6. Update `%%DOC_PATH%%/REFERENCES.md` refecences file
+   -  Make refecences file with `req --references --here "%%DOC_PATH%%/REFERENCES.md"`
+7. **CRITICAL**: Stage & commit
       - Show a summary of changes with `git diff` and `git diff --stat`.
       - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
       - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains"Aborting",  OUTPUT exactly "No changes to commit.", and then terminate the execution.
@@ -143,5 +138,5 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
          - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
          - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
    - Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Requirements coverage completed with unclean git repository!".
-7. Present results
+8. Present results
    - PRINT in the response presenting the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Requirements coverage completed!".

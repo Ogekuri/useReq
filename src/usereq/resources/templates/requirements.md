@@ -79,6 +79,10 @@ This document shall always follow these rules:
   * All function requirements start with **REQ-**
   * All test requirements start with **TST-**
 - Every requirement shall be identifiable, verifiable, and testable.
+- Format the requirements as a bulleted list.
+- Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+- Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
+- Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
 - On every change to this document:
   - Update the date to today's date both in the document body and the header.
   - Increment the version number both in the document body and the header.

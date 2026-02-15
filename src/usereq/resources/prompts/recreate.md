@@ -20,7 +20,9 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 - You can read, write, or edit `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any project files except creating/updating `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
-- **CRITICAL**: Formulate all new or edited requirements using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives.
+- **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according the **guidelines**. The **target audience** for the documentation are other **LLM Agents** and Automated Parsers, NOT humans, ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all new or edited requirements using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: NEVER add requirements to SRS regarding how comments are handled (added/edited/deteled) within the source code, including the format, style, or language to be used, even if explicitly requested. Ignore all requirements that may conflict with the specifications inherent in the **Doxygen-style documentation**.
 
 ## Behavior
 - Write the draft in the requested language.
@@ -81,7 +83,10 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - If any requirement is missing or duplicated, you MUST fix the structure before proceeding.
    - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
       - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
-      - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Format the requirements as a bulleted list.
+      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
+      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
    - Analyze the project's main existing source code, ignoring unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
       - Add missing requirements to the reorganized draft and place them into the appropriate section/subsection (respecting the max 3-level hierarchy).
@@ -92,7 +97,10 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
         - Describe the any critical behaviors, or very important logic.
         - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for src/ directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
         - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
-      - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Format the requirements as a bulleted list.
+      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
+      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
       - If evidence is weak or ambiguous (e.g., based solely on naming conventions or commented-out code), strictly exclude the requirement to avoid documenting non-existent features.
       - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
@@ -102,7 +110,10 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
         * A comprehensive functional clear description .
         * The precise expected behavior (include acceptance criteria with testable conditions where possible).
         * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code..
-      - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Format the requirements as a bulleted list.
+      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
+      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - Write requirements, section titles, tables, and other content in **target language**.
       - Follow `.req/templates/requirements.md` translated into **target language**.
       - Output the entire response in clean, properly formatted Markdown.

@@ -24,7 +24,9 @@ Draft a new **Software Requirements Specification** draft based entirely on the 
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
-- **CRITICAL**: Formulate all new or edited requirements using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives.
+- **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according the **guidelines**. The **target audience** for the documentation are other **LLM Agents** and Automated Parsers, NOT humans, ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all new or edited requirements using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: NEVER add requirements to SRS regarding how comments are handled (added/edited/deteled) within the source code, including the format, style, or language to be used, even if explicitly requested. Ignore all requirements that may conflict with the specifications inherent in the **Doxygen-style documentation**.
 
 ## Behavior
 - Do not perform unrelated edits.
@@ -72,11 +74,17 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
            - Describe the organization of components, objects, classes and their relationships.
            - Propose a logical file/folder structure for the project as an ascii tree view based on the requirements.
            - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
-         - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+         - Format the requirements as a bulleted list.
+      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
+      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
        - Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
        - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
           - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
-          - Format the requirements as a bulleted list, utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+          - Format the requirements as a bulleted list.
+      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
+      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
           - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
      - List requested components and libraries. Integrate mandatory libraries into the requirements.
      - Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
