@@ -51,9 +51,10 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `new` | Implement a new requirement and the corresponding source code changes |
   | `recreate` | Reorganize, update, and renumber the *SRS* |
   | `refactor` | Perform optimizations without changing the requirements |
+  | `references` | Write a `REFERENCES.md` using the project's source code |
   | `write` | Produce a *SRS* draft based on the User Request description |
   | `reset` | Reset useReq/req bootstrap context |
-  | `workflow` | Write a `docs/WORKFLOW.md` using the project's source code |
+  | `workflow` | Write a `WORKFLOW.md` using the project's source code |
 
 
 ## Default Workflow
@@ -114,6 +115,22 @@ uv tool uninstall usereq
   - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
 - Add `--legacy` to enable the *legacy mode* support (see below).
 
+### Embedded Utility
+
+- Count tokens and chars for the given files (standalone, no --base/--here required).
+  `--files-tokens FILE [FILE ...]`
+
+- Generate LLM reference markdown for the given files (standalone, no --base/--here required).
+  `--files-references FILE [FILE ...]`
+
+- Generate compressed output for the given files (standalone, no --base/--here required).                        
+  `--files-compress FILE [FILE ...]`
+
+- Generate LLM reference markdown for all source files in configured --src-dir directories (requires --base/--here).
+  `--references`
+
+- Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).  
+  `--compress`
 
 ## Supported CLIs, Agents, and Extensions
 
