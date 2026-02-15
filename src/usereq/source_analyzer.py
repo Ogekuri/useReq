@@ -1,20 +1,6 @@
 #!/usr/bin/env python3
-"""
-source_analyzer.py - Multi-language source code analyzer.
-
-Inspired by tree-sitter, this module analyzes source files across multiple
-programming languages, extracting:
-  - Definitions of functions, methods, classes, structs, enums, traits,
-    interfaces, modules, components and other constructs
-  - Comments (single-line and multi-line) in language-specific syntax
-  - A structured listing of the entire file with line number prefixes
-
-Usage:
-    python source_analyzer.py <file_source> <language>
-
-Supported languages: python, c, rust, javascript, typescript, java, go,
-                     cpp, csharp, ruby, php, swift, kotlin, scala, lua,
-                     shell, perl, haskell, zig, elixir
+"""! @brief source_analyzer.py - Multi-language source code analyzer.
+@details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Definitions of functions, methods, classes, structs, enums, traits, interfaces, modules, components and other constructs - Comments (single-line and multi-line) in language-specific syntax - A structured listing of the entire file with line number prefixes Usage: python source_analyzer.py <file_source> <language> Supported languages: python, c, rust, javascript, typescript, java, go, cpp, csharp, ruby, php, swift, kotlin, scala, lua, shell, perl, haskell, zig, elixir
 """
 
 import argparse
@@ -27,7 +13,8 @@ from typing import Optional
 
 
 class ElementType(Enum):
-    """Element types recognized in source code."""
+    """! @brief Element types recognized in source code.
+    """
     FUNCTION = auto()
     METHOD = auto()
     CLASS = auto()
@@ -57,7 +44,8 @@ class ElementType(Enum):
 
 @dataclass
 class SourceElement:
-    """Element found in source file."""
+    """! @brief Element found in source file.
+    """
     element_type: ElementType
     line_start: int
     line_end: int
@@ -108,7 +96,8 @@ class SourceElement:
 
 @dataclass
 class LanguageSpec:
-    """Language recognition pattern specification."""
+    """! @brief Language recognition pattern specification.
+    """
     name: str
     single_comment: Optional[str] = None
     multi_comment_start: Optional[str] = None
@@ -118,7 +107,8 @@ class LanguageSpec:
 
 
 def build_language_specs() -> dict:
-    """Build specifications for all supported languages."""
+    """! @brief Build specifications for all supported languages.
+    """
     specs = {}
 
     # ── Python ──────────────────────────────────────────────────────────
@@ -670,11 +660,8 @@ def build_language_specs() -> dict:
 
 
 class SourceAnalyzer:
-    """Multi-language source file analyzer.
-
-    Analyzes a source file identifying definitions, comments and constructs
-    for the specified language. Produces structured output with line numbers,
-    inspired by tree-sitter tags functionality.
+    """! @brief Multi-language source file analyzer.
+    @details Analyzes a source file identifying definitions, comments and constructs for the specified language. Produces structured output with line numbers, inspired by tree-sitter tags functionality.
     """
 
     def __init__(self):
@@ -682,7 +669,8 @@ class SourceAnalyzer:
         self.specs = build_language_specs()
 
     def get_supported_languages(self) -> list:
-        """Return list of supported languages (without aliases)."""
+        """! @brief Return list of supported languages (without aliases).
+        """
         seen = set()
         result = []
         for key, spec in self.specs.items():
@@ -692,7 +680,8 @@ class SourceAnalyzer:
         return sorted(result)
 
     def analyze(self, filepath: str, language: str) -> list:
-        """Analyze a source file and return the list of SourceElement found."""
+        """! @brief Analyze a source file and return the list of SourceElement found.
+        """
         language = language.lower().strip().lstrip(".")
         if language not in self.specs:
             raise ValueError(
@@ -840,7 +829,8 @@ class SourceAnalyzer:
         return elements
 
     def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool:
-        """Check if position pos is inside a string literal."""
+        """! @brief Check if position pos is inside a string literal.
+        """
         in_string = False
         current_delim = None
         i = 0
@@ -869,7 +859,8 @@ class SourceAnalyzer:
         return in_string
 
     def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]:
-        """Find position of single-line comment, ignoring strings."""
+        """! @brief Find position of single-line comment, ignoring strings.
+        """
         if not spec.single_comment:
             return None
 
@@ -904,10 +895,8 @@ class SourceAnalyzer:
 
     def _find_block_end(self, lines: list, start_idx: int,
                         language: str, first_line: str) -> int:
-        """Find the end of a block (function, class, struct, etc.).
-
-        Returns the index (1-based) of the final line of the block.
-        Limits search for performance.
+        """! @brief Find the end of a block (function, class, struct, etc.).
+        @details Returns the index (1-based) of the final line of the block. Limits search for performance.
         """
         # Per Python: basato sull'indentazione
         if language in ("python", "py"):
@@ -982,11 +971,8 @@ class SourceAnalyzer:
 
     def enrich(self, elements: list, language: str,
                filepath: str = None) -> list:
-        """Enrich elements with signatures, hierarchy, visibility, inheritance.
-
-        Call after analyze() to add metadata for LLM-optimized markdown output.
-        Modifies elements in-place and returns them.
-        If filepath is provided, also extracts body comments and exit points.
+        """! @brief Enrich elements with signatures, hierarchy, visibility, inheritance.
+        @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
         """
         language = language.lower().strip().lstrip(".")
         self._clean_names(elements, language)
@@ -999,11 +985,8 @@ class SourceAnalyzer:
         return elements
 
     def _clean_names(self, elements: list, language: str):
-        """Extract clean identifiers from name fields.
-
-        Due to regex group nesting, name may contain the full match
-        expression (e.g. 'class MyClass:' instead of 'MyClass').
-        This method extracts the actual identifier.
+        """! @brief Extract clean identifiers from name fields.
+        @details Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
         """
         for elem in elements:
             if not elem.name:
@@ -1028,7 +1011,8 @@ class SourceAnalyzer:
                             break
 
     def _extract_signatures(self, elements: list, language: str):
-        """Extract clean signatures from element extracts."""
+        """! @brief Extract clean signatures from element extracts.
+        """
         skip_types = (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI,
                       ElementType.IMPORT, ElementType.DECORATOR)
         for elem in elements:
@@ -1043,10 +1027,8 @@ class SourceAnalyzer:
             elem.signature = sig
 
     def _detect_hierarchy(self, elements: list):
-        """Detect parent-child relationships between elements.
-
-        Containers (class, struct, module, etc.) remain at depth=0.
-        Non-container elements inside containers get depth=1 and parent_name set.
+        """! @brief Detect parent-child relationships between elements.
+        @details Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
         """
         container_types = (
             ElementType.CLASS, ElementType.STRUCT, ElementType.MODULE,
@@ -1079,7 +1061,8 @@ class SourceAnalyzer:
                 elem.depth = 1
 
     def _extract_visibility(self, elements: list, language: str):
-        """Extract visibility/access modifiers from elements."""
+        """! @brief Extract visibility/access modifiers from elements.
+        """
         for elem in elements:
             if elem.element_type in (ElementType.COMMENT_SINGLE,
                                       ElementType.COMMENT_MULTI,
@@ -1092,7 +1075,8 @@ class SourceAnalyzer:
 
     def _parse_visibility(self, sig: str, name: Optional[str],
                           language: str) -> Optional[str]:
-        """Parse visibility modifier from a signature line."""
+        """! @brief Parse visibility modifier from a signature line.
+        """
         if language in ("python", "py"):
             if name and name.startswith("__") and not name.endswith("__"):
                 return "priv"
@@ -1136,7 +1120,8 @@ class SourceAnalyzer:
         return None
 
     def _extract_inheritance(self, elements: list, language: str):
-        """Extract inheritance/implementation info from class-like elements."""
+        """! @brief Extract inheritance/implementation info from class-like elements.
+        """
         for elem in elements:
             if elem.element_type not in (ElementType.CLASS, ElementType.STRUCT,
                                           ElementType.INTERFACE):
@@ -1148,7 +1133,8 @@ class SourceAnalyzer:
 
     def _parse_inheritance(self, first_line: str,
                            language: str) -> Optional[str]:
-        """Parse inheritance info from a class/struct declaration line."""
+        """! @brief Parse inheritance info from a class/struct declaration line.
+        """
         if language in ("python", "py"):
             m = re.search(r'class\s+\w+\s*\(([^)]+)\)', first_line)
             return m.group(1).strip() if m else None
@@ -1184,14 +1170,8 @@ class SourceAnalyzer:
 
     def _extract_body_annotations(self, elements: list,
                                   language: str, filepath: str):
-        """Extract comments and exit points from within function/class bodies.
-
-        Reads the source file and scans each definition's line range for:
-        - Single-line comments (# or // etc.)
-        - Multi-line comments (docstrings, /* */ blocks)
-        - Exit points (return, yield, raise, throw, panic!, sys.exit)
-
-        Populates body_comments and exit_points on each element.
+        """! @brief Extract comments and exit points from within function/class bodies.
+        @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
         """
         spec = self.specs.get(language)
         if not spec:
@@ -1314,7 +1294,8 @@ class SourceAnalyzer:
 
     @staticmethod
     def _clean_comment_line(text: str, spec) -> str:
-        """Strip comment markers from a single line of comment text."""
+        """! @brief Strip comment markers from a single line of comment text.
+        """
         s = text.strip()
         for prefix in ("///", "//!", "//", "#!", "##", "#", "--", ";;"):
             if s.startswith(prefix):
@@ -1326,7 +1307,8 @@ class SourceAnalyzer:
 
 def format_output(elements: list, filepath: str, language: str,
                   spec_name: str) -> str:
-    """Format structured analysis output."""
+    """! @brief Format structured analysis output.
+    """
     output_lines = []
     separator = "=" * 78
 
@@ -1445,14 +1427,16 @@ def format_output(elements: list, filepath: str, language: str,
 
 
 def _md_loc(elem) -> str:
-    """Format element location compactly for markdown."""
+    """! @brief Format element location compactly for markdown.
+    """
     if elem.line_start == elem.line_end:
         return f"L{elem.line_start}"
     return f"L{elem.line_start}-{elem.line_end}"
 
 
 def _md_kind(elem) -> str:
-    """Short kind label for markdown output."""
+    """! @brief Short kind label for markdown output.
+    """
     mapping = {
         ElementType.FUNCTION: "fn",
         ElementType.METHOD: "method",
@@ -1480,11 +1464,8 @@ def _md_kind(elem) -> str:
 
 
 def _extract_comment_text(comment_elem, max_length: int = 0) -> str:
-    """Extract clean text content from a comment element.
-
-    Args:
-        comment_elem: SourceElement with comment content
-        max_length: if >0, truncate to this length. 0 = no truncation.
+    """! @brief Extract clean text content from a comment element.
+    @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
     """
     lines = comment_elem.extract.split("\n")
     cleaned = []
@@ -1506,7 +1487,8 @@ def _extract_comment_text(comment_elem, max_length: int = 0) -> str:
 
 
 def _extract_comment_lines(comment_elem) -> list:
-    """Extract clean text lines from a multi-line comment (preserving structure)."""
+    """! @brief Extract clean text lines from a multi-line comment (preserving structure).
+    """
     lines = comment_elem.extract.split("\n")
     cleaned = []
     for ln in lines:
@@ -1522,13 +1504,8 @@ def _extract_comment_lines(comment_elem) -> list:
 
 
 def _build_comment_maps(elements: list) -> tuple:
-    """Build maps that associate comments with their adjacent definitions.
-
-    Returns:
-        - doc_for_def: dict mapping def line_start -> list of comment texts
-          (comments immediately preceding a definition)
-        - standalone_comments: list of comment elements not attached to defs
-        - file_description: text from the first comment block (file-level docs)
+    """! @brief Build maps that associate comments with their adjacent definitions.
+    @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
     """
     all_sorted = sorted(elements, key=lambda e: e.line_start)
 
@@ -1589,12 +1566,8 @@ def _build_comment_maps(elements: list) -> tuple:
 
 def _render_body_annotations(out: list, elem, indent: str = "",
                              exclude_ranges: list = None):
-    """Render body comments and exit points for a definition element.
-
-    Merges body_comments and exit_points in line-number order, outputting
-    each as L<N>> text. When both a comment and exit point exist on the
-    same line, merges them as: L<N>> `return` — comment text.
-    Skips annotations within exclude_ranges.
+    """! @brief Render body comments and exit points for a definition element.
+    @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
     """
     # Build maps by line number
     comment_map = {}
@@ -1645,16 +1618,8 @@ def _render_body_annotations(out: list, elem, indent: str = "",
 
 def format_markdown(elements: list, filepath: str, language: str,
                     spec_name: str, total_lines: int) -> str:
-    """Format analysis as compact Markdown optimized for LLM agent consumption.
-
-    Produces token-efficient output with:
-    - File header with language, line count, element summary, and description
-    - Imports in a code block
-    - Hierarchical definitions with line-numbered doc comments
-    - Body comments (L<N>> text) and exit points (L<N>> `return ...`)
-    - Comments grouped with their relevant definitions
-    - Standalone section/region comments preserved as context
-    - Symbol index table for quick reference by line number
+    """! @brief Format analysis as compact Markdown optimized for LLM agent consumption.
+    @details Produces token-efficient output with: - File header with language, line count, element summary, and description - Imports in a code block - Hierarchical definitions with line-numbered doc comments - Body comments (L<N>> text) and exit points (L<N>> `return ...`) - Comments grouped with their relevant definitions - Standalone section/region comments preserved as context - Symbol index table for quick reference by line number
     """
     out = []
     fname = os.path.basename(filepath)

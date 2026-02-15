@@ -83,6 +83,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-14 | 0.60 | Rinominati i parametri CLI `--write-guidelines`/`--overwrite-guidelines` in `--add-guidelines`/`--copy-guidelines`. |
 | 2026-02-15 | 0.61 | Aggiunti comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress` e relativi moduli: analisi sorgenti multi-linguaggio, conteggio token, generazione markdown di riferimento, compressione sorgenti. |
 | 2026-02-15 | 0.62 | Aggiornati i requisiti DES-008..DES-010 imponendo documentazione Doxygen completa, strutturata e in Inglese per tutti i componenti codice. |
+| 2026-02-15 | 0.63 | Rimossi i requisiti DES-008..DES-010 relativi alle modalità di documentazione nei sorgenti. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -223,9 +224,6 @@ Il progetto include una suite di test in `tests/`.
 - **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate partendo dai prompt Markdown disponibili.
 - **DES-006**: L'entry point del pacchetto deve esporre `usereq.cli:main` via `use-req`, `req`, e `usereq`.
 - **DES-007**: Gli errori attesi devono essere gestiti via eccezione dedicata con exit code non-zero.
-- **DES-008**: Tutti i blocchi di documentazione del codice sorgente devono essere scritti esclusivamente in Inglese e in formato Doxygen.
-- **DES-009**: Ogni componente del codice (moduli, classi, funzioni, metodi, variabili globali, costanti, nuove implementazioni) deve includere documentazione Doxygen completa e verificabile.
-- **DES-010**: La documentazione Doxygen deve usare struttura atomica e machine-interpretable (parametri, ritorni, effetti collaterali, vincoli), evitando testo narrativo non tecnico.
 - **DES-012**: La funzione `load_cli_configs` deve essere sostituita con `load_centralized_models` che carica i dati dal file `src/usereq/resources/common/models.json`. Quando `legacy_mode` è attivo, deve caricare `models-legacy.json` se esiste, altrimenti fare fallback su `models.json`. Il fallback deve avvenire a livello di file completo, non per singole voci. La struttura di ritorno deve rimanere compatibile: un dizionario `cli_name -> config` dove `config` contiene le chiavi `prompts`, `usage_modes`, e opzionalmente `agent_template`.
 - **DES-013**: La funzione `generate_req_file_list` non deve essere utilizzata dal flusso di generazione prompt e il token `%%REQ_DIR%%` non deve essere più supportato.
 - **DES-014**: La funzione `generate_dir_list` deve essere rinominata in `generate_guidelines_file_list`. Il comportamento deve essere allineato a `generate_req_file_list`: scansionare la directory specificata (quella passata con `--guidelines-dir`) e restituire la lista dei file presenti in quella directory (senza ricerca ricorsiva di sottocartelle), ignorando i file che iniziano con punto (`.`). Se la directory è vuota o non contiene file non nascosti, deve restituire il nome della directory stessa come fallback (preservando il comportamento originale solo per il caso di directory vuota).

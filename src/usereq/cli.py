@@ -1,4 +1,5 @@
-"""CLI entry point implementing the useReq initialization flow."""
+"""! @brief CLI entry point implementing the useReq initialization flow.
+"""
 
 from __future__ import annotations
 
@@ -29,7 +30,8 @@ DEBUG = False
 
 
 class ReqError(Exception):
-    """Dedicated exception for expected CLI errors."""
+    """! @brief Dedicated exception for expected CLI errors.
+    """
 
     def __init__(self, message: str, code: int = 1) -> None:
         """! @brief Initialize an expected CLI failure payload.
@@ -42,24 +44,28 @@ class ReqError(Exception):
 
 
 def log(msg: str) -> None:
-    """Prints an informational message."""
+    """! @brief Prints an informational message.
+    """
     print(msg)
 
 
 def dlog(msg: str) -> None:
-    """Prints a debug message if debugging is active."""
+    """! @brief Prints a debug message if debugging is active.
+    """
     if DEBUG:
         print("DEBUG:", msg)
 
 
 def vlog(msg: str) -> None:
-    """Prints a verbose message if verbose mode is active."""
+    """! @brief Prints a verbose message if verbose mode is active.
+    """
     if VERBOSE:
         print(msg)
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Builds the CLI argument parser."""
+    """! @brief Builds the CLI argument parser.
+    """
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
@@ -217,12 +223,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_args(argv: Optional[list[str]] = None) -> Namespace:
-    """Parses command-line arguments into a namespace."""
+    """! @brief Parses command-line arguments into a namespace.
+    """
     return build_parser().parse_args(argv)
 
 
 def load_package_version() -> str:
-    """Reads the package version from __init__.py."""
+    """! @brief Reads the package version from __init__.py.
+    """
     init_path = Path(__file__).resolve().parent / "__init__.py"
     text = init_path.read_text(encoding="utf-8")
     match = re.search(r'^__version__\s*=\s*"([^"]+)"\s*$', text, re.M)
@@ -232,7 +240,8 @@ def load_package_version() -> str:
 
 
 def maybe_print_version(argv: list[str]) -> bool:
-    """Handles --ver/--version by printing the version."""
+    """! @brief Handles --ver/--version by printing the version.
+    """
     if "--ver" in argv or "--version" in argv:
         print(load_package_version())
         return True
@@ -240,7 +249,8 @@ def maybe_print_version(argv: list[str]) -> bool:
 
 
 def run_upgrade() -> None:
-    """Executes the upgrade using uv."""
+    """! @brief Executes the upgrade using uv.
+    """
     command = [
         "uv",
         "tool",
@@ -262,7 +272,8 @@ def run_upgrade() -> None:
 
 
 def run_uninstall() -> None:
-    """Executes the uninstallation using uv."""
+    """! @brief Executes the uninstallation using uv.
+    """
     command = [
         "uv",
         "tool",
@@ -281,7 +292,8 @@ def run_uninstall() -> None:
 
 
 def normalize_release_tag(tag: str) -> str:
-    """Normalizes the release tag by removing a 'v' prefix if present."""
+    """! @brief Normalizes the release tag by removing a 'v' prefix if present.
+    """
     value = (tag or "").strip()
     if value.lower().startswith("v") and len(value) > 1:
         value = value[1:]
@@ -289,9 +301,8 @@ def normalize_release_tag(tag: str) -> str:
 
 
 def parse_version_tuple(version: str) -> tuple[int, ...] | None:
-    """Converts a version into a numeric tuple for comparison.
-
-    Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
+    """! @brief Converts a version into a numeric tuple for comparison.
+    @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
     """
 
     cleaned = (version or "").strip()
@@ -313,7 +324,8 @@ def parse_version_tuple(version: str) -> tuple[int, ...] | None:
 
 
 def is_newer_version(current: str, latest: str) -> bool:
-    """Returns True if latest is greater than current."""
+    """! @brief Returns True if latest is greater than current.
+    """
     current_tuple = parse_version_tuple(current)
     latest_tuple = parse_version_tuple(latest)
     if not current_tuple or not latest_tuple:
@@ -326,9 +338,8 @@ def is_newer_version(current: str, latest: str) -> bool:
 
 
 def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
-    """Checks online for a new version and prints a warning.
-
-    If the call fails or the response is invalid, it prints nothing and proceeds.
+    """! @brief Checks online for a new version and prints a warning.
+    @details If the call fails or the response is invalid, it prints nothing and proceeds.
     """
 
     current_version = load_package_version()
@@ -368,7 +379,8 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
 
 
 def ensure_doc_directory(path: str, project_base: Path) -> None:
-    """Ensures the documentation directory exists under the project base."""
+    """! @brief Ensures the documentation directory exists under the project base.
+    """
     normalized = make_relative_if_contains_project(path, project_base)
     doc_path = project_base / normalized
     resolved = doc_path.resolve(strict=False)
@@ -384,7 +396,8 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
 
 
 def ensure_test_directory(path: str, project_base: Path) -> None:
-    """Ensures the test directory exists under the project base."""
+    """! @brief Ensures the test directory exists under the project base.
+    """
     normalized = make_relative_if_contains_project(path, project_base)
     test_path = project_base / normalized
     resolved = test_path.resolve(strict=False)
@@ -400,7 +413,8 @@ def ensure_test_directory(path: str, project_base: Path) -> None:
 
 
 def ensure_src_directory(path: str, project_base: Path) -> None:
-    """Ensures the source directory exists under the project base."""
+    """! @brief Ensures the source directory exists under the project base.
+    """
     normalized = make_relative_if_contains_project(path, project_base)
     src_path = project_base / normalized
     resolved = src_path.resolve(strict=False)
@@ -416,7 +430,8 @@ def ensure_src_directory(path: str, project_base: Path) -> None:
 
 
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
-    """Normalizes the path relative to the project root when possible."""
+    """! @brief Normalizes the path relative to the project root when possible.
+    """
     if not path_value:
         return ""
     candidate = Path(path_value)
@@ -451,7 +466,8 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
 
 
 def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
-    """Resolves the absolute path starting from a normalized value."""
+    """! @brief Resolves the absolute path starting from a normalized value.
+    """
     if not normalized:
         return None
     candidate = Path(normalized)
@@ -461,7 +477,8 @@ def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
 
 
 def format_substituted_path(value: str) -> str:
-    """Uniforms path separators for substitutions."""
+    """! @brief Uniforms path separators for substitutions.
+    """
     if not value:
         return ""
     return value.replace(os.sep, "/")
@@ -470,7 +487,8 @@ def format_substituted_path(value: str) -> str:
 def compute_sub_path(
     normalized: str, absolute: Optional[Path], project_base: Path
 ) -> str:
-    """Calculates the relative path to use in tokens."""
+    """! @brief Calculates the relative path to use in tokens.
+    """
     if not normalized:
         return ""
     if absolute:
@@ -489,7 +507,8 @@ def save_config(
     test_dir_value: str,
     src_dir_values: list[str],
 ) -> None:
-    """Saves normalized parameters to .req/config.json."""
+    """! @brief Saves normalized parameters to .req/config.json.
+    """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -504,7 +523,8 @@ def save_config(
 
 
 def load_config(project_base: Path) -> dict[str, str | list[str]]:
-    """Loads parameters saved in .req/config.json."""
+    """! @brief Loads parameters saved in .req/config.json.
+    """
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
         raise ReqError(
@@ -541,7 +561,8 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
-    """Generates the markdown file list for %%GUIDELINES_FILES%% replacement."""
+    """! @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
+    """
     if not guidelines_dir.is_dir():
         return ""
 
@@ -568,10 +589,8 @@ def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> s
 
 
 def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]:
-    """Generates a list of relative file paths (no formatting) for printing.
-
-    Each entry is formatted as `guidelines/file.md` (forward slashes).
-    If there are no files, returns the directory itself with a trailing slash.
+    """! @brief Generates a list of relative file paths (no formatting) for printing.
+    @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
     """
     if not guidelines_dir.is_dir():
         return []
@@ -601,14 +620,8 @@ def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> 
 def copy_guidelines_templates(
     guidelines_dest: Path, overwrite: bool = False
 ) -> int:
-    """Copies guidelines templates from resources/guidelines/ to the target directory.
-
-    Args:
-        guidelines_dest: Target directory where templates will be copied
-        overwrite: If True, overwrite existing files; if False, skip existing files
-
-    Returns:
-        Number of files copied
+    """! @brief Copies guidelines templates from resources/guidelines/ to the target directory.
+    @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of files copied
     """
     guidelines_src = RESOURCE_ROOT / "guidelines"
     if not guidelines_src.is_dir():
@@ -638,7 +651,8 @@ def copy_guidelines_templates(
 
 
 def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
-    """Normalizes the path token optionally preserving the trailing slash."""
+    """! @brief Normalizes the path token optionally preserving the trailing slash.
+    """
     if not raw:
         return ""
     normalized = raw.replace("\\", "/").strip("/")
@@ -649,7 +663,8 @@ def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
 
 
 def ensure_relative(value: str, name: str, code: int) -> None:
-    """Validates that the path is not absolute and raises an error otherwise."""
+    """! @brief Validates that the path is not absolute and raises an error otherwise.
+    """
     if Path(value).is_absolute():
         raise ReqError(
             f"Error: {name} must be a relative path under PROJECT_BASE",
@@ -658,14 +673,16 @@ def ensure_relative(value: str, name: str, code: int) -> None:
 
 
 def apply_replacements(text: str, replacements: Mapping[str, str]) -> str:
-    """Returns text with token replacements applied."""
+    """! @brief Returns text with token replacements applied.
+    """
     for token, replacement in replacements.items():
         text = text.replace(token, replacement)
     return text
 
 
 def write_text_file(dst: Path, text: str) -> None:
-    """Writes text to disk, ensuring the destination folder exists."""
+    """! @brief Writes text to disk, ensuring the destination folder exists.
+    """
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(text, encoding="utf-8")
 
@@ -673,14 +690,16 @@ def write_text_file(dst: Path, text: str) -> None:
 def copy_with_replacements(
     src: Path, dst: Path, replacements: Mapping[str, str]
 ) -> None:
-    """Copies a file substituting the indicated tokens with their values."""
+    """! @brief Copies a file substituting the indicated tokens with their values.
+    """
     text = src.read_text(encoding="utf-8")
     updated = apply_replacements(text, replacements)
     write_text_file(dst, updated)
 
 
 def normalize_description(value: str) -> str:
-    """Normalizes a description by removing superfluous quotes and escapes."""
+    """! @brief Normalizes a description by removing superfluous quotes and escapes.
+    """
     trimmed = value.strip()
     if len(trimmed) >= 2 and trimmed.startswith('"') and trimmed.endswith('"'):
         trimmed = trimmed[1:-1]
@@ -690,7 +709,8 @@ def normalize_description(value: str) -> str:
 
 
 def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
-    """Converts a Markdown prompt to TOML for Gemini."""
+    """! @brief Converts a Markdown prompt to TOML for Gemini.
+    """
     if toml_path.exists() and not force:
         raise ReqError(
             f"Destination TOML already exists (use --force to overwrite): {toml_path}",
@@ -718,7 +738,8 @@ def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
 
 
 def extract_frontmatter(content: str) -> tuple[str, str]:
-    """Extracts front matter and body from Markdown."""
+    """! @brief Extracts front matter and body from Markdown.
+    """
     match = re.match(r"^\s*---\s*\n(.*?)\n---\s*\n(.*)$", content, re.S)
     if not match:
         raise ReqError("No leading '---' block found at start of Markdown file.", 4)
@@ -727,7 +748,8 @@ def extract_frontmatter(content: str) -> tuple[str, str]:
 
 
 def extract_description(frontmatter: str) -> str:
-    """Extracts the description from front matter."""
+    """! @brief Extracts the description from front matter.
+    """
     desc_match = re.search(r"^description:\s*(.*)$", frontmatter, re.M)
     if not desc_match:
         raise ReqError("No 'description:' field found inside the leading block.", 5)
@@ -735,7 +757,8 @@ def extract_description(frontmatter: str) -> str:
 
 
 def extract_argument_hint(frontmatter: str) -> str:
-    """Extracts the argument-hint from front matter, if present."""
+    """! @brief Extracts the argument-hint from front matter, if present.
+    """
     match = re.search(r"^argument-hint:\s*(.*)$", frontmatter, re.M)
     if not match:
         return ""
@@ -743,7 +766,8 @@ def extract_argument_hint(frontmatter: str) -> str:
 
 
 def extract_purpose_first_bullet(body: str) -> str:
-    """Returns the first bullet of the Purpose section."""
+    """! @brief Returns the first bullet of the Purpose section.
+    """
     lines = body.splitlines()
     start_idx = None
     for idx, line in enumerate(lines):
@@ -763,7 +787,8 @@ def extract_purpose_first_bullet(body: str) -> str:
 
 
 def json_escape(value: str) -> str:
-    """Escapes a string for JSON without external delimiters."""
+    """! @brief Escapes a string for JSON without external delimiters.
+    """
     return json.dumps(value)[1:-1]
 
 
@@ -772,7 +797,8 @@ def generate_kiro_resources(
     project_base: Path,
     prompt_rel_path: str,
 ) -> list[str]:
-    """Generates the resource list for the Kiro agent."""
+    """! @brief Generates the resource list for the Kiro agent.
+    """
     resources = [f"file://{prompt_rel_path}"]
     if not req_dir.is_dir():
         return resources
@@ -800,7 +826,8 @@ def render_kiro_agent(
     include_tools: bool = False,
     include_model: bool = False,
 ) -> str:
-    """Renders the Kiro agent JSON and populates main fields."""
+    """! @brief Renders the Kiro agent JSON and populates main fields.
+    """
     replacements = {
         "%%NAME%%": json_escape(name),
         "%%DESCRIPTION%%": json_escape(description),
@@ -832,7 +859,8 @@ def render_kiro_agent(
 
 
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
-    """Replaces tokens in the specified file."""
+    """! @brief Replaces tokens in the specified file.
+    """
     text = path.read_text(encoding="utf-8")
     for token, replacement in replacements.items():
         text = text.replace(token, replacement)
@@ -840,12 +868,14 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
 
 
 def yaml_double_quote_escape(value: str) -> str:
-    """Minimal escape for a double-quoted string in YAML."""
+    """! @brief Minimal escape for a double-quoted string in YAML.
+    """
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def find_template_source() -> Path:
-    """Returns the template source or raises an error."""
+    """! @brief Returns the template source or raises an error.
+    """
     candidate = RESOURCE_ROOT / "templates"
     if (candidate / "requirements.md").is_file():
         return candidate
@@ -856,7 +886,8 @@ def find_template_source() -> Path:
 
 
 def load_kiro_template() -> tuple[str, dict[str, Any]]:
-    """Loads the Kiro template from centralized models configuration."""
+    """! @brief Loads the Kiro template from centralized models configuration.
+    """
     common_dir = RESOURCE_ROOT / "common"
     
     # Try models.json first (this function is called during generation, not with legacy flag check)
@@ -890,7 +921,8 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
 
 
 def strip_json_comments(text: str) -> str:
-    """Removes // and /* */ comments to allow JSONC parsing."""
+    """! @brief Removes // and /* */ comments to allow JSONC parsing.
+    """
     cleaned: list[str] = []
     in_block = False
     for line in text.splitlines():
@@ -910,7 +942,8 @@ def strip_json_comments(text: str) -> str:
 
 
 def load_settings(path: Path) -> dict[str, Any]:
-    """Loads JSON/JSONC settings, removing comments when necessary."""
+    """! @brief Loads JSON/JSONC settings, removing comments when necessary.
+    """
     raw = path.read_text(encoding="utf-8")
     try:
         return json.loads(raw)
@@ -925,12 +958,8 @@ def load_centralized_models(
     legacy_mode: bool = False, 
     preserve_models_path: Optional[Path] = None
 ) -> dict[str, dict[str, Any] | None]:
-    """Loads centralized models configuration from common/models.json.
-
-    Returns a map cli_name -> parsed_json or None if not present.
-    When preserve_models_path is provided and exists, loads from that file,
-    ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to 
-    load models-legacy.json first, falling back to models.json if not found.
+    """! @brief Loads centralized models configuration from common/models.json.
+    @details Returns a map cli_name -> parsed_json or None if not present. When preserve_models_path is provided and exists, loads from that file, ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to load models-legacy.json first, falling back to models.json if not found.
     """
     common_dir = resource_root / "common"
     config_file = None
@@ -974,9 +1003,8 @@ def load_centralized_models(
 def get_model_tools_for_prompt(
     config: dict[str, Any] | None, prompt_name: str, source_name: Optional[str] = None
 ) -> tuple[Optional[str], Optional[list[str]]]:
-    """Extracts model and tools for the prompt from the CLI config.
-
-    Returns (model, tools) where each value can be None if not available.
+    """! @brief Extracts model and tools for the prompt from the CLI config.
+    @details Returns (model, tools) where each value can be None if not available.
     """
     if not config:
         return None, None
@@ -1009,11 +1037,8 @@ def get_model_tools_for_prompt(
 
 
 def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any:
-    """Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
-
-    Can return a list of strings, a string, or None depending on how it is
-    defined in `config.json`. Does not perform CSV parsing: returns the value
-    exactly as present in the configuration file.
+    """! @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
+    @details Can return a list of strings, a string, or None depending on how it is defined in `config.json`. Does not perform CSV parsing: returns the value exactly as present in the configuration file.
     """
     if not config:
         return None
@@ -1030,14 +1055,16 @@ def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) ->
 
 
 def format_tools_inline_list(tools: list[str]) -> str:
-    """Formats the tools list as inline YAML/TOML/MD: ['a', 'b']."""
+    """! @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
+    """
     safe = [t.replace("'", "\\'") for t in tools]
     quoted = ", ".join(f"'{s}'" for s in safe)
     return f"[{quoted}]"
 
 
 def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
-    """Recursively merges dictionaries, prioritizing incoming values."""
+    """! @brief Recursively merges dictionaries, prioritizing incoming values.
+    """
     for key, value in incoming.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
             deep_merge_dict(base[key], value)
@@ -1047,7 +1074,8 @@ def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str,
 
 
 def find_vscode_settings_source() -> Optional[Path]:
-    """Finds the VS Code settings template if available."""
+    """! @brief Finds the VS Code settings template if available.
+    """
     candidate = RESOURCE_ROOT / "vscode" / "settings.json"
     if candidate.is_file():
         return candidate
@@ -1055,7 +1083,8 @@ def find_vscode_settings_source() -> Optional[Path]:
 
 
 def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
-    """Generates chat.promptFilesRecommendations from available prompts."""
+    """! @brief Generates chat.promptFilesRecommendations from available prompts.
+    """
     recommendations: dict[str, bool] = {}
     if not prompts_dir.is_dir():
         return recommendations
@@ -1065,7 +1094,8 @@ def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
 
 
 def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
-    """Verifies that the path is under the project root."""
+    """! @brief Verifies that the path is under the project root.
+    """
     if not target.resolve().is_relative_to(project_base):
         raise ReqError(
             f"Error: safe removal of {target} refused (not under PROJECT_BASE)",
@@ -1074,7 +1104,8 @@ def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
 
 
 def save_vscode_backup(req_root: Path, settings_path: Path) -> None:
-    """Saves a backup of VS Code settings if the file exists."""
+    """! @brief Saves a backup of VS Code settings if the file exists.
+    """
     backup_path = req_root / "settings.json.backup"
     # Never create an absence marker. Backup only if the file exists.
     if settings_path.exists():
@@ -1083,7 +1114,8 @@ def save_vscode_backup(req_root: Path, settings_path: Path) -> None:
 
 
 def restore_vscode_settings(project_base: Path) -> None:
-    """Restores VS Code settings from backup, if present."""
+    """! @brief Restores VS Code settings from backup, if present.
+    """
     req_root = project_base / ".req"
     backup_path = req_root / "settings.json.backup"
     target_settings = project_base / ".vscode" / "settings.json"
@@ -1094,7 +1126,8 @@ def restore_vscode_settings(project_base: Path) -> None:
 
 
 def prune_empty_dirs(root: Path) -> None:
-    """Removes empty directories under the specified root."""
+    """! @brief Removes empty directories under the specified root.
+    """
     if not root.is_dir():
         return
     for current, _dirs, _files in os.walk(root, topdown=False):
@@ -1107,7 +1140,8 @@ def prune_empty_dirs(root: Path) -> None:
 
 
 def remove_generated_resources(project_base: Path) -> None:
-    """Removes resources generated by the tool in the project root."""
+    """! @brief Removes resources generated by the tool in the project root.
+    """
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
         project_base / ".claude" / "commands" / "req",
@@ -1147,7 +1181,8 @@ def remove_generated_resources(project_base: Path) -> None:
 
 
 def run_remove(args: Namespace) -> None:
-    """Handles the removal of generated resources."""
+    """! @brief Handles the removal of generated resources.
+    """
     guidelines_dir = getattr(args, 'guidelines_dir', None)
     doc_dir = getattr(args, 'docs_dir', None)
     test_dir = getattr(args, 'tests_dir', None)
@@ -1188,7 +1223,8 @@ def run_remove(args: Namespace) -> None:
 
 
 def run(args: Namespace) -> None:
-    """Handles the main initialization flow."""
+    """! @brief Handles the main initialization flow.
+    """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
     DEBUG = args.debug
@@ -1956,7 +1992,8 @@ def run(args: Namespace) -> None:
         installed_map: dict[str, set[str]],
         prompts_map: dict[str, set[str]],
     ) -> tuple[str, str, list[str]]:
-        """Format the installation summary table aligning header, prompts, and rows."""
+        """! @brief Format the installation summary table aligning header, prompts, and rows.
+        """
 
         columns = ("CLI", "Prompts Installed", "Modules Installed")
         widths = [len(value) for value in columns]
@@ -2012,9 +2049,8 @@ SUPPORTED_EXTENSIONS = frozenset({
 
 
 def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
-    """Recursively collect source files from the given directories.
-
-    Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
+    """! @brief Recursively collect source files from the given directories.
+    @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
     """
     collected = []
     for src_dir in src_dirs:
@@ -2034,7 +2070,8 @@ def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
 
 
 def _is_standalone_command(args: Namespace) -> bool:
-    """Check if the parsed args contain a standalone file command."""
+    """! @brief Check if the parsed args contain a standalone file command.
+    """
     return bool(
         getattr(args, "files_tokens", None)
         or getattr(args, "files_references", None)
@@ -2043,7 +2080,8 @@ def _is_standalone_command(args: Namespace) -> bool:
 
 
 def _is_project_scan_command(args: Namespace) -> bool:
-    """Check if the parsed args contain a project scan command."""
+    """! @brief Check if the parsed args contain a project scan command.
+    """
     return bool(
         getattr(args, "references", False)
         or getattr(args, "compress", False)
@@ -2051,7 +2089,8 @@ def _is_project_scan_command(args: Namespace) -> bool:
 
 
 def run_files_tokens(files: list[str]) -> None:
-    """Execute --files-tokens: count tokens for arbitrary files."""
+    """! @brief Execute --files-tokens: count tokens for arbitrary files.
+    """
     from .token_counter import count_files_metrics, format_pack_summary
 
     valid_files = []
@@ -2069,7 +2108,8 @@ def run_files_tokens(files: list[str]) -> None:
 
 
 def run_files_references(files: list[str]) -> None:
-    """Execute --files-references: generate markdown for arbitrary files."""
+    """! @brief Execute --files-references: generate markdown for arbitrary files.
+    """
     from .generate_markdown import generate_markdown
 
     md = generate_markdown(files)
@@ -2077,7 +2117,8 @@ def run_files_references(files: list[str]) -> None:
 
 
 def run_files_compress(files: list[str]) -> None:
-    """Execute --files-compress: compress arbitrary files."""
+    """! @brief Execute --files-compress: compress arbitrary files.
+    """
     from .compress_files import compress_files
 
     output = compress_files(files)
@@ -2085,7 +2126,8 @@ def run_files_compress(files: list[str]) -> None:
 
 
 def run_references(args: Namespace) -> None:
-    """Execute --references: generate markdown for project source files."""
+    """! @brief Execute --references: generate markdown for project source files.
+    """
     from .generate_markdown import generate_markdown
 
     project_base, src_dirs = _resolve_project_src_dirs(args)
@@ -2097,7 +2139,8 @@ def run_references(args: Namespace) -> None:
 
 
 def run_compress_cmd(args: Namespace) -> None:
-    """Execute --compress: compress project source files."""
+    """! @brief Execute --compress: compress project source files.
+    """
     from .compress_files import compress_files
 
     project_base, src_dirs = _resolve_project_src_dirs(args)
@@ -2109,7 +2152,8 @@ def run_compress_cmd(args: Namespace) -> None:
 
 
 def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
-    """Resolve project base and src-dirs for --references/--compress."""
+    """! @brief Resolve project base and src-dirs for --references/--compress.
+    """
     if not getattr(args, "base", None) and not getattr(args, "here", False):
         raise ReqError(
             "Error: --references and --compress require --base or --here.", 1
@@ -2143,9 +2187,8 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    """CLI entry point for console_scripts and `-m` execution.
-
-    Returns an exit code (0 success, non-zero on error).
+    """! @brief CLI entry point for console_scripts and `-m` execution.
+    @details Returns an exit code (0 success, non-zero on error).
     """
     try:
         argv_list = sys.argv[1:] if argv is None else argv

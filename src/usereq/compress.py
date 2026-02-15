@@ -1,22 +1,6 @@
 #!/usr/bin/env python3
-"""
-compress.py - Source code compressor for LLM context optimization.
-
-Parses a source file and removes all comments (inline, single-line,
-multi-line), blank lines, trailing whitespace, and redundant spacing
-while preserving language semantics (e.g. Python indentation).
-
-Leverages LanguageSpec from source_analyzer to correctly identify
-comment syntax for each supported language.
-
-Usage (as module):
-    from compress import compress_source, compress_file
-    compressed = compress_source(code, "python")
-    compressed = compress_file("main.py")
-
-Usage (CLI):
-    python compress.py file.py
-    python compress.py --lang rust file.rs
+"""! @brief compress.py - Source code compressor for LLM context optimization.
+@details Parses a source file and removes all comments (inline, single-line, multi-line), blank lines, trailing whitespace, and redundant spacing while preserving language semantics (e.g. Python indentation). Leverages LanguageSpec from source_analyzer to correctly identify comment syntax for each supported language. Usage (as module): from compress import compress_source, compress_file compressed = compress_source(code, "python") compressed = compress_file("main.py") Usage (CLI): python compress.py file.py python compress.py --lang rust file.rs
 """
 
 import os
@@ -65,7 +49,8 @@ def detect_language(filepath: str) -> str | None:
 
 
 def _is_in_string(line: str, pos: int, string_delimiters: tuple) -> bool:
-    """Check if position `pos` in `line` is inside a string literal."""
+    """! @brief Check if position `pos` in `line` is inside a string literal.
+    """
     in_string = None
     i = 0
     sorted_delims = sorted(string_delimiters, key=len, reverse=True)
@@ -102,7 +87,8 @@ def _is_in_string(line: str, pos: int, string_delimiters: tuple) -> bool:
 
 def _remove_inline_comment(line: str, single_comment: str,
                            string_delimiters: tuple) -> str:
-    """Remove trailing single-line comment from a code line."""
+    """! @brief Remove trailing single-line comment from a code line.
+    """
     if not single_comment:
         return line
     sc_len = len(single_comment)
@@ -139,7 +125,8 @@ def _remove_inline_comment(line: str, single_comment: str,
 
 
 def _is_python_docstring_line(line: str) -> bool:
-    """Check if a line is a standalone Python docstring (triple-quote only)."""
+    """! @brief Check if a line is a standalone Python docstring (triple-quote only).
+    """
     stripped = line.strip()
     for q in ('"""', "'''"):
         if stripped.startswith(q) and stripped.endswith(q) and len(stripped) >= 6:
@@ -149,7 +136,8 @@ def _is_python_docstring_line(line: str) -> bool:
 
 def _format_result(entries: list[tuple[int, str]],
                    include_line_numbers: bool) -> str:
-    """Format compressed entries, optionally prefixing original line numbers."""
+    """! @brief Format compressed entries, optionally prefixing original line numbers.
+    """
     if not include_line_numbers:
         return '\n'.join(text for _, text in entries)
     return '\n'.join(f"L{lineno}> {text}" for lineno, text in entries)
@@ -157,17 +145,8 @@ def _format_result(entries: list[tuple[int, str]],
 
 def compress_source(source: str, language: str,
                     include_line_numbers: bool = True) -> str:
-    """Compress source code by removing comments, blank lines, and extra whitespace.
-
-    Preserves indentation for indent-significant languages (Python, Haskell, Elixir).
-
-    Args:
-        source: The source code string.
-        language: Language identifier (e.g. "python", "javascript").
-        include_line_numbers: If True (default), prefix each line with Lnn> format.
-
-    Returns:
-        Compressed source code string.
+    """! @brief Compress source code by removing comments, blank lines, and extra whitespace.
+    @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Args: source: The source code string. language: Language identifier (e.g. "python", "javascript"). include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Compressed source code string.
     """
     specs = _get_specs()
     lang_key = language.lower().strip().lstrip(".")
@@ -329,15 +308,8 @@ def compress_source(source: str, language: str,
 
 def compress_file(filepath: str, language: str | None = None,
                   include_line_numbers: bool = True) -> str:
-    """Compress a source file by removing comments and extra whitespace.
-
-    Args:
-        filepath: Path to the source file.
-        language: Optional language override. Auto-detected if None.
-        include_line_numbers: If True (default), prefix each line with Lnn> format.
-
-    Returns:
-        Compressed source code string.
+    """! @brief Compress a source file by removing comments and extra whitespace.
+    @details Args: filepath: Path to the source file. language: Optional language override. Auto-detected if None. include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Compressed source code string.
     """
     if language is None:
         language = detect_language(filepath)

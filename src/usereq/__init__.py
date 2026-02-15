@@ -1,8 +1,5 @@
-"""Package entry point for useReq automation.
-
-This file exposes lightweight metadata and a convenient re-export of the `main` CLI entry point,
-so callers can use `from usereq import main` without unintentionally importing
-the full package behavior.
+"""! @brief Package entry point for useReq automation.
+@details This file exposes lightweight metadata and a convenient re-export of the `main` CLI entry point, so callers can use `from usereq import main` without unintentionally importing the full package behavior.
 """
 
 __version__ = "0.0.68"

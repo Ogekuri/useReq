@@ -1,18 +1,6 @@
 #!/usr/bin/env python3
-"""
-compress_files.py - Compress and concatenate multiple source files.
-
-Uses the compress module to strip comments and whitespace from each input
-file, then concatenates results with a compact header per file for unique
-identification by an LLM agent.
-
-Usage (as module):
-    from compress_files import compress_files
-    output = compress_files(["main.py", "utils.js"])
-
-Usage (CLI):
-    python compress_files.py file1.py file2.js ...
-    python compress_files.py file1.py file2.js ... > packed.txt
+"""! @brief compress_files.py - Compress and concatenate multiple source files.
+@details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with a compact header per file for unique identification by an LLM agent. Usage (as module): from compress_files import compress_files output = compress_files(["main.py", "utils.js"]) Usage (CLI): python compress_files.py file1.py file2.js ... python compress_files.py file1.py file2.js ... > packed.txt
 """
 
 import os
@@ -23,21 +11,8 @@ from .compress import compress_file, detect_language
 
 def compress_files(filepaths: list[str],
                    include_line_numbers: bool = True) -> str:
-    """Compress multiple source files and concatenate with identifying headers.
-
-    Each file is compressed and prefixed with a header line:
-        @@@ <path> | <lang>
-    Files are separated by a blank line.
-
-    Args:
-        filepaths: List of source file paths.
-        include_line_numbers: If True (default), prefix each line with Lnn> format.
-
-    Returns:
-        Concatenated compressed output string.
-
-    Raises:
-        ValueError: If no files could be processed.
+    """! @brief Compress multiple source files and concatenate with identifying headers.
+    @details Each file is compressed and prefixed with a header line: @@@ <path> | <lang> Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
     """
     parts = []
     ok_count = 0

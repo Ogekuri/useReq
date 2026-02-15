@@ -1,5 +1,10 @@
 # WORKFLOW
 
+- Feature: Documentation maintenance and comment conformance
+  - Module: `src/usereq/*.py`
+    - `module/class/function docstrings`: structured Doxygen normalization for parser-safe metadata extraction [`src/usereq/*.py`]
+      - description: each Python module/class/function docstring is normalized to include `@brief` blocks to maintain machine-interpretable documentation consistency without altering runtime behavior or call order.
+
 - Feature: CLI bootstrap and command dispatch
   - Module: `src/usereq/__main__.py`
     - `main()`: module execution entrypoint forwarding process exit code [`src/usereq/__main__.py:L1-L7`]

@@ -1,17 +1,6 @@
 #!/usr/bin/env python3
-"""
-generate_markdown.py - Generate concatenated markdown from arbitrary source files.
-
-Analyzes each input file with source_analyzer and produces a single markdown
-output concatenating all results. Prints pack summary to stderr.
-
-Usage (as module):
-    from generate_markdown import generate_markdown
-    md = generate_markdown(["file1.py", "file2.js"])
-
-Usage (CLI):
-    python generate_markdown.py file1.py file2.js ...
-    python generate_markdown.py file1.py file2.js ... > output.md
+"""! @brief generate_markdown.py - Generate concatenated markdown from arbitrary source files.
+@details Analyzes each input file with source_analyzer and produces a single markdown output concatenating all results. Prints pack summary to stderr. Usage (as module): from generate_markdown import generate_markdown md = generate_markdown(["file1.py", "file2.js"]) Usage (CLI): python generate_markdown.py file1.py file2.js ... python generate_markdown.py file1.py file2.js ... > output.md
 """
 
 import os
@@ -48,22 +37,15 @@ EXT_LANG_MAP = {
 
 
 def detect_language(filepath: str) -> str | None:
-    """Detect language from file extension."""
+    """! @brief Detect language from file extension.
+    """
     _, ext = os.path.splitext(filepath)
     return EXT_LANG_MAP.get(ext.lower())
 
 
 def generate_markdown(filepaths: list[str]) -> str:
-    """Analyze source files and return concatenated markdown.
-
-    Args:
-        filepaths: List of source file paths to analyze.
-
-    Returns:
-        Concatenated markdown string with all file analyses.
-
-    Raises:
-        ValueError: If no valid source files are found.
+    """! @brief Analyze source files and return concatenated markdown.
+    @details Args: filepaths: List of source file paths to analyze. Returns: Concatenated markdown string with all file analyses. Raises: ValueError: If no valid source files are found.
     """
     analyzer = SourceAnalyzer()
     md_parts = []

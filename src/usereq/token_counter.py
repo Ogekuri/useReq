@@ -1,8 +1,5 @@
-"""
-token_counter.py - Token and character counting for generated output.
-
-Uses tiktoken for accurate token counting compatible with
-OpenAI/Claude models.
+"""! @brief token_counter.py - Token and character counting for generated output.
+@details Uses tiktoken for accurate token counting compatible with OpenAI/Claude models.
 """
 
 import os
@@ -11,7 +8,8 @@ import tiktoken
 
 
 class TokenCounter:
-    """Count tokens using tiktoken encoding (cl100k_base by default)."""
+    """! @brief Count tokens using tiktoken encoding (cl100k_base by default).
+    """
 
     def __init__(self, encoding_name: str = "cl100k_base"):
         """! @brief Initialize token counter with a specific tiktoken encoding.
@@ -20,7 +18,8 @@ class TokenCounter:
         self.encoding = tiktoken.get_encoding(encoding_name)
 
     def count_tokens(self, content: str) -> int:
-        """Count tokens in content string."""
+        """! @brief Count tokens in content string.
+        """
         try:
             return len(self.encoding.encode(content, disallowed_special=()))
         except Exception:
@@ -28,15 +27,15 @@ class TokenCounter:
 
     @staticmethod
     def count_chars(content: str) -> int:
-        """Count characters in content string."""
+        """! @brief Count characters in content string.
+        """
         return len(content)
 
 
 def count_file_metrics(content: str,
                        encoding_name: str = "cl100k_base") -> dict:
-    """Count tokens and chars for a content string.
-
-    Returns dict with 'tokens' and 'chars' keys.
+    """! @brief Count tokens and chars for a content string.
+    @details Returns dict with 'tokens' and 'chars' keys.
     """
     counter = TokenCounter(encoding_name)
     return {
@@ -47,10 +46,8 @@ def count_file_metrics(content: str,
 
 def count_files_metrics(file_paths: list,
                         encoding_name: str = "cl100k_base") -> list:
-    """Count tokens and chars for a list of files.
-
-    Returns a list of dicts with 'file', 'tokens', 'chars' keys.
-    Errors are reported with tokens=0, chars=0, and an 'error' key.
+    """! @brief Count tokens and chars for a list of files.
+    @details Returns a list of dicts with 'file', 'tokens', 'chars' keys. Errors are reported with tokens=0, chars=0, and an 'error' key.
     """
     counter = TokenCounter(encoding_name)
     results = []
@@ -74,13 +71,8 @@ def count_files_metrics(file_paths: list,
 
 
 def format_pack_summary(results: list) -> str:
-    """Format a pack summary string from a list of file metrics.
-
-    Args:
-        results: list of dicts from count_files_metrics().
-
-    Returns:
-        Formatted summary string with per-file details and totals.
+    """! @brief Format a pack summary string from a list of file metrics.
+    @details Args: results: list of dicts from count_files_metrics(). Returns: Formatted summary string with per-file details and totals.
     """
     lines = []
     total_tokens = 0
