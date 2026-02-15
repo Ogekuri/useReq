@@ -209,6 +209,21 @@ class TestReferencesCommand:
         rc = main(["--here", "--references"])
         assert rc == 0
 
+    def test_references_from_legacy_config_keys(self, capsys, tmp_path,
+                                                monkeypatch):
+        """CMD-014: Must load src-dir from config.json with legacy keys."""
+        src = tmp_path / "lib"
+        src.mkdir()
+        (src / "code.py").write_text("x = 42\n")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "doc-dir": "docs/",
+                  "test-dir": "tests/", "src-dir": ["lib"]}
+        (req_dir / "config.json").write_text(json.dumps(config))
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--references"])
+        assert rc == 0
+
 
 class TestCompressCommand:
     """CMD-010, CMD-011: --compress tests."""

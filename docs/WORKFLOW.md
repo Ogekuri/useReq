@@ -46,8 +46,8 @@
                                     - description: Recursively removes empty directories within a given root.
                                     - input: root: Path, directory to prune
                                     - output: None
-                        - `load_config()`: Loads configuration from .req/config.json. [`src/usereq/cli.py`, 472-506]
-                            - description: Reads and parses the JSON configuration file, handling legacy formats and ensuring all required keys exist.
+                        - `load_config()`: Loads configuration from .req/config.json. [`src/usereq/cli.py`, 502-536]
+                            - description: Reads and parses the JSON configuration file, handling legacy key names (`doc-dir` → `docs-dir`, `test-dir` → `tests-dir`) via fallback and ensuring all required keys exist.
                             - input: project_base: Path, project root
                             - output: dict[str, str | list[str]], configuration dictionary
                         - `ensure_doc_directory()`: Ensures documentation directory exists. [`src/usereq/cli.py`, 336-350]

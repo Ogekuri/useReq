@@ -512,8 +512,9 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
     except json.JSONDecodeError as exc:
         raise ReqError("Error: .req/config.json is not valid", 11) from exc
     guidelines_dir_value = payload.get("guidelines-dir")
-    doc_dir_value = payload.get("docs-dir")
-    test_dir_value = payload.get("tests-dir")
+    # Fallback to legacy key names from pre-v0.59 config files.
+    doc_dir_value = payload.get("docs-dir") or payload.get("doc-dir")
+    test_dir_value = payload.get("tests-dir") or payload.get("test-dir")
     src_dir_value = payload.get("src-dir")
     if not isinstance(guidelines_dir_value, str) or not guidelines_dir_value.strip():
         raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)
