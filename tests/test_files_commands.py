@@ -312,7 +312,7 @@ class TestCompressCommand:
         """CMD-011: With --here must load src-dir from config and ignore --src-dir."""
         src = tmp_path / "cfg_mylib"
         src.mkdir()
-        (src / "main.py").write_text("# comment\nx = 1\n")
+        (src / "main.py").write_text("# comment\nx = 1\n\ny = 2\n")
         req_dir = tmp_path / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
@@ -323,6 +323,8 @@ class TestCompressCommand:
         captured = capsys.readouterr()
         assert "@@@" in captured.out
         assert "cfg_mylib/main.py" in captured.out
+        assert "- Lines: 2-4" in captured.out
+        assert "```" in captured.out
 
     def test_compress_disable_line_numbers(self, capsys, tmp_path, monkeypatch):
         """CMD-017: Must suppress Lnn> prefixes when flag is present."""
@@ -339,6 +341,8 @@ class TestCompressCommand:
         captured = capsys.readouterr()
         assert "L1>" not in captured.out
         assert "x = 1" in captured.out
+        assert "- Lines: 1-1" in captured.out
+        assert "```" in captured.out
 
 
 class TestTokensCommand:

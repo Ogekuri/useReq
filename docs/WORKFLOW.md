@@ -87,8 +87,8 @@
         - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown()`, joins outputs with `---` separator, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
     - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2206-L2219`]
       - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--disable-line-numbers` to `include_line_numbers=False` and forwards `verbose=VERBOSE`.
-      - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L12-L53`]
-        - description: validates each path/language, applies `compress_file()`, prefixes each result with `@@@ <path> | <lang>`, tracks ok/fail counters, errors if no valid file processed, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
+      - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L30-L80`]
+        - description: validates each path/language, applies `compress_file()`, derives line interval from preserved `L<n>>` markers via `_extract_line_range()`, emits each file block as `@@@ <path> | <lang>` + `- Lines: <start>-<end>` + triple-backtick fenced code payload, tracks ok/fail counters, errors if no valid file processed, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
         - `compress_file()`: reads single file and delegates normalization/compression [`src/usereq/compress.py:L320-L343`]
           - description: auto-detects language when not provided, reads source text, invokes `compress_source()`.
           - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]

@@ -143,6 +143,8 @@ class TestCompressFiles:
         try:
             result = compress_files([path])
             assert f"@@@ {path} | python" in result
+            assert "- Lines: 1-1" in result
+            assert "```\nL1> x = 1\n```" in result
         finally:
             os.unlink(path)
 
@@ -214,6 +216,8 @@ class TestCompressFiles:
                 files.append(f.name)
             result = compress_files(files)
             assert result.count("@@@") == 2
+            assert result.count("- Lines:") == 2
+            assert result.count("```") == 4
         finally:
             for path in files:
                 os.unlink(path)

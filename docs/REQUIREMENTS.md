@@ -93,6 +93,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.67 | Aggiunto il modulo di test `tests/test_find_constructs_comprehensive.py` per validazione completa dell'estrazione costrutti per tutte le combinazioni linguaggio-costrutto utilizzando le fixture in `tests/fixtures/`. |
 | 2026-02-16 | 0.68 | Aggiunta generazione dinamica dell'elenco TAG disponibili per linguaggio nei messaggi di errore e nell'help di `--files-find` e `--find`, con funzione `format_available_tags()` e aggiornamento requisiti REQ-003, CMD-018, CMD-023 e aggiunta FND-013. |
 | 2026-02-16 | 0.69 | Reso condizionale al flag `--verbose` l'output di stato elaborazione per `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find`. |
+| 2026-02-16 | 0.70 | Aggiornato il formato output di `--files-compress` e `--compress` con metadato `- Lines: <inizio>-<fine>` e blocco codice delimitato da triple backtick mantenendo invariata la logica di numerazione `L<n>>`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -428,7 +429,7 @@ Il progetto include una suite di test in `tests/`.
 - **CMP-004**: Le shebang lines (`#!`) alla prima riga del file devono essere preservate.
 - **CMP-005**: I commenti all'interno di stringhe letterali non devono essere rimossi.
 - **CMP-006**: Il modulo deve determinare automaticamente il linguaggio dall'estensione del file, con possibilità di override manuale.
-- **CMP-007**: Il modulo `usereq.compress_files` deve comprimere e concatenare file sorgente multipli, producendo per ciascun file un header nel formato `@@@ <percorso> | <linguaggio>` seguito dal contenuto compresso.
+- **CMP-007**: Il modulo `usereq.compress_files` deve comprimere e concatenare file sorgente multipli, producendo per ciascun file un header nel formato `@@@ <percorso> | <linguaggio>`, una riga metadato `- Lines: <riga_iniziale>-<riga_finale>` e il contenuto compresso racchiuso in un blocco Markdown delimitato da triple backtick.
 - **CMP-008**: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **CMP-009**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **CMP-010**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
@@ -490,3 +491,4 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-027**: Il comando `--find`, quando utilizzato con `--update`, deve caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
 - **CMD-028**: Il comando `--find` deve accettare il flag opzionale `--disable-line-numbers`; quando il flag è presente l'output non deve includere i prefissi `L<numero>>`, quando il flag è assente i prefissi devono essere inclusi.
 - **CMD-029**: I comandi `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find` devono stampare su stderr gli output di stato elaborazione (OK/SKIP/FAIL e riepiloghi) solo quando è presente il flag `--verbose`; senza `--verbose` tali output non devono essere stampati.
+- **CMD-030**: I comandi `--files-compress` e `--compress` devono stampare per ogni file processato lo stesso payload strutturato: header `@@@ <percorso> | <linguaggio>`, riga `- Lines: <riga_iniziale>-<riga_finale>` con intervallo derivato dalla numerazione `L<n>>` già calcolata dal compressore, e blocco codice delimitato da triple backtick; la logica di calcolo della numerazione riga esistente non deve essere modificata.

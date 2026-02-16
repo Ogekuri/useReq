@@ -9,11 +9,29 @@ import sys
 from .compress import compress_file, detect_language
 
 
+def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]:
+    """! @brief Extract source line interval from compressed output with Lnn> prefixes.
+    @param compressed_with_line_numbers Compressed payload generated with include_line_numbers=True.
+    @return Tuple (line_start, line_end) derived from preserved Lnn> prefixes; returns (0, 0) when no prefixed lines exist.
+    """
+    line_numbers: list[int] = []
+    for line in compressed_with_line_numbers.splitlines():
+        if line.startswith("L") and ">" in line:
+            marker = line[1:line.find(">")]
+            if marker.isdigit():
+                line_numbers.append(int(marker))
+
+    if not line_numbers:
+        return 0, 0
+
+    return line_numbers[0], line_numbers[-1]
+
+
 def compress_files(filepaths: list[str],
                    include_line_numbers: bool = True,
                    verbose: bool = False) -> str:
     """! @brief Compress multiple source files and concatenate with identifying headers.
-    @details Each file is compressed and prefixed with a header line: @@@ <path> | <lang> Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), prefix each line with Lnn> format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
+    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed Lnn> prefixes to preserve existing numbering logic. Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), keep Lnn> prefixes in code block lines. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
     """
     parts = []
     ok_count = 0
@@ -32,9 +50,17 @@ def compress_files(filepaths: list[str],
             continue
 
         try:
-            compressed = compress_file(fpath, lang, include_line_numbers)
+            compressed_with_line_numbers = compress_file(fpath, lang, True)
+            line_start, line_end = _extract_line_range(compressed_with_line_numbers)
+            compressed = (
+                compressed_with_line_numbers
+                if include_line_numbers
+                else compress_file(fpath, lang, False)
+            )
             header = f"@@@ {fpath} | {lang}"
-            parts.append(f"{header}\n{compressed}")
+            parts.append(
+                f"{header}\n- Lines: {line_start}-{line_end}\n```\n{compressed}\n```"
+            )
             ok_count += 1
             if verbose:
                 print(f"  OK    {fpath}", file=sys.stderr)
