@@ -228,7 +228,7 @@ EXPECTED_COUNTS = {
         ElementType.DECORATOR: 5,
         ElementType.ENUM: 5,
         ElementType.FUNCTION: 18,
-        ElementType.IMPL: 5,
+        ElementType.IMPL: 7,
         ElementType.IMPORT: 5,
         ElementType.MACRO: 5,
         ElementType.MODULE: 5,
