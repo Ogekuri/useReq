@@ -28,6 +28,9 @@ VERBOSE = False
 DEBUG = False
 """Whether debug output is enabled."""
 
+REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
+"""Name of the packaged requirements template file."""
+
 
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
@@ -908,14 +911,33 @@ def yaml_double_quote_escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def find_template_source() -> Path:
-    """! @brief Returns the template source or raises an error.
+def list_docs_templates() -> list[Path]:
+    """! @brief Returns non-hidden files available in resources/docs.
+    @return Sorted list of file paths under resources/docs.
+    @throws ReqError If resources/docs does not exist or has no non-hidden files.
     """
     candidate = RESOURCE_ROOT / "docs"
-    if (candidate / "requirements.md").is_file():
-        return candidate
+    if not candidate.is_dir():
+        raise ReqError("Error: no docs templates directory found in resources", 9)
+    templates = sorted(
+        path for path in candidate.iterdir() if path.is_file() and not path.name.startswith(".")
+    )
+    if not templates:
+        raise ReqError("Error: no docs templates found in resources/docs", 9)
+    return templates
+
+
+def find_requirements_template(docs_templates: list[Path]) -> Path:
+    """! @brief Returns the packaged Requirements template file.
+    @param docs_templates Runtime docs template file list from resources/docs.
+    @return Path to `Requirements_Template.md`.
+    @throws ReqError If `Requirements_Template.md` is not present.
+    """
+    for template_path in docs_templates:
+        if template_path.name == REQUIREMENTS_TEMPLATE_NAME:
+            return template_path
     raise ReqError(
-        "Error: no requirements.md template found in docs",
+        f"Error: no {REQUIREMENTS_TEMPLATE_NAME} template found in docs",
         9,
     )
 
@@ -1489,18 +1511,18 @@ def run(args: Namespace) -> None:
         if VERBOSE:
             log("OK: preserved existing .req/models.json (--preserve-models active)")
 
-    templates_src = find_template_source()
+    docs_templates = list_docs_templates()
+    requirements_template = find_requirements_template(docs_templates)
     req_dir_path = project_base / normalized_doc
     req_dir_empty = not any(req_dir_path.iterdir())
     req_target = project_base / normalized_doc / "requirements.md"
     # Create requirements.md only if the --docs-dir folder is empty.
     if req_dir_empty:
-        src_file = templates_src / "requirements.md"
         req_target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src_file, req_target)
+        shutil.copyfile(requirements_template, req_target)
         if VERBOSE:
             log(
-                f"Created {req_target} — update the file with the project requirements. (source: {src_file})"
+                f"Created {req_target} — update the file with the project requirements. (source: {requirements_template})"
             )
 
     # Generate the file list for the %%GUIDELINES_FILES%% token.
@@ -1965,10 +1987,12 @@ def run(args: Namespace) -> None:
     if templates_target.exists():
         ensure_wrapped(templates_target, project_base, 10)
         shutil.rmtree(templates_target)
-    shutil.copytree(templates_src, templates_target)
+    templates_target.mkdir(parents=True, exist_ok=True)
+    for template_file in docs_templates:
+        shutil.copyfile(template_file, templates_target / template_file.name)
     if VERBOSE:
         log(
-            f"OK: recreated {templates_target} from {templates_src} (previous contents removed)"
+            f"OK: recreated {templates_target} from resources/docs ({len(docs_templates)} files)"
         )
 
     vscode_settings_src = find_vscode_settings_source()

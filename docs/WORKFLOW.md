@@ -48,8 +48,10 @@
         - description: copies files from `resources/guidelines` to user guidelines directory, honoring overwrite behavior for `--copy-guidelines` vs `--add-guidelines`.
       - `generate_guidelines_file_list()`: computes token replacement for guideline inventory [`src/usereq/cli.py:L539-L564`]
         - description: scans non-hidden files at guideline root, emits inline-code relative paths, falls back to directory token when empty.
-      - `find_template_source()`: resolves requirements template location [`src/usereq/cli.py:L843-L851`]
-        - description: validates `resources/docs/requirements.md` availability before any requirements file creation.
+      - `list_docs_templates()`: resolves runtime docs template inventory [`src/usereq/cli.py:L914-L927`]
+        - description: enumerates non-hidden files in `resources/docs`, enforcing non-empty availability for downstream copy and generation flows.
+      - `find_requirements_template()`: resolves requirements template location [`src/usereq/cli.py:L930-L942`]
+        - description: selects `Requirements_Template.md` from runtime docs template inventory and fails fast when absent.
       - `load_kiro_template()`: resolves Kiro agent template from centralized models config [`src/usereq/cli.py:L854-L885`]
         - description: loads `models.json` or `models-legacy.json`, extracts `kiro.agent_template` string/object payload, errors on missing template.
       - `load_centralized_models()`: loads provider model/tool metadata [`src/usereq/cli.py:L919-L967`]

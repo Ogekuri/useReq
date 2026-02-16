@@ -350,10 +350,18 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(
             templates_dir.is_dir(), "The directory .req/docs must exist"
         )
-        requirements_template = templates_dir / "requirements.md"
-        self.assertTrue(
-            requirements_template.exists(),
-            "The template requirements.md must exist in .req/docs",
+        expected_templates = sorted(
+            path.name
+            for path in (cli.RESOURCE_ROOT / "docs").iterdir()
+            if path.is_file() and not path.name.startswith(".")
+        )
+        copied_templates = sorted(
+            path.name for path in templates_dir.iterdir() if path.is_file()
+        )
+        self.assertEqual(
+            copied_templates,
+            expected_templates,
+            "The directory .req/docs must contain all runtime docs templates",
         )
 
     def test_kiro_prompt_files_created(self) -> None:
@@ -718,7 +726,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
             "SrcPaths: %%SRC_PATHS%%\n"
         )
         (prompts_dir / "techpath.md").write_text(prompt_content, encoding="utf-8")
-        (templates_dir / "requirements.md").write_text(
+        (templates_dir / "Requirements_Template.md").write_text(
             "---\n---\n\nTemp requirements template.\n",
             encoding="utf-8",
         )
@@ -891,9 +899,9 @@ class TestModelsAndTools(unittest.TestCase):
             shutil.copytree(orig_resources / "prompts", tmp_resources / "prompts")
         if (orig_resources / "docs").is_dir():
             (tmp_resources / "docs").mkdir(parents=True, exist_ok=True)
-            tmpl = orig_resources / "docs" / "requirements.md"
+            tmpl = orig_resources / "docs" / "Requirements_Template.md"
             if tmpl.exists():
-                shutil.copyfile(tmpl, tmp_resources / "docs" / "requirements.md")
+                shutil.copyfile(tmpl, tmp_resources / "docs" / "Requirements_Template.md")
 
         # Use temporary resources as CLI root, without touching project files.
         cli.RESOURCE_ROOT = tmp_resources
