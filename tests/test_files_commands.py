@@ -231,19 +231,24 @@ class TestReferencesCommand:
         assert "--base" in captured.err or "require" in captured.err.lower()
 
     def test_references_with_here(self, capsys, tmp_path, monkeypatch):
-        """CMD-009: Must generate markdown from configured src-dir."""
-        src = tmp_path / "mylib"
+        """CMD-009: With --here must load src-dir from config and ignore --src-dir."""
+        src = tmp_path / "cfg_lib"
         src.mkdir()
         (src / "main.py").write_text("def hello():\n    pass\n")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_lib"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--references", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
         assert len(captured.out) > 0
+        assert "cfg_lib/main.py" in captured.out
 
     def test_references_prepends_files_structure(self, capsys, tmp_path, monkeypatch):
         """CMD-015: Must prepend a fenced markdown tree of scanned source files."""
-        src = tmp_path / "src"
+        src = tmp_path / "cfg_src"
         nested = src / "pkg"
         nested.mkdir(parents=True)
         (nested / "main.py").write_text("def hello():\n    return 1\n")
@@ -251,13 +256,17 @@ class TestReferencesCommand:
         excluded = src / "__pycache__"
         excluded.mkdir()
         (excluded / "cached.py").write_text("x = 1\n")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--references", "--src-dir", "src"])
         assert rc == 0
         captured = capsys.readouterr()
         assert captured.out.startswith("# Files Structure\n```")
         assert "\n```\n\n# " in captured.out
-        assert "src/pkg/main.py" in captured.out
+        assert "cfg_src/pkg/main.py" in captured.out
         assert "skip.txt" not in captured.out
         assert "__pycache__/cached.py" not in captured.out
 
@@ -300,21 +309,30 @@ class TestCompressCommand:
         assert rc != 0
 
     def test_compress_with_here(self, capsys, tmp_path, monkeypatch):
-        """CMD-011: Must generate compressed output from configured src-dir."""
-        src = tmp_path / "mylib"
+        """CMD-011: With --here must load src-dir from config and ignore --src-dir."""
+        src = tmp_path / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("# comment\nx = 1\n")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--compress", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "@@@" in captured.out
+        assert "cfg_mylib/main.py" in captured.out
 
     def test_compress_disable_line_numbers(self, capsys, tmp_path, monkeypatch):
         """CMD-017: Must suppress Lnn> prefixes when flag is present."""
-        src = tmp_path / "mylib"
+        src = tmp_path / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--compress", "--src-dir", "mylib", "--disable-line-numbers"])
         assert rc == 0
@@ -339,14 +357,18 @@ class TestTokensCommand:
         assert rc != 0
 
     def test_tokens_counts_docs_files(self, capsys, tmp_path, monkeypatch):
-        """CMD-016: Must count tokens for files directly in --docs-dir."""
-        docs = tmp_path / "docs"
+        """CMD-016: With --here must use docs-dir from config and ignore --docs-dir."""
+        docs = tmp_path / "cfg_docs"
         docs.mkdir()
         (docs / "a.md").write_text("# A\n", encoding="utf-8")
         (docs / "b.txt").write_text("hello\nworld\n", encoding="utf-8")
         nested = docs / "nested"
         nested.mkdir()
         (nested / "skip.md").write_text("# ignored\n", encoding="utf-8")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "cfg_docs", "tests-dir": "tests/", "src-dir": ["src"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--tokens", "--docs-dir", "docs"])
         assert rc == 0
@@ -379,9 +401,13 @@ class TestFindCommandVerbose:
         assert "Found:" in captured.err
 
     def test_find_verbose_outputs_progress(self, capsys, tmp_path, monkeypatch):
-        src_dir = tmp_path / "src"
+        src_dir = tmp_path / "cfg_src"
         src_dir.mkdir()
         (src_dir / "a.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         rc = main(["--verbose", "--here", "--find", "FUNCTION", "foo", "--src-dir", "src"])
         assert rc == 0

@@ -1222,9 +1222,14 @@ def run_remove(args: Namespace) -> None:
     doc_dir = getattr(args, 'docs_dir', None)
     test_dir = getattr(args, 'tests_dir', None)
     src_dir = getattr(args, 'src_dir', None)
-    if guidelines_dir or doc_dir or test_dir or src_dir or args.update:
+    if args.update:
         raise ReqError(
-            "Error: --remove does not accept --guidelines-dir, --docs-dir, --tests-dir, --src-dir, or --update",
+            "Error: --remove does not accept --update",
+            4,
+        )
+    if (not getattr(args, "here", False)) and (guidelines_dir or doc_dir or test_dir or src_dir):
+        raise ReqError(
+            "Error: --remove does not accept --guidelines-dir, --docs-dir, --tests-dir, or --src-dir without --here",
             4,
         )
     if args.base:
@@ -1280,19 +1285,26 @@ def run(args: Namespace) -> None:
     doc_dir = getattr(args, 'docs_dir', None)
     test_dir = getattr(args, 'tests_dir', None)
     src_dir = getattr(args, 'src_dir', None)
+    use_here_config = bool(getattr(args, "here", False))
 
-    if args.update and (guidelines_dir or doc_dir or test_dir or src_dir):
+    if args.update and (not use_here_config) and (guidelines_dir or doc_dir or test_dir or src_dir):
         raise ReqError(
             "Error: --update does not accept --guidelines-dir, --docs-dir, --tests-dir, or --src-dir",
             4,
         )
-    if not args.update and (not guidelines_dir or not doc_dir or not test_dir or not src_dir):
+    if (not use_here_config) and (not args.update) and (not guidelines_dir or not doc_dir or not test_dir or not src_dir):
         raise ReqError(
             "Error: --guidelines-dir, --docs-dir, --tests-dir, and --src-dir are required without --update",
             4,
         )
 
-    if args.update:
+    if use_here_config:
+        config = load_config(project_base)
+        guidelines_dir_value = config["guidelines-dir"]
+        doc_dir_value = config["docs-dir"]
+        test_dir_value = config["tests-dir"]
+        src_dir_values = config["src-dir"]
+    elif args.update:
         config = load_config(project_base)
         guidelines_dir_value = config["guidelines-dir"]
         doc_dir_value = config["docs-dir"]
@@ -2309,11 +2321,16 @@ def run_tokens(args: Namespace) -> None:
     @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
     """
     project_base = _resolve_project_base(args)
-    docs_dir_arg = getattr(args, "docs_dir", None)
-    if not docs_dir_arg:
-        raise ReqError("Error: --tokens requires --docs-dir.", 1)
-    ensure_doc_directory(str(docs_dir_arg), project_base)
-    normalized_docs_dir = make_relative_if_contains_project(str(docs_dir_arg), project_base)
+    if getattr(args, "here", False):
+        config = load_config(project_base)
+        docs_dir_value = config["docs-dir"]
+    else:
+        docs_dir_arg = getattr(args, "docs_dir", None)
+        if not docs_dir_arg:
+            raise ReqError("Error: --tokens requires --docs-dir.", 1)
+        docs_dir_value = str(docs_dir_arg)
+    ensure_doc_directory(str(docs_dir_value), project_base)
+    normalized_docs_dir = make_relative_if_contains_project(str(docs_dir_value), project_base)
     docs_dir = project_base / normalized_docs_dir
     files = sorted(str(path) for path in docs_dir.iterdir() if path.is_file())
     if not files:
@@ -2347,18 +2364,21 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
     """
     project_base = _resolve_project_base(args)
 
-    # Source dirs can come from args or from config
-    src_dirs = getattr(args, "src_dir", None)
-    if not src_dirs:
-        # Try to load from config
-        config_path = project_base / ".req" / "config.json"
-        if config_path.is_file():
-            config = load_config(project_base)
-            src_dirs = config.get("src-dir", [])
-        else:
-            raise ReqError(
-                "Error: --src-dir is required or .req/config.json must exist.", 1
-            )
+    if getattr(args, "here", False):
+        config = load_config(project_base)
+        src_dirs = config.get("src-dir", [])
+    else:
+        # Source dirs can come from args or from config
+        src_dirs = getattr(args, "src_dir", None)
+        if not src_dirs:
+            config_path = project_base / ".req" / "config.json"
+            if config_path.is_file():
+                config = load_config(project_base)
+                src_dirs = config.get("src-dir", [])
+            else:
+                raise ReqError(
+                    "Error: --src-dir is required or .req/config.json must exist.", 1
+                )
 
     if not src_dirs:
         raise ReqError("Error: no source directories configured.", 1)

@@ -27,9 +27,9 @@
 - Feature: Project initialization/update and provider resource generation
   - Module: `src/usereq/cli.py`
     - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py:L1186-L1989`]
-      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, optionally loads persisted configuration for `--update`, performs version check and then writes project resources (`.req`, provider prompts/agents, templates, VS Code settings), finally emits installation report.
+      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), performs version check and then writes project resources (`.req`, provider prompts/agents, templates, VS Code settings), finally emits installation report.
       - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py:L1145-L1184`]
-        - description: validates incompatible flags, verifies `.req/config.json`, executes online version notice check, removes generated resources and prunes empty provider directories.
+        - description: validates incompatible flags, verifies `.req/config.json`, ignores explicit path flags in `--here` mode, executes online version notice check, removes generated resources and prunes empty provider directories.
       - `load_config()`: reads persisted initialization parameters [`src/usereq/cli.py:L502-L536`]
         - description: loads `.req/config.json`, validates schema (`guidelines-dir`, `docs-dir`, `tests-dir`, `src-dir` list), supports legacy key aliases.
       - `ensure_doc_directory()`: validates docs directory constraints [`src/usereq/cli.py:L366-L380`]
@@ -120,11 +120,11 @@
     - `run_find()`: project-wide construct extraction [`src/usereq/cli.py:L2278-L2302`]
       - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--disable-line-numbers` and `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing from `format_available_tags()`.
     - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
-      - description: resolves project base through `_resolve_project_base()`, validates `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
+      - description: resolves project base through `_resolve_project_base()`, uses `docs-dir` from `.req/config.json` when `--here` is active (ignoring explicit `--docs-dir`) otherwise validates explicit `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
     - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]
       - description: enforces `--base` or `--here`, resolves absolute root path, and validates path existence for `--references`, `--compress`, and `--tokens`.
     - `_resolve_project_src_dirs()`: derives source roots from args or config [`src/usereq/cli.py:L2153-L2172`]
-      - description: reuses `_resolve_project_base()`, loads configured `src-dir` from `.req/config.json` when not provided, validates non-empty source root set.
+      - description: reuses `_resolve_project_base()`, loads configured `src-dir` from `.req/config.json` when `--here` is active (ignoring explicit `--src-dir`) and otherwise uses explicit `--src-dir` with config fallback, validates non-empty source root set.
     - `_collect_source_files()`: recursive source discovery with exclusion filters [`src/usereq/cli.py:L2010-L2029`]
       - description: walks each source root, prunes `EXCLUDED_DIRS`, keeps files with `SUPPORTED_EXTENSIONS`, and returns deterministic sorted path list.
 
