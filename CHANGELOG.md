@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.0.70](https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70) - 2026-02-16
+### ⛰️  Features
+- *(core)* move HDT and Doxygen templaste into docs dir.
+- *(cli)* add --tokens docs-dir token scan command [2026-02-16 07:46:03]
+
+### 🐛  Bug Fixes
+- *(guidelines)* bundle template files for overwrite copy [2026-02-16 16:07:16]
+- *(source_analyzer)* align fixture count expectations [2026-02-16 14:33:59]
+- *(tests.sh)* scope pytest to tests directory [2026-02-16 10:56:35]
+
+### 🚜  Changes
+- *(cli)* rename copy-guidelines to upgrade-guidelines [2026-02-16 16:27:24]
+- *(cli)* restore copy-guidelines option and align tests [2026-02-16 16:21:41]
+- *(guidelines)* support empty template source and remove defaults [2026-02-16 16:12:29]
+- *(cli)* rename docs template and dynamic req docs copy [2026-02-16 15:59:47]
+- *(test_find_constructs_comprehensive)* enforce five extractions per tag [2026-02-16 14:04:02]
+- *(fixtures)* expand multi-language construct fixtures and coverage [2026-02-16 13:58:36]
+- *(cli)* rename template paths to docs [2026-02-16 13:48:12]
+- *(compress)* switch line prefixes to nn: across outputs [2026-02-16 13:41:08]
+- *(cli)* invert line-number flag defaults [2026-02-16 13:35:55]
+- *(compress_files)* add lines header and fenced compress output [2026-02-16 13:28:59]
+- *(find_constructs)* extract complete constructs without truncation [$DATE]
+- *(cli)* enforce --here config path precedence [2026-02-16 12:16:35]
+- *(cli)* gate scan progress logs behind --verbose [2026-02-16 12:01:09]
+- *(find_constructs)* add dynamic TAG listing in help and error messages [2026-02-16 11:54:46]
+- *(tests)* add comprehensive unit tests for find_constructs covering all language-construct combinations [2026-02-16 11:47:21]
+- *(cli)* add --files-find and --find commands for construct extraction [2026-02-16 11:38:48]
+- *(cli)* add disable-line-numbers support for compression [2026-02-16 11:15:36]
+- *(tests/source_analyzer)* add parity analyzer tests and requirements update [2026-02-16 10:48:11]
+
 ## [0.0.69](https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69) - 2026-02-15
 ### ⛰️  Features
 - *(core)* add REFERENCES.md as source of true.
@@ -470,6 +500,7 @@
 - \[0.0.67\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.67
 - \[0.0.68\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.68
 - \[0.0.69\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.69
+- \[0.0.70\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.70
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -540,3 +571,4 @@
 [0.0.67]: https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67
 [0.0.68]: https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68
 [0.0.69]: https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69
+[0.0.70]: https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70

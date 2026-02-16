@@ -98,7 +98,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
       - Do not mark a requirement as `OK` without code evidence; for `OK` items provide only a compact pointer (file path + symbol + line range). For each requirement, provide a concise evidence pointer (file path + symbol + line range) excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "shall not..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
       - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
-   - Run ALL tests of test suite. 
+   - Perform a regression test executing ALL tests of test suite. 
       - Verify that the implemented changes satisfy the requirements and pass tests.
       - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. You are authorized to update or refactor existing tests ONLY if they cover logic that was explicitly modified by the updated requirements. When a test fails, verify: does the failure align with the new requirement?
         - IF YES (the test expects the old behavior): Update the test to match the new requirement.
