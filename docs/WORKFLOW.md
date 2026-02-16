@@ -17,8 +17,8 @@
           - description: executes `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git`; propagates failures as `ReqError`.
         - `maybe_print_version()`: handles explicit version query [`src/usereq/cli.py:L230-L235`]
           - description: checks `--ver`/`--version`, prints value from `load_package_version()`, short-circuits command flow.
-        - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L215-L217`]
-          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting.
+        - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L236-L239`]
+          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting, and `--disable-line-numbers` routing for compression commands.
         - `_is_standalone_command()`: identifies file-list execution mode [`src/usereq/cli.py:L2032-L2038`]
           - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress` is set.
         - `_is_project_scan_command()`: identifies project source scan mode [`src/usereq/cli.py:L2041-L2046`]
@@ -85,8 +85,8 @@
       - description: delegates to `generate_markdown()` and prints concatenated analysis output.
       - `generate_markdown()`: file-wise analysis and markdown concatenation [`src/usereq/generate_markdown.py:L55-L108`]
         - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown()`, and joins all file outputs with `---` separator.
-    - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2075-L2080`]
-      - description: delegates to `compress_files()` and prints concatenated compressed payload.
+    - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2180-L2188`]
+      - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--disable-line-numbers` to `include_line_numbers=False`.
       - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L24-L73`]
         - description: validates each path/language, applies `compress_file()`, prefixes each result with `@@@ <path> | <lang>`, tracks ok/fail counters, errors if no valid file processed.
         - `compress_file()`: reads single file and delegates normalization/compression [`src/usereq/compress.py:L320-L343`]
@@ -99,8 +99,8 @@
         - description: normalizes absolute scanned files to project-relative paths and emits a deterministic code-fenced tree section headed by `# Files Structure`.
         - `_build_ascii_tree()`: deterministic ASCII tree renderer for relative paths [`src/usereq/cli.py`]
           - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
-    - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2100-L2109`]
-      - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()`.
+    - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2205-L2219`]
+      - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()` with `include_line_numbers` derived from `--disable-line-numbers`.
     - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
       - description: resolves project base through `_resolve_project_base()`, validates `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
     - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]

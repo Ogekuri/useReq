@@ -74,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] "
-        "[--references] [--compress] [--tokens] "
+        "[--references] [--compress] [--disable-line-numbers] [--tokens] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -218,6 +218,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--compress",
         action="store_true",
         help="Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).",
+    )
+    parser.add_argument(
+        "--disable-line-numbers",
+        action="store_true",
+        default=False,
+        help="Disable line number prefixes (Lnn>) in compressed output for --files-compress and --compress.",
     )
     parser.add_argument(
         "--tokens",
@@ -2171,12 +2177,14 @@ def run_files_references(files: list[str]) -> None:
     print(md)
 
 
-def run_files_compress(files: list[str]) -> None:
+def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None:
     """! @brief Execute --files-compress: compress arbitrary files.
+    @param files List of source file paths to compress.
+    @param disable_line_numbers If True, suppresses Lnn> prefixes in compressed entries.
     """
     from .compress_files import compress_files
 
-    output = compress_files(files)
+    output = compress_files(files, include_line_numbers=not disable_line_numbers)
     print(output)
 
 
@@ -2196,6 +2204,7 @@ def run_references(args: Namespace) -> None:
 
 def run_compress_cmd(args: Namespace) -> None:
     """! @brief Execute --compress: compress project source files.
+    @param args Parsed CLI arguments namespace.
     """
     from .compress_files import compress_files
 
@@ -2203,7 +2212,10 @@ def run_compress_cmd(args: Namespace) -> None:
     files = _collect_source_files(src_dirs, project_base)
     if not files:
         raise ReqError("Error: no source files found in configured directories.", 1)
-    output = compress_files(files)
+    output = compress_files(
+        files,
+        include_line_numbers=not getattr(args, "disable_line_numbers", False),
+    )
     print(output)
 
 
@@ -2295,7 +2307,10 @@ def main(argv: Optional[list[str]] = None) -> int:
             elif getattr(args, "files_references", None):
                 run_files_references(args.files_references)
             elif getattr(args, "files_compress", None):
-                run_files_compress(args.files_compress)
+                run_files_compress(
+                    args.files_compress,
+                    disable_line_numbers=getattr(args, "disable_line_numbers", False),
+                )
             return 0
         # Project scan commands (require --base/--here)
         if _is_project_scan_command(args):

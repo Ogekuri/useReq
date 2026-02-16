@@ -1,7 +1,7 @@
 """Tests for the --files-tokens, --files-references, --files-compress,
---references, --compress, and --tokens CLI commands.
+--references, --compress, --disable-line-numbers, and --tokens CLI commands.
 
-Covers: CMD-001 through CMD-016.
+Covers: CMD-001 through CMD-017.
 """
 
 import json
@@ -101,7 +101,7 @@ class TestFilesReferencesCommand:
 
 
 class TestFilesCompressCommand:
-    """CMD-006, CMD-007: --files-compress tests."""
+    """CMD-006, CMD-007, CMD-017: --files-compress tests."""
 
     def test_files_compress_basic(self, capsys):
         """CMD-006: Must output compressed content."""
@@ -126,6 +126,20 @@ class TestFilesCompressCommand:
         try:
             rc = main(["--files-compress", path])
             assert rc == 0
+        finally:
+            os.unlink(path)
+
+    def test_files_compress_disable_line_numbers(self, capsys):
+        """CMD-017: Must suppress Lnn> prefixes when flag is present."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+            f.write("x = 1\n")
+            path = f.name
+        try:
+            rc = main(["--files-compress", path, "--disable-line-numbers"])
+            assert rc == 0
+            captured = capsys.readouterr()
+            assert "L1>" not in captured.out
+            assert "x = 1" in captured.out
         finally:
             os.unlink(path)
 
@@ -246,7 +260,7 @@ class TestReferencesCommand:
 
 
 class TestCompressCommand:
-    """CMD-010, CMD-011: --compress tests."""
+    """CMD-010, CMD-011, CMD-017: --compress tests."""
 
     def test_requires_base_or_here(self, capsys):
         """CMD-010: Must error without --base or --here."""
@@ -263,6 +277,18 @@ class TestCompressCommand:
         assert rc == 0
         captured = capsys.readouterr()
         assert "@@@" in captured.out
+
+    def test_compress_disable_line_numbers(self, capsys, tmp_path, monkeypatch):
+        """CMD-017: Must suppress Lnn> prefixes when flag is present."""
+        src = tmp_path / "mylib"
+        src.mkdir()
+        (src / "main.py").write_text("x = 1\n")
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--compress", "--src-dir", "mylib", "--disable-line-numbers"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "L1>" not in captured.out
+        assert "x = 1" in captured.out
 
 
 class TestTokensCommand:
