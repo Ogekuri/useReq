@@ -6,6 +6,7 @@ the tag filter and regex pattern for each language-construct combination defined
 """
 
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Set
@@ -384,6 +385,47 @@ class TestFindConstructsComprehensive:
             assert tag_count >= 5, (
                 f"Fixture {language} has only {tag_count} constructs for {tag}. "
                 f"Expected at least 5."
+            )
+
+    @pytest.mark.parametrize(
+        ("language", "tag"),
+        [(language, tag) for language, tags in LANGUAGE_TAGS.items() for tag in sorted(tags)],
+    )
+    def test_extracts_five_distinct_construct_versions_per_tag(
+        self,
+        fixtures_dir: Path,
+        language: str,
+        tag: str,
+    ):
+        """! @brief Execute five distinct exact-match extractions per language/tag pair.
+        @details Enforces REQ-100 and FND-014 by requiring at least five distinct named constructs
+        for each supported tag and validating that find_constructs_in_files() extracts each target
+        via dedicated anchored regex queries.
+        @param fixtures_dir Base fixtures directory.
+        @param language Normalized language identifier.
+        @param tag Element-type identifier defined for the language.
+        """
+        fixture_path = self.get_fixture_path(fixtures_dir, language)
+        all_constructs_output = find_constructs_in_files(
+            [str(fixture_path)],
+            tag,
+            ".*",
+        )
+        names = sorted(
+            set(re.findall(rf"{re.escape(tag)}: `([^`]+)`", all_constructs_output))
+        )
+        assert len(names) >= 5, (
+            f"Fixture {language} has only {len(names)} constructs for {tag}. "
+            f"Expected at least 5."
+        )
+        for construct_name in names[:5]:
+            output = find_constructs_in_files(
+                [str(fixture_path)],
+                tag,
+                f"^{re.escape(construct_name)}$",
+            )
+            assert f"{tag}: `{construct_name}`" in output, (
+                f"Missing extracted construct for {language}:{tag}:{construct_name}"
             )
 
     # ── Python construct tests ────────────────────────────────────────────────

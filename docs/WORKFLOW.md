@@ -185,6 +185,8 @@
         - description: ensures all 20 language fixtures exist in tests/fixtures/ directory using get_fixture_path() resolution.
       - `test_fixture_has_minimum_five_constructs_per_tag()`: validates quantitative fixture density per TAG [`tests/test_find_constructs_comprehensive.py`]
         - description: analyzes each fixture with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, groups extracted names by `ElementType`, and asserts at least five distinct constructs for every tag required by `LANGUAGE_TAGS[language]` (FND-014).
+      - `test_extracts_five_distinct_construct_versions_per_tag()`: validates five extraction executions per language/tag [`tests/test_find_constructs_comprehensive.py`]
+        - description: for each `(language, tag)` pair in `LANGUAGE_TAGS`, computes distinct construct names from fixture analysis, enforces minimum cardinality `>=5`, then executes `find_constructs_in_files()` five times using anchored regex (`^<escaped_name>$`) and verifies tagged construct presence in each extraction output (REQ-100).
       - `test_python_class_extraction()`: validates CLASS construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L376-L382`]
         - description: extracts all CLASS constructs from Python fixture and verifies presence of expected classes defined in EXPECTED_CONSTRUCTS mapping.
       - `test_python_function_extraction()`: validates FUNCTION construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L384-L392`]

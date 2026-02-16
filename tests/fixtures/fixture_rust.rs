@@ -332,6 +332,8 @@ pub trait Inspectable { fn inspect(&self) -> i32; }
 trait Named { fn name(&self) -> &'static str; }
 pub trait Executable { fn exec(&self) -> i32; }
 impl Inspectable for ExtraNode { fn inspect(&self) -> i32 { self.id } }
+impl Named for InnerNode { fn name(&self) -> &'static str { "inner" } }
+impl Executable for MyEnum { fn exec(&self) -> i32 { 1 } }
 macro_rules! ext_macro { () => { 42 } }
 macro_rules! trace_macro { ($v:expr) => { $v }; }
 macro_rules! build_pair { ($a:expr,$b:expr) => { ($a,$b) }; }
