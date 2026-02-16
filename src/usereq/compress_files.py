@@ -85,13 +85,13 @@ def main():
     parser = argparse.ArgumentParser(
         description="Compress and concatenate source files for LLM context.")
     parser.add_argument("files", nargs="+", help="Source files to compress.")
-    parser.add_argument("--disable-line-numbers", action="store_true",
+    parser.add_argument("--enable-line-numbers", action="store_true",
                         default=False,
-                        help="Disable line number prefixes (Lnn>) in output.")
+                        help="Enable line number prefixes (Lnn>) in output.")
     args = parser.parse_args()
 
     try:
-        output = compress_files(args.files, not args.disable_line_numbers)
+        output = compress_files(args.files, args.enable_line_numbers)
         print(output)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)

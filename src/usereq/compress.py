@@ -332,9 +332,9 @@ def main():
     parser.add_argument("file", help="Source file to compress.")
     parser.add_argument("--lang", default=None,
                         help="Language override (auto-detected from extension).")
-    parser.add_argument("--disable-line-numbers", action="store_true",
+    parser.add_argument("--enable-line-numbers", action="store_true",
                         default=False,
-                        help="Disable line number prefixes (Lnn>) in output.")
+                        help="Enable line number prefixes (Lnn>) in output.")
     args = parser.parse_args()
 
     if not os.path.isfile(args.file):
@@ -343,7 +343,7 @@ def main():
 
     try:
         compressed = compress_file(args.file, args.lang,
-                                   not args.disable_line_numbers)
+                                   args.enable_line_numbers)
         print(compressed)
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)

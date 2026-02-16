@@ -1,5 +1,5 @@
 """Tests for the --files-tokens, --files-references, --files-compress,
---references, --compress, --disable-line-numbers, and --tokens CLI commands.
+--references, --compress, --enable-line-numbers, and --tokens CLI commands.
 
 Covers: CMD-001 through CMD-017.
 """
@@ -146,16 +146,30 @@ class TestFilesCompressCommand:
         finally:
             os.unlink(path)
 
-    def test_files_compress_disable_line_numbers(self, capsys):
-        """CMD-017: Must suppress Lnn> prefixes when flag is present."""
+    def test_files_compress_no_line_numbers_by_default(self, capsys):
+        """CMD-017: Must suppress Lnn> prefixes by default."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("x = 1\n")
             path = f.name
         try:
-            rc = main(["--files-compress", path, "--disable-line-numbers"])
+            rc = main(["--files-compress", path])
             assert rc == 0
             captured = capsys.readouterr()
             assert "L1>" not in captured.out
+            assert "x = 1" in captured.out
+        finally:
+            os.unlink(path)
+
+    def test_files_compress_enable_line_numbers(self, capsys):
+        """CMD-017: Must include Lnn> prefixes when flag is present."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+            f.write("x = 1\n")
+            path = f.name
+        try:
+            rc = main(["--files-compress", path, "--enable-line-numbers"])
+            assert rc == 0
+            captured = capsys.readouterr()
+            assert "L1>" in captured.out
             assert "x = 1" in captured.out
         finally:
             os.unlink(path)
@@ -326,8 +340,8 @@ class TestCompressCommand:
         assert "- Lines: 2-4" in captured.out
         assert "```" in captured.out
 
-    def test_compress_disable_line_numbers(self, capsys, tmp_path, monkeypatch):
-        """CMD-017: Must suppress Lnn> prefixes when flag is present."""
+    def test_compress_no_line_numbers_by_default(self, capsys, tmp_path, monkeypatch):
+        """CMD-017: Must suppress Lnn> prefixes by default."""
         src = tmp_path / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
@@ -336,10 +350,28 @@ class TestCompressCommand:
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
-        rc = main(["--here", "--compress", "--src-dir", "mylib", "--disable-line-numbers"])
+        rc = main(["--here", "--compress", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "L1>" not in captured.out
+        assert "x = 1" in captured.out
+        assert "- Lines: 1-1" in captured.out
+        assert "```" in captured.out
+
+    def test_compress_enable_line_numbers(self, capsys, tmp_path, monkeypatch):
+        """CMD-017: Must include Lnn> prefixes when flag is present."""
+        src = tmp_path / "cfg_mylib"
+        src.mkdir()
+        (src / "main.py").write_text("x = 1\n")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--compress", "--src-dir", "mylib", "--enable-line-numbers"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "L1>" in captured.out
         assert "x = 1" in captured.out
         assert "- Lines: 1-1" in captured.out
         assert "```" in captured.out
@@ -393,6 +425,7 @@ class TestFindCommandVerbose:
         assert rc == 0
         captured = capsys.readouterr()
         assert "foo" in captured.out
+        assert "L1>" not in captured.out
         assert captured.err == ""
 
     def test_files_find_verbose_outputs_progress(self, capsys, tmp_path):
@@ -403,6 +436,14 @@ class TestFindCommandVerbose:
         captured = capsys.readouterr()
         assert "OK" in captured.err
         assert "Found:" in captured.err
+
+    def test_files_find_enable_line_numbers(self, capsys, tmp_path):
+        src = tmp_path / "a.py"
+        src.write_text("def foo():\n    return 1\n", encoding="utf-8")
+        rc = main(["--files-find", "FUNCTION", "foo", str(src), "--enable-line-numbers"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "L1>" in captured.out
 
     def test_find_verbose_outputs_progress(self, capsys, tmp_path, monkeypatch):
         src_dir = tmp_path / "cfg_src"
@@ -418,6 +459,21 @@ class TestFindCommandVerbose:
         captured = capsys.readouterr()
         assert "OK" in captured.err
         assert "Found:" in captured.err
+        assert "L1>" not in captured.out
+
+    def test_find_enable_line_numbers(self, capsys, tmp_path, monkeypatch):
+        src_dir = tmp_path / "cfg_src"
+        src_dir.mkdir()
+        (src_dir / "a.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--find", "FUNCTION", "foo", "--src-dir", "src", "--enable-line-numbers"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "L1>" in captured.out
 
 
 class TestSupportedExtensions:

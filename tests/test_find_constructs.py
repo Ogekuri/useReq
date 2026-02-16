@@ -191,8 +191,8 @@ def test_find_constructs_skip_missing_file():
         find_constructs_in_files(["/nonexistent/file.py"], "FUNCTION", ".*")
 
 
-def test_find_constructs_disable_line_numbers(tmp_path):
-    """! @brief Test line number prefix disabling."""
+def test_find_constructs_toggle_line_numbers(tmp_path):
+    """! @brief Test line number prefix toggling."""
     test_file = tmp_path / "test.py"
     test_file.write_text("def foo():\n    pass")
 

@@ -431,11 +431,11 @@ L2203> `raise ReqError("Error: no valid files provided.", 1)`
 ### fn `def run_files_references(files: list[str]) -> None` (L2209-2217)
 L2210-2211> ! @brief Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None` (L2218-2232)
-L2219-2222> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If True, suppresses Lnn> prefixes in compressed entries.
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2218-2232)
+L2219-2222> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param enable_line_numbers If True, emits Lnn> prefixes in compressed entries.
 
-### fn `def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None` (L2233-2258)
-L2234-2237> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2233-2258)
+L2234-2237> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param enable_line_numbers If True, emits Lnn> prefixes in output.
 L2241> `raise ReqError(`
 
 ### fn `def run_references(args: Namespace) -> None` (L2259-2272)
@@ -604,8 +604,8 @@ L2454> `return 0`
 - L2180: ! @brief Check if the parsed args contain a project scan command.
 - L2191: ! @brief Execute --files-tokens: count tokens for arbitrary files.
 - L2210: ! @brief Execute --files-references: generate markdown for arbitrary files.
-- L2219: ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If Tru...
-- L2234: ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disabl...
+- L2219: ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param enable_line_numbers If True...
+- L2234: ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param enable...
 - L2260: ! @brief Execute --references: generate markdown for project source files.
 - L2274: ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
 - L2292: ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files f...
@@ -703,8 +703,8 @@ L2454> `return 0`
 |`_is_project_scan_command`|fn|priv|2179-2189|def _is_project_scan_command(args: Namespace) -> bool|
 |`run_files_tokens`|fn|pub|2190-2208|def run_files_tokens(files: list[str]) -> None|
 |`run_files_references`|fn|pub|2209-2217|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2218-2232|def run_files_compress(files: list[str], disable_line_num...|
-|`run_files_find`|fn|pub|2233-2258|def run_files_find(args_list: list[str], disable_line_num...|
+|`run_files_compress`|fn|pub|2218-2232|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|2233-2258|def run_files_find(args_list: list[str], enable_line_numb...|
 |`run_references`|fn|pub|2259-2272|def run_references(args: Namespace) -> None|
 |`run_compress_cmd`|fn|pub|2273-2290|def run_compress_cmd(args: Namespace) -> None|
 |`run_find`|fn|pub|2291-2317|def run_find(args: Namespace) -> None|

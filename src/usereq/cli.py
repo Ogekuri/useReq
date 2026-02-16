@@ -86,7 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
-        "[--references] [--compress] [--find TAG PATTERN] [--disable-line-numbers] [--tokens] "
+        "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -244,10 +244,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Find and extract specific constructs from configured --src-dir: --find TAG PATTERN (requires --base/--here). For available tags, see --files-find help.",
     )
     parser.add_argument(
-        "--disable-line-numbers",
+        "--enable-line-numbers",
         action="store_true",
         default=False,
-        help="Disable line number prefixes (Lnn>) in compressed output for --files-compress, --compress, --files-find, and --find.",
+        help="Enable line number prefixes (Lnn>) in output for --files-compress, --compress, --files-find, and --find (disabled by default).",
     )
     parser.add_argument(
         "--tokens",
@@ -2215,25 +2215,25 @@ def run_files_references(files: list[str]) -> None:
     print(md)
 
 
-def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None:
+def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None:
     """! @brief Execute --files-compress: compress arbitrary files.
     @param files List of source file paths to compress.
-    @param disable_line_numbers If True, suppresses Lnn> prefixes in compressed entries.
+    @param enable_line_numbers If True, emits Lnn> prefixes in compressed entries.
     """
     from .compress_files import compress_files
 
     output = compress_files(
         files,
-        include_line_numbers=not disable_line_numbers,
+        include_line_numbers=enable_line_numbers,
         verbose=VERBOSE,
     )
     print(output)
 
 
-def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None:
+def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None:
     """! @brief Execute --files-find: find constructs in arbitrary files.
     @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
-    @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
+    @param enable_line_numbers If True, emits Lnn> prefixes in output.
     """
     from .find_constructs import find_constructs_in_files
 
@@ -2250,7 +2250,7 @@ def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> 
         files,
         tag_filter,
         pattern,
-        include_line_numbers=not disable_line_numbers,
+        include_line_numbers=enable_line_numbers,
         verbose=VERBOSE,
     )
     print(output)
@@ -2282,7 +2282,7 @@ def run_compress_cmd(args: Namespace) -> None:
         raise ReqError("Error: no source files found in configured directories.", 1)
     output = compress_files(
         files,
-        include_line_numbers=not getattr(args, "disable_line_numbers", False),
+        include_line_numbers=getattr(args, "enable_line_numbers", False),
         verbose=VERBOSE,
     )
     print(output)
@@ -2307,7 +2307,7 @@ def run_find(args: Namespace) -> None:
             files,
             tag_filter,
             pattern,
-            include_line_numbers=not getattr(args, "disable_line_numbers", False),
+            include_line_numbers=getattr(args, "enable_line_numbers", False),
             verbose=VERBOSE,
         )
         print(output)
@@ -2416,12 +2416,12 @@ def main(argv: Optional[list[str]] = None) -> int:
             elif getattr(args, "files_compress", None):
                 run_files_compress(
                     args.files_compress,
-                    disable_line_numbers=getattr(args, "disable_line_numbers", False),
+                    enable_line_numbers=getattr(args, "enable_line_numbers", False),
                 )
             elif getattr(args, "files_find", None):
                 run_files_find(
                     args.files_find,
-                    disable_line_numbers=getattr(args, "disable_line_numbers", False),
+                    enable_line_numbers=getattr(args, "enable_line_numbers", False),
                 )
             return 0
         # Project scan commands (require --base/--here)

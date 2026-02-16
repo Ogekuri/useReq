@@ -18,7 +18,7 @@
         - `maybe_print_version()`: handles explicit version query [`src/usereq/cli.py:L230-L235`]
           - description: checks `--ver`/`--version`, prints value from `load_package_version()`, short-circuits command flow.
         - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L236-L239`]
-          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting, and `--disable-line-numbers` routing for compression commands.
+          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting, and `--enable-line-numbers` routing for compression and construct extraction commands.
         - `_is_standalone_command()`: identifies file-list execution mode [`src/usereq/cli.py:L2032-L2038`]
           - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress`, `--files-find` is set.
         - `_is_project_scan_command()`: identifies project source scan mode [`src/usereq/cli.py:L2041-L2046`]
@@ -86,7 +86,7 @@
       - `generate_markdown()`: file-wise analysis and markdown concatenation [`src/usereq/generate_markdown.py:L46-L95`]
         - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown()`, joins outputs with `---` separator, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
     - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2206-L2219`]
-      - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--disable-line-numbers` to `include_line_numbers=False` and forwards `verbose=VERBOSE`.
+      - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` and keeps line numbers disabled by default.
       - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L30-L80`]
         - description: validates each path/language, applies `compress_file()`, derives line interval from preserved `L<n>>` markers via `_extract_line_range()`, emits each file block as `@@@ <path> | <lang>` + `- Lines: <start>-<end>` + triple-backtick fenced code payload, tracks ok/fail counters, errors if no valid file processed, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
         - `compress_file()`: reads single file and delegates normalization/compression [`src/usereq/compress.py:L320-L343`]
@@ -94,7 +94,7 @@
           - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
             - description: removes full-line and inline comments while preserving string literals, handles multiline comments/docstrings statefully, preserves indentation for indentation-sensitive languages, strips blank/trailing whitespace, and formats optional line-number prefixes.
     - `run_files_find()`: construct extraction for explicit file lists [`src/usereq/cli.py:L2222-L2243`]
-      - description: validates minimum argument count (TAG, PATTERN, FILE), imports `format_available_tags()` to include available TAG listing in error messages when insufficient arguments provided, parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--disable-line-numbers` to `include_line_numbers=False`, forwards `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing.
+      - description: validates minimum argument count (TAG, PATTERN, FILE), imports `format_available_tags()` to include available TAG listing in error messages when insufficient arguments provided, parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` while keeping default output without line prefixes, forwards `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing.
       - `_get_available_tags_help()`: generates TAG listing for CLI help text [`src/usereq/cli.py:L65-L75`]
         - description: attempts to import `format_available_tags()` from `find_constructs` module to generate dynamic TAG listing for argument parser help display, returns fallback message if import fails.
       - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L118-L198`]
@@ -116,9 +116,9 @@
         - `_build_ascii_tree()`: deterministic ASCII tree renderer for relative paths [`src/usereq/cli.py`]
           - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
     - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2261-L2275`]
-      - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()` with `include_line_numbers` derived from `--disable-line-numbers` and `verbose=VERBOSE`.
+      - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()` with `include_line_numbers` derived from `--enable-line-numbers` and `verbose=VERBOSE`.
     - `run_find()`: project-wide construct extraction [`src/usereq/cli.py:L2278-L2302`]
-      - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--disable-line-numbers` and `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing from `format_available_tags()`.
+      - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--enable-line-numbers` and `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing from `format_available_tags()`.
     - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
       - description: resolves project base through `_resolve_project_base()`, uses `docs-dir` from `.req/config.json` when `--here` is active (ignoring explicit `--docs-dir`) otherwise validates explicit `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
     - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]

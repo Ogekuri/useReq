@@ -218,16 +218,16 @@ def main():
     )
     parser.add_argument("files", nargs="+", help="Source files to search.")
     parser.add_argument(
-        "--disable-line-numbers",
+        "--enable-line-numbers",
         action="store_true",
         default=False,
-        help="Disable line number prefixes (Lnn>) in output.",
+        help="Enable line number prefixes (Lnn>) in output.",
     )
     args = parser.parse_args()
 
     try:
         output = find_constructs_in_files(
-            args.files, args.tag, args.pattern, not args.disable_line_numbers
+            args.files, args.tag, args.pattern, args.enable_line_numbers
         )
         print(output)
     except ValueError as e:
