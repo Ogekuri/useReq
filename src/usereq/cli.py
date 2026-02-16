@@ -74,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] "
-        "[--references] [--compress] "
+        "[--references] [--compress] [--tokens] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -218,6 +218,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--compress",
         action="store_true",
         help="Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).",
+    )
+    parser.add_argument(
+        "--tokens",
+        action="store_true",
+        help="Count tokens/chars for files directly under --docs-dir (requires --base/--here and --docs-dir).",
     )
     return parser
 
@@ -2134,6 +2139,7 @@ def _is_project_scan_command(args: Namespace) -> bool:
     return bool(
         getattr(args, "references", False)
         or getattr(args, "compress", False)
+        or getattr(args, "tokens", False)
     )
 
 
@@ -2201,12 +2207,33 @@ def run_compress_cmd(args: Namespace) -> None:
     print(output)
 
 
-def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
-    """! @brief Resolve project base and src-dirs for --references/--compress.
+def run_tokens(args: Namespace) -> None:
+    """! @brief Execute --tokens: count tokens for files directly in --docs-dir.
+    @param args Parsed CLI arguments namespace.
+    @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
+    """
+    project_base = _resolve_project_base(args)
+    docs_dir_arg = getattr(args, "docs_dir", None)
+    if not docs_dir_arg:
+        raise ReqError("Error: --tokens requires --docs-dir.", 1)
+    ensure_doc_directory(str(docs_dir_arg), project_base)
+    normalized_docs_dir = make_relative_if_contains_project(str(docs_dir_arg), project_base)
+    docs_dir = project_base / normalized_docs_dir
+    files = sorted(str(path) for path in docs_dir.iterdir() if path.is_file())
+    if not files:
+        raise ReqError("Error: no files found in --docs-dir.", 1)
+    run_files_tokens(files)
+
+
+def _resolve_project_base(args: Namespace) -> Path:
+    """! @brief Resolve project base path for project-level commands.
+    @param args Parsed CLI arguments namespace.
+    @return Absolute path of project base.
+    @throws ReqError If --base/--here is missing or the resolved path does not exist.
     """
     if not getattr(args, "base", None) and not getattr(args, "here", False):
         raise ReqError(
-            "Error: --references and --compress require --base or --here.", 1
+            "Error: --references, --compress, and --tokens require --base or --here.", 1
         )
 
     if args.base:
@@ -2216,6 +2243,13 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
 
     if not project_base.exists():
         raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
+    return project_base
+
+
+def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
+    """! @brief Resolve project base and src-dirs for --references/--compress.
+    """
+    project_base = _resolve_project_base(args)
 
     # Source dirs can come from args or from config
     src_dirs = getattr(args, "src_dir", None)
@@ -2269,6 +2303,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                 run_references(args)
             elif getattr(args, "compress", False):
                 run_compress_cmd(args)
+            elif getattr(args, "tokens", False):
+                run_tokens(args)
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):

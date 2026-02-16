@@ -99,10 +99,14 @@
         - description: normalizes absolute scanned files to project-relative paths and emits a deterministic code-fenced tree section headed by `# Files Structure`.
         - `_build_ascii_tree()`: deterministic ASCII tree renderer for relative paths [`src/usereq/cli.py`]
           - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
-    - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2095-L2104`]
+    - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2100-L2109`]
       - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()`.
-    - `_resolve_project_src_dirs()`: derives source roots from args or config [`src/usereq/cli.py:L2107-L2138`]
-      - description: enforces `--base/--here`, loads configured `src-dir` from `.req/config.json` when not provided, validates non-empty source root set.
+    - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
+      - description: resolves project base through `_resolve_project_base()`, validates `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
+    - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]
+      - description: enforces `--base` or `--here`, resolves absolute root path, and validates path existence for `--references`, `--compress`, and `--tokens`.
+    - `_resolve_project_src_dirs()`: derives source roots from args or config [`src/usereq/cli.py:L2153-L2172`]
+      - description: reuses `_resolve_project_base()`, loads configured `src-dir` from `.req/config.json` when not provided, validates non-empty source root set.
     - `_collect_source_files()`: recursive source discovery with exclusion filters [`src/usereq/cli.py:L2010-L2029`]
       - description: walks each source root, prunes `EXCLUDED_DIRS`, keeps files with `SUPPORTED_EXTENSIONS`, and returns deterministic sorted path list.
 

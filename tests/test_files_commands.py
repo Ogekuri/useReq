@@ -1,7 +1,7 @@
 """Tests for the --files-tokens, --files-references, --files-compress,
---references, and --compress CLI commands.
+--references, --compress, and --tokens CLI commands.
 
-Covers: CMD-001 through CMD-015.
+Covers: CMD-001 through CMD-016.
 """
 
 import json
@@ -263,6 +263,40 @@ class TestCompressCommand:
         assert rc == 0
         captured = capsys.readouterr()
         assert "@@@" in captured.out
+
+
+class TestTokensCommand:
+    """CMD-016: --tokens tests."""
+
+    def test_tokens_requires_base_or_here(self, capsys):
+        """CMD-016: Must error without --base or --here."""
+        rc = main(["--tokens", "--docs-dir", "docs"])
+        assert rc != 0
+        captured = capsys.readouterr()
+        assert "--base" in captured.err or "--here" in captured.err
+
+    def test_tokens_requires_docs_dir(self, tmp_path):
+        """CMD-016: Must error when --docs-dir is missing."""
+        rc = main(["--base", str(tmp_path), "--tokens"])
+        assert rc != 0
+
+    def test_tokens_counts_docs_files(self, capsys, tmp_path, monkeypatch):
+        """CMD-016: Must count tokens for files directly in --docs-dir."""
+        docs = tmp_path / "docs"
+        docs.mkdir()
+        (docs / "a.md").write_text("# A\n", encoding="utf-8")
+        (docs / "b.txt").write_text("hello\nworld\n", encoding="utf-8")
+        nested = docs / "nested"
+        nested.mkdir()
+        (nested / "skip.md").write_text("# ignored\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--tokens", "--docs-dir", "docs"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "Pack Summary" in captured.out
+        assert "a.md" in captured.out
+        assert "b.txt" in captured.out
+        assert "skip.md" not in captured.out
 
 
 class TestSupportedExtensions:

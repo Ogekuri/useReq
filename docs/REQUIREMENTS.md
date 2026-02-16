@@ -1,8 +1,8 @@
 ---
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
-date: "2026-02-15"
-version: 0.62
+date: "2026-02-16"
+version: 0.64
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.62
+**Versione**: 0.64
 **Autore**: Ogekuri
-**Data**: 2026-02-15
+**Data**: 2026-02-16
 
 ## Indice
 <!-- TOC -->
@@ -84,6 +84,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-15 | 0.61 | Aggiunti comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress` e relativi moduli: analisi sorgenti multi-linguaggio, conteggio token, generazione markdown di riferimento, compressione sorgenti. |
 | 2026-02-15 | 0.62 | Aggiornati i requisiti DES-008..DES-010 imponendo documentazione Doxygen completa, strutturata e in Inglese per tutti i componenti codice. |
 | 2026-02-15 | 0.63 | Rimossi i requisiti DES-008..DES-010 relativi alle modalità di documentazione nei sorgenti. |
+| 2026-02-16 | 0.64 | Aggiunto comando CLI `--tokens` per conteggio token dei file presenti in `--docs-dir` con contesto `--base`/`--here`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -232,7 +233,7 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
 - **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
-- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--references`, e `--compress` nel formato `usage: req -c ...`.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`, e `--tokens` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
 - **REQ-005**: Il comando deve richiedere i parametri `--docs-dir`, `--tests-dir`, e `--src-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
 - **REQ-093**: Il parametro `--src-dir` deve poter essere fornito più volte; ogni directory passata deve essere normalizzata come gli altri percorsi e deve esistere, altrimenti il comando deve terminare con errore.
@@ -432,3 +433,4 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-013**: La scansione delle directory sorgenti per i comandi `--references` e `--compress` deve essere ricorsiva, esaminando tutte le sottodirectory delle directory sorgenti configurate, escludendo le directory elencate in CMD-012.
 - **CMD-014**: I comandi `--references` e `--compress`, quando utilizzati con `--update`, devono caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
 - **CMD-015**: Il comando `--references` deve anteporre al markdown generato una sezione `# Files Structure` contenente l'albero ASCII dei file effettivamente selezionati dalla scansione (`--src-dir` o `src-dir` da configurazione), applicando gli stessi filtri di estensione supportata (SRC-001) ed esclusione directory (CMD-012); l'albero deve essere racchiuso in code fence Markdown.
+- **CMD-016**: Il comando `--tokens` deve richiedere `--base` o `--here` e `--docs-dir`, risolvere la directory documentazione rispetto alla root progetto, elencare i file regolari presenti direttamente in `--docs-dir`, eseguire il flusso di `--files-tokens` su tali file e stampare il riepilogo su stdout.
