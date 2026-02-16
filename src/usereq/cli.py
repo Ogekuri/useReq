@@ -63,6 +63,18 @@ def vlog(msg: str) -> None:
         print(msg)
 
 
+def _get_available_tags_help() -> str:
+    """! @brief Generate available TAGs help text for argument parser.
+    @return Formatted multi-line string listing TAGs by language.
+    @details Imports format_available_tags from find_constructs module to generate dynamic TAG listing for CLI help display.
+    """
+    try:
+        from .find_constructs import format_available_tags
+        return format_available_tags()
+    except ImportError:
+        return "(tag list unavailable)"
+
+
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
     """
@@ -213,7 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--files-find",
         nargs="+",
         metavar="ARG",
-        help="Find and extract specific constructs: --files-find TAG PATTERN FILE ... (standalone, no --base/--here required).",
+        help=f"Find and extract specific constructs: --files-find TAG PATTERN FILE ... (standalone, no --base/--here required). Available tags:\n{_get_available_tags_help()}",
     )
     parser.add_argument(
         "--references",
@@ -229,7 +241,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--find",
         nargs=2,
         metavar=("TAG", "PATTERN"),
-        help="Find and extract specific constructs from configured --src-dir: --find TAG PATTERN (requires --base/--here).",
+        help="Find and extract specific constructs from configured --src-dir: --find TAG PATTERN (requires --base/--here). For available tags, see --files-find help.",
     )
     parser.add_argument(
         "--disable-line-numbers",
@@ -2258,6 +2270,7 @@ def run_compress_cmd(args: Namespace) -> None:
 def run_find(args: Namespace) -> None:
     """! @brief Execute --find: find constructs in project source files.
     @param args Parsed CLI arguments namespace.
+    @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
     """
     from .find_constructs import find_constructs_in_files
 
@@ -2268,13 +2281,16 @@ def run_find(args: Namespace) -> None:
 
     # args.find is a list [TAG, PATTERN]
     tag_filter, pattern = args.find
-    output = find_constructs_in_files(
-        files,
-        tag_filter,
-        pattern,
-        include_line_numbers=not getattr(args, "disable_line_numbers", False),
-    )
-    print(output)
+    try:
+        output = find_constructs_in_files(
+            files,
+            tag_filter,
+            pattern,
+            include_line_numbers=not getattr(args, "disable_line_numbers", False),
+        )
+        print(output)
+    except ValueError as e:
+        raise ReqError(str(e), 1)
 
 
 def run_tokens(args: Namespace) -> None:

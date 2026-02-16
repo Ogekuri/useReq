@@ -2,7 +2,7 @@
 @details This file exposes lightweight metadata and a convenient re-export of the `main` CLI entry point, so callers can use `from usereq import main` without unintentionally importing the full package behavior.
 """
 
-__version__ = "0.0.69"
+__version__ = "0.0.68"
 """The current version of the package."""
 
 from . import cli  # usereq.cli submodule

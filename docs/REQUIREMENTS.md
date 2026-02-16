@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-16"
-version: 0.67
+version: 0.68
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.67
+**Versione**: 0.68
 **Autore**: Ogekuri
 **Data**: 2026-02-16
 
@@ -91,6 +91,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.65 | Aggiunta parità della suite `source_analyzer` con i test presenti in `import/tests`, includendo moduli separati e vincoli su fixture in `tests/fixtures` e output temporanei in `temp/`. |
 | 2026-02-16 | 0.66 | Aggiunti comandi `--files-find` e `--find` per estrazione costrutti specifici filtrati per tag e pattern regex, con supporto multi-linguaggio e formato markdown strutturato. |
 | 2026-02-16 | 0.67 | Aggiunto il modulo di test `tests/test_find_constructs_comprehensive.py` per validazione completa dell'estrazione costrutti per tutte le combinazioni linguaggio-costrutto utilizzando le fixture in `tests/fixtures/`. |
+| 2026-02-16 | 0.68 | Aggiunta generazione dinamica dell'elenco TAG disponibili per linguaggio nei messaggi di errore e nell'help di `--files-find` e `--find`, con funzione `format_available_tags()` e aggiornamento requisiti REQ-003, CMD-018, CMD-023 e aggiunta FND-013. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -249,7 +250,7 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
 - **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
-- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--references`, `--compress`, `--find`, `--disable-line-numbers`, e `--tokens` nel formato `usage: req -c ...`.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--references`, `--compress`, `--find`, `--disable-line-numbers`, e `--tokens` nel formato `usage: req -c ...`. Quando il comando `req` è invocato senza parametri, la stringa di aiuto per `--files-find` deve includere l'elenco dinamico dei TAG disponibili per linguaggio, generato dalla mappa `LANGUAGE_TAGS`. La stringa di aiuto per `--find` deve fare riferimento esplicito all'elenco presente in `--files-find` per evitare ridondanza.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
 - **REQ-005**: Il comando deve richiedere i parametri `--docs-dir`, `--tests-dir`, e `--src-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
 - **REQ-093**: Il parametro `--src-dir` deve poter essere fornito più volte; ogni directory passata deve essere normalizzata come gli altri percorsi e deve esistere, altrimenti il comando deve terminare con errore.
@@ -469,10 +470,11 @@ Il progetto include una suite di test in `tests/`.
 - **FND-009**: Se nessun file valido viene processato o nessun costrutto viene trovato, deve essere lanciata una eccezione `ValueError`.
 - **FND-010**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
 - **FND-011**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+- **FND-013**: Il modulo `usereq.find_constructs` deve fornire una funzione `format_available_tags()` che genera l'elenco formattato dei TAG disponibili per linguaggio, iterando dinamicamente sulla mappa `LANGUAGE_TAGS`. Il formato di output deve essere multi-riga con ogni linguaggio su una riga separata nel formato: `- <Linguaggio>: TAG1, TAG2, TAG3, ...` (linguaggio con prima lettera maiuscola, TAG separati da virgola+spazio, ordinati alfabeticamente).
 
 ### 3.22 Comandi Standalone per Estrazione Costrutti
 - Questa sezione definisce il comando CLI `--files-find` che opera su liste arbitrarie di file.
-- **CMD-018**: Il comando `--files-find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`, seguiti da una lista arbitraria di file: `--files-find <TAG> <REGEXP> <FILE1> <FILE2> ...`.
+- **CMD-018**: Il comando `--files-find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`, seguiti da una lista arbitraria di file: `--files-find <TAG> <REGEXP> <FILE1> <FILE2> ...`. Se `<TAG>` non contiene identificatori validi o non è supportato da nessun linguaggio processato, il comando deve stampare un messaggio di errore che include l'elenco completo dei TAG disponibili per linguaggio, generato dinamicamente utilizzando la mappa `LANGUAGE_TAGS` definita in `find_constructs.py`.
 - **CMD-019**: Il comando `--files-find` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
 - **CMD-020**: Il comando `--files-find` deve estrarre e stampare su stdout tutti i costrutti che: appartengono ai tipi specificati in `<TAG>` (separati da `|`), hanno nome che esegue il match con `<REGEXP>`, sono presenti nei file specificati.
 - **CMD-021**: Il comando `--files-find` deve accettare il flag opzionale `--disable-line-numbers`; quando il flag è presente l'output non deve includere i prefissi `L<numero>>`, quando il flag è assente i prefissi devono essere inclusi.
@@ -480,7 +482,7 @@ Il progetto include una suite di test in `tests/`.
 ### 3.23 Comandi di Progetto per Estrazione Costrutti
 - Questa sezione definisce il comando CLI `--find` che opera sulle directory sorgenti configurate nel progetto.
 - **CMD-022**: Il comando `--find` deve richiedere `--base` o `--here` per determinare il contesto di esecuzione. Se nessuno dei due è presente, il comando deve terminare con un messaggio di errore che indica i parametri obbligatori.
-- **CMD-023**: Il comando `--find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`: `--find <TAG> <REGEXP>`.
+- **CMD-023**: Il comando `--find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`: `--find <TAG> <REGEXP>`. Se `<TAG>` non contiene identificatori validi o non è supportato da nessun linguaggio processato, il comando deve stampare un messaggio di errore che include l'elenco completo dei TAG disponibili per linguaggio, generato dinamicamente utilizzando la mappa `LANGUAGE_TAGS` definita in `find_constructs.py`.
 - **CMD-024**: Il comando `--find` deve eseguire l'estrazione costrutti utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti configurate con `--src-dir` o con il campo `src-dir` del file `config.json`.
 - **CMD-025**: Durante la scansione delle directory sorgenti per il comando `--find`, le directory elencate in CMD-012 devono essere escluse.
 - **CMD-026**: La scansione delle directory sorgenti per il comando `--find` deve essere ricorsiva, esaminando tutte le sottodirectory delle directory sorgenti configurate, escludendo le directory elencate in CMD-012.

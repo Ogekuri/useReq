@@ -37,6 +37,20 @@ LANGUAGE_TAGS = {
 }
 
 
+def format_available_tags() -> str:
+    """! @brief Generate formatted list of available TAGs per language.
+    @return Multi-line string listing each language with its supported TAGs.
+    @details Iterates LANGUAGE_TAGS dictionary, formats each entry as "- Language: TAG1, TAG2, ..." with language capitalized and tags alphabetically sorted and comma-separated.
+    """
+    lines = []
+    for lang in sorted(LANGUAGE_TAGS.keys()):
+        tags = sorted(LANGUAGE_TAGS[lang])
+        lang_display = lang.capitalize()
+        tags_str = ", ".join(tags)
+        lines.append(f"- {lang_display}: {tags_str}")
+    return "\n".join(lines)
+
+
 def parse_tag_filter(tag_string: str) -> set[str]:
     """! @brief Parse pipe-separated tag filter into a normalized set.
     @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION").
@@ -110,7 +124,8 @@ def find_constructs_in_files(
     """
     tag_set = parse_tag_filter(tag_filter)
     if not tag_set:
-        raise ValueError("No valid tags specified in tag filter")
+        available = format_available_tags()
+        raise ValueError(f"No valid tags specified in tag filter.\n\nAvailable tags by language:\n{available}")
 
     parts = []
     ok_count = 0
@@ -160,7 +175,8 @@ def find_constructs_in_files(
             fail_count += 1
 
     if not parts:
-        raise ValueError("No constructs found matching the specified criteria")
+        available = format_available_tags()
+        raise ValueError(f"No constructs found matching the specified criteria.\n\nAvailable tags by language:\n{available}")
 
     print(
         f"\n  Found: {total_matches} constructs in {ok_count} files "

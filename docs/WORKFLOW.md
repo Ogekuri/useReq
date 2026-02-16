@@ -93,11 +93,15 @@
           - description: auto-detects language when not provided, reads source text, invokes `compress_source()`.
           - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
             - description: removes full-line and inline comments while preserving string literals, handles multiline comments/docstrings statefully, preserves indentation for indentation-sensitive languages, strips blank/trailing whitespace, and formats optional line-number prefixes.
-    - `run_files_find()`: construct extraction for explicit file lists [`src/usereq/cli.py`]
-      - description: parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--disable-line-numbers` to `include_line_numbers=False`.
-      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py`]
-        - description: parses pipe-separated tags via `parse_tag_filter()`, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()`, prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors if no constructs found.
-        - `parse_tag_filter()`: parses pipe-separated TAG string into normalized set [`src/usereq/find_constructs.py`]
+    - `run_files_find()`: construct extraction for explicit file lists [`src/usereq/cli.py:L2205-L2229`]
+      - description: validates minimum argument count (TAG, PATTERN, FILE), imports `format_available_tags()` to include available TAG listing in error messages when insufficient arguments provided, parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--disable-line-numbers` to `include_line_numbers=False`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing.
+      - `_get_available_tags_help()`: generates TAG listing for CLI help text [`src/usereq/cli.py:L65-L75`]
+        - description: attempts to import `format_available_tags()` from `find_constructs` module to generate dynamic TAG listing for argument parser help display, returns fallback message if import fails.
+      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L102-L187`]
+        - description: parses pipe-separated tags via `parse_tag_filter()`, validates tag set is non-empty and raises `ValueError` with `format_available_tags()` output when empty, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()`, prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors with `format_available_tags()` output if no constructs found.
+        - `format_available_tags()`: generates formatted TAG listing per language [`src/usereq/find_constructs.py:L40-L51`]
+          - description: iterates `LANGUAGE_TAGS` dictionary in sorted key order, sorts each language's tag set alphabetically, capitalizes language name, formats each entry as `- Language: TAG1, TAG2, ...` with comma-space separation, returns multi-line string for error messages and help text display.
+        - `parse_tag_filter()`: parses pipe-separated TAG string into normalized set [`src/usereq/find_constructs.py:L54-L59`]
           - description: splits on `|`, strips whitespace, uppercases identifiers.
         - `language_supports_tags()`: validates language-tag compatibility [`src/usereq/find_constructs.py`]
           - description: checks intersection of requested tags with language-specific supported tags from `LANGUAGE_TAGS` map.
@@ -113,8 +117,8 @@
           - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
     - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2205-L2219`]
       - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()` with `include_line_numbers` derived from `--disable-line-numbers`.
-    - `run_find()`: project-wide construct extraction [`src/usereq/cli.py`]
-      - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--disable-line-numbers`.
+    - `run_find()`: project-wide construct extraction [`src/usereq/cli.py:L2268-L2290`]
+      - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--disable-line-numbers`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing from `format_available_tags()`.
     - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
       - description: resolves project base through `_resolve_project_base()`, validates `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
     - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]

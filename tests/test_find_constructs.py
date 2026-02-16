@@ -17,6 +17,7 @@ from usereq.find_constructs import (
     LANGUAGE_TAGS,
     construct_matches,
     find_constructs_in_files,
+    format_available_tags,
     format_construct,
     language_supports_tags,
     parse_tag_filter,
@@ -228,6 +229,61 @@ def test_language_tags_completeness():
     for lang in required_languages:
         assert lang in LANGUAGE_TAGS, f"Missing tag definition for {lang}"
         assert len(LANGUAGE_TAGS[lang]) > 0, f"Empty tag set for {lang}"
+
+
+def test_format_available_tags():
+    """! @brief Test format_available_tags function generates correct output."""
+    output = format_available_tags()
+
+    # Check output is non-empty
+    assert output, "format_available_tags should return non-empty string"
+
+    # Check it contains all required languages
+    required_languages = [
+        "C", "Cpp", "Csharp", "Elixir", "Go", "Haskell", "Java",
+        "Javascript", "Kotlin", "Lua", "Perl", "Php", "Python",
+        "Ruby", "Rust", "Scala", "Shell", "Swift", "Typescript", "Zig"
+    ]
+    for lang in required_languages:
+        assert lang in output, f"format_available_tags should include {lang}"
+
+    # Check format: each line should start with "- " and contain ": "
+    lines = output.split("\n")
+    assert len(lines) == len(LANGUAGE_TAGS), "Should have one line per language"
+    for line in lines:
+        assert line.startswith("- "), f"Line should start with '- ': {line}"
+        assert ": " in line, f"Line should contain ': ': {line}"
+
+    # Check tags are comma-separated
+    for line in lines:
+        if ":" in line:
+            tags_part = line.split(": ", 1)[1]
+            if "," in tags_part:
+                assert ", " in tags_part, f"Tags should be comma-space separated: {line}"
+
+
+def test_find_constructs_error_shows_available_tags(tmp_path):
+    """! @brief Test that error messages include available tags listing."""
+    test_file = tmp_path / "test.py"
+    test_file.write_text("def foo(): pass")
+
+    # Test with invalid tag filter (empty)
+    try:
+        find_constructs_in_files([str(test_file)], "", ".*")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        error_msg = str(e)
+        assert "Available tags by language:" in error_msg
+        assert "Python:" in error_msg or "- Python:" in error_msg
+        assert "CLASS" in error_msg or "FUNCTION" in error_msg
+
+    # Test with no matches
+    try:
+        find_constructs_in_files([str(test_file)], "FUNCTION", "^nonexistent_pattern$")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        error_msg = str(e)
+        assert "Available tags by language:" in error_msg
 
 
 if __name__ == "__main__":

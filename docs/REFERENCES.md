@@ -64,7 +64,7 @@ import sys
 
 ---
 
-# cli.py | Python | 2405L | 89 symbols | 22 imports | 147 comments
+# cli.py | Python | 2421L | 90 symbols | 23 imports | 148 comments
 > Path: `/home/ogekuri/useReq/src/usereq/cli.py`
 > ! @brief CLI entry point implementing the useReq initialization flow.
 
@@ -83,6 +83,7 @@ import urllib.request
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Mapping, Optional
+from .find_constructs import format_available_tags
 import copy
 from .token_counter import count_files_metrics, format_pack_summary
 from .generate_markdown import generate_markdown
@@ -114,514 +115,521 @@ L53-54> ! @brief Prints a debug message if debugging is active.
 ### fn `def vlog(msg: str) -> None` (L59-65)
 L60-61> ! @brief Prints a verbose message if verbose mode is active.
 
-### fn `def build_parser() -> argparse.ArgumentParser` (L66-247)
-L67-68> ! @brief Builds the CLI argument parser.
-L245> `return parser`
+### fn `def _get_available_tags_help() -> str` `priv` (L66-77)
+L67-70> ! @brief Generate available TAGs help text for argument parser. @return Formatted multi-line string listing TAGs by language. @details Imports format_available_tags from find_constructs module to generate dynamic TAG listing for CLI help display.
+L73> `return format_available_tags()`
+L75> `return "(tag list unavailable)"`
 
-### fn `def parse_args(argv: Optional[list[str]] = None) -> Namespace` (L248-253)
-L249-250> ! @brief Parses command-line arguments into a namespace.
-L251> `return build_parser().parse_args(argv)`
+### fn `def build_parser() -> argparse.ArgumentParser` (L78-259)
+L79-80> ! @brief Builds the CLI argument parser.
+L257> `return parser`
 
-### fn `def load_package_version() -> str` (L254-264)
-L255-256> ! @brief Reads the package version from __init__.py.
-L261> `raise ReqError("Error: unable to determine package version", 6)`
-L262> `return match.group(1)`
+### fn `def parse_args(argv: Optional[list[str]] = None) -> Namespace` (L260-265)
+L261-262> ! @brief Parses command-line arguments into a namespace.
+L263> `return build_parser().parse_args(argv)`
 
-### fn `def maybe_print_version(argv: list[str]) -> bool` (L265-273)
-L266-267> ! @brief Handles --ver/--version by printing the version.
-L270> `return True`
-L271> `return False`
+### fn `def load_package_version() -> str` (L266-276)
+L267-268> ! @brief Reads the package version from __init__.py.
+L273> `raise ReqError("Error: unable to determine package version", 6)`
+L274> `return match.group(1)`
 
-### fn `def run_upgrade() -> None` (L274-296)
-L275-276> ! @brief Executes the upgrade using uv.
-L289> `raise ReqError("Error: 'uv' command not found in PATH", 12) from exc`
-L291> `raise ReqError(`
+### fn `def maybe_print_version(argv: list[str]) -> bool` (L277-285)
+L278-279> ! @brief Handles --ver/--version by printing the version.
+L282> `return True`
+L283> `return False`
 
-### fn `def run_uninstall() -> None` (L297-316)
-L298-299> ! @brief Executes the uninstallation using uv.
-L309> `raise ReqError("Error: 'uv' command not found in PATH", 12) from exc`
-L311> `raise ReqError(`
+### fn `def run_upgrade() -> None` (L286-308)
+L287-288> ! @brief Executes the upgrade using uv.
+L301> `raise ReqError("Error: 'uv' command not found in PATH", 12) from exc`
+L303> `raise ReqError(`
 
-### fn `def normalize_release_tag(tag: str) -> str` (L317-325)
-L318-319> ! @brief Normalizes the release tag by removing a 'v' prefix if present.
-L323> `return value.strip()`
+### fn `def run_uninstall() -> None` (L309-328)
+L310-311> ! @brief Executes the uninstallation using uv.
+L321> `raise ReqError("Error: 'uv' command not found in PATH", 12) from exc`
+L323> `raise ReqError(`
 
-### fn `def parse_version_tuple(version: str) -> tuple[int, ...] | None` (L326-348)
-L327-329> ! @brief Converts a version into a numeric tuple for comparison. @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
-L333> `return None`
-L344> `return None`
-L346> `return tuple(numbers) if numbers else None`
+### fn `def normalize_release_tag(tag: str) -> str` (L329-337)
+L330-331> ! @brief Normalizes the release tag by removing a 'v' prefix if present.
+L335> `return value.strip()`
 
-### fn `def is_newer_version(current: str, latest: str) -> bool` (L349-362)
-L350-351> ! @brief Returns True if latest is greater than current.
-L355> `return False`
-L360> `return latest_norm > current_norm`
+### fn `def parse_version_tuple(version: str) -> tuple[int, ...] | None` (L338-360)
+L339-341> ! @brief Converts a version into a numeric tuple for comparison. @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
+L345> `return None`
+L356> `return None`
+L358> `return tuple(numbers) if numbers else None`
 
-### fn `def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None` (L363-403)
-L364-366> ! @brief Checks online for a new version and prints a warning. @details If the call fails or the response is invalid, it prints nothing and proceeds.
-L385> `return`
-L401> `return`
+### fn `def is_newer_version(current: str, latest: str) -> bool` (L361-374)
+L362-363> ! @brief Returns True if latest is greater than current.
+L367> `return False`
+L372> `return latest_norm > current_norm`
 
-### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L404-420)
-L405-406> ! @brief Ensures the documentation directory exists under the project base.
-L411> `raise ReqError("Error: --docs-dir must be under the project base", 5)`
-L413> `raise ReqError(`
-L418> `raise ReqError("Error: --docs-dir must specify a directory, not a file", 5)`
+### fn `def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None` (L375-415)
+L376-378> ! @brief Checks online for a new version and prints a warning. @details If the call fails or the response is invalid, it prints nothing and proceeds.
+L397> `return`
+L413> `return`
 
-### fn `def ensure_test_directory(path: str, project_base: Path) -> None` (L421-437)
-L422-423> ! @brief Ensures the test directory exists under the project base.
-L428> `raise ReqError("Error: --tests-dir must be under the project base", 5)`
-L430> `raise ReqError(`
-L435> `raise ReqError("Error: --tests-dir must specify a directory, not a file", 5)`
+### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L416-432)
+L417-418> ! @brief Ensures the documentation directory exists under the project base.
+L423> `raise ReqError("Error: --docs-dir must be under the project base", 5)`
+L425> `raise ReqError(`
+L430> `raise ReqError("Error: --docs-dir must specify a directory, not a file", 5)`
 
-### fn `def ensure_src_directory(path: str, project_base: Path) -> None` (L438-454)
-L439-440> ! @brief Ensures the source directory exists under the project base.
-L445> `raise ReqError("Error: --src-dir must be under the project base", 5)`
-L447> `raise ReqError(`
-L452> `raise ReqError("Error: --src-dir must specify a directory, not a file", 5)`
+### fn `def ensure_test_directory(path: str, project_base: Path) -> None` (L433-449)
+L434-435> ! @brief Ensures the test directory exists under the project base.
+L440> `raise ReqError("Error: --tests-dir must be under the project base", 5)`
+L442> `raise ReqError(`
+L447> `raise ReqError("Error: --tests-dir must specify a directory, not a file", 5)`
 
-### fn `def make_relative_if_contains_project(path_value: str, project_base: Path) -> str` (L455-490)
-L456-457> ! @brief Normalizes the path relative to the project root when possible.
-L459> `return ""`
-L476> `return str(candidate.relative_to(project_base))`
-L478> `return str(candidate)`
-L481> `return str(resolved.relative_to(project_base))`
-L487> `return trimmed`
-L488> `return path_value`
+### fn `def ensure_src_directory(path: str, project_base: Path) -> None` (L450-466)
+L451-452> ! @brief Ensures the source directory exists under the project base.
+L457> `raise ReqError("Error: --src-dir must be under the project base", 5)`
+L459> `raise ReqError(`
+L464> `raise ReqError("Error: --src-dir must specify a directory, not a file", 5)`
 
-### fn `def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]` (L491-501)
-L492-493> ! @brief Resolves the absolute path starting from a normalized value.
-L495> `return None`
-L498> `return candidate`
-L499> `return (project_base / candidate).resolve(strict=False)`
+### fn `def make_relative_if_contains_project(path_value: str, project_base: Path) -> str` (L467-502)
+L468-469> ! @brief Normalizes the path relative to the project root when possible.
+L471> `return ""`
+L488> `return str(candidate.relative_to(project_base))`
+L490> `return str(candidate)`
+L493> `return str(resolved.relative_to(project_base))`
+L499> `return trimmed`
+L500> `return path_value`
 
-### fn `def format_substituted_path(value: str) -> str` (L502-509)
-L503-504> ! @brief Uniforms path separators for substitutions.
-L506> `return ""`
-L507> `return value.replace(os.sep, "/")`
+### fn `def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]` (L503-513)
+L504-505> ! @brief Resolves the absolute path starting from a normalized value.
+L507> `return None`
+L510> `return candidate`
+L511> `return (project_base / candidate).resolve(strict=False)`
 
-### fn `def compute_sub_path(` (L510-511)
+### fn `def format_substituted_path(value: str) -> str` (L514-521)
+L515-516> ! @brief Uniforms path separators for substitutions.
+L518> `return ""`
+L519> `return value.replace(os.sep, "/")`
 
-### fn `def save_config(` (L526-531)
+### fn `def compute_sub_path(` (L522-523)
 
-### fn `def load_config(project_base: Path) -> dict[str, str | list[str]]` (L548-585)
-L549-550> ! @brief Loads parameters saved in .req/config.json.
-L553> `raise ReqError(`
-L560> `raise ReqError("Error: .req/config.json is not valid", 11) from exc`
-L562> Fallback to legacy key names from pre-v0.59 config files.
-L567> `raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)`
-L569> `raise ReqError("Error: missing or invalid 'docs-dir' field in .req/config.json", 11)`
-L571> `raise ReqError("Error: missing or invalid 'tests-dir' field in .req/config.json", 11)`
-L577> `raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)`
-L578> `return {`
+### fn `def save_config(` (L538-543)
 
-### fn `def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str` (L586-613)
-L587-588> ! @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
-L590> `return ""`
-L602> If there are no files, use the directory itself.
-L607> `return f"`{rel_str}`"`
-L609> `return ""`
-L611> `return ", ".join(files)`
+### fn `def load_config(project_base: Path) -> dict[str, str | list[str]]` (L560-597)
+L561-562> ! @brief Loads parameters saved in .req/config.json.
+L565> `raise ReqError(`
+L572> `raise ReqError("Error: .req/config.json is not valid", 11) from exc`
+L574> Fallback to legacy key names from pre-v0.59 config files.
+L579> `raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)`
+L581> `raise ReqError("Error: missing or invalid 'docs-dir' field in .req/config.json", 11)`
+L583> `raise ReqError("Error: missing or invalid 'tests-dir' field in .req/config.json", 11)`
+L589> `raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)`
+L590> `return {`
 
-### fn `def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]` (L614-642)
-L615-617> ! @brief Generates a list of relative file paths (no formatting) for printing. @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
-L619> `return []`
-L631> If there are no files, use the directory itself.
-L636> `return [rel_str]`
-L638> `return []`
-L640> `return items`
+### fn `def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str` (L598-625)
+L599-600> ! @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
+L602> `return ""`
+L614> If there are no files, use the directory itself.
+L619> `return f"`{rel_str}`"`
+L621> `return ""`
+L623> `return ", ".join(files)`
 
-### fn `def copy_guidelines_templates(` (L643-644)
+### fn `def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]` (L626-654)
+L627-629> ! @brief Generates a list of relative file paths (no formatting) for printing. @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
+L631> `return []`
+L643> If there are no files, use the directory itself.
+L648> `return [rel_str]`
+L650> `return []`
+L652> `return items`
 
-### fn `def make_relative_token(raw: str, keep_trailing: bool = False) -> str` (L676-687)
-L677-678> ! @brief Normalizes the path token optionally preserving the trailing slash.
-L680> `return ""`
-L683> `return ""`
-L685> `return f"{normalized}{suffix}"`
+### fn `def copy_guidelines_templates(` (L655-656)
 
-### fn `def ensure_relative(value: str, name: str, code: int) -> None` (L688-697)
-L689-690> ! @brief Validates that the path is not absolute and raises an error otherwise.
-L692> `raise ReqError(`
+### fn `def make_relative_token(raw: str, keep_trailing: bool = False) -> str` (L688-699)
+L689-690> ! @brief Normalizes the path token optionally preserving the trailing slash.
+L692> `return ""`
+L695> `return ""`
+L697> `return f"{normalized}{suffix}"`
 
-### fn `def apply_replacements(text: str, replacements: Mapping[str, str]) -> str` (L698-705)
-L699-700> ! @brief Returns text with token replacements applied.
-L703> `return text`
+### fn `def ensure_relative(value: str, name: str, code: int) -> None` (L700-709)
+L701-702> ! @brief Validates that the path is not absolute and raises an error otherwise.
+L704> `raise ReqError(`
 
-### fn `def write_text_file(dst: Path, text: str) -> None` (L706-712)
-L707-708> ! @brief Writes text to disk, ensuring the destination folder exists.
+### fn `def apply_replacements(text: str, replacements: Mapping[str, str]) -> str` (L710-717)
+L711-712> ! @brief Returns text with token replacements applied.
+L715> `return text`
 
-### fn `def copy_with_replacements(` (L713-714)
+### fn `def write_text_file(dst: Path, text: str) -> None` (L718-724)
+L719-720> ! @brief Writes text to disk, ensuring the destination folder exists.
 
-### fn `def normalize_description(value: str) -> str` (L723-733)
-L724-725> ! @brief Normalizes a description by removing superfluous quotes and escapes.
-L731> `return trimmed.replace('\\"', '"')`
+### fn `def copy_with_replacements(` (L725-726)
 
-### fn `def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None` (L734-762)
-L735-736> ! @brief Converts a Markdown prompt to TOML for Gemini.
-L738> `raise ReqError(`
-L745> `raise ReqError("No leading '---' block found at start of Markdown file.", 4)`
+### fn `def normalize_description(value: str) -> str` (L735-745)
+L736-737> ! @brief Normalizes a description by removing superfluous quotes and escapes.
+L743> `return trimmed.replace('\\"', '"')`
 
-### fn `def extract_frontmatter(content: str) -> tuple[str, str]` (L763-772)
-L764-765> ! @brief Extracts front matter and body from Markdown.
-L768> `raise ReqError("No leading '---' block found at start of Markdown file.", 4)`
-L769> Explicitly return two strings to satisfy type annotation.
-L770> `return match.group(1), match.group(2)`
+### fn `def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None` (L746-774)
+L747-748> ! @brief Converts a Markdown prompt to TOML for Gemini.
+L750> `raise ReqError(`
+L757> `raise ReqError("No leading '---' block found at start of Markdown file.", 4)`
 
-### fn `def extract_description(frontmatter: str) -> str` (L773-781)
-L774-775> ! @brief Extracts the description from front matter.
-L778> `raise ReqError("No 'description:' field found inside the leading block.", 5)`
-L779> `return normalize_description(desc_match.group(1).strip())`
+### fn `def extract_frontmatter(content: str) -> tuple[str, str]` (L775-784)
+L776-777> ! @brief Extracts front matter and body from Markdown.
+L780> `raise ReqError("No leading '---' block found at start of Markdown file.", 4)`
+L781> Explicitly return two strings to satisfy type annotation.
+L782> `return match.group(1), match.group(2)`
 
-### fn `def extract_argument_hint(frontmatter: str) -> str` (L782-790)
-L783-784> ! @brief Extracts the argument-hint from front matter, if present.
-L787> `return ""`
-L788> `return normalize_description(match.group(1).strip())`
+### fn `def extract_description(frontmatter: str) -> str` (L785-793)
+L786-787> ! @brief Extracts the description from front matter.
+L790> `raise ReqError("No 'description:' field found inside the leading block.", 5)`
+L791> `return normalize_description(desc_match.group(1).strip())`
 
-### fn `def extract_purpose_first_bullet(body: str) -> str` (L791-811)
-L792-793> ! @brief Returns the first bullet of the Purpose section.
-L801> `raise ReqError("Error: missing '## Purpose' section in prompt.", 7)`
-L808> `return match.group(1).strip()`
-L809> `raise ReqError("Error: no bullet found under the '## Purpose' section.", 7)`
+### fn `def extract_argument_hint(frontmatter: str) -> str` (L794-802)
+L795-796> ! @brief Extracts the argument-hint from front matter, if present.
+L799> `return ""`
+L800> `return normalize_description(match.group(1).strip())`
 
-### fn `def json_escape(value: str) -> str` (L812-817)
-L813-814> ! @brief Escapes a string for JSON without external delimiters.
-L815> `return json.dumps(value)[1:-1]`
+### fn `def extract_purpose_first_bullet(body: str) -> str` (L803-823)
+L804-805> ! @brief Returns the first bullet of the Purpose section.
+L813> `raise ReqError("Error: missing '## Purpose' section in prompt.", 7)`
+L820> `return match.group(1).strip()`
+L821> `raise ReqError("Error: no bullet found under the '## Purpose' section.", 7)`
 
-### fn `def generate_kiro_resources(` (L818-821)
+### fn `def json_escape(value: str) -> str` (L824-829)
+L825-826> ! @brief Escapes a string for JSON without external delimiters.
+L827> `return json.dumps(value)[1:-1]`
 
-### fn `def render_kiro_agent(` (L841-850)
+### fn `def generate_kiro_resources(` (L830-833)
 
-### fn `def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None` (L884-892)
-L885-886> ! @brief Replaces tokens in the specified file.
+### fn `def render_kiro_agent(` (L853-862)
 
-### fn `def yaml_double_quote_escape(value: str) -> str` (L893-898)
-L894-895> ! @brief Minimal escape for a double-quoted string in YAML.
-L896> `return value.replace("\\", "\\\\").replace('"', '\\"')`
+### fn `def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None` (L896-904)
+L897-898> ! @brief Replaces tokens in the specified file.
 
-### fn `def find_template_source() -> Path` (L899-910)
-L900-901> ! @brief Returns the template source or raises an error.
-L904> `return candidate`
-L905> `raise ReqError(`
+### fn `def yaml_double_quote_escape(value: str) -> str` (L905-910)
+L906-907> ! @brief Minimal escape for a double-quoted string in YAML.
+L908> `return value.replace("\\", "\\\\").replace('"', '\\"')`
 
-### fn `def load_kiro_template() -> tuple[str, dict[str, Any]]` (L911-945)
-L912-913> ! @brief Loads the Kiro template from centralized models configuration.
-L916> Try models.json first (this function is called during generation, not with legacy flag check)
-L927> `return agent_template, kiro_cfg`
-L930> `return (`
-L940> `raise ReqError(`
+### fn `def find_template_source() -> Path` (L911-922)
+L912-913> ! @brief Returns the template source or raises an error.
+L916> `return candidate`
+L917> `raise ReqError(`
 
-### fn `def strip_json_comments(text: str) -> str` (L946-966)
-L947-948> ! @brief Removes // and /* */ comments to allow JSONC parsing.
-L964> `return "\n".join(cleaned)`
+### fn `def load_kiro_template() -> tuple[str, dict[str, Any]]` (L923-957)
+L924-925> ! @brief Loads the Kiro template from centralized models configuration.
+L928> Try models.json first (this function is called during generation, not with legacy flag check)
+L939> `return agent_template, kiro_cfg`
+L942> `return (`
+L952> `raise ReqError(`
 
-### fn `def load_settings(path: Path) -> dict[str, Any]` (L967-978)
-L968-969> ! @brief Loads JSON/JSONC settings, removing comments when necessary.
-L972> `return json.loads(raw)`
-L976> `return json.loads(cleaned)`
+### fn `def strip_json_comments(text: str) -> str` (L958-978)
+L959-960> ! @brief Removes // and /* */ comments to allow JSONC parsing.
+L976> `return "\n".join(cleaned)`
 
-### fn `def load_centralized_models(` (L979-982)
+### fn `def load_settings(path: Path) -> dict[str, Any]` (L979-990)
+L980-981> ! @brief Loads JSON/JSONC settings, removing comments when necessary.
+L984> `return json.loads(raw)`
+L988> `return json.loads(cleaned)`
 
-### fn `def get_model_tools_for_prompt(` (L1026-1027)
+### fn `def load_centralized_models(` (L991-994)
 
-### fn `def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any` (L1062-1079)
-L1063-1065> ! @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt. @details Can return a list of strings, a string, or None depending on how it is defined in `config.json`. Does not perform CSV parsing: returns the value exactly as present in the configuration file.
-L1067> `return None`
-L1076> `return mode_entry.get("tools")`
-L1077> `return None`
+### fn `def get_model_tools_for_prompt(` (L1038-1039)
 
-### fn `def format_tools_inline_list(tools: list[str]) -> str` (L1080-1087)
-L1081-1082> ! @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
-L1085> `return f"[{quoted}]"`
+### fn `def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any` (L1074-1091)
+L1075-1077> ! @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt. @details Can return a list of strings, a string, or None depending on how it is defined in `config.json`. Does not perform CSV parsing: returns the value exactly as present in the configuration file.
+L1079> `return None`
+L1088> `return mode_entry.get("tools")`
+L1089> `return None`
 
-### fn `def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]` (L1088-1098)
-L1089-1090> ! @brief Recursively merges dictionaries, prioritizing incoming values.
-L1096> `return base`
+### fn `def format_tools_inline_list(tools: list[str]) -> str` (L1092-1099)
+L1093-1094> ! @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
+L1097> `return f"[{quoted}]"`
 
-### fn `def find_vscode_settings_source() -> Optional[Path]` (L1099-1107)
-L1100-1101> ! @brief Finds the VS Code settings template if available.
-L1104> `return candidate`
-L1105> `return None`
+### fn `def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]` (L1100-1110)
+L1101-1102> ! @brief Recursively merges dictionaries, prioritizing incoming values.
+L1108> `return base`
 
-### fn `def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]` (L1108-1118)
-L1109-1110> ! @brief Generates chat.promptFilesRecommendations from available prompts.
-L1113> `return recommendations`
-L1116> `return recommendations`
+### fn `def find_vscode_settings_source() -> Optional[Path]` (L1111-1119)
+L1112-1113> ! @brief Finds the VS Code settings template if available.
+L1116> `return candidate`
+L1117> `return None`
 
-### fn `def ensure_wrapped(target: Path, project_base: Path, code: int) -> None` (L1119-1128)
-L1120-1121> ! @brief Verifies that the path is under the project root.
-L1123> `raise ReqError(`
+### fn `def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]` (L1120-1130)
+L1121-1122> ! @brief Generates chat.promptFilesRecommendations from available prompts.
+L1125> `return recommendations`
+L1128> `return recommendations`
 
-### fn `def save_vscode_backup(req_root: Path, settings_path: Path) -> None` (L1129-1138)
-L1130-1131> ! @brief Saves a backup of VS Code settings if the file exists.
-L1133> Never create an absence marker. Backup only if the file exists.
+### fn `def ensure_wrapped(target: Path, project_base: Path, code: int) -> None` (L1131-1140)
+L1132-1133> ! @brief Verifies that the path is under the project root.
+L1135> `raise ReqError(`
 
-### fn `def restore_vscode_settings(project_base: Path) -> None` (L1139-1150)
-L1140-1141> ! @brief Restores VS Code settings from backup, if present.
-L1148> Do not remove the target file if no backup exists: restore behavior disabled otherwise.
+### fn `def save_vscode_backup(req_root: Path, settings_path: Path) -> None` (L1141-1150)
+L1142-1143> ! @brief Saves a backup of VS Code settings if the file exists.
+L1145> Never create an absence marker. Backup only if the file exists.
 
-### fn `def prune_empty_dirs(root: Path) -> None` (L1151-1164)
-L1148> Do not remove the target file if no backup exists: restore behavior disabled otherwise.
-L1152-1153> ! @brief Removes empty directories under the specified root.
-L1155> `return`
+### fn `def restore_vscode_settings(project_base: Path) -> None` (L1151-1162)
+L1152-1153> ! @brief Restores VS Code settings from backup, if present.
+L1160> Do not remove the target file if no backup exists: restore behavior disabled otherwise.
 
-### fn `def remove_generated_resources(project_base: Path) -> None` (L1165-1205)
-L1166-1167> ! @brief Removes resources generated by the tool in the project root.
+### fn `def prune_empty_dirs(root: Path) -> None` (L1163-1176)
+L1160> Do not remove the target file if no backup exists: restore behavior disabled otherwise.
+L1164-1165> ! @brief Removes empty directories under the specified root.
+L1167> `return`
 
-### fn `def run_remove(args: Namespace) -> None` (L1206-1247)
-L1207-1208> ! @brief Handles the removal of generated resources.
-L1214> `raise ReqError(`
-L1223> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
+### fn `def remove_generated_resources(project_base: Path) -> None` (L1177-1217)
+L1178-1179> ! @brief Removes resources generated by the tool in the project root.
+
+### fn `def run_remove(args: Namespace) -> None` (L1218-1259)
+L1219-1220> ! @brief Handles the removal of generated resources.
 L1226> `raise ReqError(`
-L1231> After validation and before any removal, check for a new version.
-L1234> Do not perform any restore or removal of .vscode/settings.json during removal.
+L1235> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
+L1238> `raise ReqError(`
+L1243> After validation and before any removal, check for a new version.
+L1246> Do not perform any restore or removal of .vscode/settings.json during removal.
 
-### fn `def run(args: Namespace) -> None` (L1248-1447)
-L1249-1250> ! @brief Handles the main initialization flow.
-L1255> Main flow: validates input, calculates paths, generates resources.
-L1258> `return`
-L1265> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
-L1273> `raise ReqError(`
-L1278> `raise ReqError(`
-L1296> `raise ReqError("Error: invalid docs configuration values", 11)`
-L1298> `raise ReqError("Error: invalid tests configuration value", 11)`
-L1304> `raise ReqError("Error: invalid src configuration values", 11)`
-L1344> `raise ReqError("Error: --guidelines-dir must be under the project base", 8)`
-L1346> `raise ReqError("Error: --docs-dir must be under the project base", 5)`
-L1348> `raise ReqError("Error: --tests-dir must be under the project base", 5)`
-L1351> `raise ReqError("Error: --src-dir must be under the project base", 5)`
-L1376> `raise ReqError(`
-L1383> Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
-L1412> `raise ReqError(`
-L1417> After validation and before any operation that modifies the filesystem, check for a new version.
-L1447> Copy models configuration to .req/models.json based on legacy mode (REQ-084)
+### fn `def run(args: Namespace) -> None` (L1260-1459)
+L1261-1262> ! @brief Handles the main initialization flow.
+L1267> Main flow: validates input, calculates paths, generates resources.
+L1270> `return`
+L1277> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
+L1285> `raise ReqError(`
+L1290> `raise ReqError(`
+L1308> `raise ReqError("Error: invalid docs configuration values", 11)`
+L1310> `raise ReqError("Error: invalid tests configuration value", 11)`
+L1316> `raise ReqError("Error: invalid src configuration values", 11)`
+L1356> `raise ReqError("Error: --guidelines-dir must be under the project base", 8)`
+L1358> `raise ReqError("Error: --docs-dir must be under the project base", 5)`
+L1360> `raise ReqError("Error: --tests-dir must be under the project base", 5)`
+L1363> `raise ReqError("Error: --src-dir must be under the project base", 5)`
+L1388> `raise ReqError(`
+L1395> Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
+L1424> `raise ReqError(`
+L1429> After validation and before any operation that modifies the filesystem, check for a new version.
+L1459> Copy models configuration to .req/models.json based on legacy mode (REQ-084)
 
-- var `VERBOSE = args.verbose` (L1252) — ! @brief Handles the main initialization flow.
-- var `DEBUG = args.debug` (L1253)
-- var `PROMPT = prompt_path.stem` (L1586)
-### fn `def _format_install_table(` `priv` (L2014-2016)
-L2011> Build and print a simple installation report table describing which
+- var `VERBOSE = args.verbose` (L1264) — ! @brief Handles the main initialization flow.
+- var `DEBUG = args.debug` (L1265)
+- var `PROMPT = prompt_path.stem` (L1598)
+### fn `def _format_install_table(` `priv` (L2026-2028)
+L2023> Build and print a simple installation report table describing which
 
-### fn `def fmt(row: tuple[str, ...]) -> str` (L2037-2039)
-L2038> `return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))`
+### fn `def fmt(row: tuple[str, ...]) -> str` (L2049-2051)
+L2050> `return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))`
 
-- var `EXCLUDED_DIRS = frozenset({` (L2057) — ── Excluded directories for --references and --compress ──────────────────
-- var `SUPPORTED_EXTENSIONS = frozenset({` (L2066) — ── Supported source file extensions ──────────────────────────────────────
-### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2074-2094)
-L2071> File extensions considered during source directory scanning.
-L2075-2077> ! @brief Recursively collect source files from the given directories. @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
-L2084> Filter out excluded directories (modifies dirnames in-place)
-L2092> `return collected`
+- var `EXCLUDED_DIRS = frozenset({` (L2069) — ── Excluded directories for --references and --compress ──────────────────
+- var `SUPPORTED_EXTENSIONS = frozenset({` (L2078) — ── Supported source file extensions ──────────────────────────────────────
+### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2086-2106)
+L2083> File extensions considered during source directory scanning.
+L2087-2089> ! @brief Recursively collect source files from the given directories. @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
+L2096> Filter out excluded directories (modifies dirnames in-place)
+L2104> `return collected`
 
-### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2095-2132)
-L2096-2099> ! @brief Build a deterministic tree string from project-relative paths. @param paths Project-relative file paths. @return Rendered tree rooted at '.'.
-L2130> `return "\n".join(lines)`
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2107-2144)
+L2108-2111> ! @brief Build a deterministic tree string from project-relative paths. @param paths Project-relative file paths. @return Rendered tree rooted at '.'.
+L2142> `return "\n".join(lines)`
 
-### fn `def _emit(` `priv` (L2117-2119)
+### fn `def _emit(` `priv` (L2129-2131)
 
-### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2133-2143)
-L2134-2138> ! @brief Format markdown section containing the scanned files tree. @param files Absolute file paths selected for --references processing. @param project_base Project root used to normalize relative paths. @return Markdown section with heading and fenced tree.
-L2141> `return f"# Files Structure\n```\n{tree}\n```"`
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2145-2155)
+L2146-2150> ! @brief Format markdown section containing the scanned files tree. @param files Absolute file paths selected for --references processing. @param project_base Project root used to normalize relative paths. @return Markdown section with heading and fenced tree.
+L2153> `return f"# Files Structure\n```\n{tree}\n```"`
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2144-2154)
-L2145-2146> ! @brief Check if the parsed args contain a standalone file command.
-L2147> `return bool(`
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2156-2166)
+L2157-2158> ! @brief Check if the parsed args contain a standalone file command.
+L2159> `return bool(`
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2155-2165)
-L2156-2157> ! @brief Check if the parsed args contain a project scan command.
-L2158> `return bool(`
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2167-2177)
+L2168-2169> ! @brief Check if the parsed args contain a project scan command.
+L2170> `return bool(`
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L2166-2184)
-L2167-2168> ! @brief Execute --files-tokens: count tokens for arbitrary files.
-L2179> `raise ReqError("Error: no valid files provided.", 1)`
+### fn `def run_files_tokens(files: list[str]) -> None` (L2178-2196)
+L2179-2180> ! @brief Execute --files-tokens: count tokens for arbitrary files.
+L2191> `raise ReqError("Error: no valid files provided.", 1)`
 
-### fn `def run_files_references(files: list[str]) -> None` (L2185-2193)
-L2186-2187> ! @brief Execute --files-references: generate markdown for arbitrary files.
+### fn `def run_files_references(files: list[str]) -> None` (L2197-2205)
+L2198-2199> ! @brief Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None` (L2194-2204)
-L2195-2198> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If True, suppresses Lnn> prefixes in compressed entries.
+### fn `def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None` (L2206-2216)
+L2207-2210> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If True, suppresses Lnn> prefixes in compressed entries.
 
-### fn `def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None` (L2205-2226)
-L2206-2209> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
-L2213> `raise ReqError(`
+### fn `def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None` (L2217-2238)
+L2218-2221> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
+L2225> `raise ReqError(`
 
-### fn `def run_references(args: Namespace) -> None` (L2227-2240)
-L2228-2229> ! @brief Execute --references: generate markdown for project source files.
-L2235> `raise ReqError("Error: no source files found in configured directories.", 1)`
+### fn `def run_references(args: Namespace) -> None` (L2239-2252)
+L2240-2241> ! @brief Execute --references: generate markdown for project source files.
+L2247> `raise ReqError("Error: no source files found in configured directories.", 1)`
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2241-2257)
-L2242-2244> ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
-L2250> `raise ReqError("Error: no source files found in configured directories.", 1)`
+### fn `def run_compress_cmd(args: Namespace) -> None` (L2253-2269)
+L2254-2256> ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
+L2262> `raise ReqError("Error: no source files found in configured directories.", 1)`
 
-### fn `def run_find(args: Namespace) -> None` (L2258-2279)
-L2259-2261> ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace.
-L2267> `raise ReqError("Error: no source files found in configured directories.", 1)`
-L2269> args.find is a list [TAG, PATTERN]
+### fn `def run_find(args: Namespace) -> None` (L2270-2295)
+L2271-2274> ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
+L2280> `raise ReqError("Error: no source files found in configured directories.", 1)`
+L2282> args.find is a list [TAG, PATTERN]
+L2293> `raise ReqError(str(e), 1)`
 
-### fn `def run_tokens(args: Namespace) -> None` (L2280-2297)
-L2281-2284> ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
-L2288> `raise ReqError("Error: --tokens requires --docs-dir.", 1)`
-L2294> `raise ReqError("Error: no files found in --docs-dir.", 1)`
+### fn `def run_tokens(args: Namespace) -> None` (L2296-2313)
+L2297-2300> ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
+L2304> `raise ReqError("Error: --tokens requires --docs-dir.", 1)`
+L2310> `raise ReqError("Error: no files found in --docs-dir.", 1)`
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2298-2318)
-L2299-2303> ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @throws ReqError If --base/--here is missing or the resolved path does not exist.
-L2305> `raise ReqError(`
-L2315> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
-L2316> `return project_base`
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2314-2334)
+L2315-2319> ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @throws ReqError If --base/--here is missing or the resolved path does not exist.
+L2321> `raise ReqError(`
+L2331> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
+L2332> `return project_base`
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2319-2342)
-L2320-2321> ! @brief Resolve project base and src-dirs for --references/--compress.
-L2324> Source dirs can come from args or from config
-L2327> Try to load from config
-L2333> `raise ReqError(`
-L2338> `raise ReqError("Error: no source directories configured.", 1)`
-L2340> `return project_base, src_dirs`
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2335-2358)
+L2336-2337> ! @brief Resolve project base and src-dirs for --references/--compress.
+L2340> Source dirs can come from args or from config
+L2343> Try to load from config
+L2349> `raise ReqError(`
+L2354> `raise ReqError("Error: no source directories configured.", 1)`
+L2356> `return project_base, src_dirs`
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2343-2405)
-L2344-2346> ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
-L2351> `return 0`
-L2354> `return 0`
-L2357> `return 0`
-L2359> `return 0`
-L2361> Standalone file commands (no --base/--here required)
-L2377> `return 0`
-L2378> Project scan commands (require --base/--here)
-L2388> `return 0`
-L2389> Standard init flow requires --base or --here
-L2391> `raise ReqError(`
-L2397> `return e.code`
-L2398> Unexpected error
-L2404> `return 1`
-L2405> `return 0`
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L2359-2421)
+L2360-2362> ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
+L2367> `return 0`
+L2370> `return 0`
+L2373> `return 0`
+L2375> `return 0`
+L2377> Standalone file commands (no --base/--here required)
+L2393> `return 0`
+L2394> Project scan commands (require --base/--here)
+L2404> `return 0`
+L2405> Standard init flow requires --base or --here
+L2407> `raise ReqError(`
+L2413> `return e.code`
+L2414> Unexpected error
+L2420> `return 1`
+L2421> `return 0`
 
 ## Comments
 - L37: ! @brief Initialize an expected CLI failure payload. @param message Human-readable error message. @param code Process exit code bound to the failur...
 - L47: ! @brief Prints an informational message.
 - L53: ! @brief Prints a debug message if debugging is active.
 - L60: ! @brief Prints a verbose message if verbose mode is active.
-- L67: ! @brief Builds the CLI argument parser.
-- L249: ! @brief Parses command-line arguments into a namespace.
-- L255: ! @brief Reads the package version from __init__.py.
-- L266: ! @brief Handles --ver/--version by printing the version.
-- L275: ! @brief Executes the upgrade using uv.
-- L298: ! @brief Executes the uninstallation using uv.
-- L318: ! @brief Normalizes the release tag by removing a 'v' prefix if present.
-- L327: ! @brief Converts a version into a numeric tuple for comparison. @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
-- L350: ! @brief Returns True if latest is greater than current.
-- L364: ! @brief Checks online for a new version and prints a warning. @details If the call fails or the response is invalid, it prints nothing and proceeds.
-- L405: ! @brief Ensures the documentation directory exists under the project base.
-- L422: ! @brief Ensures the test directory exists under the project base.
-- L439: ! @brief Ensures the source directory exists under the project base.
-- L456: ! @brief Normalizes the path relative to the project root when possible.
-- L492: ! @brief Resolves the absolute path starting from a normalized value.
-- L503: ! @brief Uniforms path separators for substitutions.
-- L513: ! @brief Calculates the relative path to use in tokens.
-- L533: ! @brief Saves normalized parameters to .req/config.json.
-- L549: ! @brief Loads parameters saved in .req/config.json.
-- L562: Fallback to legacy key names from pre-v0.59 config files.
-- L587: ! @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
-- L602: If there are no files, use the directory itself.
-- L615: ! @brief Generates a list of relative file paths (no formatting) for printing. @details Each entry is formatted as `guidelines/file.md` (forward sl...
-- L631: If there are no files, use the directory itself.
-- L646: ! @brief Copies guidelines templates from resources/guidelines/ to the target directory. @details Args: guidelines_dest: Target directory where tem...
-- L677: ! @brief Normalizes the path token optionally preserving the trailing slash.
-- L689: ! @brief Validates that the path is not absolute and raises an error otherwise.
-- L699: ! @brief Returns text with token replacements applied.
-- L707: ! @brief Writes text to disk, ensuring the destination folder exists.
-- L716: ! @brief Copies a file substituting the indicated tokens with their values.
-- L724: ! @brief Normalizes a description by removing superfluous quotes and escapes.
-- L735: ! @brief Converts a Markdown prompt to TOML for Gemini.
-- L764: ! @brief Extracts front matter and body from Markdown.
-- L769: Explicitly return two strings to satisfy type annotation.
-- L774: ! @brief Extracts the description from front matter.
-- L783: ! @brief Extracts the argument-hint from front matter, if present.
-- L792: ! @brief Returns the first bullet of the Purpose section.
-- L813: ! @brief Escapes a string for JSON without external delimiters.
-- L823: ! @brief Generates the resource list for the Kiro agent.
-- L852: ! @brief Renders the Kiro agent JSON and populates main fields.
-- L880: If parsing fails, return raw template to preserve previous behavior
-- L885: ! @brief Replaces tokens in the specified file.
-- L894: ! @brief Minimal escape for a double-quoted string in YAML.
-- L900: ! @brief Returns the template source or raises an error.
-- L912: ! @brief Loads the Kiro template from centralized models configuration.
-- L916: Try models.json first (this function is called during generation, not with legacy flag check)
-- L947: ! @brief Removes // and /* */ comments to allow JSONC parsing.
-- L968: ! @brief Loads JSON/JSONC settings, removing comments when necessary.
-- L984: ! @brief Loads centralized models configuration from common/models.json. @details Returns a map cli_name -> parsed_json or None if not present. Whe...
-- L990: Priority 1: preserve_models_path if provided and exists
-- L994: Priority 2: legacy mode
-- L1001: Fallback: standard models.json
-- L1008: Load the centralized configuration
-- L1016: Extract individual CLI configs
-- L1029: ! @brief Extracts model and tools for the prompt from the CLI config. @details Returns (model, tools) where each value can be None if not available.
-- L1045-1046: Use the unified key name 'tools' across all CLI configs. | Accept either a list of strings or a CSV string in the config.json.
-- L1054: Parse comma-separated string into list
-- L1063: ! @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt. @details Can return a list of strings, a string, or None depending o...
-- L1081: ! @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
-- L1089: ! @brief Recursively merges dictionaries, prioritizing incoming values.
-- L1100: ! @brief Finds the VS Code settings template if available.
-- L1109: ! @brief Generates chat.promptFilesRecommendations from available prompts.
-- L1120: ! @brief Verifies that the path is under the project root.
-- L1130-1133: ! @brief Saves a backup of VS Code settings if the file exists. | Never create an absence marker. Backup only if the file exists.
-- L1140: ! @brief Restores VS Code settings from backup, if present.
-- L1152: ! @brief Removes empty directories under the specified root.
-- L1166: ! @brief Removes resources generated by the tool in the project root.
-- L1207: ! @brief Handles the removal of generated resources.
-- L1231: After validation and before any removal, check for a new version.
-- L1234: Do not perform any restore or removal of .vscode/settings.json during removal.
-- L1255: Main flow: validates input, calculates paths, generates resources.
-- L1383: Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
-- L1417: After validation and before any operation that modifies the filesystem, check for a new version.
-- L1447-1448: Copy models configuration to .req/models.json based on legacy mode (REQ-084) | Skip if --preserve-models is active
-- L1472: Create requirements.md only if the --docs-dir folder is empty.
-- L1482: Generate the file list for the %%GUIDELINES_FILES%% token.
-- L1551: Load CLI configs only if requested to include model/tools
-- L1562: Determine preserve_models_path (REQ-082)
-- L1593: (Removed: bootstrap file inlining and YOLO stop/approval substitution)
-- L1609: Precompute description and Claude metadata so provider blocks can reuse them safely.
-- L1619: .codex/prompts
-- L1628: .codex/skills/req/<prompt>/SKILL.md
-- L1658: Gemini TOML
-- L1696: .kiro/prompts
-- L1706: .claude/agents
-- L1732: .github/agents
-- L1760: .github/prompts
-- L1792: .kiro/agents
-- L1822: .opencode/agent
-- L1853: .opencode/command
-- L1898: .claude/commands/req
-- L1956: Load existing settings (if present) and those from the template.
-- L1962: If checking/loading fails, consider it empty
-- L1967: Merge without modifying original until sure.
-- L1977: If final result is identical to existing, do not rewrite nor backup.
-- L1982: If changes are expected, create backup only if file exists.
-- L1985: Write final settings.
-- L1993-1994: Final success notification: printed only when the command completed all | intended filesystem modifications without raising an exception.
-- L2001-2002: Print the discovered directories used for token substitutions | as required by REQ-078: one item per line prefixed with '- '.
-- L2018: ! @brief Format the installation summary table aligning header, prompts, and rows.
-- L2062: Directories excluded from source scanning in --references and --compress.
-- L2075: ! @brief Recursively collect source files from the given directories. @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
-- L2084: Filter out excluded directories (modifies dirnames in-place)
-- L2096: ! @brief Build a deterministic tree string from project-relative paths. @param paths Project-relative file paths. @return Rendered tree rooted at '.'.
-- L2134: ! @brief Format markdown section containing the scanned files tree. @param files Absolute file paths selected for --references processing. @param p...
-- L2145: ! @brief Check if the parsed args contain a standalone file command.
-- L2156: ! @brief Check if the parsed args contain a project scan command.
-- L2167: ! @brief Execute --files-tokens: count tokens for arbitrary files.
-- L2186: ! @brief Execute --files-references: generate markdown for arbitrary files.
-- L2195: ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If Tru...
-- L2206: ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disabl...
-- L2228: ! @brief Execute --references: generate markdown for project source files.
-- L2242: ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
-- L2259: ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace.
-- L2269: args.find is a list [TAG, PATTERN]
-- L2281: ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--he...
-- L2299: ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @...
-- L2320: ! @brief Resolve project base and src-dirs for --references/--compress.
-- L2324: Source dirs can come from args or from config
-- L2327: Try to load from config
-- L2344: ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
-- L2361: Standalone file commands (no --base/--here required)
-- L2378: Project scan commands (require --base/--here)
-- L2389: Standard init flow requires --base or --here
+- L67: ! @brief Generate available TAGs help text for argument parser. @return Formatted multi-line string listing TAGs by language. @details Imports form...
+- L79: ! @brief Builds the CLI argument parser.
+- L261: ! @brief Parses command-line arguments into a namespace.
+- L267: ! @brief Reads the package version from __init__.py.
+- L278: ! @brief Handles --ver/--version by printing the version.
+- L287: ! @brief Executes the upgrade using uv.
+- L310: ! @brief Executes the uninstallation using uv.
+- L330: ! @brief Normalizes the release tag by removing a 'v' prefix if present.
+- L339: ! @brief Converts a version into a numeric tuple for comparison. @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
+- L362: ! @brief Returns True if latest is greater than current.
+- L376: ! @brief Checks online for a new version and prints a warning. @details If the call fails or the response is invalid, it prints nothing and proceeds.
+- L417: ! @brief Ensures the documentation directory exists under the project base.
+- L434: ! @brief Ensures the test directory exists under the project base.
+- L451: ! @brief Ensures the source directory exists under the project base.
+- L468: ! @brief Normalizes the path relative to the project root when possible.
+- L504: ! @brief Resolves the absolute path starting from a normalized value.
+- L515: ! @brief Uniforms path separators for substitutions.
+- L525: ! @brief Calculates the relative path to use in tokens.
+- L545: ! @brief Saves normalized parameters to .req/config.json.
+- L561: ! @brief Loads parameters saved in .req/config.json.
+- L574: Fallback to legacy key names from pre-v0.59 config files.
+- L599: ! @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
+- L614: If there are no files, use the directory itself.
+- L627: ! @brief Generates a list of relative file paths (no formatting) for printing. @details Each entry is formatted as `guidelines/file.md` (forward sl...
+- L643: If there are no files, use the directory itself.
+- L658: ! @brief Copies guidelines templates from resources/guidelines/ to the target directory. @details Args: guidelines_dest: Target directory where tem...
+- L689: ! @brief Normalizes the path token optionally preserving the trailing slash.
+- L701: ! @brief Validates that the path is not absolute and raises an error otherwise.
+- L711: ! @brief Returns text with token replacements applied.
+- L719: ! @brief Writes text to disk, ensuring the destination folder exists.
+- L728: ! @brief Copies a file substituting the indicated tokens with their values.
+- L736: ! @brief Normalizes a description by removing superfluous quotes and escapes.
+- L747: ! @brief Converts a Markdown prompt to TOML for Gemini.
+- L776: ! @brief Extracts front matter and body from Markdown.
+- L781: Explicitly return two strings to satisfy type annotation.
+- L786: ! @brief Extracts the description from front matter.
+- L795: ! @brief Extracts the argument-hint from front matter, if present.
+- L804: ! @brief Returns the first bullet of the Purpose section.
+- L825: ! @brief Escapes a string for JSON without external delimiters.
+- L835: ! @brief Generates the resource list for the Kiro agent.
+- L864: ! @brief Renders the Kiro agent JSON and populates main fields.
+- L892: If parsing fails, return raw template to preserve previous behavior
+- L897: ! @brief Replaces tokens in the specified file.
+- L906: ! @brief Minimal escape for a double-quoted string in YAML.
+- L912: ! @brief Returns the template source or raises an error.
+- L924: ! @brief Loads the Kiro template from centralized models configuration.
+- L928: Try models.json first (this function is called during generation, not with legacy flag check)
+- L959: ! @brief Removes // and /* */ comments to allow JSONC parsing.
+- L980: ! @brief Loads JSON/JSONC settings, removing comments when necessary.
+- L996: ! @brief Loads centralized models configuration from common/models.json. @details Returns a map cli_name -> parsed_json or None if not present. Whe...
+- L1002: Priority 1: preserve_models_path if provided and exists
+- L1006: Priority 2: legacy mode
+- L1013: Fallback: standard models.json
+- L1020: Load the centralized configuration
+- L1028: Extract individual CLI configs
+- L1041: ! @brief Extracts model and tools for the prompt from the CLI config. @details Returns (model, tools) where each value can be None if not available.
+- L1057-1058: Use the unified key name 'tools' across all CLI configs. | Accept either a list of strings or a CSV string in the config.json.
+- L1066: Parse comma-separated string into list
+- L1075: ! @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt. @details Can return a list of strings, a string, or None depending o...
+- L1093: ! @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
+- L1101: ! @brief Recursively merges dictionaries, prioritizing incoming values.
+- L1112: ! @brief Finds the VS Code settings template if available.
+- L1121: ! @brief Generates chat.promptFilesRecommendations from available prompts.
+- L1132: ! @brief Verifies that the path is under the project root.
+- L1142-1145: ! @brief Saves a backup of VS Code settings if the file exists. | Never create an absence marker. Backup only if the file exists.
+- L1152: ! @brief Restores VS Code settings from backup, if present.
+- L1164: ! @brief Removes empty directories under the specified root.
+- L1178: ! @brief Removes resources generated by the tool in the project root.
+- L1219: ! @brief Handles the removal of generated resources.
+- L1243: After validation and before any removal, check for a new version.
+- L1246: Do not perform any restore or removal of .vscode/settings.json during removal.
+- L1267: Main flow: validates input, calculates paths, generates resources.
+- L1395: Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
+- L1429: After validation and before any operation that modifies the filesystem, check for a new version.
+- L1459-1460: Copy models configuration to .req/models.json based on legacy mode (REQ-084) | Skip if --preserve-models is active
+- L1484: Create requirements.md only if the --docs-dir folder is empty.
+- L1494: Generate the file list for the %%GUIDELINES_FILES%% token.
+- L1563: Load CLI configs only if requested to include model/tools
+- L1574: Determine preserve_models_path (REQ-082)
+- L1605: (Removed: bootstrap file inlining and YOLO stop/approval substitution)
+- L1621: Precompute description and Claude metadata so provider blocks can reuse them safely.
+- L1631: .codex/prompts
+- L1640: .codex/skills/req/<prompt>/SKILL.md
+- L1670: Gemini TOML
+- L1708: .kiro/prompts
+- L1718: .claude/agents
+- L1744: .github/agents
+- L1772: .github/prompts
+- L1804: .kiro/agents
+- L1834: .opencode/agent
+- L1865: .opencode/command
+- L1910: .claude/commands/req
+- L1968: Load existing settings (if present) and those from the template.
+- L1974: If checking/loading fails, consider it empty
+- L1979: Merge without modifying original until sure.
+- L1989: If final result is identical to existing, do not rewrite nor backup.
+- L1994: If changes are expected, create backup only if file exists.
+- L1997: Write final settings.
+- L2005-2006: Final success notification: printed only when the command completed all | intended filesystem modifications without raising an exception.
+- L2013-2014: Print the discovered directories used for token substitutions | as required by REQ-078: one item per line prefixed with '- '.
+- L2030: ! @brief Format the installation summary table aligning header, prompts, and rows.
+- L2074: Directories excluded from source scanning in --references and --compress.
+- L2087: ! @brief Recursively collect source files from the given directories. @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
+- L2096: Filter out excluded directories (modifies dirnames in-place)
+- L2108: ! @brief Build a deterministic tree string from project-relative paths. @param paths Project-relative file paths. @return Rendered tree rooted at '.'.
+- L2146: ! @brief Format markdown section containing the scanned files tree. @param files Absolute file paths selected for --references processing. @param p...
+- L2157: ! @brief Check if the parsed args contain a standalone file command.
+- L2168: ! @brief Check if the parsed args contain a project scan command.
+- L2179: ! @brief Execute --files-tokens: count tokens for arbitrary files.
+- L2198: ! @brief Execute --files-references: generate markdown for arbitrary files.
+- L2207: ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If Tru...
+- L2218: ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disabl...
+- L2240: ! @brief Execute --references: generate markdown for project source files.
+- L2254: ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
+- L2271: ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files f...
+- L2282: args.find is a list [TAG, PATTERN]
+- L2297: ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--he...
+- L2315: ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @...
+- L2336: ! @brief Resolve project base and src-dirs for --references/--compress.
+- L2340: Source dirs can come from args or from config
+- L2343: Try to load from config
+- L2360: ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
+- L2377: Standalone file commands (no --base/--here required)
+- L2394: Project scan commands (require --base/--here)
+- L2405: Standard init flow requires --base or --here
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -635,86 +643,87 @@ L2405> `return 0`
 |`log`|fn|pub|46-51|def log(msg: str) -> None|
 |`dlog`|fn|pub|52-58|def dlog(msg: str) -> None|
 |`vlog`|fn|pub|59-65|def vlog(msg: str) -> None|
-|`build_parser`|fn|pub|66-247|def build_parser() -> argparse.ArgumentParser|
-|`parse_args`|fn|pub|248-253|def parse_args(argv: Optional[list[str]] = None) -> Names...|
-|`load_package_version`|fn|pub|254-264|def load_package_version() -> str|
-|`maybe_print_version`|fn|pub|265-273|def maybe_print_version(argv: list[str]) -> bool|
-|`run_upgrade`|fn|pub|274-296|def run_upgrade() -> None|
-|`run_uninstall`|fn|pub|297-316|def run_uninstall() -> None|
-|`normalize_release_tag`|fn|pub|317-325|def normalize_release_tag(tag: str) -> str|
-|`parse_version_tuple`|fn|pub|326-348|def parse_version_tuple(version: str) -> tuple[int, ...] ...|
-|`is_newer_version`|fn|pub|349-362|def is_newer_version(current: str, latest: str) -> bool|
-|`maybe_notify_newer_version`|fn|pub|363-403|def maybe_notify_newer_version(timeout_seconds: float = 1...|
-|`ensure_doc_directory`|fn|pub|404-420|def ensure_doc_directory(path: str, project_base: Path) -...|
-|`ensure_test_directory`|fn|pub|421-437|def ensure_test_directory(path: str, project_base: Path) ...|
-|`ensure_src_directory`|fn|pub|438-454|def ensure_src_directory(path: str, project_base: Path) -...|
-|`make_relative_if_contains_project`|fn|pub|455-490|def make_relative_if_contains_project(path_value: str, pr...|
-|`resolve_absolute`|fn|pub|491-501|def resolve_absolute(normalized: str, project_base: Path)...|
-|`format_substituted_path`|fn|pub|502-509|def format_substituted_path(value: str) -> str|
-|`compute_sub_path`|fn|pub|510-511|def compute_sub_path(|
-|`save_config`|fn|pub|526-531|def save_config(|
-|`load_config`|fn|pub|548-585|def load_config(project_base: Path) -> dict[str, str | li...|
-|`generate_guidelines_file_list`|fn|pub|586-613|def generate_guidelines_file_list(guidelines_dir: Path, p...|
-|`generate_guidelines_file_items`|fn|pub|614-642|def generate_guidelines_file_items(guidelines_dir: Path, ...|
-|`copy_guidelines_templates`|fn|pub|643-644|def copy_guidelines_templates(|
-|`make_relative_token`|fn|pub|676-687|def make_relative_token(raw: str, keep_trailing: bool = F...|
-|`ensure_relative`|fn|pub|688-697|def ensure_relative(value: str, name: str, code: int) -> ...|
-|`apply_replacements`|fn|pub|698-705|def apply_replacements(text: str, replacements: Mapping[s...|
-|`write_text_file`|fn|pub|706-712|def write_text_file(dst: Path, text: str) -> None|
-|`copy_with_replacements`|fn|pub|713-714|def copy_with_replacements(|
-|`normalize_description`|fn|pub|723-733|def normalize_description(value: str) -> str|
-|`md_to_toml`|fn|pub|734-762|def md_to_toml(md_path: Path, toml_path: Path, force: boo...|
-|`extract_frontmatter`|fn|pub|763-772|def extract_frontmatter(content: str) -> tuple[str, str]|
-|`extract_description`|fn|pub|773-781|def extract_description(frontmatter: str) -> str|
-|`extract_argument_hint`|fn|pub|782-790|def extract_argument_hint(frontmatter: str) -> str|
-|`extract_purpose_first_bullet`|fn|pub|791-811|def extract_purpose_first_bullet(body: str) -> str|
-|`json_escape`|fn|pub|812-817|def json_escape(value: str) -> str|
-|`generate_kiro_resources`|fn|pub|818-821|def generate_kiro_resources(|
-|`render_kiro_agent`|fn|pub|841-850|def render_kiro_agent(|
-|`replace_tokens`|fn|pub|884-892|def replace_tokens(path: Path, replacements: Mapping[str,...|
-|`yaml_double_quote_escape`|fn|pub|893-898|def yaml_double_quote_escape(value: str) -> str|
-|`find_template_source`|fn|pub|899-910|def find_template_source() -> Path|
-|`load_kiro_template`|fn|pub|911-945|def load_kiro_template() -> tuple[str, dict[str, Any]]|
-|`strip_json_comments`|fn|pub|946-966|def strip_json_comments(text: str) -> str|
-|`load_settings`|fn|pub|967-978|def load_settings(path: Path) -> dict[str, Any]|
-|`load_centralized_models`|fn|pub|979-982|def load_centralized_models(|
-|`get_model_tools_for_prompt`|fn|pub|1026-1027|def get_model_tools_for_prompt(|
-|`get_raw_tools_for_prompt`|fn|pub|1062-1079|def get_raw_tools_for_prompt(config: dict[str, Any] | Non...|
-|`format_tools_inline_list`|fn|pub|1080-1087|def format_tools_inline_list(tools: list[str]) -> str|
-|`deep_merge_dict`|fn|pub|1088-1098|def deep_merge_dict(base: dict[str, Any], incoming: dict[...|
-|`find_vscode_settings_source`|fn|pub|1099-1107|def find_vscode_settings_source() -> Optional[Path]|
-|`build_prompt_recommendations`|fn|pub|1108-1118|def build_prompt_recommendations(prompts_dir: Path) -> di...|
-|`ensure_wrapped`|fn|pub|1119-1128|def ensure_wrapped(target: Path, project_base: Path, code...|
-|`save_vscode_backup`|fn|pub|1129-1138|def save_vscode_backup(req_root: Path, settings_path: Pat...|
-|`restore_vscode_settings`|fn|pub|1139-1150|def restore_vscode_settings(project_base: Path) -> None|
-|`prune_empty_dirs`|fn|pub|1151-1164|def prune_empty_dirs(root: Path) -> None|
-|`remove_generated_resources`|fn|pub|1165-1205|def remove_generated_resources(project_base: Path) -> None|
-|`run_remove`|fn|pub|1206-1247|def run_remove(args: Namespace) -> None|
-|`run`|fn|pub|1248-1447|def run(args: Namespace) -> None|
-|`VERBOSE`|var|pub|1252||
-|`DEBUG`|var|pub|1253||
-|`PROMPT`|var|pub|1586||
-|`_format_install_table`|fn|priv|2014-2016|def _format_install_table(|
-|`fmt`|fn|pub|2037-2039|def fmt(row: tuple[str, ...]) -> str|
-|`EXCLUDED_DIRS`|var|pub|2057||
-|`SUPPORTED_EXTENSIONS`|var|pub|2066||
-|`_collect_source_files`|fn|priv|2074-2094|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_build_ascii_tree`|fn|priv|2095-2132|def _build_ascii_tree(paths: list[str]) -> str|
-|`_emit`|fn|priv|2117-2119|def _emit(|
-|`_format_files_structure_markdown`|fn|priv|2133-2143|def _format_files_structure_markdown(files: list[str], pr...|
-|`_is_standalone_command`|fn|priv|2144-2154|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|2155-2165|def _is_project_scan_command(args: Namespace) -> bool|
-|`run_files_tokens`|fn|pub|2166-2184|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|2185-2193|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2194-2204|def run_files_compress(files: list[str], disable_line_num...|
-|`run_files_find`|fn|pub|2205-2226|def run_files_find(args_list: list[str], disable_line_num...|
-|`run_references`|fn|pub|2227-2240|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2241-2257|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|2258-2279|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2280-2297|def run_tokens(args: Namespace) -> None|
-|`_resolve_project_base`|fn|priv|2298-2318|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|2319-2342|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2343-2405|def main(argv: Optional[list[str]] = None) -> int|
+|`_get_available_tags_help`|fn|priv|66-77|def _get_available_tags_help() -> str|
+|`build_parser`|fn|pub|78-259|def build_parser() -> argparse.ArgumentParser|
+|`parse_args`|fn|pub|260-265|def parse_args(argv: Optional[list[str]] = None) -> Names...|
+|`load_package_version`|fn|pub|266-276|def load_package_version() -> str|
+|`maybe_print_version`|fn|pub|277-285|def maybe_print_version(argv: list[str]) -> bool|
+|`run_upgrade`|fn|pub|286-308|def run_upgrade() -> None|
+|`run_uninstall`|fn|pub|309-328|def run_uninstall() -> None|
+|`normalize_release_tag`|fn|pub|329-337|def normalize_release_tag(tag: str) -> str|
+|`parse_version_tuple`|fn|pub|338-360|def parse_version_tuple(version: str) -> tuple[int, ...] ...|
+|`is_newer_version`|fn|pub|361-374|def is_newer_version(current: str, latest: str) -> bool|
+|`maybe_notify_newer_version`|fn|pub|375-415|def maybe_notify_newer_version(timeout_seconds: float = 1...|
+|`ensure_doc_directory`|fn|pub|416-432|def ensure_doc_directory(path: str, project_base: Path) -...|
+|`ensure_test_directory`|fn|pub|433-449|def ensure_test_directory(path: str, project_base: Path) ...|
+|`ensure_src_directory`|fn|pub|450-466|def ensure_src_directory(path: str, project_base: Path) -...|
+|`make_relative_if_contains_project`|fn|pub|467-502|def make_relative_if_contains_project(path_value: str, pr...|
+|`resolve_absolute`|fn|pub|503-513|def resolve_absolute(normalized: str, project_base: Path)...|
+|`format_substituted_path`|fn|pub|514-521|def format_substituted_path(value: str) -> str|
+|`compute_sub_path`|fn|pub|522-523|def compute_sub_path(|
+|`save_config`|fn|pub|538-543|def save_config(|
+|`load_config`|fn|pub|560-597|def load_config(project_base: Path) -> dict[str, str | li...|
+|`generate_guidelines_file_list`|fn|pub|598-625|def generate_guidelines_file_list(guidelines_dir: Path, p...|
+|`generate_guidelines_file_items`|fn|pub|626-654|def generate_guidelines_file_items(guidelines_dir: Path, ...|
+|`copy_guidelines_templates`|fn|pub|655-656|def copy_guidelines_templates(|
+|`make_relative_token`|fn|pub|688-699|def make_relative_token(raw: str, keep_trailing: bool = F...|
+|`ensure_relative`|fn|pub|700-709|def ensure_relative(value: str, name: str, code: int) -> ...|
+|`apply_replacements`|fn|pub|710-717|def apply_replacements(text: str, replacements: Mapping[s...|
+|`write_text_file`|fn|pub|718-724|def write_text_file(dst: Path, text: str) -> None|
+|`copy_with_replacements`|fn|pub|725-726|def copy_with_replacements(|
+|`normalize_description`|fn|pub|735-745|def normalize_description(value: str) -> str|
+|`md_to_toml`|fn|pub|746-774|def md_to_toml(md_path: Path, toml_path: Path, force: boo...|
+|`extract_frontmatter`|fn|pub|775-784|def extract_frontmatter(content: str) -> tuple[str, str]|
+|`extract_description`|fn|pub|785-793|def extract_description(frontmatter: str) -> str|
+|`extract_argument_hint`|fn|pub|794-802|def extract_argument_hint(frontmatter: str) -> str|
+|`extract_purpose_first_bullet`|fn|pub|803-823|def extract_purpose_first_bullet(body: str) -> str|
+|`json_escape`|fn|pub|824-829|def json_escape(value: str) -> str|
+|`generate_kiro_resources`|fn|pub|830-833|def generate_kiro_resources(|
+|`render_kiro_agent`|fn|pub|853-862|def render_kiro_agent(|
+|`replace_tokens`|fn|pub|896-904|def replace_tokens(path: Path, replacements: Mapping[str,...|
+|`yaml_double_quote_escape`|fn|pub|905-910|def yaml_double_quote_escape(value: str) -> str|
+|`find_template_source`|fn|pub|911-922|def find_template_source() -> Path|
+|`load_kiro_template`|fn|pub|923-957|def load_kiro_template() -> tuple[str, dict[str, Any]]|
+|`strip_json_comments`|fn|pub|958-978|def strip_json_comments(text: str) -> str|
+|`load_settings`|fn|pub|979-990|def load_settings(path: Path) -> dict[str, Any]|
+|`load_centralized_models`|fn|pub|991-994|def load_centralized_models(|
+|`get_model_tools_for_prompt`|fn|pub|1038-1039|def get_model_tools_for_prompt(|
+|`get_raw_tools_for_prompt`|fn|pub|1074-1091|def get_raw_tools_for_prompt(config: dict[str, Any] | Non...|
+|`format_tools_inline_list`|fn|pub|1092-1099|def format_tools_inline_list(tools: list[str]) -> str|
+|`deep_merge_dict`|fn|pub|1100-1110|def deep_merge_dict(base: dict[str, Any], incoming: dict[...|
+|`find_vscode_settings_source`|fn|pub|1111-1119|def find_vscode_settings_source() -> Optional[Path]|
+|`build_prompt_recommendations`|fn|pub|1120-1130|def build_prompt_recommendations(prompts_dir: Path) -> di...|
+|`ensure_wrapped`|fn|pub|1131-1140|def ensure_wrapped(target: Path, project_base: Path, code...|
+|`save_vscode_backup`|fn|pub|1141-1150|def save_vscode_backup(req_root: Path, settings_path: Pat...|
+|`restore_vscode_settings`|fn|pub|1151-1162|def restore_vscode_settings(project_base: Path) -> None|
+|`prune_empty_dirs`|fn|pub|1163-1176|def prune_empty_dirs(root: Path) -> None|
+|`remove_generated_resources`|fn|pub|1177-1217|def remove_generated_resources(project_base: Path) -> None|
+|`run_remove`|fn|pub|1218-1259|def run_remove(args: Namespace) -> None|
+|`run`|fn|pub|1260-1459|def run(args: Namespace) -> None|
+|`VERBOSE`|var|pub|1264||
+|`DEBUG`|var|pub|1265||
+|`PROMPT`|var|pub|1598||
+|`_format_install_table`|fn|priv|2026-2028|def _format_install_table(|
+|`fmt`|fn|pub|2049-2051|def fmt(row: tuple[str, ...]) -> str|
+|`EXCLUDED_DIRS`|var|pub|2069||
+|`SUPPORTED_EXTENSIONS`|var|pub|2078||
+|`_collect_source_files`|fn|priv|2086-2106|def _collect_source_files(src_dirs: list[str], project_ba...|
+|`_build_ascii_tree`|fn|priv|2107-2144|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|2129-2131|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|2145-2155|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|2156-2166|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|2167-2177|def _is_project_scan_command(args: Namespace) -> bool|
+|`run_files_tokens`|fn|pub|2178-2196|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|2197-2205|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|2206-2216|def run_files_compress(files: list[str], disable_line_num...|
+|`run_files_find`|fn|pub|2217-2238|def run_files_find(args_list: list[str], disable_line_num...|
+|`run_references`|fn|pub|2239-2252|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|2253-2269|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|2270-2295|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|2296-2313|def run_tokens(args: Namespace) -> None|
+|`_resolve_project_base`|fn|priv|2314-2334|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|2335-2358|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|2359-2421|def main(argv: Optional[list[str]] = None) -> int|
 
 
 ---
@@ -893,7 +902,7 @@ L66> `sys.exit(1)`
 
 ---
 
-# find_constructs.py | Python | 209L | 7 symbols | 7 imports | 12 comments
+# find_constructs.py | Python | 225L | 8 symbols | 7 imports | 13 comments
 > Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 > ! @brief find_constructs.py - Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating ...
 
@@ -911,54 +920,60 @@ import argparse
 ## Definitions
 
 - var `LANGUAGE_TAGS = {` (L16) — ── Language-specific TAG support map ────────────────────────────────────────
-### fn `def parse_tag_filter(tag_string: str) -> set[str]` (L40-47)
-L41-44> ! @brief Parse pipe-separated tag filter into a normalized set. @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION"). @return Set of uppercase tag identifiers.
-L45> `return {tag.strip().upper() for tag in tag_string.split("|") if tag.strip()}`
+### fn `def format_available_tags() -> str` (L40-53)
+L41-44> ! @brief Generate formatted list of available TAGs per language. @return Multi-line string listing each language with its supported TAGs. @details Iterates LANGUAGE_TAGS dictionary, formats each entry as "- Language: TAG1, TAG2, ..." with language capitalized and tags alphabetically sorted and comma-separated.
+L51> `return "\n".join(lines)`
 
-### fn `def language_supports_tags(lang: str, tag_set: set[str]) -> bool` (L48-57)
-L49-53> ! @brief Check if the language supports at least one of the requested tags. @param lang Normalized language identifier. @param tag_set Set of requested TAG identifiers. @return True if intersection is non-empty, False otherwise.
-L55> `return bool(supported & tag_set)`
+### fn `def parse_tag_filter(tag_string: str) -> set[str]` (L54-61)
+L55-58> ! @brief Parse pipe-separated tag filter into a normalized set. @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION"). @return Set of uppercase tag identifiers.
+L59> `return {tag.strip().upper() for tag in tag_string.split("|") if tag.strip()}`
 
-### fn `def construct_matches(element, tag_set: set[str], pattern: str) -> bool` (L58-74)
-L59-64> ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of requested TAG identifiers. @param pattern Regex pattern string to test against element name. @return True if element type is in tag_set and name matches pattern.
-L66> `return False`
-L68> `return False`
-L70> `return bool(re.search(pattern, element.name))`
-L72> `return False`
+### fn `def language_supports_tags(lang: str, tag_set: set[str]) -> bool` (L62-71)
+L63-67> ! @brief Check if the language supports at least one of the requested tags. @param lang Normalized language identifier. @param tag_set Set of requested TAG identifiers. @return True if intersection is non-empty, False otherwise.
+L69> `return bool(supported & tag_set)`
 
-### fn `def format_construct(element, include_line_numbers: bool) -> str` (L75-101)
-L76-80> ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix code lines with Lnn> format. @return Formatted markdown block for the construct.
-L87> Format code extract with optional line numbers
-L99> `return "\n".join(lines)`
+### fn `def construct_matches(element, tag_set: set[str], pattern: str) -> bool` (L72-88)
+L73-78> ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of requested TAG identifiers. @param pattern Regex pattern string to test against element name. @return True if element type is in tag_set and name matches pattern.
+L80> `return False`
+L82> `return False`
+L84> `return bool(re.search(pattern, element.name))`
+L86> `return False`
 
-### fn `def find_constructs_in_files(` (L102-106)
+### fn `def format_construct(element, include_line_numbers: bool) -> str` (L89-115)
+L90-94> ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix code lines with Lnn> format. @return Formatted markdown block for the construct.
+L101> Format code extract with optional line numbers
+L113> `return "\n".join(lines)`
 
-### fn `def main()` (L174-207)
-L175> ! @brief Execute the construct finding CLI command.
-L205> `sys.exit(1)`
+### fn `def find_constructs_in_files(` (L116-120)
+
+### fn `def main()` (L190-223)
+L191> ! @brief Execute the construct finding CLI command.
+L221> `sys.exit(1)`
 
 ## Comments
 - L2: ! @brief find_constructs.py - Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc...
-- L41: ! @brief Parse pipe-separated tag filter into a normalized set. @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION"). @return Set of up...
-- L49: ! @brief Check if the language supports at least one of the requested tags. @param lang Normalized language identifier. @param tag_set Set of reque...
-- L59: ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of...
-- L76: ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix ...
-- L87: Format code extract with optional line numbers
-- L108: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @details Analyzes each file with SourceAnalyzer, fi...
-- L133: Check if language supports at least one requested tag
-- L144: Filter elements matching tag and pattern
-- L175: ! @brief Execute the construct finding CLI command.
+- L41: ! @brief Generate formatted list of available TAGs per language. @return Multi-line string listing each language with its supported TAGs. @details ...
+- L55: ! @brief Parse pipe-separated tag filter into a normalized set. @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION"). @return Set of up...
+- L63: ! @brief Check if the language supports at least one of the requested tags. @param lang Normalized language identifier. @param tag_set Set of reque...
+- L73: ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of...
+- L90: ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix ...
+- L101: Format code extract with optional line numbers
+- L122: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @details Analyzes each file with SourceAnalyzer, fi...
+- L148: Check if language supports at least one requested tag
+- L159: Filter elements matching tag and pattern
+- L191: ! @brief Execute the construct finding CLI command.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
 |`LANGUAGE_TAGS`|var|pub|16||
-|`parse_tag_filter`|fn|pub|40-47|def parse_tag_filter(tag_string: str) -> set[str]|
-|`language_supports_tags`|fn|pub|48-57|def language_supports_tags(lang: str, tag_set: set[str]) ...|
-|`construct_matches`|fn|pub|58-74|def construct_matches(element, tag_set: set[str], pattern...|
-|`format_construct`|fn|pub|75-101|def format_construct(element, include_line_numbers: bool)...|
-|`find_constructs_in_files`|fn|pub|102-106|def find_constructs_in_files(|
-|`main`|fn|pub|174-207|def main()|
+|`format_available_tags`|fn|pub|40-53|def format_available_tags() -> str|
+|`parse_tag_filter`|fn|pub|54-61|def parse_tag_filter(tag_string: str) -> set[str]|
+|`language_supports_tags`|fn|pub|62-71|def language_supports_tags(lang: str, tag_set: set[str]) ...|
+|`construct_matches`|fn|pub|72-88|def construct_matches(element, tag_set: set[str], pattern...|
+|`format_construct`|fn|pub|89-115|def format_construct(element, include_line_numbers: bool)...|
+|`find_constructs_in_files`|fn|pub|116-120|def find_constructs_in_files(|
+|`main`|fn|pub|190-223|def main()|
 
 
 ---
