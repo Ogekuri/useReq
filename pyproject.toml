@@ -42,6 +42,7 @@ include-package-data = true
 [tool.setuptools.package-data]
 usereq = [
   "resources/prompts/*.md",
+  "resources/guidelines/*.md",
   "resources/kiro/*.json",
   "resources/docs/*.md",
   "resources/vscode/settings.json",
