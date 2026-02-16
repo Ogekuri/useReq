@@ -217,3 +217,12 @@ factorial() {
 if [[ -f ./config.sh ]]; then
     source ./config.sh
 fi
+
+# coverage extension block
+source ./env.sh
+. ./helpers.sh
+source ./shared.sh
+. ./paths.sh
+source ./runtime.sh
+. ./exports.sh
+source ./network.sh

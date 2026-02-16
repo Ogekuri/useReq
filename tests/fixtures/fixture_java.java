@@ -359,3 +359,22 @@ public class Evaluator {
         }
     }
 }
+
+/* coverage extension block */
+package com.example.extra.one;
+package com.example.extra.two;
+package com.example.extra.three;
+package com.example.extra.four;
+interface Runner {}
+public interface Mapper {}
+public interface Handler {}
+public interface Auditor {}
+enum ModeJava { FAST, SAFE }
+enum PhaseJava { INIT, RUN }
+enum StatusJava { OPEN, CLOSED }
+enum KindJava { A, B }
+public static final int DEFAULT_LIMIT = 10;
+public static final int RETRY_LIMIT = 3;
+public static final int BUFFER_SIZE = 512;
+public static final int MAX_USERS = 99;
+@Trace

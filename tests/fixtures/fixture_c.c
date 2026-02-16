@@ -274,3 +274,19 @@ int sum_fixed(int arr[static 10]) {
     }
     return s;
 }
+
+/* coverage extension block */
+struct Vector2 { int x; int y; }; // inline struct comment
+struct Matrix2 { int a11; int a22; };
+enum StatusCode { STATUS_OK, STATUS_ERR, STATUS_UNKNOWN };
+enum LevelCode { LEVEL_LOW, LEVEL_MEDIUM, LEVEL_HIGH };
+enum ModeCode { MODE_A, MODE_B };
+enum FlagCode { FLAG_ON, FLAG_OFF };
+union NumberValue { int i; float f; };
+union PtrValue { void *p; long l; };
+union StateValue { int s; char c; };
+union PairValue { int x; int y; };
+typedef long index_t;
+typedef float ratio_t;
+typedef struct Point point_t;
+typedef double score_t;

@@ -439,3 +439,10 @@ def exception_handling_example(path: str) -> Optional[str]:
     finally:
         # Cleanup runs regardless of outcome
         pass
+
+# coverage extension pre-line comment
+MAX_BATCH = 64  # inline extension comment
+# another variable comment
+CACHE_LIMIT = 128
+"""coverage extension multiline comment for parser fixtures"""
+MAX_USERS = 500

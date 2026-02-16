@@ -313,3 +313,57 @@ defmodule MyApp.Plugin do
 
   @optional_callbacks [cleanup: 1]
 end
+
+# coverage extension block
+defmodule MyApp.Extra do
+  # inline module comment
+  defstruct [:name]
+end
+
+defmodule MyApp.Audit do
+  defstruct [:id]
+end
+
+defmodule MyApp.State do
+  defstruct [:status]
+end
+
+defmodule MyApp.Payload do
+  defstruct [:value]
+end
+
+defmodule MyApp.Context do
+  defstruct [:meta]
+end
+
+defprotocol Auditable do
+  def audit(data)
+end
+
+defprotocol Renderable do
+  def render(data)
+end
+
+defprotocol Parsable do
+  def parse(data)
+end
+
+defprotocol Validatable do
+  def validate(data)
+end
+
+defimpl Auditable, for: Any do
+  def audit(data), do: data
+end
+
+defimpl Renderable, for: Any do
+  def render(data), do: data
+end
+
+defimpl Parsable, for: Any do
+  def parse(data), do: data
+end
+
+defimpl Validatable, for: Any do
+  def validate(data), do: data
+end

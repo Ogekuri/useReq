@@ -347,3 +347,25 @@ public static class PatternMatcher {
 }
 
 } // namespace MyApp
+
+/* coverage extension block */
+namespace MyApp.Services {}
+namespace MyApp.Core {}
+namespace MyApp.Data {}
+namespace MyApp.Api {}
+public interface ILogger {}
+public interface IParser {}
+public interface IRunner {}
+public enum ModeCs { Fast, Safe }
+public enum PhaseCs { Init, Done }
+public enum StateCs { Open, Closed }
+public enum SignalCs { On, Off }
+public struct Size { public int W; public int H; }
+public readonly struct Vector { public readonly int X; public readonly int Y; }
+public struct Limits { public int Max; }
+public struct Cursor { public int Index; }
+[DebuggerDisplay("{Value}")]
+public const int MIN_AGE = 10;
+public const int RETRY_LIMIT = 3;
+public const int CACHE_SIZE = 128;
+public const int DEFAULT_PAGE = 1;

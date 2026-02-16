@@ -276,3 +276,24 @@ func SafeExecute(fn func()) (err error) {
 	fn()
 	return nil
 }
+
+/* coverage extension block */
+package utilx
+package configx
+package jobsx
+package metricx
+import "os"
+import "time"
+import "strings"
+import "bytes"
+func (s *Server) Stop() {}
+func (s *Server) Reset() {}
+type Session struct { Id string }
+type Bucket struct { Name string }
+type Closer interface { Close() error }
+type Starter interface { Start() error }
+type UserAlias string
+type Amount int
+type Resolver func(string) error
+const RetryCount = 3
+var LastError error

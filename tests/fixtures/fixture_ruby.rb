@@ -280,3 +280,18 @@ module StringExtensions
     end
   end
 end
+
+=begin
+coverage extension block
+=end
+class ServiceObject; end # inline class comment
+class ReportBuilder; end
+module Metrics; end
+module Extras; end
+MAX_LIMIT = 100
+API_VERSION = "v2"
+CACHE_SIZE = 1024
+attr_writer :token
+attr_reader :state
+require 'yaml'
+require 'logger'

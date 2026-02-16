@@ -331,3 +331,23 @@ std::string serialize(T value) {
 inline std::string serialize(const std::string &value) {
     return value;
 }
+
+/* coverage extension block */
+struct Pixel { int r; int g; int b; }; // inline struct comment
+struct Size { int w; int h; };
+struct Bounds { int x; int y; int w; int h; };
+struct Marker { int id; };
+enum Mode { ModeA, ModeB };
+enum State { StateIdle, StateBusy };
+enum Grade { GradeA, GradeB };
+enum Severity { SevLow, SevHigh };
+namespace extns {
+    inline int add_one(int v) { return v + 1; }
+}
+namespace ext_alpha { inline int ping() { return 1; } }
+namespace ext_beta { inline int pong() { return 2; } }
+#define FEATURE_ALPHA 1
+#define FEATURE_BETA 2
+#define FEATURE_GAMMA 3
+using NumberVec = std::vector<int>;
+typedef long LongId;

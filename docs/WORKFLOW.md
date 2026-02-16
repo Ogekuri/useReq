@@ -132,6 +132,8 @@
   - Module: `src/usereq/source_analyzer.py`
     - `SourceAnalyzer.analyze()`: lexical-pattern extraction of code elements [`src/usereq/source_analyzer.py:L690-L836`]
       - description: normalizes language key, loads file lines, tracks multiline/single comments while avoiding string literal false-positives, matches per-language regex patterns from `LanguageSpec.patterns`, computes block ranges via `_find_block_end()`, and returns `SourceElement` entries.
+      - `build_language_specs()`: language-specific regex precedence matrix [`src/usereq/source_analyzer.py:L109-L650`]
+        - description: defines per-language ordered match precedence; Perl evaluates `CONSTANT` before `IMPORT` to keep `use constant` classified as constants, Zig evaluates `IMPORT` before generic `CONSTANT` to classify `@import` bindings correctly, Elixir `STRUCT` captures the full `defstruct` payload to preserve distinct struct identifiers across fixtures.
       - `_find_comment()`: locates effective single-line comment start [`src/usereq/source_analyzer.py:L867-L900`]
         - description: scans line while maintaining string delimiter state to avoid comment delimiters inside literals.
       - `_find_block_end()`: language-family block boundary detection [`src/usereq/source_analyzer.py:L901-L975`]
@@ -181,6 +183,8 @@
         - description: ensures test coverage completeness by comparing required languages from LANGUAGE_TAGS against covered languages in EXPECTED_CONSTRUCTS dictionary.
       - `test_fixture_exists()`: parametrized test verifying fixture file existence for each language [`tests/test_find_constructs_comprehensive.py:L366-L372`]
         - description: ensures all 20 language fixtures exist in tests/fixtures/ directory using get_fixture_path() resolution.
+      - `test_fixture_has_minimum_five_constructs_per_tag()`: validates quantitative fixture density per TAG [`tests/test_find_constructs_comprehensive.py`]
+        - description: analyzes each fixture with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, groups extracted names by `ElementType`, and asserts at least five distinct constructs for every tag required by `LANGUAGE_TAGS[language]` (FND-014).
       - `test_python_class_extraction()`: validates CLASS construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L376-L382`]
         - description: extracts all CLASS constructs from Python fixture and verifies presence of expected classes defined in EXPECTED_CONSTRUCTS mapping.
       - `test_python_function_extraction()`: validates FUNCTION construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L384-L392`]
@@ -199,5 +203,5 @@
   - Version check flow aligns with REQ-016..REQ-017 (`docs/REQUIREMENTS.md:L259-L263`; `src/usereq/cli.py:L324-L363`).
   - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`).
   - Source analyzer, token, markdown, compression capabilities align with SRC-001..SRC-014, TOK-001..TOK-006, MKD-001..MKD-007, CMP-001..CMP-012 (`docs/REQUIREMENTS.md:L365-L415`; `src/usereq/source_analyzer.py`, `token_counter.py`, `generate_markdown.py`, `compress.py`, `compress_files.py`).
-  - Construct extraction and comprehensive testing align with FND-001..FND-011, CMD-018..CMD-028, REQ-100 (`docs/REQUIREMENTS.md:L456-L486`; `src/usereq/find_constructs.py`, `tests/test_find_constructs_comprehensive.py`).
+  - Construct extraction and comprehensive testing align with FND-001..FND-014, CMD-018..CMD-028, REQ-100 (`docs/REQUIREMENTS.md:L456-L487`; `src/usereq/find_constructs.py`, `tests/test_find_constructs_comprehensive.py`).
   - CI workflow aligns with REQ-078..REQ-081 (`docs/REQUIREMENTS.md:L358-L363`; `.github/workflows/release-uvx.yml:L1-L48`).

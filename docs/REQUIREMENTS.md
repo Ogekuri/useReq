@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-16"
-version: 0.68
+version: 0.73
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.68
+**Versione**: 0.73
 **Autore**: Ogekuri
 **Data**: 2026-02-16
 
@@ -96,6 +96,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.70 | Aggiornato il formato output di `--files-compress` e `--compress` con metadato `- Lines: <inizio>-<fine>` e blocco codice delimitato da triple backtick mantenendo invariata la logica di numerazione `L<n>>`. |
 | 2026-02-16 | 0.71 | Invertita la logica di numerazione riga per `--files-compress`, `--compress`, `--files-find` e `--find`: prefissi `L<n>>` disabilitati di default e abilitabili con `--enable-line-numbers`; rimosso `--disable-line-numbers`. |
 | 2026-02-16 | 0.72 | Sostituito il formato prefisso numerazione riga da `L<n>>` a `<n>:` in `--files-compress`, `--compress`, `--files-find` e `--find`, mantenendo invariata la logica di abilitazione tramite `--enable-line-numbers`. |
+| 2026-02-16 | 0.73 | Estesi i requisiti fixture `tests/fixtures/` per imporre almeno cinque occorrenze per ogni TAG definito in FND-002 per ciascun linguaggio e varianti eterogenee di commenti inline/pre-line/multi-line. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -378,7 +379,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-097**: Il progetto deve includere i moduli di test `tests/test_analyzer_core.py`, `tests/test_analyzer_comments.py`, `tests/test_analyzer_format.py`, `tests/test_analyzer_errors.py`, `tests/test_analyzer_helpers.py`, e `tests/test_analyzer_cli.py`, con copertura funzionale equivalente ai corrispondenti test in `import/tests/`.
 - **REQ-098**: I test del modulo `source_analyzer` che richiedono fixture linguistiche devono utilizzare i file in `tests/fixtures/` con naming `fixture_<linguaggio>.<estensione>`.
 - **REQ-099**: I test del modulo `source_analyzer` che creano file temporanei devono impostare la directory di output sotto `temp/` della repository.
-- **REQ-100**: Il progetto deve includere il modulo di test `tests/test_find_constructs_comprehensive.py` che verifica l'estrazione COMPLETA (senza troncamento o snippet limitati) di costrutti specifici tramite `find_constructs_in_files()` per tutte le combinazioni linguaggio-costrutto definite in FND-002, utilizzando le fixture presenti in `tests/fixtures/` e validando che l'output estratto contenga il codice completo di ciascun costrutto dall'inizio alla fine, senza limitazioni o simboli `...` di troncamento.
+- **REQ-100**: Il progetto deve includere il modulo di test `tests/test_find_constructs_comprehensive.py` che verifica l'estrazione COMPLETA (senza troncamento o snippet limitati) di costrutti specifici tramite `find_constructs_in_files()` per tutte le combinazioni linguaggio-costrutto definite in FND-002 e per i vincoli quantitativi/eterogeneità commenti definiti in FND-014, utilizzando le fixture presenti in `tests/fixtures/` e validando che l'output estratto contenga il codice completo di ciascun costrutto dall'inizio alla fine, senza limitazioni o simboli `...` di troncamento.
 
 ### 3.14 Workflow CI/CD
 - Requisiti per l'automazione CI/CD.
@@ -475,6 +476,7 @@ Il progetto include una suite di test in `tests/`.
 - **FND-010**: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **FND-011**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **FND-013**: Il modulo `usereq.find_constructs` deve fornire una funzione `format_available_tags()` che genera l'elenco formattato dei TAG disponibili per linguaggio, iterando dinamicamente sulla mappa `LANGUAGE_TAGS`. Il formato di output deve essere multi-riga con ogni linguaggio su una riga separata nel formato: `- <Linguaggio>: TAG1, TAG2, TAG3, ...` (linguaggio con prima lettera maiuscola, TAG separati da virgola+spazio, ordinati alfabeticamente).
+- **FND-014**: Ogni fixture in `tests/fixtures/fixture_<linguaggio>.<estensione>` deve includere almeno 5 costrutti distinti per ciascun TAG obbligatorio del linguaggio definito in FND-002; i costrutti devono includere commenti non omogenei distribuiti con almeno una occorrenza per modalità `pre-line`, `inline`, e `multi-line` ove la sintassi del linguaggio lo consente, mantenendo sintassi valida e parsabile dal linguaggio target.
 
 ### 3.22 Comandi Standalone per Estrazione Costrutti
 - Questa sezione definisce il comando CLI `--files-find` che opera su liste arbitrarie di file.

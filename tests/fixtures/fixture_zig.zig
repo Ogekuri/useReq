@@ -238,3 +238,20 @@ test "indexOf finds element" {
     const idx = indexOf(i32, &items, 3);
     try std.testing.expectEqual(@as(?usize, 2), idx);
 }
+
+// coverage extension block
+const io = @import("std");
+const fs = @import("std");
+const mem = @import("std");
+const math = @import("std");
+const json = @import("std");
+const Mode = enum { fast, safe };
+const Phase = enum { init, done };
+const Signal = enum { on, off };
+const Packet = struct { id: i32 };
+const Limits = struct { max: i32 };
+const Variant = union { i: i32, f: f32 };
+const Payload = extern union { a: i32, b: i32 };
+const Message = union { txt: [4]u8, len: u32 };
+var retries: i32 = 0;
+var pointer: usize = 0;

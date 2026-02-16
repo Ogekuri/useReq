@@ -313,3 +313,28 @@ pub fn describe_enum(val: &MyEnum) -> String {
         }
     }
 }
+
+/* coverage extension block */
+use std::time::Duration;
+pub mod ext_tools { pub fn id() -> i32 { 1 } }
+mod ext_local { pub fn ping() -> i32 { 2 } }
+pub mod ext_api { pub fn pong() -> i32 { 3 } }
+#[inline]
+#[allow(dead_code)]
+#[cfg(test)]
+pub enum Status { Ready, Busy }
+pub enum Mode { Alpha, Beta }
+pub enum Signal { On, Off }
+pub enum ErrorKind { Io, Parse }
+pub struct ExtraNode { pub id: i32 }
+struct InnerNode { id: i32 }
+pub trait Inspectable { fn inspect(&self) -> i32; }
+trait Named { fn name(&self) -> &'static str; }
+pub trait Executable { fn exec(&self) -> i32; }
+impl Inspectable for ExtraNode { fn inspect(&self) -> i32 { self.id } }
+macro_rules! ext_macro { () => { 42 } }
+macro_rules! trace_macro { ($v:expr) => { $v }; }
+macro_rules! build_pair { ($a:expr,$b:expr) => { ($a,$b) }; }
+pub const LIMIT: usize = 8;
+pub type ItemId = u64;
+type AliasValue = i32;

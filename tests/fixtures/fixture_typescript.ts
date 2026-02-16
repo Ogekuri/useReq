@@ -373,3 +373,24 @@ const config = {
 function makeOptional<T extends object>(obj: T): Partial<T> {
     return { ...obj };
 }
+
+/* coverage extension block */
+import { Injectable } from 'inversify';
+import { Observable } from 'rxjs';
+import { FC } from 'react';
+@injectable
+@sealed
+@track
+@memoized
+interface CacheEntry { key: string; value: string }
+export interface Runner { run(): Promise<void> }
+enum ModeTs { Fast, Safe }
+enum StatusTs { Ready, Busy }
+namespace ExtNSOne { export const v = 1; }
+namespace ExtNSTwo { export const v = 2; }
+namespace ExtNSThree { export const v = 3; }
+namespace ExtNSFour { export const v = 4; }
+declare module ExtOne { export const one: number; }
+module ExtTwo { export const two = 2; }
+module ExtThree { export const three = 3; }
+module ExtFour { export const four = 4; }

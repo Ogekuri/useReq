@@ -19,6 +19,7 @@ from usereq.find_constructs import (
     LANGUAGE_TAGS,
     find_constructs_in_files,
 )
+from usereq.source_analyzer import SourceAnalyzer
 
 
 # ── Expected construct names per language fixture ────────────────────────────
@@ -355,6 +356,35 @@ class TestFindConstructsComprehensive:
         """
         fixture_path = self.get_fixture_path(fixtures_dir, language)
         assert fixture_path.exists(), f"Missing fixture for {language}: {fixture_path}"
+
+    @pytest.mark.parametrize("language", list(LANGUAGE_TAGS.keys()))
+    def test_fixture_has_minimum_five_constructs_per_tag(self, fixtures_dir, language):
+        """! @brief Verify each fixture provides >=5 construct names for every required tag.
+        @details Validates FND-014 coverage density by analyzing fixture content with SourceAnalyzer.
+        @param fixtures_dir Base fixtures directory.
+        @param language Language identifier to validate.
+        """
+        analyzer = SourceAnalyzer()
+        fixture_path = self.get_fixture_path(fixtures_dir, language)
+        elements = analyzer.enrich(
+            analyzer.analyze(str(fixture_path), language),
+            str(fixture_path),
+            language,
+        )
+
+        names_by_tag: Dict[str, Set[str]] = {}
+        for element in elements:
+            element_name = getattr(element.element_type, "name", str(element.element_type))
+            if element.name:
+                names_by_tag.setdefault(element_name, set()).add(element.name)
+
+        required_tags = LANGUAGE_TAGS[language]
+        for tag in sorted(required_tags):
+            tag_count = len(names_by_tag.get(tag, set()))
+            assert tag_count >= 5, (
+                f"Fixture {language} has only {tag_count} constructs for {tag}. "
+                f"Expected at least 5."
+            )
 
     # ── Python construct tests ────────────────────────────────────────────────
 

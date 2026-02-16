@@ -526,10 +526,10 @@ def build_language_specs() -> dict:
                 r"^(\s*sub\s+(\w+))")),
             (ElementType.MODULE, re.compile(
                 r"^(\s*package\s+(\w[\w:]*))")),
-            (ElementType.IMPORT, re.compile(
-                r"^(\s*(?:use|require)\s+(.+?);)")),
             (ElementType.CONSTANT, re.compile(
                 r"^(\s*(?:use\s+constant\s+(\w+)))")),
+            (ElementType.IMPORT, re.compile(
+                r"^(\s*(?:use|require)\s+(.+?);)")),
         ],
     )
 
@@ -570,12 +570,12 @@ def build_language_specs() -> dict:
                 r"^(\s*(?:pub\s+)?const\s+(\w+)\s*=\s*enum\b)")),
             (ElementType.UNION, re.compile(
                 r"^(\s*(?:pub\s+)?const\s+(\w+)\s*=\s*(?:extern\s+|packed\s+)?union\b)")),
+            (ElementType.IMPORT, re.compile(
+                r"^(\s*const\s+(\w+)\s*=\s*@import\()")),
             (ElementType.CONSTANT, re.compile(
                 r"^(\s*(?:pub\s+)?const\s+(\w+)\s*(?::\s*[^=]+)?\s*=)")),
             (ElementType.VARIABLE, re.compile(
                 r"^(\s*(?:pub\s+)?var\s+(\w+))")),
-            (ElementType.IMPORT, re.compile(
-                r"^(\s*const\s+(\w+)\s*=\s*@import\()")),
         ],
     )
 
@@ -595,7 +595,7 @@ def build_language_specs() -> dict:
             (ElementType.IMPL, re.compile(
                 r"^(\s*defimpl\s+(\w[\w.]*))")),
             (ElementType.STRUCT, re.compile(
-                r"^(\s*defstruct\b)")),
+                r"^(\s*defstruct\s+(.+))")),
             (ElementType.IMPORT, re.compile(
                 r"^(\s*(?:import|alias|use|require)\s+(.+))")),
         ],

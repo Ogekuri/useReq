@@ -330,3 +330,19 @@ object FuncUtils {
    */
   def compose[A, B, C](f: A => B, g: B => C): A => C = a => g(f(a))
 }
+
+/* coverage extension block */
+import scala.util.Random
+import scala.concurrent.duration._
+trait Runner
+trait Parser
+object Metrics
+val MaxUsers = 100
+val RetryLimit = 3
+type UserKey = String
+type ErrorCode = Int
+type Mapper = String => String
+var attempts = 0
+var cursor = 1
+var stage = "init"
+var status = "ready"

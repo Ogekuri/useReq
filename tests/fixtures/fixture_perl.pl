@@ -241,3 +241,17 @@ sub safe_execute {
 }
 
 1; # Module must return true
+
+=pod
+coverage extension block
+=cut
+package Extra::One;
+package Extra::Two;
+package Extra::Three;
+package Extra::Four;
+use constant RETRY_LIMIT => 5;
+use constant API_HOST => 'localhost';
+use constant FEATURE_FLAG => 1;
+use constant CACHE_SIZE => 256;
+use constant DEFAULT_USER => 'guest';
+use lib 'lib';

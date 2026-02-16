@@ -383,3 +383,21 @@ fun html(block: HtmlBuilder.() -> Unit): String {
     builder.block()
     return builder.build()
 }
+
+/* coverage extension block */
+import kotlin.math.max
+import kotlin.math.min
+interface Logger
+interface Parser
+interface Emitter
+interface Formatter
+enum class ModeKt { FAST, SAFE }
+enum class PhaseKt { INIT, RUN }
+enum class StatusKt { READY, WAITING }
+enum class SignalKt { ON, OFF }
+@Synchronized
+@PublishedApi
+object CacheStore
+var retries = 0
+var attempts = 0
+var state = "idle"

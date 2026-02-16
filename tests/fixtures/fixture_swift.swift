@@ -337,3 +337,23 @@ let defaultConfig: [String: Any] = {
     config["version"] = "1.0"
     return config
 }()
+
+/* coverage extension block */
+import SwiftUI
+import Combine
+import Foundation
+import Dispatch
+import UIKit
+class ServiceController {}
+final class CacheStore {}
+struct Vector2 { let x: Int; let y: Int }
+struct Limits { let max: Int }
+enum ModeSwift { case fast, safe }
+enum PhaseSwift { case initState, done }
+enum SignalSwift { case on, off }
+protocol RunnerSwift { func run() }
+protocol LoggerSwift { func log(_ msg: String) }
+protocol ParserSwift { func parse(_ input: String) -> String }
+extension String { func trimmed2() -> String { self.trimmingCharacters(in: .whitespaces) } }
+extension Int { func doubled2() -> Int { self * 2 } }
+extension Array { var isNotEmpty: Bool { !self.isEmpty } }

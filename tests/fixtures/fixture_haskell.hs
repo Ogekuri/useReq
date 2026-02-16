@@ -192,3 +192,16 @@ safeCompute x y z = do
   a <- safeDiv x y
   b <- safeDiv a z
   return (a + b)
+
+{- coverage extension block -}
+module Extra.One where
+module Extra.Two where
+module Extra.Three where
+module Extra.Four where
+import qualified Data.Set as Set
+type RequestId = Int
+type ResponseId = Int
+class Renderable a where
+class Parsable a where
+class Executable a where
+data Envelope = Envelope String
