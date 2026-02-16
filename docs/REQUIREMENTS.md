@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-16"
-version: 0.64
+version: 0.65
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.64
+**Versione**: 0.65
 **Autore**: Ogekuri
 **Data**: 2026-02-16
 
@@ -85,6 +85,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-15 | 0.62 | Aggiornati i requisiti DES-008..DES-010 imponendo documentazione Doxygen completa, strutturata e in Inglese per tutti i componenti codice. |
 | 2026-02-15 | 0.63 | Rimossi i requisiti DES-008..DES-010 relativi alle modalità di documentazione nei sorgenti. |
 | 2026-02-16 | 0.64 | Aggiunto comando CLI `--tokens` per conteggio token dei file presenti in `--docs-dir` con contesto `--base`/`--here`. |
+| 2026-02-16 | 0.65 | Aggiunta parità della suite `source_analyzer` con i test presenti in `import/tests`, includendo moduli separati e vincoli su fixture in `tests/fixtures` e output temporanei in `temp/`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -190,6 +191,12 @@ Non ci sono ottimizzazioni delle prestazioni esplicite identificate; il codice s
 Il progetto include una suite di test in `tests/`.
 - `tests/test_cli.py` verifica le operazioni CLI in cartella temporanea.
 - `tests/test_source_analyzer.py` verifica l'analisi multi-linguaggio su tutti i 20 linguaggi supportati.
+- `tests/test_analyzer_core.py` verifica il comportamento core dell'analizzatore su tutti i linguaggi e sugli alias.
+- `tests/test_analyzer_comments.py` verifica il parsing dei commenti single-line e multi-line usando le fixture di linguaggio.
+- `tests/test_analyzer_format.py` verifica il formato di output strutturato e la proprietà `type_label`.
+- `tests/test_analyzer_errors.py` verifica error handling, normalizzazione linguaggi e casi limite su file.
+- `tests/test_analyzer_helpers.py` verifica i metodi helper interni dell'analizzatore.
+- `tests/test_analyzer_cli.py` verifica l'interfaccia CLI del modulo `source_analyzer.py`.
 - `tests/test_token_counter.py` verifica il conteggio token e caratteri.
 - `tests/test_generate_markdown.py` verifica la generazione di markdown di riferimento.
 - `tests/test_compress.py` verifica la compressione del codice sorgente.
@@ -354,6 +361,9 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-075**: Unit test devono usare esclusivamente la cartella `temp/` (o `tests/temp/`).
 - **REQ-076**: Il progetto deve includere suite `tests/test_cli.py` che verifica operazioni CLI in cartella temporanea.
 - **REQ-077**: Unit test non devono creare/modificare file fuori da `temp/`.
+- **REQ-097**: Il progetto deve includere i moduli di test `tests/test_analyzer_core.py`, `tests/test_analyzer_comments.py`, `tests/test_analyzer_format.py`, `tests/test_analyzer_errors.py`, `tests/test_analyzer_helpers.py`, e `tests/test_analyzer_cli.py`, con copertura funzionale equivalente ai corrispondenti test in `import/tests/`.
+- **REQ-098**: I test del modulo `source_analyzer` che richiedono fixture linguistiche devono utilizzare i file in `tests/fixtures/` con naming `fixture_<linguaggio>.<estensione>`.
+- **REQ-099**: I test del modulo `source_analyzer` che creano file temporanei devono impostare la directory di output sotto `temp/` della repository.
 
 ### 3.14 Workflow CI/CD
 - Requisiti per l'automazione CI/CD.
