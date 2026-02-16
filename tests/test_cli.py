@@ -1705,7 +1705,7 @@ class TestUpdateNotification(unittest.TestCase):
 
 
 class TestGuidelinesTemplates(unittest.TestCase):
-    """Tests for --add-guidelines and --copy-guidelines functionality."""
+    """Tests for --add-guidelines and --upgrade-guidelines functionality."""
 
     def setUp(self) -> None:
         """Create temporary project for guidelines template tests."""
@@ -1733,7 +1733,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
         guidelines_root.mkdir(parents=True, exist_ok=True)
         if include_guideline_file:
             (guidelines_root / "HDT_Test_Authoring_Guide_for_LLM_Agents.md").write_text(
-                "# Template Content\nThis should overwrite with --copy-guidelines.\n",
+                "# Template Content\nThis should overwrite with --upgrade-guidelines.\n",
                 encoding="utf-8",
             )
         return temp_resources
@@ -1775,7 +1775,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
         )
 
     def test_copy_guidelines_overwrites_existing(self) -> None:
-        """REQ-087: --copy-guidelines overwrites existing files."""
+        """REQ-087: --upgrade-guidelines overwrites existing files."""
         # Create existing file in guidelines dir with specific content
         existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
         original_content = "# Original Content\nThis should be overwritten.\n"
@@ -1785,7 +1785,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
         original_resource_root = cli.RESOURCE_ROOT
         cli.RESOURCE_ROOT = temp_resources
 
-        # Run with --copy-guidelines
+        # Run with --upgrade-guidelines
         try:
             with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
                 exit_code = cli.main(
@@ -1800,7 +1800,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "tests",
                         "--src-dir",
                         "src",
-                        "--copy-guidelines",
+                        "--upgrade-guidelines",
                         "--enable-claude",
                     ]
                 )
@@ -1813,12 +1813,12 @@ class TestGuidelinesTemplates(unittest.TestCase):
         new_content = existing_file.read_text(encoding="utf-8")
         self.assertEqual(
             new_content,
-            "# Template Content\nThis should overwrite with --copy-guidelines.\n",
-            "Existing file should be overwritten with --copy-guidelines when source template exists",
+            "# Template Content\nThis should overwrite with --upgrade-guidelines.\n",
+            "Existing file should be overwritten with --upgrade-guidelines when source template exists",
         )
 
     def test_copy_guidelines_with_empty_source_succeeds(self) -> None:
-        """REQ-085: --copy-guidelines succeeds when source guidelines directory is empty."""
+        """REQ-085: --upgrade-guidelines succeeds when source guidelines directory is empty."""
         existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
         original_content = "# Original Content\nShould stay unchanged when source is empty.\n"
         existing_file.write_text(original_content, encoding="utf-8")
@@ -1840,7 +1840,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "tests",
                         "--src-dir",
                         "src",
-                        "--copy-guidelines",
+                        "--upgrade-guidelines",
                         "--enable-claude",
                     ]
                 )
@@ -1856,7 +1856,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
         )
 
     def test_add_guidelines_and_copy_guidelines_mutually_exclusive(self) -> None:
-        """REQ-088: --add-guidelines and --copy-guidelines cannot be used together."""
+        """REQ-088: --add-guidelines and --upgrade-guidelines cannot be used together."""
         # Attempt to run with both flags - argparse should handle mutual exclusivity
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with self.assertRaises(SystemExit):
@@ -1874,13 +1874,13 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--src-dir",
                     "src",
                     "--add-guidelines",
-                    "--copy-guidelines",
+                    "--upgrade-guidelines",
                     "--enable-claude",
                 ]
             )
 
     def test_no_copy_without_flags(self) -> None:
-        """REQ-089: Guidelines templates are not copied without --add-guidelines or --copy-guidelines."""
+        """REQ-089: Guidelines templates are not copied without --add-guidelines or --upgrade-guidelines."""
         # Run without either flag
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
@@ -1905,7 +1905,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
         guidelines_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
         self.assertFalse(
             guidelines_file.exists(),
-            "Guidelines templates should not be copied without --add-guidelines or --copy-guidelines",
+            "Guidelines templates should not be copied without --add-guidelines or --upgrade-guidelines",
         )
 
 

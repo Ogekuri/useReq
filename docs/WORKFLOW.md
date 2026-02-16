@@ -45,7 +45,7 @@
       - `maybe_notify_newer_version()`: performs remote version probe [`src/usereq/cli.py:L324-L363`]
         - description: sends HTTP GET to GitHub releases API, parses JSON `tag_name`, compares with local version using `normalize_release_tag()`, `parse_version_tuple()`, and `is_newer_version()`, prints upgrade hint when newer release exists.
       - `copy_guidelines_templates()`: optionally copies packaged guideline templates [`src/usereq/cli.py:L658-L689`]
-        - description: copies non-hidden files from `resources/guidelines` to user guidelines directory, honoring overwrite behavior for `--copy-guidelines` vs `--add-guidelines`; when source directory is empty, returns zero copied files without error.
+        - description: copies non-hidden files from `resources/guidelines` to user guidelines directory, honoring overwrite behavior for `--upgrade-guidelines` vs `--add-guidelines`; when source directory is empty, returns zero copied files without error.
       - `generate_guidelines_file_list()`: computes token replacement for guideline inventory [`src/usereq/cli.py:L539-L564`]
         - description: scans non-hidden files at guideline root, emits inline-code relative paths, falls back to directory token when empty.
       - `list_docs_templates()`: resolves runtime docs template inventory [`src/usereq/cli.py:L914-L927`]
