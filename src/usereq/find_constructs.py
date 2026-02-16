@@ -86,11 +86,13 @@ def construct_matches(element, tag_set: set[str], pattern: str) -> bool:
         return False
 
 
-def format_construct(element, include_line_numbers: bool) -> str:
-    """! @brief Format a single matched construct for markdown output.
-    @param element SourceElement instance.
+def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str:
+    """! @brief Format a single matched construct for markdown output with complete code extraction.
+    @param element SourceElement instance containing line range indices.
+    @param source_lines Complete source file content as list of lines.
     @param include_line_numbers If True, prefix code lines with Lnn> format.
-    @return Formatted markdown block for the construct.
+    @return Formatted markdown block for the construct with complete code from line_start to line_end.
+    @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices, replacing the truncated element.extract field to ensure full construct visibility without snippet limitations or ellipsis truncation.
     """
     lines = []
     lines.append(f"### {element.type_label}: `{element.name}`")
@@ -98,13 +100,13 @@ def format_construct(element, include_line_numbers: bool) -> str:
         lines.append(f"- Signature: `{element.signature}`")
     lines.append(f"- Lines: {element.line_start}-{element.line_end}")
 
-    # Format code extract with optional line numbers
-    code_lines = element.extract.splitlines()
+    # Extract COMPLETE code block from source file (not truncated extract)
+    code_lines = source_lines[element.line_start - 1:element.line_end]
     if include_line_numbers:
         start = element.line_start
-        formatted = "\n".join(f"L{start + i}> {line}" for i, line in enumerate(code_lines))
+        formatted = "\n".join(f"L{start + i}> {line.rstrip()}" for i, line in enumerate(code_lines))
     else:
-        formatted = "\n".join(code_lines)
+        formatted = "\n".join(line.rstrip() for line in code_lines)
 
     lines.append("```")
     lines.append(formatted)
@@ -156,6 +158,10 @@ def find_constructs_in_files(
             continue
 
         try:
+            # Read complete source file for full construct extraction
+            with open(fpath, 'r', encoding='utf-8', errors='replace') as f:
+                source_lines = f.readlines()
+
             analyzer = SourceAnalyzer()
             elements = analyzer.analyze(fpath, lang)
             analyzer.enrich(elements, lang, fpath)
@@ -165,7 +171,7 @@ def find_constructs_in_files(
 
             if matches:
                 header = f"@@@ {fpath} | {lang}"
-                constructs_md = "\n\n".join(format_construct(el, include_line_numbers) for el in matches)
+                constructs_md = "\n\n".join(format_construct(el, source_lines, include_line_numbers) for el in matches)
                 parts.append(f"{header}\n\n{constructs_md}")
                 total_matches += len(matches)
                 ok_count += 1

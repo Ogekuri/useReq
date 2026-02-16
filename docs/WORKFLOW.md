@@ -97,7 +97,7 @@
       - description: validates minimum argument count (TAG, PATTERN, FILE), imports `format_available_tags()` to include available TAG listing in error messages when insufficient arguments provided, parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--disable-line-numbers` to `include_line_numbers=False`, forwards `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing.
       - `_get_available_tags_help()`: generates TAG listing for CLI help text [`src/usereq/cli.py:L65-L75`]
         - description: attempts to import `format_available_tags()` from `find_constructs` module to generate dynamic TAG listing for argument parser help display, returns fallback message if import fails.
-      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L116-L194`]
+      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L118-L198`]
         - description: parses pipe-separated tags via `parse_tag_filter()`, validates tag set is non-empty and raises `ValueError` with `format_available_tags()` output when empty, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()`, prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors with `format_available_tags()` output if no constructs found, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
         - `format_available_tags()`: generates formatted TAG listing per language [`src/usereq/find_constructs.py:L40-L51`]
           - description: iterates `LANGUAGE_TAGS` dictionary in sorted key order, sorts each language's tag set alphabetically, capitalizes language name, formats each entry as `- Language: TAG1, TAG2, ...` with comma-space separation, returns multi-line string for error messages and help text display.
@@ -107,8 +107,8 @@
           - description: checks intersection of requested tags with language-specific supported tags from `LANGUAGE_TAGS` map.
         - `construct_matches()`: filters element by type and name pattern [`src/usereq/find_constructs.py`]
           - description: tests if element type is in tag set and element name matches regex via `re.search()`.
-        - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py`]
-          - description: emits type, name, signature, line range, and code extract with optional Lnn> line number prefixes.
+        - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py:L89-L115`]
+          - description: receives SourceElement instance and complete source file lines list, extracts complete construct code from source_lines using element.line_start and element.line_end indices (replacing truncated element.extract field), emits type, name, signature, line range, and full construct code with optional Lnn> line number prefixes.
     - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2247-L2258`]
       - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, builds `# Files Structure` fenced tree through `_format_files_structure_markdown()`, then appends markdown from `generate_markdown(verbose=VERBOSE)`.
       - `_format_files_structure_markdown()`: renders markdown wrapper for scanned source tree [`src/usereq/cli.py`]

@@ -892,7 +892,7 @@ L72> `sys.exit(1)`
 
 ---
 
-# find_constructs.py | Python | 233L | 8 symbols | 7 imports | 13 comments
+# find_constructs.py | Python | 239L | 8 symbols | 7 imports | 14 comments
 > Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 > ! @brief find_constructs.py - Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating ...
 
@@ -929,16 +929,16 @@ L82> `return False`
 L84> `return bool(re.search(pattern, element.name))`
 L86> `return False`
 
-### fn `def format_construct(element, include_line_numbers: bool) -> str` (L89-115)
-L90-94> ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix code lines with Lnn> format. @return Formatted markdown block for the construct.
-L101> Format code extract with optional line numbers
-L113> `return "\n".join(lines)`
+### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L89-117)
+L90-96> ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line range indices. @param source_lines Complete source file content as list of lines. @param include_line_numbers If True, prefix code lines with Lnn> format. @return Formatted markdown block for the construct with complete code from line_start to line_end. @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices, replacing the truncated element.extract field to ensure full construct visibility without snippet limitations or ellipsis truncation.
+L103> Extract COMPLETE code block from source file (not truncated extract)
+L115> `return "\n".join(lines)`
 
-### fn `def find_constructs_in_files(` (L116-121)
+### fn `def find_constructs_in_files(` (L118-123)
 
-### fn `def main()` (L198-231)
-L199> ! @brief Execute the construct finding CLI command.
-L229> `sys.exit(1)`
+### fn `def main()` (L204-237)
+L205> ! @brief Execute the construct finding CLI command.
+L235> `sys.exit(1)`
 
 ## Comments
 - L2: ! @brief find_constructs.py - Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc...
@@ -946,12 +946,13 @@ L229> `sys.exit(1)`
 - L55: ! @brief Parse pipe-separated tag filter into a normalized set. @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION"). @return Set of up...
 - L63: ! @brief Check if the language supports at least one of the requested tags. @param lang Normalized language identifier. @param tag_set Set of reque...
 - L73: ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of...
-- L90: ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix ...
-- L101: Format code extract with optional line numbers
-- L123: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @details Analyzes each file with SourceAnalyzer, fi...
-- L151: Check if language supports at least one requested tag
-- L163: Filter elements matching tag and pattern
-- L199: ! @brief Execute the construct finding CLI command.
+- L90: ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line...
+- L103: Extract COMPLETE code block from source file (not truncated extract)
+- L125: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @details Analyzes each file with SourceAnalyzer, fi...
+- L153: Check if language supports at least one requested tag
+- L161: Read complete source file for full construct extraction
+- L169: Filter elements matching tag and pattern
+- L205: ! @brief Execute the construct finding CLI command.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -961,9 +962,9 @@ L229> `sys.exit(1)`
 |`parse_tag_filter`|fn|pub|54-61|def parse_tag_filter(tag_string: str) -> set[str]|
 |`language_supports_tags`|fn|pub|62-71|def language_supports_tags(lang: str, tag_set: set[str]) ...|
 |`construct_matches`|fn|pub|72-88|def construct_matches(element, tag_set: set[str], pattern...|
-|`format_construct`|fn|pub|89-115|def format_construct(element, include_line_numbers: bool)...|
-|`find_constructs_in_files`|fn|pub|116-121|def find_constructs_in_files(|
-|`main`|fn|pub|198-231|def main()|
+|`format_construct`|fn|pub|89-117|def format_construct(element, source_lines: list[str], in...|
+|`find_constructs_in_files`|fn|pub|118-123|def find_constructs_in_files(|
+|`main`|fn|pub|204-237|def main()|
 
 
 ---

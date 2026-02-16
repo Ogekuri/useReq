@@ -79,7 +79,10 @@ def test_format_construct_with_line_numbers():
         signature="def foo()",
     )
 
-    output = format_construct(elem, include_line_numbers=True)
+    # Mock source lines (lines 1-12, with function at lines 10-12)
+    source_lines = [""] * 9 + ["def foo():\n", "    return 42\n", "\n"]
+
+    output = format_construct(elem, source_lines, include_line_numbers=True)
     assert "### FUNCTION: `foo`" in output
     assert "Signature: `def foo()`" in output
     assert "Lines: 10-12" in output
@@ -97,7 +100,10 @@ def test_format_construct_without_line_numbers():
         name="Bar",
     )
 
-    output = format_construct(elem, include_line_numbers=False)
+    # Mock source lines (lines 1-3)
+    source_lines = ["class Bar:\n", "    pass\n", "\n"]
+
+    output = format_construct(elem, source_lines, include_line_numbers=False)
     assert "### CLASS: `Bar`" in output
     assert "Lines: 1-3" in output
     assert "L1>" not in output

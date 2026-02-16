@@ -367,6 +367,16 @@ class TestFindConstructsComprehensive:
         for class_name in expected_classes:
             assert f"CLASS: `{class_name}`" in output, f"Missing class: {class_name}"
 
+    def test_python_class_complete_extraction(self, fixtures_dir):
+        """! @brief Test that CLASS extraction includes complete code without truncation."""
+        fixture = str(self.get_fixture_path(fixtures_dir, "python"))
+        output = find_constructs_in_files([fixture], "CLASS", "^Config$")
+
+        # Verify complete construct: Config class should include its methods
+        assert "def get(self, key: str, default: str = " in output, "Config class missing get method"
+        assert "def __post_init__(self) -> None:" in output, "Config class missing __post_init__ method"
+        assert 'raise ValueError("Config name cannot be empty")' in output, "Config class missing validation logic"
+
     def test_python_function_extraction(self, fixtures_dir):
         """! @brief Test FUNCTION extraction from Python fixture."""
         fixture = str(self.get_fixture_path(fixtures_dir, "python"))
@@ -377,6 +387,22 @@ class TestFindConstructsComprehensive:
         key_functions = {"regular_function", "async_function", "generator_function"}
         for func_name in key_functions:
             assert f"FUNCTION: `{func_name}`" in output, f"Missing function: {func_name}"
+
+    def test_python_function_complete_extraction(self, fixtures_dir):
+        """! @brief Test that FUNCTION extraction includes complete code without truncation."""
+        fixture = str(self.get_fixture_path(fixtures_dir, "python"))
+        output = find_constructs_in_files([fixture], "FUNCTION", "^multi_return_paths$")
+
+        # Verify complete construct: multi_return_paths should include all match cases from beginning to end
+        assert "match value:" in output, "Function missing match statement"
+        assert 'case 0:' in output, "Function missing case 0"
+        assert 'return "zero"' in output, "Function missing zero return"
+        assert "case n if n < 0:" in output, "Function missing negative case"
+        assert "return abs(n)" in output, "Function missing abs return"
+        assert "case n if n > 100:" in output, "Function missing > 100 case"
+        assert "return None" in output, "Function missing None return"
+        assert "case _:" in output, "Function missing default case"
+        assert "return str(value)" in output, "Function missing final return"
 
     def test_python_decorator_pattern(self, fixtures_dir):
         """! @brief Test DECORATOR extraction with pattern matching."""
@@ -569,6 +595,21 @@ class TestFindConstructsComprehensive:
         assert "NAMESPACE:" in output
 
     # ── Pattern matching tests ────────────────────────────────────────────────
+
+    def test_complete_extraction_multi_line_constructs(self, fixtures_dir):
+        """! @brief Test that multi-line construct extractions are complete from start to end."""
+        # Test Config class has complete extraction including all methods
+        fixture = str(self.get_fixture_path(fixtures_dir, "python"))
+        output = find_constructs_in_files([fixture], "CLASS", "^Config$")
+
+        # Verify complete extraction: class should include docstring, fields, and all methods
+        assert "class Config:" in output, "Missing class declaration"
+        assert "Configuration data holder" in output, "Missing class docstring"
+        assert "name: str" in output, "Missing first field"
+        assert "debug: bool = False" in output, "Missing last field"
+        assert "def get(self, key: str" in output, "Missing get method"
+        assert "def __post_init__(self)" in output, "Missing __post_init__ method"
+        assert 'raise ValueError("Config name cannot be empty")' in output, "Missing validation at end"
 
     def test_pattern_matching_case_sensitive(self, fixtures_dir):
         """! @brief Test case-sensitive regex pattern matching."""
