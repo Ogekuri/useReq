@@ -20,9 +20,9 @@
         - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L236-L239`]
           - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting, and `--disable-line-numbers` routing for compression commands.
         - `_is_standalone_command()`: identifies file-list execution mode [`src/usereq/cli.py:L2032-L2038`]
-          - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress` is set.
+          - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress`, `--files-find` is set.
         - `_is_project_scan_command()`: identifies project source scan mode [`src/usereq/cli.py:L2041-L2046`]
-          - description: returns true if `--references` or `--compress` is set.
+          - description: returns true if `--references`, `--compress`, `--tokens`, or `--find` is set.
 
 - Feature: Project initialization/update and provider resource generation
   - Module: `src/usereq/cli.py`
@@ -93,6 +93,18 @@
           - description: auto-detects language when not provided, reads source text, invokes `compress_source()`.
           - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
             - description: removes full-line and inline comments while preserving string literals, handles multiline comments/docstrings statefully, preserves indentation for indentation-sensitive languages, strips blank/trailing whitespace, and formats optional line-number prefixes.
+    - `run_files_find()`: construct extraction for explicit file lists [`src/usereq/cli.py`]
+      - description: parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--disable-line-numbers` to `include_line_numbers=False`.
+      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py`]
+        - description: parses pipe-separated tags via `parse_tag_filter()`, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()`, prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors if no constructs found.
+        - `parse_tag_filter()`: parses pipe-separated TAG string into normalized set [`src/usereq/find_constructs.py`]
+          - description: splits on `|`, strips whitespace, uppercases identifiers.
+        - `language_supports_tags()`: validates language-tag compatibility [`src/usereq/find_constructs.py`]
+          - description: checks intersection of requested tags with language-specific supported tags from `LANGUAGE_TAGS` map.
+        - `construct_matches()`: filters element by type and name pattern [`src/usereq/find_constructs.py`]
+          - description: tests if element type is in tag set and element name matches regex via `re.search()`.
+        - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py`]
+          - description: emits type, name, signature, line range, and code extract with optional Lnn> line number prefixes.
     - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2083-L2093`]
       - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, builds `# Files Structure` fenced tree through `_format_files_structure_markdown()`, then appends markdown from `generate_markdown()`.
       - `_format_files_structure_markdown()`: renders markdown wrapper for scanned source tree [`src/usereq/cli.py`]
@@ -101,6 +113,8 @@
           - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
     - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2205-L2219`]
       - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()` with `include_line_numbers` derived from `--disable-line-numbers`.
+    - `run_find()`: project-wide construct extraction [`src/usereq/cli.py`]
+      - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--disable-line-numbers`.
     - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
       - description: resolves project base through `_resolve_project_base()`, validates `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
     - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]

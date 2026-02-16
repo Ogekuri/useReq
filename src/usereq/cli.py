@@ -73,8 +73,8 @@ def build_parser() -> argparse.ArgumentParser:
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
-        "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] "
-        "[--references] [--compress] [--disable-line-numbers] [--tokens] "
+        "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
+        "[--references] [--compress] [--find TAG PATTERN] [--disable-line-numbers] [--tokens] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -210,6 +210,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate compressed output for the given files (standalone, no --base/--here required).",
     )
     parser.add_argument(
+        "--files-find",
+        nargs="+",
+        metavar="ARG",
+        help="Find and extract specific constructs: --files-find TAG PATTERN FILE ... (standalone, no --base/--here required).",
+    )
+    parser.add_argument(
         "--references",
         action="store_true",
         help="Generate LLM reference markdown for all source files in configured --src-dir directories (requires --base/--here).",
@@ -220,10 +226,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).",
     )
     parser.add_argument(
+        "--find",
+        nargs=2,
+        metavar=("TAG", "PATTERN"),
+        help="Find and extract specific constructs from configured --src-dir: --find TAG PATTERN (requires --base/--here).",
+    )
+    parser.add_argument(
         "--disable-line-numbers",
         action="store_true",
         default=False,
-        help="Disable line number prefixes (Lnn>) in compressed output for --files-compress and --compress.",
+        help="Disable line number prefixes (Lnn>) in compressed output for --files-compress, --compress, --files-find, and --find.",
     )
     parser.add_argument(
         "--tokens",
@@ -2136,6 +2148,7 @@ def _is_standalone_command(args: Namespace) -> bool:
         getattr(args, "files_tokens", None)
         or getattr(args, "files_references", None)
         or getattr(args, "files_compress", None)
+        or getattr(args, "files_find", None)
     )
 
 
@@ -2146,6 +2159,7 @@ def _is_project_scan_command(args: Namespace) -> bool:
         getattr(args, "references", False)
         or getattr(args, "compress", False)
         or getattr(args, "tokens", False)
+        or getattr(args, "find", None)
     )
 
 
@@ -2188,6 +2202,28 @@ def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> 
     print(output)
 
 
+def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None:
+    """! @brief Execute --files-find: find constructs in arbitrary files.
+    @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
+    @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
+    """
+    from .find_constructs import find_constructs_in_files
+
+    if len(args_list) < 3:
+        raise ReqError(
+            "Error: --files-find requires at least TAG, PATTERN, and one FILE.", 1
+        )
+
+    tag_filter = args_list[0]
+    pattern = args_list[1]
+    files = args_list[2:]
+
+    output = find_constructs_in_files(
+        files, tag_filter, pattern, include_line_numbers=not disable_line_numbers
+    )
+    print(output)
+
+
 def run_references(args: Namespace) -> None:
     """! @brief Execute --references: generate markdown for project source files.
     """
@@ -2214,6 +2250,28 @@ def run_compress_cmd(args: Namespace) -> None:
         raise ReqError("Error: no source files found in configured directories.", 1)
     output = compress_files(
         files,
+        include_line_numbers=not getattr(args, "disable_line_numbers", False),
+    )
+    print(output)
+
+
+def run_find(args: Namespace) -> None:
+    """! @brief Execute --find: find constructs in project source files.
+    @param args Parsed CLI arguments namespace.
+    """
+    from .find_constructs import find_constructs_in_files
+
+    project_base, src_dirs = _resolve_project_src_dirs(args)
+    files = _collect_source_files(src_dirs, project_base)
+    if not files:
+        raise ReqError("Error: no source files found in configured directories.", 1)
+
+    # args.find is a list [TAG, PATTERN]
+    tag_filter, pattern = args.find
+    output = find_constructs_in_files(
+        files,
+        tag_filter,
+        pattern,
         include_line_numbers=not getattr(args, "disable_line_numbers", False),
     )
     print(output)
@@ -2311,6 +2369,11 @@ def main(argv: Optional[list[str]] = None) -> int:
                     args.files_compress,
                     disable_line_numbers=getattr(args, "disable_line_numbers", False),
                 )
+            elif getattr(args, "files_find", None):
+                run_files_find(
+                    args.files_find,
+                    disable_line_numbers=getattr(args, "disable_line_numbers", False),
+                )
             return 0
         # Project scan commands (require --base/--here)
         if _is_project_scan_command(args):
@@ -2320,6 +2383,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                 run_compress_cmd(args)
             elif getattr(args, "tokens", False):
                 run_tokens(args)
+            elif getattr(args, "find", None):
+                run_find(args)
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):

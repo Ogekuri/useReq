@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-16"
-version: 0.65
+version: 0.66
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.65
+**Versione**: 0.66
 **Autore**: Ogekuri
 **Data**: 2026-02-16
 
@@ -59,6 +59,9 @@ tags: ["markdown", "requisiti", "useReq"]
     - [3.18 Compressione Sorgenti](#318-compressione-sorgenti)
     - [3.19 Comandi Standalone su File Arbitrari](#319-comandi-standalone-su-file-arbitrari)
     - [3.20 Comandi di Progetto su Directory Sorgenti](#320-comandi-di-progetto-su-directory-sorgenti)
+    - [3.21 Estrazione Costrutti Specifici](#321-estrazione-costrutti-specifici)
+    - [3.22 Comandi Standalone per Estrazione Costrutti](#322-comandi-standalone-per-estrazione-costrutti)
+    - [3.23 Comandi di Progetto per Estrazione Costrutti](#323-comandi-di-progetto-per-estrazione-costrutti)
 <!-- TOC -->
 
 ## Cronologia delle Revisioni
@@ -86,6 +89,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-15 | 0.63 | Rimossi i requisiti DES-008..DES-010 relativi alle modalità di documentazione nei sorgenti. |
 | 2026-02-16 | 0.64 | Aggiunto comando CLI `--tokens` per conteggio token dei file presenti in `--docs-dir` con contesto `--base`/`--here`. |
 | 2026-02-16 | 0.65 | Aggiunta parità della suite `source_analyzer` con i test presenti in `import/tests`, includendo moduli separati e vincoli su fixture in `tests/fixtures` e output temporanei in `temp/`. |
+| 2026-02-16 | 0.66 | Aggiunti comandi `--files-find` e `--find` per estrazione costrutti specifici filtrati per tag e pattern regex, con supporto multi-linguaggio e formato markdown strutturato. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -145,6 +149,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
         ├── cli.py
         ├── compress.py
         ├── compress_files.py
+        ├── find_constructs.py
         ├── generate_markdown.py
         ├── source_analyzer.py
         ├── token_counter.py
@@ -182,6 +187,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 - `usereq.generate_markdown` implementa la generazione di markdown strutturato di riferimento per il contesto LLM.
 - `usereq.compress` implementa la compressione del codice sorgente rimuovendo commenti, righe vuote e spazi ridondanti.
 - `usereq.compress_files` implementa la compressione e concatenazione di file sorgente multipli.
+- `usereq.find_constructs` implementa l'estrazione e filtraggio di costrutti specifici da file sorgente multipli tramite tag di tipo elemento e pattern regex.
 - `resources/prompts`, `resources/templates`, e `resources/vscode` contengono i file sorgente che il comando copia o integra nel progetto target.
 
 ### 1.6 Ottimizzazioni e Prestazioni
@@ -201,6 +207,7 @@ Il progetto include una suite di test in `tests/`.
 - `tests/test_generate_markdown.py` verifica la generazione di markdown di riferimento.
 - `tests/test_compress.py` verifica la compressione del codice sorgente.
 - `tests/test_files_commands.py` verifica i comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`.
+- `tests/test_find_constructs.py` verifica l'estrazione e filtraggio di costrutti per tag e pattern regex.
 
 ## 2. Requisiti di Progetto
 ### 2.1 Funzioni del Progetto
@@ -240,7 +247,7 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce l'interfaccia a riga di comando e i comportamenti generali dell'applicazione.
 - **REQ-001**: Quando il comando `req` è invocato senza parametri, l'output deve includere aiuto e numero versione definito in `src/usereq/__init__.py`.
 - **REQ-002**: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
-- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`, `--disable-line-numbers`, e `--tokens` nel formato `usage: req -c ...`.
+- **REQ-003**: La stringa di utilizzo aiuto deve includere il comando `req`, la versione e tutte le opzioni disponibili inclusa `--legacy`, `--add-guidelines`, `--copy-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--references`, `--compress`, `--find`, `--disable-line-numbers`, e `--tokens` nel formato `usage: req -c ...`.
 - **REQ-004**: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
 - **REQ-005**: Il comando deve richiedere i parametri `--docs-dir`, `--tests-dir`, e `--src-dir` e verificare che indichino directory esistenti, altrimenti deve terminare con errore.
 - **REQ-093**: Il parametro `--src-dir` deve poter essere fornito più volte; ogni directory passata deve essere normalizzata come gli altri percorsi e deve esistere, altrimenti il comando deve terminare con errore.
@@ -445,3 +452,34 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-015**: Il comando `--references` deve anteporre al markdown generato una sezione `# Files Structure` contenente l'albero ASCII dei file effettivamente selezionati dalla scansione (`--src-dir` o `src-dir` da configurazione), applicando gli stessi filtri di estensione supportata (SRC-001) ed esclusione directory (CMD-012); l'albero deve essere racchiuso in code fence Markdown.
 - **CMD-016**: Il comando `--tokens` deve richiedere `--base` o `--here` e `--docs-dir`, risolvere la directory documentazione rispetto alla root progetto, elencare i file regolari presenti direttamente in `--docs-dir`, eseguire il flusso di `--files-tokens` su tali file e stampare il riepilogo su stdout.
 - **CMD-017**: I comandi `--files-compress` e `--compress` devono accettare il flag opzionale `--disable-line-numbers`; quando il flag è presente l'output compresso non deve includere i prefissi `L<numero>>`, quando il flag è assente i prefissi devono essere inclusi.
+
+### 3.21 Estrazione Costrutti Specifici
+- Questa sezione definisce i requisiti per il modulo di estrazione e filtraggio di costrutti specifici dal codice sorgente.
+- **FND-001**: Il modulo `usereq.find_constructs` deve estrarre costrutti specifici da file sorgente filtrando per tipo elemento (`TAG`) e nome elemento tramite pattern regex (`REGEXP`).
+- **FND-002**: Il parametro `<TAG>` deve accettare uno o più identificatori di tipo elemento separati dal carattere `|`. Gli identificatori validi per linguaggio sono: Python (`CLASS`, `FUNCTION`, `DECORATOR`, `IMPORT`, `VARIABLE`), C (`STRUCT`, `UNION`, `ENUM`, `TYPEDEF`, `MACRO`, `FUNCTION`, `IMPORT`, `VARIABLE`), C++ (`CLASS`, `STRUCT`, `ENUM`, `NAMESPACE`, `FUNCTION`, `MACRO`, `IMPORT`, `TYPE_ALIAS`), Rust (`FUNCTION`, `STRUCT`, `ENUM`, `TRAIT`, `IMPL`, `MODULE`, `MACRO`, `CONSTANT`, `TYPE_ALIAS`, `IMPORT`, `DECORATOR`), JavaScript (`CLASS`, `FUNCTION`, `COMPONENT`, `CONSTANT`, `IMPORT`, `MODULE`), TypeScript (`INTERFACE`, `TYPE_ALIAS`, `ENUM`, `CLASS`, `FUNCTION`, `NAMESPACE`, `MODULE`, `IMPORT`, `DECORATOR`), Java (`CLASS`, `INTERFACE`, `ENUM`, `FUNCTION`, `IMPORT`, `MODULE`, `DECORATOR`, `CONSTANT`), Go (`FUNCTION`, `METHOD`, `STRUCT`, `INTERFACE`, `TYPE_ALIAS`, `CONSTANT`, `IMPORT`, `MODULE`), Ruby (`CLASS`, `MODULE`, `FUNCTION`, `CONSTANT`, `IMPORT`, `DECORATOR`), PHP (`CLASS`, `INTERFACE`, `TRAIT`, `FUNCTION`, `NAMESPACE`, `IMPORT`, `CONSTANT`), Swift (`CLASS`, `STRUCT`, `ENUM`, `PROTOCOL`, `EXTENSION`, `FUNCTION`, `IMPORT`, `CONSTANT`, `VARIABLE`), Kotlin (`CLASS`, `INTERFACE`, `ENUM`, `FUNCTION`, `CONSTANT`, `VARIABLE`, `MODULE`, `IMPORT`, `DECORATOR`), Scala (`CLASS`, `TRAIT`, `MODULE`, `FUNCTION`, `CONSTANT`, `VARIABLE`, `TYPE_ALIAS`, `IMPORT`), Lua (`FUNCTION`, `VARIABLE`), Shell (`FUNCTION`, `VARIABLE`, `IMPORT`), Perl (`FUNCTION`, `MODULE`, `IMPORT`, `CONSTANT`), Haskell (`MODULE`, `TYPE_ALIAS`, `STRUCT`, `CLASS`, `FUNCTION`, `IMPORT`), Zig (`FUNCTION`, `STRUCT`, `ENUM`, `UNION`, `CONSTANT`, `VARIABLE`, `IMPORT`), Elixir (`MODULE`, `FUNCTION`, `PROTOCOL`, `IMPL`, `STRUCT`, `IMPORT`), C# (`CLASS`, `INTERFACE`, `STRUCT`, `ENUM`, `NAMESPACE`, `FUNCTION`, `PROPERTY`, `IMPORT`, `DECORATOR`, `CONSTANT`).
+- **FND-003**: Il parametro `<REGEXP>` deve essere una espressione regolare Python (sintassi `re` module) applicata al nome del costrutto estratto. Il match deve essere case-sensitive e testato con `re.search()`.
+- **FND-004**: Se un file sorgente non supporta nessuno dei tag specificati in `<TAG>` per il suo linguaggio, il file deve essere saltato con un messaggio SKIP su stderr.
+- **FND-005**: La funzione `find_constructs_in_files()` deve analizzare ciascun file con `SourceAnalyzer.analyze()` e `SourceAnalyzer.enrich()`, filtrare gli elementi per tag e regex, e formattare l'output in markdown.
+- **FND-006**: Il formato di output markdown deve contenere per ciascun file un header `@@@ <percorso> | <linguaggio>`, seguito dall'elenco dei costrutti trovati con: tipo costrutto, nome, firma (se presente), riga iniziale, riga finale, codice estratto completo.
+- **FND-007**: Il codice estratto per ciascun costrutto deve includere i prefissi con numero di riga nel formato `L<n>> <testo>` per default. I prefissi devono essere disabilitabili con l'opzione `include_line_numbers=False`.
+- **FND-008**: Lo stato di elaborazione (OK/SKIP/FAIL e conteggio) deve essere stampato su stderr.
+- **FND-009**: Se nessun file valido viene processato o nessun costrutto viene trovato, deve essere lanciata una eccezione `ValueError`.
+- **FND-010**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
+- **FND-011**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+
+### 3.22 Comandi Standalone per Estrazione Costrutti
+- Questa sezione definisce il comando CLI `--files-find` che opera su liste arbitrarie di file.
+- **CMD-018**: Il comando `--files-find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`, seguiti da una lista arbitraria di file: `--files-find <TAG> <REGEXP> <FILE1> <FILE2> ...`.
+- **CMD-019**: Il comando `--files-find` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
+- **CMD-020**: Il comando `--files-find` deve estrarre e stampare su stdout tutti i costrutti che: appartengono ai tipi specificati in `<TAG>` (separati da `|`), hanno nome che esegue il match con `<REGEXP>`, sono presenti nei file specificati.
+- **CMD-021**: Il comando `--files-find` deve accettare il flag opzionale `--disable-line-numbers`; quando il flag è presente l'output non deve includere i prefissi `L<numero>>`, quando il flag è assente i prefissi devono essere inclusi.
+
+### 3.23 Comandi di Progetto per Estrazione Costrutti
+- Questa sezione definisce il comando CLI `--find` che opera sulle directory sorgenti configurate nel progetto.
+- **CMD-022**: Il comando `--find` deve richiedere `--base` o `--here` per determinare il contesto di esecuzione. Se nessuno dei due è presente, il comando deve terminare con un messaggio di errore che indica i parametri obbligatori.
+- **CMD-023**: Il comando `--find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`: `--find <TAG> <REGEXP>`.
+- **CMD-024**: Il comando `--find` deve eseguire l'estrazione costrutti utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti configurate con `--src-dir` o con il campo `src-dir` del file `config.json`.
+- **CMD-025**: Durante la scansione delle directory sorgenti per il comando `--find`, le directory elencate in CMD-012 devono essere escluse.
+- **CMD-026**: La scansione delle directory sorgenti per il comando `--find` deve essere ricorsiva, esaminando tutte le sottodirectory delle directory sorgenti configurate, escludendo le directory elencate in CMD-012.
+- **CMD-027**: Il comando `--find`, quando utilizzato con `--update`, deve caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
+- **CMD-028**: Il comando `--find` deve accettare il flag opzionale `--disable-line-numbers`; quando il flag è presente l'output non deve includere i prefissi `L<numero>>`, quando il flag è assente i prefissi devono essere inclusi.

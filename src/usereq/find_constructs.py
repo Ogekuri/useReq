@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""! @brief find_constructs.py - Find and extract specific constructs from source files.
+@details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating markdown output with complete code extracts. Usage (as module): from find_constructs import find_constructs_in_files output = find_constructs_in_files(["main.py"], "FUNCTION", "test_.*") Usage (CLI): python find_constructs.py FUNCTION "test_.*" file1.py file2.py
+"""
+
+import os
+import re
+import sys
+from pathlib import Path
+
+from .source_analyzer import SourceAnalyzer
+from .compress import detect_language
+
+
+# ── Language-specific TAG support map ────────────────────────────────────────
+LANGUAGE_TAGS = {
+    "python": {"CLASS", "FUNCTION", "DECORATOR", "IMPORT", "VARIABLE"},
+    "c": {"STRUCT", "UNION", "ENUM", "TYPEDEF", "MACRO", "FUNCTION", "IMPORT", "VARIABLE"},
+    "cpp": {"CLASS", "STRUCT", "ENUM", "NAMESPACE", "FUNCTION", "MACRO", "IMPORT", "TYPE_ALIAS"},
+    "rust": {"FUNCTION", "STRUCT", "ENUM", "TRAIT", "IMPL", "MODULE", "MACRO", "CONSTANT", "TYPE_ALIAS", "IMPORT", "DECORATOR"},
+    "javascript": {"CLASS", "FUNCTION", "COMPONENT", "CONSTANT", "IMPORT", "MODULE"},
+    "typescript": {"INTERFACE", "TYPE_ALIAS", "ENUM", "CLASS", "FUNCTION", "NAMESPACE", "MODULE", "IMPORT", "DECORATOR"},
+    "java": {"CLASS", "INTERFACE", "ENUM", "FUNCTION", "IMPORT", "MODULE", "DECORATOR", "CONSTANT"},
+    "go": {"FUNCTION", "METHOD", "STRUCT", "INTERFACE", "TYPE_ALIAS", "CONSTANT", "IMPORT", "MODULE"},
+    "ruby": {"CLASS", "MODULE", "FUNCTION", "CONSTANT", "IMPORT", "DECORATOR"},
+    "php": {"CLASS", "INTERFACE", "TRAIT", "FUNCTION", "NAMESPACE", "IMPORT", "CONSTANT"},
+    "swift": {"CLASS", "STRUCT", "ENUM", "PROTOCOL", "EXTENSION", "FUNCTION", "IMPORT", "CONSTANT", "VARIABLE"},
+    "kotlin": {"CLASS", "INTERFACE", "ENUM", "FUNCTION", "CONSTANT", "VARIABLE", "MODULE", "IMPORT", "DECORATOR"},
+    "scala": {"CLASS", "TRAIT", "MODULE", "FUNCTION", "CONSTANT", "VARIABLE", "TYPE_ALIAS", "IMPORT"},
+    "lua": {"FUNCTION", "VARIABLE"},
+    "shell": {"FUNCTION", "VARIABLE", "IMPORT"},
+    "perl": {"FUNCTION", "MODULE", "IMPORT", "CONSTANT"},
+    "haskell": {"MODULE", "TYPE_ALIAS", "STRUCT", "CLASS", "FUNCTION", "IMPORT"},
+    "zig": {"FUNCTION", "STRUCT", "ENUM", "UNION", "CONSTANT", "VARIABLE", "IMPORT"},
+    "elixir": {"MODULE", "FUNCTION", "PROTOCOL", "IMPL", "STRUCT", "IMPORT"},
+    "csharp": {"CLASS", "INTERFACE", "STRUCT", "ENUM", "NAMESPACE", "FUNCTION", "PROPERTY", "IMPORT", "DECORATOR", "CONSTANT"},
+}
+
+
+def parse_tag_filter(tag_string: str) -> set[str]:
+    """! @brief Parse pipe-separated tag filter into a normalized set.
+    @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION").
+    @return Set of uppercase tag identifiers.
+    """
+    return {tag.strip().upper() for tag in tag_string.split("|") if tag.strip()}
+
+
+def language_supports_tags(lang: str, tag_set: set[str]) -> bool:
+    """! @brief Check if the language supports at least one of the requested tags.
+    @param lang Normalized language identifier.
+    @param tag_set Set of requested TAG identifiers.
+    @return True if intersection is non-empty, False otherwise.
+    """
+    supported = LANGUAGE_TAGS.get(lang, set())
+    return bool(supported & tag_set)
+
+
+def construct_matches(element, tag_set: set[str], pattern: str) -> bool:
+    """! @brief Check if a source element matches tag filter and regex pattern.
+    @param element SourceElement instance from analyzer.
+    @param tag_set Set of requested TAG identifiers.
+    @param pattern Regex pattern string to test against element name.
+    @return True if element type is in tag_set and name matches pattern.
+    """
+    if element.type_label not in tag_set:
+        return False
+    if not element.name:
+        return False
+    try:
+        return bool(re.search(pattern, element.name))
+    except re.error:
+        return False
+
+
+def format_construct(element, include_line_numbers: bool) -> str:
+    """! @brief Format a single matched construct for markdown output.
+    @param element SourceElement instance.
+    @param include_line_numbers If True, prefix code lines with Lnn> format.
+    @return Formatted markdown block for the construct.
+    """
+    lines = []
+    lines.append(f"### {element.type_label}: `{element.name}`")
+    if element.signature:
+        lines.append(f"- Signature: `{element.signature}`")
+    lines.append(f"- Lines: {element.line_start}-{element.line_end}")
+
+    # Format code extract with optional line numbers
+    code_lines = element.extract.splitlines()
+    if include_line_numbers:
+        start = element.line_start
+        formatted = "\n".join(f"L{start + i}> {line}" for i, line in enumerate(code_lines))
+    else:
+        formatted = "\n".join(code_lines)
+
+    lines.append("```")
+    lines.append(formatted)
+    lines.append("```")
+
+    return "\n".join(lines)
+
+
+def find_constructs_in_files(
+    filepaths: list[str],
+    tag_filter: str,
+    pattern: str,
+    include_line_numbers: bool = True,
+) -> str:
+    """! @brief Find and extract constructs matching tag filter and regex pattern from multiple files.
+    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers. Args: filepaths: List of source file paths. tag_filter: Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION"). pattern: Regex pattern for construct name matching. include_line_numbers: If True (default), prefix code lines with Lnn> format. Returns: Concatenated markdown output string. Raises: ValueError: If no files could be processed or no constructs found.
+    """
+    tag_set = parse_tag_filter(tag_filter)
+    if not tag_set:
+        raise ValueError("No valid tags specified in tag filter")
+
+    parts = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+    total_matches = 0
+
+    for fpath in filepaths:
+        if not os.path.isfile(fpath):
+            print(f"  SKIP  {fpath} (not found)", file=sys.stderr)
+            skip_count += 1
+            continue
+
+        lang = detect_language(fpath)
+        if not lang:
+            print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
+            skip_count += 1
+            continue
+
+        # Check if language supports at least one requested tag
+        if not language_supports_tags(lang, tag_set):
+            print(f"  SKIP  {fpath} (language {lang} does not support any requested tags)", file=sys.stderr)
+            skip_count += 1
+            continue
+
+        try:
+            analyzer = SourceAnalyzer()
+            elements = analyzer.analyze(fpath, lang)
+            analyzer.enrich(elements, lang, fpath)
+
+            # Filter elements matching tag and pattern
+            matches = [el for el in elements if construct_matches(el, tag_set, pattern)]
+
+            if matches:
+                header = f"@@@ {fpath} | {lang}"
+                constructs_md = "\n\n".join(format_construct(el, include_line_numbers) for el in matches)
+                parts.append(f"{header}\n\n{constructs_md}")
+                total_matches += len(matches)
+                ok_count += 1
+                print(f"  OK    {fpath} ({len(matches)} matches)", file=sys.stderr)
+            else:
+                print(f"  SKIP  {fpath} (no matches)", file=sys.stderr)
+                skip_count += 1
+
+        except Exception as e:
+            print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
+            fail_count += 1
+
+    if not parts:
+        raise ValueError("No constructs found matching the specified criteria")
+
+    print(
+        f"\n  Found: {total_matches} constructs in {ok_count} files "
+        f"({skip_count} skipped, {fail_count} failed)",
+        file=sys.stderr,
+    )
+
+    return "\n\n".join(parts)
+
+
+def main():
+    """! @brief Execute the construct finding CLI command."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Find and extract specific constructs from source files."
+    )
+    parser.add_argument(
+        "tag",
+        help="Pipe-separated construct types (e.g., CLASS|FUNCTION).",
+    )
+    parser.add_argument(
+        "pattern",
+        help="Regex pattern for construct name matching.",
+    )
+    parser.add_argument("files", nargs="+", help="Source files to search.")
+    parser.add_argument(
+        "--disable-line-numbers",
+        action="store_true",
+        default=False,
+        help="Disable line number prefixes (Lnn>) in output.",
+    )
+    args = parser.parse_args()
+
+    try:
+        output = find_constructs_in_files(
+            args.files, args.tag, args.pattern, not args.disable_line_numbers
+        )
+        print(output)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
