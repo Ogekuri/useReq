@@ -659,7 +659,7 @@ def copy_guidelines_templates(
     guidelines_dest: Path, overwrite: bool = False
 ) -> int:
     """! @brief Copies guidelines templates from resources/guidelines/ to the target directory.
-    @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of files copied
+    @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of non-hidden files copied; returns 0 when the source directory is empty.
     """
     guidelines_src = RESOURCE_ROOT / "guidelines"
     if not guidelines_src.is_dir():
@@ -674,7 +674,7 @@ def copy_guidelines_templates(
 
     copied_count = 0
     for src_file in sorted(guidelines_src.iterdir()):
-        if src_file.is_file():
+        if src_file.is_file() and not src_file.name.startswith("."):
             dst_file = guidelines_dest / src_file.name
             existed = dst_file.exists()
             if existed and not overwrite:

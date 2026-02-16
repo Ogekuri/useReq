@@ -1723,6 +1723,21 @@ class TestGuidelinesTemplates(unittest.TestCase):
         """Clean up test directory."""
         shutil.rmtree(self.TEST_DIR)
 
+    def _make_temp_resource_root(self, include_guideline_file: bool) -> Path:
+        """Create a temporary RESOURCE_ROOT fixture for guidelines copy tests."""
+        temp_resources = Path(tempfile.mkdtemp(prefix="usereq-guidelines-resources-"))
+        shutil.copytree(cli.RESOURCE_ROOT / "prompts", temp_resources / "prompts")
+        shutil.copytree(cli.RESOURCE_ROOT / "docs", temp_resources / "docs")
+        shutil.copytree(cli.RESOURCE_ROOT / "common", temp_resources / "common")
+        guidelines_root = temp_resources / "guidelines"
+        guidelines_root.mkdir(parents=True, exist_ok=True)
+        if include_guideline_file:
+            (guidelines_root / "HDT_Test_Authoring_Guide_for_LLM_Agents.md").write_text(
+                "# Template Content\nThis should overwrite with --copy-guidelines.\n",
+                encoding="utf-8",
+            )
+        return temp_resources
+
     def test_add_guidelines_preserves_existing(self) -> None:
         """REQ-086: --add-guidelines does not overwrite existing files."""
         # Create existing file in guidelines dir with specific content
@@ -1766,33 +1781,78 @@ class TestGuidelinesTemplates(unittest.TestCase):
         original_content = "# Original Content\nThis should be overwritten.\n"
         existing_file.write_text(original_content, encoding="utf-8")
 
-        # Run with --copy-guidelines
-        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            exit_code = cli.main(
-                [
-                    "--base",
-                    str(self.TEST_DIR),
+        temp_resources = self._make_temp_resource_root(include_guideline_file=True)
+        original_resource_root = cli.RESOURCE_ROOT
+        cli.RESOURCE_ROOT = temp_resources
 
-                    "--docs-dir",
-                    "docs",
-                    "--guidelines-dir",
-                    "guidelines",
-                    "--tests-dir",
-                    "tests",
-                    "--src-dir",
-                    "src",
-                    "--copy-guidelines",
-                    "--enable-claude",
-                ]
-            )
+        # Run with --copy-guidelines
+        try:
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--docs-dir",
+                        "docs",
+                        "--guidelines-dir",
+                        "guidelines",
+                        "--tests-dir",
+                        "tests",
+                        "--src-dir",
+                        "src",
+                        "--copy-guidelines",
+                        "--enable-claude",
+                    ]
+                )
+        finally:
+            cli.RESOURCE_ROOT = original_resource_root
+            shutil.rmtree(temp_resources)
         self.assertEqual(exit_code, 0)
 
-        # Verify existing file WAS modified (content differs from original)
+        # Verify existing file WAS overwritten with template content
         new_content = existing_file.read_text(encoding="utf-8")
-        self.assertNotEqual(
+        self.assertEqual(
             new_content,
+            "# Template Content\nThis should overwrite with --copy-guidelines.\n",
+            "Existing file should be overwritten with --copy-guidelines when source template exists",
+        )
+
+    def test_copy_guidelines_with_empty_source_succeeds(self) -> None:
+        """REQ-085: --copy-guidelines succeeds when source guidelines directory is empty."""
+        existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        original_content = "# Original Content\nShould stay unchanged when source is empty.\n"
+        existing_file.write_text(original_content, encoding="utf-8")
+
+        temp_resources = self._make_temp_resource_root(include_guideline_file=False)
+        original_resource_root = cli.RESOURCE_ROOT
+        cli.RESOURCE_ROOT = temp_resources
+        try:
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--docs-dir",
+                        "docs",
+                        "--guidelines-dir",
+                        "guidelines",
+                        "--tests-dir",
+                        "tests",
+                        "--src-dir",
+                        "src",
+                        "--copy-guidelines",
+                        "--enable-claude",
+                    ]
+                )
+        finally:
+            cli.RESOURCE_ROOT = original_resource_root
+            shutil.rmtree(temp_resources)
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(
+            existing_file.read_text(encoding="utf-8"),
             original_content,
-            "Existing file should be overwritten with --copy-guidelines",
+            "Existing file should stay unchanged when source guidelines directory is empty",
         )
 
     def test_add_guidelines_and_copy_guidelines_mutually_exclusive(self) -> None:
