@@ -1,3 +1,15 @@
+  OK    /home/ogekuri/useReq/src/usereq/__init__.py
+  OK    /home/ogekuri/useReq/src/usereq/__main__.py
+  OK    /home/ogekuri/useReq/src/usereq/cli.py
+  OK    /home/ogekuri/useReq/src/usereq/compress.py
+  OK    /home/ogekuri/useReq/src/usereq/compress_files.py
+  OK    /home/ogekuri/useReq/src/usereq/find_constructs.py
+  OK    /home/ogekuri/useReq/src/usereq/generate_markdown.py
+  OK    /home/ogekuri/useReq/src/usereq/pdoc_utils.py
+  OK    /home/ogekuri/useReq/src/usereq/source_analyzer.py
+  OK    /home/ogekuri/useReq/src/usereq/token_counter.py
+
+  Processed: 10 ok, 0 failed
 # Files Structure
 ```
 .

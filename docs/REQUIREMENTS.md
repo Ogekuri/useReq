@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-16"
-version: 0.66
+version: 0.67
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.66
+**Versione**: 0.67
 **Autore**: Ogekuri
 **Data**: 2026-02-16
 
@@ -90,6 +90,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.64 | Aggiunto comando CLI `--tokens` per conteggio token dei file presenti in `--docs-dir` con contesto `--base`/`--here`. |
 | 2026-02-16 | 0.65 | Aggiunta parità della suite `source_analyzer` con i test presenti in `import/tests`, includendo moduli separati e vincoli su fixture in `tests/fixtures` e output temporanei in `temp/`. |
 | 2026-02-16 | 0.66 | Aggiunti comandi `--files-find` e `--find` per estrazione costrutti specifici filtrati per tag e pattern regex, con supporto multi-linguaggio e formato markdown strutturato. |
+| 2026-02-16 | 0.67 | Aggiunto il modulo di test `tests/test_find_constructs_comprehensive.py` per validazione completa dell'estrazione costrutti per tutte le combinazioni linguaggio-costrutto utilizzando le fixture in `tests/fixtures/`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -208,6 +209,7 @@ Il progetto include una suite di test in `tests/`.
 - `tests/test_compress.py` verifica la compressione del codice sorgente.
 - `tests/test_files_commands.py` verifica i comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`.
 - `tests/test_find_constructs.py` verifica l'estrazione e filtraggio di costrutti per tag e pattern regex.
+- `tests/test_find_constructs_comprehensive.py` verifica l'estrazione di tutti i costrutti specifici per linguaggio utilizzando le fixture in `tests/fixtures/`, garantendo copertura completa per ogni combinazione linguaggio-costrutto definita in FND-002.
 
 ## 2. Requisiti di Progetto
 ### 2.1 Funzioni del Progetto
@@ -371,6 +373,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-097**: Il progetto deve includere i moduli di test `tests/test_analyzer_core.py`, `tests/test_analyzer_comments.py`, `tests/test_analyzer_format.py`, `tests/test_analyzer_errors.py`, `tests/test_analyzer_helpers.py`, e `tests/test_analyzer_cli.py`, con copertura funzionale equivalente ai corrispondenti test in `import/tests/`.
 - **REQ-098**: I test del modulo `source_analyzer` che richiedono fixture linguistiche devono utilizzare i file in `tests/fixtures/` con naming `fixture_<linguaggio>.<estensione>`.
 - **REQ-099**: I test del modulo `source_analyzer` che creano file temporanei devono impostare la directory di output sotto `temp/` della repository.
+- **REQ-100**: Il progetto deve includere il modulo di test `tests/test_find_constructs_comprehensive.py` che verifica l'estrazione di costrutti specifici tramite `find_constructs_in_files()` per tutte le combinazioni linguaggio-costrutto definite in FND-002, utilizzando le fixture presenti in `tests/fixtures/` e validando la correttezza dell'output estratto confrontandolo con i costrutti attesi presenti nei file fixture.
 
 ### 3.14 Workflow CI/CD
 - Requisiti per l'automazione CI/CD.

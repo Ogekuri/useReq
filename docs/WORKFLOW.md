@@ -169,9 +169,31 @@
   - External database access
     - No database client usage or DB connection logic detected in analyzed modules.
 
+- Feature: Comprehensive construct extraction testing
+  - Module: `tests/test_find_constructs_comprehensive.py`
+    - `TestFindConstructsComprehensive`: comprehensive test suite validating construct extraction across all languages [`tests/test_find_constructs_comprehensive.py:L319-L737`]
+      - description: validates find_constructs_in_files() for all language-construct combinations defined in FND-002, using fixture files to ensure correct extraction of constructs by tag filter and regex pattern.
+      - `test_language_tags_coverage()`: verifies EXPECTED_CONSTRUCTS covers all 20 supported languages [`tests/test_find_constructs_comprehensive.py:L358-L364`]
+        - description: ensures test coverage completeness by comparing required languages from LANGUAGE_TAGS against covered languages in EXPECTED_CONSTRUCTS dictionary.
+      - `test_fixture_exists()`: parametrized test verifying fixture file existence for each language [`tests/test_find_constructs_comprehensive.py:L366-L372`]
+        - description: ensures all 20 language fixtures exist in tests/fixtures/ directory using get_fixture_path() resolution.
+      - `test_python_class_extraction()`: validates CLASS construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L376-L382`]
+        - description: extracts all CLASS constructs from Python fixture and verifies presence of expected classes defined in EXPECTED_CONSTRUCTS mapping.
+      - `test_python_function_extraction()`: validates FUNCTION construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L384-L392`]
+        - description: extracts FUNCTION constructs and verifies subset of key functions including async_function and generator_function.
+      - `test_c_struct_extraction()`: validates STRUCT construct extraction from C fixture [`tests/test_find_constructs_comprehensive.py:L410-L416`]
+        - description: extracts all STRUCT constructs and verifies presence of expected struct definitions.
+      - `test_rust_trait_extraction()`: validates TRAIT construct extraction from Rust fixture [`tests/test_find_constructs_comprehensive.py:L439-L445`]
+        - description: extracts TRAIT constructs and verifies presence of MyTrait and Parser trait definitions.
+      - `test_pattern_matching_case_sensitive()`: validates case-sensitive regex pattern matching [`tests/test_find_constructs_comprehensive.py:L512-L518`]
+        - description: tests anchored regex patterns to ensure exact matching without false positives from partial name matches.
+      - `test_multiple_tags_extraction()`: validates extraction with pipe-separated multiple tag filter [`tests/test_find_constructs_comprehensive.py:L528-L533`]
+        - description: extracts constructs matching multiple types (CLASS|FUNCTION) with pattern filter to verify tag union semantics.
+
 - Requirements alignment evidence (`docs/REQUIREMENTS.md`)
   - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).
   - Version check flow aligns with REQ-016..REQ-017 (`docs/REQUIREMENTS.md:L259-L263`; `src/usereq/cli.py:L324-L363`).
   - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`).
   - Source analyzer, token, markdown, compression capabilities align with SRC-001..SRC-014, TOK-001..TOK-006, MKD-001..MKD-007, CMP-001..CMP-012 (`docs/REQUIREMENTS.md:L365-L415`; `src/usereq/source_analyzer.py`, `token_counter.py`, `generate_markdown.py`, `compress.py`, `compress_files.py`).
+  - Construct extraction and comprehensive testing align with FND-001..FND-011, CMD-018..CMD-028, REQ-100 (`docs/REQUIREMENTS.md:L456-L486`; `src/usereq/find_constructs.py`, `tests/test_find_constructs_comprehensive.py`).
   - CI workflow aligns with REQ-078..REQ-081 (`docs/REQUIREMENTS.md:L358-L363`; `.github/workflows/release-uvx.yml:L1-L48`).
