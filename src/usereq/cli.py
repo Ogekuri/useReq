@@ -87,7 +87,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
-        "[--legacy] [--preserve-models] [--add-guidelines | --copy-guidelines] "
+        "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
         f"({version})"
@@ -202,7 +202,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir without overwriting existing files.",
     )
     guidelines_group.add_argument(
-        "--copy-guidelines",
+        "--upgrade-guidelines",
         action="store_true",
         help="Copy guidelines templates from resources/guidelines/ to --guidelines-dir, overwriting existing files.",
     )
@@ -655,7 +655,7 @@ def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> 
     return items
 
 
-def copy_guidelines_templates(
+def upgrade_guidelines_templates(
     guidelines_dest: Path, overwrite: bool = False
 ) -> int:
     """! @brief Copies guidelines templates from resources/guidelines/ to the target directory.
@@ -1427,10 +1427,12 @@ def run(args: Namespace) -> None:
         log(f"OK: technical directory found {guidelines_dest}")
 
     # Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-089)
-    if args.add_guidelines or args.copy_guidelines:
+    if args.add_guidelines or args.upgrade_guidelines:
         guidelines_src = RESOURCE_ROOT / "guidelines"
         if guidelines_src.is_dir():
-            copied = copy_guidelines_templates(guidelines_dest, overwrite=args.copy_guidelines)
+            copied = upgrade_guidelines_templates(
+                guidelines_dest, overwrite=args.upgrade_guidelines
+            )
             if VERBOSE:
                 log(f"OK: copied {copied} guidelines template(s) to {guidelines_dest}")
         else:
