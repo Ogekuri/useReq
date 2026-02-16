@@ -173,7 +173,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
             │   ├── refactor.md
             │   ├── recreate.md
             │   └── write.md
-            ├── templates
+            ├── docs
             │   └── requirements.md
             └── vscode
                 └── settings.json
@@ -194,7 +194,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 - `usereq.compress` implementa la compressione del codice sorgente rimuovendo commenti, righe vuote e spazi ridondanti.
 - `usereq.compress_files` implementa la compressione e concatenazione di file sorgente multipli.
 - `usereq.find_constructs` implementa l'estrazione e filtraggio di costrutti specifici da file sorgente multipli tramite tag di tipo elemento e pattern regex.
-- `resources/prompts`, `resources/templates`, e `resources/vscode` contengono i file sorgente che il comando copia o integra nel progetto target.
+- `resources/prompts`, `resources/docs`, e `resources/vscode` contengono i file sorgente che il comando copia o integra nel progetto target.
 
 ### 1.6 Ottimizzazioni e Prestazioni
 Non ci sono ottimizzazioni delle prestazioni esplicite identificate; il codice si limita all'elaborazione lineare di file e percorsi necessari per l'inizializzazione.
@@ -222,7 +222,7 @@ Il progetto include una suite di test in `tests/`.
 - **PRJ-001**: Il comando deve inizializzare un progetto creando o aggiornando documenti di requisiti, template tecnici e risorse di prompt basati sulla root indicata dall'utente.
 - **PRJ-002**: Il comando deve accettare esattamente una delle opzioni `--base` o `--here`. Con `--base` deve usare i parametri espliciti `--guidelines-dir`, `--docs-dir`, `--tests-dir`, e `--src-dir`; con `--here` deve usare esclusivamente i valori `guidelines-dir`, `docs-dir`, `tests-dir`, e `src-dir` estratti da `.req/config.json`, ignorando eventuali path passati con i parametri espliciti.
 - **PRJ-003**: Il comando deve generare risorse di prompt per Codex, GitHub e Gemini sostituendo i token di percorso con valori relativi calcolati.
-- **PRJ-004**: Il comando deve aggiornare i template locali in `.req/templates` e integrare le impostazioni di VS Code quando disponibili.
+- **PRJ-004**: Il comando deve aggiornare i template locali in `.req/docs` e integrare le impostazioni di VS Code quando disponibili.
 - **PRJ-005**: L'interfaccia utente deve essere una CLI testuale con messaggi di errore e log di progresso opzionali.
 
 ### 2.2 Vincoli del Progetto
@@ -233,14 +233,14 @@ Il progetto include una suite di test in `tests/`.
 - **CTN-006**: Il percorso passato a `--docs-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
 - **CTN-007**: Il percorso passato a `--tests-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
 - **CTN-008**: Il percorso passato a `--src-dir` e poi normalizzato rispetto a `--base`, deve esistere come directory reale sotto la root del progetto prima della copia delle risorse.
-- **CTN-004**: La rimozione di directory preesistenti `.req` o `.req/templates` deve essere permessa solo se tali percorsi sono sotto la root del progetto.
+- **CTN-004**: La rimozione di directory preesistenti `.req` o `.req/docs` deve essere permessa solo se tali percorsi sono sotto la root del progetto.
 - **CTN-005**: Il comando deve fallire se il progetto specificato non esiste sul filesystem.
 
 ## 3. Requisiti
 ### 3.1 Progettazione e Implementazione
 - Questa sezione delinea i requisiti relativi alle scelte di progettazione e ai dettagli implementativi.
 - **DES-001**: Il calcolo del token `%%GUIDELINES_FILES%%` deve essere sostituito con la lista di directory trovate nella cartella specificata con `--guidelines-dir`. Quando espanso inline, la lista deve essere formattata usando notazione inline code (backticks) per ogni elemento nella forma `dir1/`, `dir2/` (con slash finale).
-- **DES-002**: La sorgente del template `requirements.md` deve essere la cartella `resources/templates` inclusa nel pacchetto e il comando deve fallire se il template non è disponibile.
+- **DES-002**: La sorgente del template `requirements.md` deve essere la cartella `resources/docs` inclusa nel pacchetto e il comando deve fallire se il template non è disponibile.
 - **DES-003**: La conversione di prompt Markdown in TOML deve estrarre il campo `description` dal front matter e salvare il corpo del prompt in una stringa multilinea.
 - **DES-004**: L'unione delle impostazioni VS Code deve supportare file JSONC rimuovendo i commenti e deve unire ricorsivamente gli oggetti con priorità ai valori del template.
 - **DES-005**: Le raccomandazioni `chat.promptFilesRecommendations` devono essere generate partendo dai prompt Markdown disponibili.
@@ -293,7 +293,7 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-024**: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione usando parametri salvati.
 - **REQ-025**: Quando `--update` è presente, il comando deve verificare presenza di `.req/config.json` e terminare con errore se assente.
 - **REQ-026**: Con `--update`, il comando deve caricare `guidelines-dir`, `docs-dir`, `tests-dir`, e `src-dir` da config ed eseguire il flusso come se passati manualmente. Con `--here`, lo stesso caricamento da config deve avvenire anche senza `--update`, ignorando eventuali path espliciti.
-- **REQ-027**: Il comando deve copiare i template in `.req/templates`, rimpiazzando pre-esistenti.
+- **REQ-027**: Il comando deve copiare i template in `.req/docs`, rimpiazzando pre-esistenti.
 - **REQ-084**: Il comando deve copiare il file di configurazione modelli in `.req/models.json`, rimpiazzando il file pre-esistente se presente, a meno che `--preserve-models` sia attivo. Quando `--preserve-models` NON è attivo: se `--legacy` NON è attivo, deve copiare `models.json` dalle risorse del pacchetto (`src/usereq/resources/common/models.json`); se `--legacy` è attivo E il file `models-legacy.json` è caricato con successo (cioè quando esiste), deve copiare `models-legacy.json` dalle risorse del pacchetto (`src/usereq/resources/common/models-legacy.json`); se `--legacy` è attivo ma `models-legacy.json` non esiste, deve copiare `models.json`. Questa copia deve avvenire dopo la creazione della directory `.req` e dopo il salvataggio di `config.json`.
 - **REQ-028**: Se il template VS Code è disponibile, deve creare o aggiornare `.vscode/settings.json` unendo impostazioni.
 - **REQ-029**: Prima di modificare `.vscode/settings.json`, deve salvare lo stato originale in backup sotto `.req/` (per ripristino con remove).

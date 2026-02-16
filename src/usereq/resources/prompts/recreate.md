@@ -64,7 +64,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - If multiple natural languages are mentioned and the **target language** is not explicitly identified, use English language as **target language**.
       - If no language is specified, use English language as **target language**.
 2. Generate the **Software Requirements Specification**
-   - Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
+   - Read the template at `.req/docs/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
    - Read the **Software Requirements Specification** document `%%DOC_PATH%%/REQUIREMENTS.md` and extract a complete, explicit list of atomic requirements.
       - Preserve every requirement’s original intent; do not delete any requirement.
       - If requirements have IDs, capture them as "Original IDs".
@@ -115,7 +115,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - Write requirements, section titles, tables, and other content in **target language**.
-      - Follow `.req/templates/requirements.md` translated into **target language**.
+      - Follow `.req/docs/requirements.md` translated into **target language**.
       - Output the entire response in clean, properly formatted Markdown.
    - Re-number all requirements in `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md` and preserve all cross-references.
       - You MUST perform a complete renumbering of the requirements in a consistent, deterministic order (document order).

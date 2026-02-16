@@ -345,15 +345,15 @@ class TestCLI(unittest.TestCase):
             self.assertIn("prompt", content, f"{toml} must contain 'prompt'")
 
     def test_templates_copied(self) -> None:
-        """REQ-006: Verifies copy of templates into .req/templates."""
-        templates_dir = self.TEST_DIR / ".req" / "templates"
+        """REQ-006: Verifies copy of templates into .req/docs."""
+        templates_dir = self.TEST_DIR / ".req" / "docs"
         self.assertTrue(
-            templates_dir.is_dir(), "The directory .req/templates must exist"
+            templates_dir.is_dir(), "The directory .req/docs must exist"
         )
         requirements_template = templates_dir / "requirements.md"
         self.assertTrue(
             requirements_template.exists(),
-            "The template requirements.md must exist in .req/templates",
+            "The template requirements.md must exist in .req/docs",
         )
 
     def test_kiro_prompt_files_created(self) -> None:
@@ -702,7 +702,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
         (cls.TEST_DIR / "lib").mkdir(exist_ok=True)
 
         prompts_dir = cls.RESOURCE_DIR / "prompts"
-        templates_dir = cls.RESOURCE_DIR / "templates"
+        templates_dir = cls.RESOURCE_DIR / "docs"
         common_dir = cls.RESOURCE_DIR / "common"
         prompts_dir.mkdir(parents=True, exist_ok=True)
         templates_dir.mkdir(parents=True, exist_ok=True)
@@ -889,11 +889,11 @@ class TestModelsAndTools(unittest.TestCase):
         orig_resources = repo_root / "src" / "usereq" / "resources"
         if (orig_resources / "prompts").is_dir():
             shutil.copytree(orig_resources / "prompts", tmp_resources / "prompts")
-        if (orig_resources / "templates").is_dir():
-            (tmp_resources / "templates").mkdir(parents=True, exist_ok=True)
-            tmpl = orig_resources / "templates" / "requirements.md"
+        if (orig_resources / "docs").is_dir():
+            (tmp_resources / "docs").mkdir(parents=True, exist_ok=True)
+            tmpl = orig_resources / "docs" / "requirements.md"
             if tmpl.exists():
-                shutil.copyfile(tmpl, tmp_resources / "templates" / "requirements.md")
+                shutil.copyfile(tmpl, tmp_resources / "docs" / "requirements.md")
 
         # Use temporary resources as CLI root, without touching project files.
         cli.RESOURCE_ROOT = tmp_resources

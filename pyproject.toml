@@ -43,7 +43,7 @@ include-package-data = true
 usereq = [
   "resources/prompts/*.md",
   "resources/kiro/*.json",
-  "resources/templates/*.md",
+  "resources/docs/*.md",
   "resources/vscode/settings.json",
 ]
 

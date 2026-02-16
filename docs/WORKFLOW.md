@@ -27,7 +27,7 @@
 - Feature: Project initialization/update and provider resource generation
   - Module: `src/usereq/cli.py`
     - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py:L1186-L1989`]
-      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), performs version check and then writes project resources (`.req`, provider prompts/agents, templates, VS Code settings), finally emits installation report.
+      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), performs version check and then writes project resources (`.req`, provider prompts/agents, docs, VS Code settings), finally emits installation report.
       - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py:L1145-L1184`]
         - description: validates incompatible flags, verifies `.req/config.json`, ignores explicit path flags in `--here` mode, executes online version notice check, removes generated resources and prunes empty provider directories.
       - `load_config()`: reads persisted initialization parameters [`src/usereq/cli.py:L502-L536`]
@@ -49,7 +49,7 @@
       - `generate_guidelines_file_list()`: computes token replacement for guideline inventory [`src/usereq/cli.py:L539-L564`]
         - description: scans non-hidden files at guideline root, emits inline-code relative paths, falls back to directory token when empty.
       - `find_template_source()`: resolves requirements template location [`src/usereq/cli.py:L843-L851`]
-        - description: validates `resources/templates/requirements.md` availability before any requirements file creation.
+        - description: validates `resources/docs/requirements.md` availability before any requirements file creation.
       - `load_kiro_template()`: resolves Kiro agent template from centralized models config [`src/usereq/cli.py:L854-L885`]
         - description: loads `models.json` or `models-legacy.json`, extracts `kiro.agent_template` string/object payload, errors on missing template.
       - `load_centralized_models()`: loads provider model/tool metadata [`src/usereq/cli.py:L919-L967`]

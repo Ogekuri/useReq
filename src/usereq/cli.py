@@ -911,11 +911,11 @@ def yaml_double_quote_escape(value: str) -> str:
 def find_template_source() -> Path:
     """! @brief Returns the template source or raises an error.
     """
-    candidate = RESOURCE_ROOT / "templates"
+    candidate = RESOURCE_ROOT / "docs"
     if (candidate / "requirements.md").is_file():
         return candidate
     raise ReqError(
-        "Error: no requirements.md template found in templates or usetemplates",
+        "Error: no requirements.md template found in docs",
         9,
     )
 
@@ -1181,7 +1181,7 @@ def remove_generated_resources(project_base: Path) -> None:
         project_base / ".gemini" / "commands" / "req",
         project_base / ".claude" / "commands" / "req",
         project_base / ".codex" / "skills" / "req",
-        project_base / ".req" / "templates",
+        project_base / ".req" / "docs",
     ]
     remove_globs = [
         project_base / ".codex" / "prompts",
@@ -1961,7 +1961,7 @@ def run(args: Namespace) -> None:
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("commands")
 
-    templates_target = req_root / "templates"
+    templates_target = req_root / "docs"
     if templates_target.exists():
         ensure_wrapped(templates_target, project_base, 10)
         shutil.rmtree(templates_target)

@@ -64,7 +64,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - If multiple natural languages are mentioned and the **target language** is not explicitly identified, use English language as **target language**.
       - If no language is specified, use English language as **target language**.
 2. Generate the **Software Requirements Specification**
-   - Read the template at `.req/templates/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
+   - Read the template at `.req/docs/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
    - Analyze the project's main existing source code, ignoring unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..), to infer the software’s behavior and main features, then produce a hierarchical requirements structure with a maximum depth of 3 levels.
       - Requirements for the output:
          - Describe any text-based UI and/or GUI functionality implemented.
@@ -98,7 +98,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - Write requirements, section titles, tables, and other content in **target language**.
-      - Follow `.req/templates/requirements.md` translated into **target language**.
+      - Follow `.req/docs/requirements.md` translated into **target language**.
       - Output the entire response in clean, properly formatted Markdown.
 3. Validate the **Software Requirements Specification**
    - Review `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code.
