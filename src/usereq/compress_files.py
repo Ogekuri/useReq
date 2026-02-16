@@ -10,9 +10,10 @@ from .compress import compress_file, detect_language
 
 
 def compress_files(filepaths: list[str],
-                   include_line_numbers: bool = True) -> str:
+                   include_line_numbers: bool = True,
+                   verbose: bool = False) -> str:
     """! @brief Compress multiple source files and concatenate with identifying headers.
-    @details Each file is compressed and prefixed with a header line: @@@ <path> | <lang> Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
+    @details Each file is compressed and prefixed with a header line: @@@ <path> | <lang> Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), prefix each line with Lnn> format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
     """
     parts = []
     ok_count = 0
@@ -20,12 +21,14 @@ def compress_files(filepaths: list[str],
 
     for fpath in filepaths:
         if not os.path.isfile(fpath):
-            print(f"  SKIP  {fpath} (not found)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (not found)", file=sys.stderr)
             continue
 
         lang = detect_language(fpath)
         if not lang:
-            print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
             continue
 
         try:
@@ -33,16 +36,19 @@ def compress_files(filepaths: list[str],
             header = f"@@@ {fpath} | {lang}"
             parts.append(f"{header}\n{compressed}")
             ok_count += 1
-            print(f"  OK    {fpath}", file=sys.stderr)
+            if verbose:
+                print(f"  OK    {fpath}", file=sys.stderr)
         except Exception as e:
-            print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
+            if verbose:
+                print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
             fail_count += 1
 
     if not parts:
         raise ValueError("No valid source files processed")
 
-    print(f"\n  Compressed: {ok_count} ok, {fail_count} failed",
-          file=sys.stderr)
+    if verbose:
+        print(f"\n  Compressed: {ok_count} ok, {fail_count} failed",
+              file=sys.stderr)
 
     return "\n\n".join(parts)
 

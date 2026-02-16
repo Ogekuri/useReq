@@ -92,6 +92,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.66 | Aggiunti comandi `--files-find` e `--find` per estrazione costrutti specifici filtrati per tag e pattern regex, con supporto multi-linguaggio e formato markdown strutturato. |
 | 2026-02-16 | 0.67 | Aggiunto il modulo di test `tests/test_find_constructs_comprehensive.py` per validazione completa dell'estrazione costrutti per tutte le combinazioni linguaggio-costrutto utilizzando le fixture in `tests/fixtures/`. |
 | 2026-02-16 | 0.68 | Aggiunta generazione dinamica dell'elenco TAG disponibili per linguaggio nei messaggi di errore e nell'help di `--files-find` e `--find`, con funzione `format_available_tags()` e aggiornamento requisiti REQ-003, CMD-018, CMD-023 e aggiunta FND-013. |
+| 2026-02-16 | 0.69 | Reso condizionale al flag `--verbose` l'output di stato elaborazione per `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -413,11 +414,11 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce i requisiti per il modulo di generazione markdown di riferimento per il contesto LLM.
 - **MKD-001**: Il modulo `usereq.generate_markdown` deve analizzare file sorgente utilizzando `usereq.source_analyzer` e produrre un output markdown concatenato.
 - **MKD-002**: Il modulo deve determinare il linguaggio dal file extension utilizzando la mappa estensione-linguaggio supportata.
-- **MKD-003**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
-- **MKD-004**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+- **MKD-003**: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
+- **MKD-004**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **MKD-005**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
 - **MKD-006**: I risultati di analisi markdown devono essere concatenati con separatore `\n\n---\n\n`.
-- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr.
+- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
 
 ### 3.18 Compressione Sorgenti
 - Questa sezione definisce i requisiti per il modulo di compressione del codice sorgente.
@@ -428,10 +429,10 @@ Il progetto include una suite di test in `tests/`.
 - **CMP-005**: I commenti all'interno di stringhe letterali non devono essere rimossi.
 - **CMP-006**: Il modulo deve determinare automaticamente il linguaggio dall'estensione del file, con possibilità di override manuale.
 - **CMP-007**: Il modulo `usereq.compress_files` deve comprimere e concatenare file sorgente multipli, producendo per ciascun file un header nel formato `@@@ <percorso> | <linguaggio>` seguito dal contenuto compresso.
-- **CMP-008**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
-- **CMP-009**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+- **CMP-008**: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
+- **CMP-009**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **CMP-010**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
-- **CMP-011**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr.
+- **CMP-011**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
 - **CMP-012**: I blocchi di commenti multi-riga (incluse docstrings Python con `"""` e `'''`) devono essere rimossi nella compressione.
 
 ### 3.19 Comandi Standalone su File Arbitrari
@@ -462,14 +463,14 @@ Il progetto include una suite di test in `tests/`.
 - **FND-001**: Il modulo `usereq.find_constructs` deve estrarre costrutti specifici da file sorgente filtrando per tipo elemento (`TAG`) e nome elemento tramite pattern regex (`REGEXP`).
 - **FND-002**: Il parametro `<TAG>` deve accettare uno o più identificatori di tipo elemento separati dal carattere `|`. Gli identificatori validi per linguaggio sono: Python (`CLASS`, `FUNCTION`, `DECORATOR`, `IMPORT`, `VARIABLE`), C (`STRUCT`, `UNION`, `ENUM`, `TYPEDEF`, `MACRO`, `FUNCTION`, `IMPORT`, `VARIABLE`), C++ (`CLASS`, `STRUCT`, `ENUM`, `NAMESPACE`, `FUNCTION`, `MACRO`, `IMPORT`, `TYPE_ALIAS`), Rust (`FUNCTION`, `STRUCT`, `ENUM`, `TRAIT`, `IMPL`, `MODULE`, `MACRO`, `CONSTANT`, `TYPE_ALIAS`, `IMPORT`, `DECORATOR`), JavaScript (`CLASS`, `FUNCTION`, `COMPONENT`, `CONSTANT`, `IMPORT`, `MODULE`), TypeScript (`INTERFACE`, `TYPE_ALIAS`, `ENUM`, `CLASS`, `FUNCTION`, `NAMESPACE`, `MODULE`, `IMPORT`, `DECORATOR`), Java (`CLASS`, `INTERFACE`, `ENUM`, `FUNCTION`, `IMPORT`, `MODULE`, `DECORATOR`, `CONSTANT`), Go (`FUNCTION`, `METHOD`, `STRUCT`, `INTERFACE`, `TYPE_ALIAS`, `CONSTANT`, `IMPORT`, `MODULE`), Ruby (`CLASS`, `MODULE`, `FUNCTION`, `CONSTANT`, `IMPORT`, `DECORATOR`), PHP (`CLASS`, `INTERFACE`, `TRAIT`, `FUNCTION`, `NAMESPACE`, `IMPORT`, `CONSTANT`), Swift (`CLASS`, `STRUCT`, `ENUM`, `PROTOCOL`, `EXTENSION`, `FUNCTION`, `IMPORT`, `CONSTANT`, `VARIABLE`), Kotlin (`CLASS`, `INTERFACE`, `ENUM`, `FUNCTION`, `CONSTANT`, `VARIABLE`, `MODULE`, `IMPORT`, `DECORATOR`), Scala (`CLASS`, `TRAIT`, `MODULE`, `FUNCTION`, `CONSTANT`, `VARIABLE`, `TYPE_ALIAS`, `IMPORT`), Lua (`FUNCTION`, `VARIABLE`), Shell (`FUNCTION`, `VARIABLE`, `IMPORT`), Perl (`FUNCTION`, `MODULE`, `IMPORT`, `CONSTANT`), Haskell (`MODULE`, `TYPE_ALIAS`, `STRUCT`, `CLASS`, `FUNCTION`, `IMPORT`), Zig (`FUNCTION`, `STRUCT`, `ENUM`, `UNION`, `CONSTANT`, `VARIABLE`, `IMPORT`), Elixir (`MODULE`, `FUNCTION`, `PROTOCOL`, `IMPL`, `STRUCT`, `IMPORT`), C# (`CLASS`, `INTERFACE`, `STRUCT`, `ENUM`, `NAMESPACE`, `FUNCTION`, `PROPERTY`, `IMPORT`, `DECORATOR`, `CONSTANT`).
 - **FND-003**: Il parametro `<REGEXP>` deve essere una espressione regolare Python (sintassi `re` module) applicata al nome del costrutto estratto. Il match deve essere case-sensitive e testato con `re.search()`.
-- **FND-004**: Se un file sorgente non supporta nessuno dei tag specificati in `<TAG>` per il suo linguaggio, il file deve essere saltato con un messaggio SKIP su stderr.
+- **FND-004**: Se un file sorgente non supporta nessuno dei tag specificati in `<TAG>` per il suo linguaggio, il file deve essere saltato; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **FND-005**: La funzione `find_constructs_in_files()` deve analizzare ciascun file con `SourceAnalyzer.analyze()` e `SourceAnalyzer.enrich()`, filtrare gli elementi per tag e regex, e formattare l'output in markdown.
 - **FND-006**: Il formato di output markdown deve contenere per ciascun file un header `@@@ <percorso> | <linguaggio>`, seguito dall'elenco dei costrutti trovati con: tipo costrutto, nome, firma (se presente), riga iniziale, riga finale, codice estratto completo.
 - **FND-007**: Il codice estratto per ciascun costrutto deve includere i prefissi con numero di riga nel formato `L<n>> <testo>` per default. I prefissi devono essere disabilitabili con l'opzione `include_line_numbers=False`.
-- **FND-008**: Lo stato di elaborazione (OK/SKIP/FAIL e conteggio) deve essere stampato su stderr.
+- **FND-008**: Lo stato di elaborazione (OK/SKIP/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
 - **FND-009**: Se nessun file valido viene processato o nessun costrutto viene trovato, deve essere lanciata una eccezione `ValueError`.
-- **FND-010**: I file non trovati devono essere ignorati con un messaggio SKIP su stderr.
-- **FND-011**: I file con estensione non supportata devono essere ignorati con un messaggio SKIP su stderr.
+- **FND-010**: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
+- **FND-011**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **FND-013**: Il modulo `usereq.find_constructs` deve fornire una funzione `format_available_tags()` che genera l'elenco formattato dei TAG disponibili per linguaggio, iterando dinamicamente sulla mappa `LANGUAGE_TAGS`. Il formato di output deve essere multi-riga con ogni linguaggio su una riga separata nel formato: `- <Linguaggio>: TAG1, TAG2, TAG3, ...` (linguaggio con prima lettera maiuscola, TAG separati da virgola+spazio, ordinati alfabeticamente).
 
 ### 3.22 Comandi Standalone per Estrazione Costrutti
@@ -488,3 +489,4 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-026**: La scansione delle directory sorgenti per il comando `--find` deve essere ricorsiva, esaminando tutte le sottodirectory delle directory sorgenti configurate, escludendo le directory elencate in CMD-012.
 - **CMD-027**: Il comando `--find`, quando utilizzato con `--update`, deve caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
 - **CMD-028**: Il comando `--find` deve accettare il flag opzionale `--disable-line-numbers`; quando il flag è presente l'output non deve includere i prefissi `L<numero>>`, quando il flag è assente i prefissi devono essere inclusi.
+- **CMD-029**: I comandi `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find` devono stampare su stderr gli output di stato elaborazione (OK/SKIP/FAIL e riepiloghi) solo quando è presente il flag `--verbose`; senza `--verbose` tali output non devono essere stampati.

@@ -2199,7 +2199,7 @@ def run_files_references(files: list[str]) -> None:
     """
     from .generate_markdown import generate_markdown
 
-    md = generate_markdown(files)
+    md = generate_markdown(files, verbose=VERBOSE)
     print(md)
 
 
@@ -2210,7 +2210,11 @@ def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> 
     """
     from .compress_files import compress_files
 
-    output = compress_files(files, include_line_numbers=not disable_line_numbers)
+    output = compress_files(
+        files,
+        include_line_numbers=not disable_line_numbers,
+        verbose=VERBOSE,
+    )
     print(output)
 
 
@@ -2231,7 +2235,11 @@ def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> 
     files = args_list[2:]
 
     output = find_constructs_in_files(
-        files, tag_filter, pattern, include_line_numbers=not disable_line_numbers
+        files,
+        tag_filter,
+        pattern,
+        include_line_numbers=not disable_line_numbers,
+        verbose=VERBOSE,
     )
     print(output)
 
@@ -2245,7 +2253,7 @@ def run_references(args: Namespace) -> None:
     files = _collect_source_files(src_dirs, project_base)
     if not files:
         raise ReqError("Error: no source files found in configured directories.", 1)
-    md = generate_markdown(files)
+    md = generate_markdown(files, verbose=VERBOSE)
     files_structure = _format_files_structure_markdown(files, project_base)
     print(f"{files_structure}\n\n{md}")
 
@@ -2263,6 +2271,7 @@ def run_compress_cmd(args: Namespace) -> None:
     output = compress_files(
         files,
         include_line_numbers=not getattr(args, "disable_line_numbers", False),
+        verbose=VERBOSE,
     )
     print(output)
 
@@ -2287,6 +2296,7 @@ def run_find(args: Namespace) -> None:
             tag_filter,
             pattern,
             include_line_numbers=not getattr(args, "disable_line_numbers", False),
+            verbose=VERBOSE,
         )
         print(output)
     except ValueError as e:
@@ -2361,6 +2371,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     @details Returns an exit code (0 success, non-zero on error).
     """
     try:
+        global VERBOSE, DEBUG
         argv_list = sys.argv[1:] if argv is None else argv
         if not argv_list:
             build_parser().print_help()
@@ -2374,6 +2385,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         if maybe_print_version(argv_list):
             return 0
         args = parse_args(argv_list)
+        VERBOSE = getattr(args, "verbose", False)
+        DEBUG = getattr(args, "debug", False)
         # Standalone file commands (no --base/--here required)
         if _is_standalone_command(args):
             if getattr(args, "files_tokens", None):

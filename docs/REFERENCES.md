@@ -1,15 +1,3 @@
-  OK    /home/ogekuri/useReq/src/usereq/__init__.py
-  OK    /home/ogekuri/useReq/src/usereq/__main__.py
-  OK    /home/ogekuri/useReq/src/usereq/cli.py
-  OK    /home/ogekuri/useReq/src/usereq/compress.py
-  OK    /home/ogekuri/useReq/src/usereq/compress_files.py
-  OK    /home/ogekuri/useReq/src/usereq/find_constructs.py
-  OK    /home/ogekuri/useReq/src/usereq/generate_markdown.py
-  OK    /home/ogekuri/useReq/src/usereq/pdoc_utils.py
-  OK    /home/ogekuri/useReq/src/usereq/source_analyzer.py
-  OK    /home/ogekuri/useReq/src/usereq/token_counter.py
-
-  Processed: 10 ok, 0 failed
 # Files Structure
 ```
 .
@@ -64,7 +52,7 @@ import sys
 
 ---
 
-# cli.py | Python | 2421L | 90 symbols | 23 imports | 148 comments
+# cli.py | Python | 2434L | 92 symbols | 23 imports | 148 comments
 > Path: `/home/ogekuri/useReq/src/usereq/cli.py`
 > ! @brief CLI entry point implementing the useReq initialization flow.
 
@@ -443,63 +431,65 @@ L2191> `raise ReqError("Error: no valid files provided.", 1)`
 ### fn `def run_files_references(files: list[str]) -> None` (L2197-2205)
 L2198-2199> ! @brief Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None` (L2206-2216)
+### fn `def run_files_compress(files: list[str], disable_line_numbers: bool = False) -> None` (L2206-2220)
 L2207-2210> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If True, suppresses Lnn> prefixes in compressed entries.
 
-### fn `def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None` (L2217-2238)
-L2218-2221> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
-L2225> `raise ReqError(`
+### fn `def run_files_find(args_list: list[str], disable_line_numbers: bool = False) -> None` (L2221-2246)
+L2222-2225> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disable_line_numbers If True, suppresses Lnn> prefixes in output.
+L2229> `raise ReqError(`
 
-### fn `def run_references(args: Namespace) -> None` (L2239-2252)
-L2240-2241> ! @brief Execute --references: generate markdown for project source files.
-L2247> `raise ReqError("Error: no source files found in configured directories.", 1)`
+### fn `def run_references(args: Namespace) -> None` (L2247-2260)
+L2248-2249> ! @brief Execute --references: generate markdown for project source files.
+L2255> `raise ReqError("Error: no source files found in configured directories.", 1)`
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2253-2269)
-L2254-2256> ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
-L2262> `raise ReqError("Error: no source files found in configured directories.", 1)`
+### fn `def run_compress_cmd(args: Namespace) -> None` (L2261-2278)
+L2262-2264> ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
+L2270> `raise ReqError("Error: no source files found in configured directories.", 1)`
 
-### fn `def run_find(args: Namespace) -> None` (L2270-2295)
-L2271-2274> ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
-L2280> `raise ReqError("Error: no source files found in configured directories.", 1)`
-L2282> args.find is a list [TAG, PATTERN]
-L2293> `raise ReqError(str(e), 1)`
+### fn `def run_find(args: Namespace) -> None` (L2279-2305)
+L2280-2283> ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
+L2289> `raise ReqError("Error: no source files found in configured directories.", 1)`
+L2291> args.find is a list [TAG, PATTERN]
+L2303> `raise ReqError(str(e), 1)`
 
-### fn `def run_tokens(args: Namespace) -> None` (L2296-2313)
-L2297-2300> ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
-L2304> `raise ReqError("Error: --tokens requires --docs-dir.", 1)`
-L2310> `raise ReqError("Error: no files found in --docs-dir.", 1)`
+### fn `def run_tokens(args: Namespace) -> None` (L2306-2323)
+L2307-2310> ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
+L2314> `raise ReqError("Error: --tokens requires --docs-dir.", 1)`
+L2320> `raise ReqError("Error: no files found in --docs-dir.", 1)`
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2314-2334)
-L2315-2319> ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @throws ReqError If --base/--here is missing or the resolved path does not exist.
-L2321> `raise ReqError(`
-L2331> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
-L2332> `return project_base`
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2324-2344)
+L2325-2329> ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @throws ReqError If --base/--here is missing or the resolved path does not exist.
+L2331> `raise ReqError(`
+L2341> `raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)`
+L2342> `return project_base`
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2335-2358)
-L2336-2337> ! @brief Resolve project base and src-dirs for --references/--compress.
-L2340> Source dirs can come from args or from config
-L2343> Try to load from config
-L2349> `raise ReqError(`
-L2354> `raise ReqError("Error: no source directories configured.", 1)`
-L2356> `return project_base, src_dirs`
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2345-2368)
+L2346-2347> ! @brief Resolve project base and src-dirs for --references/--compress.
+L2350> Source dirs can come from args or from config
+L2353> Try to load from config
+L2359> `raise ReqError(`
+L2364> `raise ReqError("Error: no source directories configured.", 1)`
+L2366> `return project_base, src_dirs`
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2359-2421)
-L2360-2362> ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
-L2367> `return 0`
-L2370> `return 0`
-L2373> `return 0`
-L2375> `return 0`
-L2377> Standalone file commands (no --base/--here required)
-L2393> `return 0`
-L2394> Project scan commands (require --base/--here)
-L2404> `return 0`
-L2405> Standard init flow requires --base or --here
-L2407> `raise ReqError(`
-L2413> `return e.code`
-L2414> Unexpected error
-L2420> `return 1`
-L2421> `return 0`
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L2369-2434)
+L2370-2372> ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
+L2378> `return 0`
+L2381> `return 0`
+L2384> `return 0`
+L2386> `return 0`
+L2390> Standalone file commands (no --base/--here required)
+L2406> `return 0`
+L2407> Project scan commands (require --base/--here)
+L2417> `return 0`
+L2418> Standard init flow requires --base or --here
+L2420> `raise ReqError(`
+L2426> `return e.code`
+L2427> Unexpected error
+L2433> `return 1`
+L2434> `return 0`
 
+- var `VERBOSE = getattr(args, "verbose", False)` (L2388)
+- var `DEBUG = getattr(args, "debug", False)` (L2389)
 ## Comments
 - L37: ! @brief Initialize an expected CLI failure payload. @param message Human-readable error message. @param code Process exit code bound to the failur...
 - L47: ! @brief Prints an informational message.
@@ -616,20 +606,20 @@ L2421> `return 0`
 - L2179: ! @brief Execute --files-tokens: count tokens for arbitrary files.
 - L2198: ! @brief Execute --files-references: generate markdown for arbitrary files.
 - L2207: ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param disable_line_numbers If Tru...
-- L2218: ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disabl...
-- L2240: ! @brief Execute --references: generate markdown for project source files.
-- L2254: ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
-- L2271: ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files f...
-- L2282: args.find is a list [TAG, PATTERN]
-- L2297: ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--he...
-- L2315: ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @...
-- L2336: ! @brief Resolve project base and src-dirs for --references/--compress.
-- L2340: Source dirs can come from args or from config
-- L2343: Try to load from config
-- L2360: ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
-- L2377: Standalone file commands (no --base/--here required)
-- L2394: Project scan commands (require --base/--here)
-- L2405: Standard init flow requires --base or --here
+- L2222: ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param disabl...
+- L2248: ! @brief Execute --references: generate markdown for project source files.
+- L2262: ! @brief Execute --compress: compress project source files. @param args Parsed CLI arguments namespace.
+- L2280: ! @brief Execute --find: find constructs in project source files. @param args Parsed CLI arguments namespace. @throws ReqError If no source files f...
+- L2291: args.find is a list [TAG, PATTERN]
+- L2307: ! @brief Execute --tokens: count tokens for files directly in --docs-dir. @param args Parsed CLI arguments namespace. @details Requires --base/--he...
+- L2325: ! @brief Resolve project base path for project-level commands. @param args Parsed CLI arguments namespace. @return Absolute path of project base. @...
+- L2346: ! @brief Resolve project base and src-dirs for --references/--compress.
+- L2350: Source dirs can come from args or from config
+- L2353: Try to load from config
+- L2370: ! @brief CLI entry point for console_scripts and `-m` execution. @details Returns an exit code (0 success, non-zero on error).
+- L2390: Standalone file commands (no --base/--here required)
+- L2407: Project scan commands (require --base/--here)
+- L2418: Standard init flow requires --base or --here
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -715,15 +705,17 @@ L2421> `return 0`
 |`_is_project_scan_command`|fn|priv|2167-2177|def _is_project_scan_command(args: Namespace) -> bool|
 |`run_files_tokens`|fn|pub|2178-2196|def run_files_tokens(files: list[str]) -> None|
 |`run_files_references`|fn|pub|2197-2205|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2206-2216|def run_files_compress(files: list[str], disable_line_num...|
-|`run_files_find`|fn|pub|2217-2238|def run_files_find(args_list: list[str], disable_line_num...|
-|`run_references`|fn|pub|2239-2252|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2253-2269|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|2270-2295|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2296-2313|def run_tokens(args: Namespace) -> None|
-|`_resolve_project_base`|fn|priv|2314-2334|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|2335-2358|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2359-2421|def main(argv: Optional[list[str]] = None) -> int|
+|`run_files_compress`|fn|pub|2206-2220|def run_files_compress(files: list[str], disable_line_num...|
+|`run_files_find`|fn|pub|2221-2246|def run_files_find(args_list: list[str], disable_line_num...|
+|`run_references`|fn|pub|2247-2260|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|2261-2278|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|2279-2305|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|2306-2323|def run_tokens(args: Namespace) -> None|
+|`_resolve_project_base`|fn|priv|2324-2344|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|2345-2368|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|2369-2434|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|2388||
+|`DEBUG`|var|pub|2389||
 
 
 ---
@@ -865,7 +857,7 @@ L350> `sys.exit(1)`
 
 ---
 
-# compress_files.py | Python | 70L | 2 symbols | 4 imports | 4 comments
+# compress_files.py | Python | 76L | 2 symbols | 4 imports | 4 comments
 > Path: `/home/ogekuri/useReq/src/usereq/compress_files.py`
 > ! @brief compress_files.py - Compress and concatenate multiple source files. @details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with ...
 
@@ -879,30 +871,30 @@ import argparse
 
 ## Definitions
 
-### fn `def compress_files(filepaths: list[str],` (L12-49)
-L14-16> ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and prefixed with a header line: @@@ <path> | <lang> Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
-L42> `raise ValueError("No valid source files processed")`
-L47> `return "\n\n".join(parts)`
+### fn `def compress_files(filepaths: list[str],` (L12-55)
+L15-17> ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and prefixed with a header line: @@@ <path> | <lang> Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), prefix each line with Lnn> format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
+L47> `raise ValueError("No valid source files processed")`
+L53> `return "\n\n".join(parts)`
 
-### fn `def main()` (L50-68)
-L51> ! @brief Execute the multi-file compression CLI command.
-L66> `sys.exit(1)`
+### fn `def main()` (L56-74)
+L57> ! @brief Execute the multi-file compression CLI command.
+L72> `sys.exit(1)`
 
 ## Comments
 - L2: ! @brief compress_files.py - Compress and concatenate multiple source files. @details Uses the compress module to strip comments and whitespace fro...
-- L14: ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and prefixed with a header line:...
-- L51: ! @brief Execute the multi-file compression CLI command.
+- L15: ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and prefixed with a header line:...
+- L57: ! @brief Execute the multi-file compression CLI command.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`compress_files`|fn|pub|12-49|def compress_files(filepaths: list[str],|
-|`main`|fn|pub|50-68|def main()|
+|`compress_files`|fn|pub|12-55|def compress_files(filepaths: list[str],|
+|`main`|fn|pub|56-74|def main()|
 
 
 ---
 
-# find_constructs.py | Python | 225L | 8 symbols | 7 imports | 13 comments
+# find_constructs.py | Python | 233L | 8 symbols | 7 imports | 13 comments
 > Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 > ! @brief find_constructs.py - Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating ...
 
@@ -944,11 +936,11 @@ L90-94> ! @brief Format a single matched construct for markdown output. @param e
 L101> Format code extract with optional line numbers
 L113> `return "\n".join(lines)`
 
-### fn `def find_constructs_in_files(` (L116-120)
+### fn `def find_constructs_in_files(` (L116-121)
 
-### fn `def main()` (L190-223)
-L191> ! @brief Execute the construct finding CLI command.
-L221> `sys.exit(1)`
+### fn `def main()` (L198-231)
+L199> ! @brief Execute the construct finding CLI command.
+L229> `sys.exit(1)`
 
 ## Comments
 - L2: ! @brief find_constructs.py - Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc...
@@ -958,10 +950,10 @@ L221> `sys.exit(1)`
 - L73: ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of...
 - L90: ! @brief Format a single matched construct for markdown output. @param element SourceElement instance. @param include_line_numbers If True, prefix ...
 - L101: Format code extract with optional line numbers
-- L122: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @details Analyzes each file with SourceAnalyzer, fi...
-- L148: Check if language supports at least one requested tag
-- L159: Filter elements matching tag and pattern
-- L191: ! @brief Execute the construct finding CLI command.
+- L123: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @details Analyzes each file with SourceAnalyzer, fi...
+- L151: Check if language supports at least one requested tag
+- L163: Filter elements matching tag and pattern
+- L199: ! @brief Execute the construct finding CLI command.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -972,13 +964,13 @@ L221> `sys.exit(1)`
 |`language_supports_tags`|fn|pub|62-71|def language_supports_tags(lang: str, tag_set: set[str]) ...|
 |`construct_matches`|fn|pub|72-88|def construct_matches(element, tag_set: set[str], pattern...|
 |`format_construct`|fn|pub|89-115|def format_construct(element, include_line_numbers: bool)...|
-|`find_constructs_in_files`|fn|pub|116-120|def find_constructs_in_files(|
-|`main`|fn|pub|190-223|def main()|
+|`find_constructs_in_files`|fn|pub|116-121|def find_constructs_in_files(|
+|`main`|fn|pub|198-231|def main()|
 
 
 ---
 
-# generate_markdown.py | Python | 110L | 4 symbols | 3 imports | 7 comments
+# generate_markdown.py | Python | 115L | 4 symbols | 3 imports | 7 comments
 > Path: `/home/ogekuri/useReq/src/usereq/generate_markdown.py`
 > ! @brief generate_markdown.py - Generate concatenated markdown from arbitrary source files. @details Analyzes each input file with source_analyzer and produces a single markdown output concatenatin...
 
@@ -997,29 +989,29 @@ L36> ! @brief Extension-to-language normalization map for markdown generation.
 L40-41> ! @brief Detect language from file extension.
 L43> `return EXT_LANG_MAP.get(ext.lower())`
 
-### fn `def generate_markdown(filepaths: list[str]) -> str` (L46-93)
-L47-49> ! @brief Analyze source files and return concatenated markdown. @details Args: filepaths: List of source file paths to analyze. Returns: Concatenated markdown string with all file analyses. Raises: ValueError: If no valid source files are found.
-L86> `raise ValueError("No valid source files processed")`
-L91> `return "\n\n---\n\n".join(md_parts)`
+### fn `def generate_markdown(filepaths: list[str], verbose: bool = False) -> str` (L46-98)
+L47-49> ! @brief Analyze source files and return concatenated markdown. @details Args: filepaths: List of source file paths to analyze. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown string with all file analyses. Raises: ValueError: If no valid source files are found.
+L90> `raise ValueError("No valid source files processed")`
+L96> `return "\n\n---\n\n".join(md_parts)`
 
-### fn `def main()` (L94-108)
-L95> ! @brief Execute the standalone markdown generation CLI command.
-L99> `sys.exit(1)`
-L106> `sys.exit(1)`
+### fn `def main()` (L99-113)
+L100> ! @brief Execute the standalone markdown generation CLI command.
+L104> `sys.exit(1)`
+L111> `sys.exit(1)`
 
 ## Comments
 - L2: ! @brief generate_markdown.py - Generate concatenated markdown from arbitrary source files. @details Analyzes each input file with source_analyzer ...
 - L40: ! @brief Detect language from file extension.
-- L47: ! @brief Analyze source files and return concatenated markdown. @details Args: filepaths: List of source file paths to analyze. Returns: Concatenat...
-- L95: ! @brief Execute the standalone markdown generation CLI command.
+- L47: ! @brief Analyze source files and return concatenated markdown. @details Args: filepaths: List of source file paths to analyze. verbose: If True, e...
+- L100: ! @brief Execute the standalone markdown generation CLI command.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
 |`EXT_LANG_MAP`|var|pub|12||
 |`detect_language`|fn|pub|39-45|def detect_language(filepath: str) -> str | None|
-|`generate_markdown`|fn|pub|46-93|def generate_markdown(filepaths: list[str]) -> str|
-|`main`|fn|pub|94-108|def main()|
+|`generate_markdown`|fn|pub|46-98|def generate_markdown(filepaths: list[str], verbose: bool...|
+|`main`|fn|pub|99-113|def main()|
 
 
 ---

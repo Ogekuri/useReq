@@ -155,7 +155,7 @@ class TestCompressFiles:
         try:
             result = compress_files(["/nonexistent.py", valid_path])
             captured = capsys.readouterr()
-            assert "SKIP" in captured.err
+            assert "SKIP" not in captured.err
         finally:
             os.unlink(valid_path)
 
@@ -172,7 +172,27 @@ class TestCompressFiles:
         try:
             result = compress_files([txt_file.name, py_file.name])
             captured = capsys.readouterr()
+            assert "SKIP" not in captured.err
+        finally:
+            os.unlink(py_file.name)
+            os.unlink(txt_file.name)
+
+    def test_progress_messages_with_verbose(self, capsys):
+        """CMP-008, CMP-009, CMP-011: Progress messages must require verbose."""
+        py_file = tempfile.NamedTemporaryFile(mode="w", suffix=".py",
+                                              delete=False)
+        py_file.write("x = 1\n")
+        py_file.close()
+        txt_file = tempfile.NamedTemporaryFile(mode="w", suffix=".xyz",
+                                               delete=False)
+        txt_file.write("data")
+        txt_file.close()
+        try:
+            compress_files(["/nonexistent.py", txt_file.name, py_file.name], verbose=True)
+            captured = capsys.readouterr()
             assert "SKIP" in captured.err
+            assert "OK" in captured.err
+            assert "Compressed:" in captured.err
         finally:
             os.unlink(py_file.name)
             os.unlink(txt_file.name)

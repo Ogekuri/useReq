@@ -84,6 +84,7 @@ class TestFilesReferencesCommand:
             assert rc == 0
             captured = capsys.readouterr()
             assert len(captured.out) > 0
+            assert captured.err == ""
         finally:
             os.unlink(path)
 
@@ -96,6 +97,21 @@ class TestFilesReferencesCommand:
         try:
             rc = main(["--files-references", path])
             assert rc == 0
+        finally:
+            os.unlink(path)
+
+    def test_files_references_verbose_outputs_progress(self, capsys):
+        """CMD-029: Progress messages must be printed only with --verbose."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py",
+                                         delete=False) as f:
+            f.write("x = 1\n")
+            path = f.name
+        try:
+            rc = main(["--verbose", "--files-references", path])
+            assert rc == 0
+            captured = capsys.readouterr()
+            assert "OK" in captured.err
+            assert "Processed:" in captured.err
         finally:
             os.unlink(path)
 
@@ -114,6 +130,7 @@ class TestFilesCompressCommand:
             assert rc == 0
             captured = capsys.readouterr()
             assert "@@@" in captured.out
+            assert captured.err == ""
         finally:
             os.unlink(path)
 
@@ -140,6 +157,21 @@ class TestFilesCompressCommand:
             captured = capsys.readouterr()
             assert "L1>" not in captured.out
             assert "x = 1" in captured.out
+        finally:
+            os.unlink(path)
+
+    def test_files_compress_verbose_outputs_progress(self, capsys):
+        """CMD-029: Progress messages must be printed only with --verbose."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py",
+                                         delete=False) as f:
+            f.write("x = 1\n")
+            path = f.name
+        try:
+            rc = main(["--verbose", "--files-compress", path])
+            assert rc == 0
+            captured = capsys.readouterr()
+            assert "OK" in captured.err
+            assert "Compressed:" in captured.err
         finally:
             os.unlink(path)
 
@@ -323,6 +355,39 @@ class TestTokensCommand:
         assert "a.md" in captured.out
         assert "b.txt" in captured.out
         assert "skip.md" not in captured.out
+
+
+class TestFindCommandVerbose:
+    """CMD-029: Verbose-gated progress output for --files-find and --find."""
+
+    def test_files_find_default_suppresses_progress(self, capsys, tmp_path):
+        src = tmp_path / "a.py"
+        src.write_text("def foo():\n    return 1\n", encoding="utf-8")
+        rc = main(["--files-find", "FUNCTION", "foo", str(src)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "foo" in captured.out
+        assert captured.err == ""
+
+    def test_files_find_verbose_outputs_progress(self, capsys, tmp_path):
+        src = tmp_path / "a.py"
+        src.write_text("def foo():\n    return 1\n", encoding="utf-8")
+        rc = main(["--verbose", "--files-find", "FUNCTION", "foo", str(src)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "OK" in captured.err
+        assert "Found:" in captured.err
+
+    def test_find_verbose_outputs_progress(self, capsys, tmp_path, monkeypatch):
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "a.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--verbose", "--here", "--find", "FUNCTION", "foo", "--src-dir", "src"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "OK" in captured.err
+        assert "Found:" in captured.err
 
 
 class TestSupportedExtensions:

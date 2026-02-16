@@ -201,6 +201,25 @@ def test_find_constructs_disable_line_numbers(tmp_path):
     assert "L1>" not in output_without
 
 
+def test_find_constructs_no_progress_without_verbose(tmp_path, capsys):
+    """! @brief Test that progress messages are suppressed by default."""
+    test_file = tmp_path / "test.py"
+    test_file.write_text("def foo():\n    pass")
+    find_constructs_in_files([str(test_file)], "FUNCTION", "foo")
+    captured = capsys.readouterr()
+    assert captured.err == ""
+
+
+def test_find_constructs_progress_with_verbose(tmp_path, capsys):
+    """! @brief Test that progress messages are shown in verbose mode."""
+    test_file = tmp_path / "test.py"
+    test_file.write_text("def foo():\n    pass")
+    find_constructs_in_files([str(test_file)], "FUNCTION", "foo", verbose=True)
+    captured = capsys.readouterr()
+    assert "OK" in captured.err
+    assert "Found:" in captured.err
+
+
 def test_language_tags_completeness():
     """! @brief Test that all required languages have tag definitions."""
     required_languages = [

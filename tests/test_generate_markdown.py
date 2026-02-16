@@ -53,7 +53,7 @@ class TestGenerateMarkdown:
             md = generate_markdown(["/nonexistent/file.py", valid_path])
             assert isinstance(md, str)
             captured = capsys.readouterr()
-            assert "SKIP" in captured.err
+            assert "SKIP" not in captured.err
         finally:
             os.unlink(valid_path)
 
@@ -70,7 +70,29 @@ class TestGenerateMarkdown:
         try:
             md = generate_markdown([unsup.name, valid_path])
             captured = capsys.readouterr()
+            assert "SKIP" not in captured.err
+        finally:
+            os.unlink(valid_path)
+            os.unlink(unsup.name)
+
+    def test_skip_messages_with_verbose(self, capsys):
+        """MKD-003, MKD-004, MKD-007: Progress messages must require verbose."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py",
+                                         delete=False) as f:
+            f.write("x = 1\n")
+            valid_path = f.name
+        unsup = tempfile.NamedTemporaryFile(mode="w", suffix=".xyz",
+                                            delete=False)
+        unsup.write("data")
+        unsup.close()
+        try:
+            generate_markdown(
+                ["/nonexistent/file.py", unsup.name, valid_path], verbose=True
+            )
+            captured = capsys.readouterr()
             assert "SKIP" in captured.err
+            assert "OK" in captured.err
+            assert "Processed:" in captured.err
         finally:
             os.unlink(valid_path)
             os.unlink(unsup.name)

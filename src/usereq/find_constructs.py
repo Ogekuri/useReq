@@ -118,9 +118,10 @@ def find_constructs_in_files(
     tag_filter: str,
     pattern: str,
     include_line_numbers: bool = True,
+    verbose: bool = False,
 ) -> str:
     """! @brief Find and extract constructs matching tag filter and regex pattern from multiple files.
-    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers. Args: filepaths: List of source file paths. tag_filter: Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION"). pattern: Regex pattern for construct name matching. include_line_numbers: If True (default), prefix code lines with Lnn> format. Returns: Concatenated markdown output string. Raises: ValueError: If no files could be processed or no constructs found.
+    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers. Args: filepaths: List of source file paths. tag_filter: Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION"). pattern: Regex pattern for construct name matching. include_line_numbers: If True (default), prefix code lines with Lnn> format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown output string. Raises: ValueError: If no files could be processed or no constructs found.
     """
     tag_set = parse_tag_filter(tag_filter)
     if not tag_set:
@@ -135,19 +136,22 @@ def find_constructs_in_files(
 
     for fpath in filepaths:
         if not os.path.isfile(fpath):
-            print(f"  SKIP  {fpath} (not found)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (not found)", file=sys.stderr)
             skip_count += 1
             continue
 
         lang = detect_language(fpath)
         if not lang:
-            print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
             skip_count += 1
             continue
 
         # Check if language supports at least one requested tag
         if not language_supports_tags(lang, tag_set):
-            print(f"  SKIP  {fpath} (language {lang} does not support any requested tags)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (language {lang} does not support any requested tags)", file=sys.stderr)
             skip_count += 1
             continue
 
@@ -165,24 +169,28 @@ def find_constructs_in_files(
                 parts.append(f"{header}\n\n{constructs_md}")
                 total_matches += len(matches)
                 ok_count += 1
-                print(f"  OK    {fpath} ({len(matches)} matches)", file=sys.stderr)
+                if verbose:
+                    print(f"  OK    {fpath} ({len(matches)} matches)", file=sys.stderr)
             else:
-                print(f"  SKIP  {fpath} (no matches)", file=sys.stderr)
+                if verbose:
+                    print(f"  SKIP  {fpath} (no matches)", file=sys.stderr)
                 skip_count += 1
 
         except Exception as e:
-            print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
+            if verbose:
+                print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
             fail_count += 1
 
     if not parts:
         available = format_available_tags()
         raise ValueError(f"No constructs found matching the specified criteria.\n\nAvailable tags by language:\n{available}")
 
-    print(
-        f"\n  Found: {total_matches} constructs in {ok_count} files "
-        f"({skip_count} skipped, {fail_count} failed)",
-        file=sys.stderr,
-    )
+    if verbose:
+        print(
+            f"\n  Found: {total_matches} constructs in {ok_count} files "
+            f"({skip_count} skipped, {fail_count} failed)",
+            file=sys.stderr,
+        )
 
     return "\n\n".join(parts)
 

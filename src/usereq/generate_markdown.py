@@ -43,9 +43,9 @@ def detect_language(filepath: str) -> str | None:
     return EXT_LANG_MAP.get(ext.lower())
 
 
-def generate_markdown(filepaths: list[str]) -> str:
+def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
     """! @brief Analyze source files and return concatenated markdown.
-    @details Args: filepaths: List of source file paths to analyze. Returns: Concatenated markdown string with all file analyses. Raises: ValueError: If no valid source files are found.
+    @details Args: filepaths: List of source file paths to analyze. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown string with all file analyses. Raises: ValueError: If no valid source files are found.
     """
     analyzer = SourceAnalyzer()
     md_parts = []
@@ -54,12 +54,14 @@ def generate_markdown(filepaths: list[str]) -> str:
 
     for fpath in filepaths:
         if not os.path.isfile(fpath):
-            print(f"  SKIP  {fpath} (file not found)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (file not found)", file=sys.stderr)
             continue
 
         lang = detect_language(fpath)
         if not lang:
-            print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
+            if verbose:
+                print(f"  SKIP  {fpath} (unsupported extension)", file=sys.stderr)
             continue
 
         try:
@@ -76,17 +78,20 @@ def generate_markdown(filepaths: list[str]) -> str:
 
             md_parts.append(md_output)
             ok_count += 1
-            print(f"  OK    {fpath}", file=sys.stderr)
+            if verbose:
+                print(f"  OK    {fpath}", file=sys.stderr)
 
         except Exception as e:
-            print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
+            if verbose:
+                print(f"  FAIL  {fpath} ({e})", file=sys.stderr)
             fail_count += 1
 
     if not md_parts:
         raise ValueError("No valid source files processed")
 
-    print(f"\n  Processed: {ok_count} ok, {fail_count} failed",
-          file=sys.stderr)
+    if verbose:
+        print(f"\n  Processed: {ok_count} ok, {fail_count} failed",
+              file=sys.stderr)
 
     return "\n\n---\n\n".join(md_parts)
 
