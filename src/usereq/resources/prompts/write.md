@@ -78,7 +78,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-       - Read the template at `.req/docs/requirements.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
+       - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
        - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
           - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
           - Format the requirements as a bulleted list.
@@ -90,7 +90,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
      - Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
    - Create the **Software Requirements Specification** document with the requirements draft at `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
       - Write requirements, section titles, tables, and other content in **target language**.
-      - Follow `.req/docs/requirements.md` translated into requested language.
+      - Follow `.req/docs/Requirements_Template.md` translated into requested language.
       - Describe every project requirement clearly, succinctly, and unambiguously.
       - Format the requirements as a bulleted list, using 'shall' or 'must' to indicate mandatory actions. Translate these terms using their closest equivalents in the **target language**.
       - Output the entire response in clean, properly formatted Markdown.
