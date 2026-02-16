@@ -432,10 +432,10 @@ L2203> `raise ReqError("Error: no valid files provided.", 1)`
 L2210-2211> ! @brief Execute --files-references: generate markdown for arbitrary files.
 
 ### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2218-2232)
-L2219-2222> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param enable_line_numbers If True, emits Lnn> prefixes in compressed entries.
+L2219-2222> ! @brief Execute --files-compress: compress arbitrary files. @param files List of source file paths to compress. @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 
 ### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2233-2258)
-L2234-2237> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param enable_line_numbers If True, emits Lnn> prefixes in output.
+L2234-2237> ! @brief Execute --files-find: find constructs in arbitrary files. @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. @param enable_line_numbers If True, emits <n>: prefixes in output.
 L2241> `raise ReqError(`
 
 ### fn `def run_references(args: Namespace) -> None` (L2259-2272)
@@ -764,10 +764,10 @@ L134> `return False`
 ### fn `def _format_result(entries: list[tuple[int, str]],` `priv` (L137-145)
 L139-140> ! @brief Format compressed entries, optionally prefixing original line numbers.
 L142> `return '\n'.join(text for _, text in entries)`
-L143> `return '\n'.join(f"L{lineno}> {text}" for lineno, text in entries)`
+L143> `return '\n'.join(f"{lineno}: {text}" for lineno, text in entries)`
 
 ### fn `def compress_source(source: str, language: str,` (L146-308)
-L148-150> ! @brief Compress source code by removing comments, blank lines, and extra whitespace. @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Args: source: The source code string. language: Language identifier (e.g. "python", "javascript"). include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Compressed source code string.
+L148-150> ! @brief Compress source code by removing comments, blank lines, and extra whitespace. @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Args: source: The source code string. language: Language identifier (e.g. "python", "javascript"). include_line_numbers: If True (default), prefix each line with <n>: format. Returns: Compressed source code string.
 L154> `raise ValueError(f"Unsupported language: {language}")`
 L159> list of (original_line_number, text)
 L166> Python: also handle ''' as multi-comment
@@ -796,7 +796,7 @@ L298> Remove trailing whitespace
 L306> `return _format_result(result, include_line_numbers)`
 
 ### fn `def compress_file(filepath: str, language: str | None = None,` (L309-326)
-L311-313> ! @brief Compress a source file by removing comments and extra whitespace. @details Args: filepath: Path to the source file. language: Optional language override. Auto-detected if None. include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Compressed source code string.
+L311-313> ! @brief Compress a source file by removing comments and extra whitespace. @details Args: filepath: Path to the source file. language: Optional language override. Auto-detected if None. include_line_numbers: If True (default), prefix each line with <n>: format. Returns: Compressed source code string.
 L317> `raise ValueError(`
 L324> `return compress_source(source, language, include_line_numbers)`
 
@@ -855,7 +855,7 @@ L350> `sys.exit(1)`
 
 ---
 
-# compress_files.py | Python | 102L | 3 symbols | 4 imports | 5 comments
+# compress_files.py | Python | 101L | 3 symbols | 4 imports | 5 comments
 > Path: `/home/ogekuri/useReq/src/usereq/compress_files.py`
 > ! @brief compress_files.py - Compress and concatenate multiple source files. @details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with ...
 
@@ -869,32 +869,32 @@ import argparse
 
 ## Definitions
 
-### fn `def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]` `priv` (L12-29)
-L13-16> ! @brief Extract source line interval from compressed output with Lnn> prefixes. @param compressed_with_line_numbers Compressed payload generated with include_line_numbers=True. @return Tuple (line_start, line_end) derived from preserved Lnn> prefixes; returns (0, 0) when no prefixed lines exist.
-L25> `return 0, 0`
-L27> `return line_numbers[0], line_numbers[-1]`
+### fn `def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]` `priv` (L12-28)
+L13-16> ! @brief Extract source line interval from compressed output with <n>: prefixes. @param compressed_with_line_numbers Compressed payload generated with include_line_numbers=True. @return Tuple (line_start, line_end) derived from preserved <n>: prefixes; returns (0, 0) when no prefixed lines exist.
+L24> `return 0, 0`
+L26> `return line_numbers[0], line_numbers[-1]`
 
-### fn `def compress_files(filepaths: list[str],` (L30-81)
-L33-35> ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed Lnn> prefixes to preserve existing numbering logic. Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), keep Lnn> prefixes in code block lines. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
-L73> `raise ValueError("No valid source files processed")`
-L79> `return "\n\n".join(parts)`
+### fn `def compress_files(filepaths: list[str],` (L29-80)
+L32-34> ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), keep <n>: prefixes in code block lines. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
+L72> `raise ValueError("No valid source files processed")`
+L78> `return "\n\n".join(parts)`
 
-### fn `def main()` (L82-100)
-L83> ! @brief Execute the multi-file compression CLI command.
-L98> `sys.exit(1)`
+### fn `def main()` (L81-99)
+L82> ! @brief Execute the multi-file compression CLI command.
+L97> `sys.exit(1)`
 
 ## Comments
 - L2: ! @brief compress_files.py - Compress and concatenate multiple source files. @details Uses the compress module to strip comments and whitespace fro...
-- L13: ! @brief Extract source line interval from compressed output with Lnn> prefixes. @param compressed_with_line_numbers Compressed payload generated w...
-- L33: ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and emitted as: header line `@@@...
-- L83: ! @brief Execute the multi-file compression CLI command.
+- L13: ! @brief Extract source line interval from compressed output with <n>: prefixes. @param compressed_with_line_numbers Compressed payload generated w...
+- L32: ! @brief Compress multiple source files and concatenate with identifying headers. @details Each file is compressed and emitted as: header line `@@@...
+- L82: ! @brief Execute the multi-file compression CLI command.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`_extract_line_range`|fn|priv|12-29|def _extract_line_range(compressed_with_line_numbers: str...|
-|`compress_files`|fn|pub|30-81|def compress_files(filepaths: list[str],|
-|`main`|fn|pub|82-100|def main()|
+|`_extract_line_range`|fn|priv|12-28|def _extract_line_range(compressed_with_line_numbers: str...|
+|`compress_files`|fn|pub|29-80|def compress_files(filepaths: list[str],|
+|`main`|fn|pub|81-99|def main()|
 
 
 ---
@@ -937,7 +937,7 @@ L84> `return bool(re.search(pattern, element.name))`
 L86> `return False`
 
 ### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L89-117)
-L90-96> ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line range indices. @param source_lines Complete source file content as list of lines. @param include_line_numbers If True, prefix code lines with Lnn> format. @return Formatted markdown block for the construct with complete code from line_start to line_end. @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices, replacing the truncated element.extract field to ensure full construct visibility without snippet limitations or ellipsis truncation.
+L90-96> ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line range indices. @param source_lines Complete source file content as list of lines. @param include_line_numbers If True, prefix code lines with <n>: format. @return Formatted markdown block for the construct with complete code from line_start to line_end. @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices, replacing the truncated element.extract field to ensure full construct visibility without snippet limitations or ellipsis truncation.
 L103> Extract COMPLETE code block from source file (not truncated extract)
 L115> `return "\n".join(lines)`
 

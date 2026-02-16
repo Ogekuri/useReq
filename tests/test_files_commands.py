@@ -147,7 +147,7 @@ class TestFilesCompressCommand:
             os.unlink(path)
 
     def test_files_compress_no_line_numbers_by_default(self, capsys):
-        """CMD-017: Must suppress Lnn> prefixes by default."""
+        """CMD-017: Must suppress <n>: prefixes by default."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("x = 1\n")
             path = f.name
@@ -155,13 +155,13 @@ class TestFilesCompressCommand:
             rc = main(["--files-compress", path])
             assert rc == 0
             captured = capsys.readouterr()
-            assert "L1>" not in captured.out
+            assert "1: x = 1" not in captured.out
             assert "x = 1" in captured.out
         finally:
             os.unlink(path)
 
     def test_files_compress_enable_line_numbers(self, capsys):
-        """CMD-017: Must include Lnn> prefixes when flag is present."""
+        """CMD-017: Must include <n>: prefixes when flag is present."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("x = 1\n")
             path = f.name
@@ -169,7 +169,7 @@ class TestFilesCompressCommand:
             rc = main(["--files-compress", path, "--enable-line-numbers"])
             assert rc == 0
             captured = capsys.readouterr()
-            assert "L1>" in captured.out
+            assert "1: x = 1" in captured.out
             assert "x = 1" in captured.out
         finally:
             os.unlink(path)
@@ -341,7 +341,7 @@ class TestCompressCommand:
         assert "```" in captured.out
 
     def test_compress_no_line_numbers_by_default(self, capsys, tmp_path, monkeypatch):
-        """CMD-017: Must suppress Lnn> prefixes by default."""
+        """CMD-017: Must suppress <n>: prefixes by default."""
         src = tmp_path / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
@@ -353,13 +353,13 @@ class TestCompressCommand:
         rc = main(["--here", "--compress", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
-        assert "L1>" not in captured.out
+        assert "1: x = 1" not in captured.out
         assert "x = 1" in captured.out
         assert "- Lines: 1-1" in captured.out
         assert "```" in captured.out
 
     def test_compress_enable_line_numbers(self, capsys, tmp_path, monkeypatch):
-        """CMD-017: Must include Lnn> prefixes when flag is present."""
+        """CMD-017: Must include <n>: prefixes when flag is present."""
         src = tmp_path / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
@@ -371,7 +371,7 @@ class TestCompressCommand:
         rc = main(["--here", "--compress", "--src-dir", "mylib", "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
-        assert "L1>" in captured.out
+        assert "1: x = 1" in captured.out
         assert "x = 1" in captured.out
         assert "- Lines: 1-1" in captured.out
         assert "```" in captured.out
@@ -425,7 +425,7 @@ class TestFindCommandVerbose:
         assert rc == 0
         captured = capsys.readouterr()
         assert "foo" in captured.out
-        assert "L1>" not in captured.out
+        assert "1: def foo():" not in captured.out
         assert captured.err == ""
 
     def test_files_find_verbose_outputs_progress(self, capsys, tmp_path):
@@ -443,7 +443,7 @@ class TestFindCommandVerbose:
         rc = main(["--files-find", "FUNCTION", "foo", str(src), "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
-        assert "L1>" in captured.out
+        assert "1: def foo():" in captured.out
 
     def test_find_verbose_outputs_progress(self, capsys, tmp_path, monkeypatch):
         src_dir = tmp_path / "cfg_src"
@@ -459,7 +459,7 @@ class TestFindCommandVerbose:
         captured = capsys.readouterr()
         assert "OK" in captured.err
         assert "Found:" in captured.err
-        assert "L1>" not in captured.out
+        assert "1: def foo():" not in captured.out
 
     def test_find_enable_line_numbers(self, capsys, tmp_path, monkeypatch):
         src_dir = tmp_path / "cfg_src"
@@ -473,7 +473,7 @@ class TestFindCommandVerbose:
         rc = main(["--here", "--find", "FUNCTION", "foo", "--src-dir", "src", "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
-        assert "L1>" in captured.out
+        assert "1: def foo():" in captured.out
 
 
 class TestSupportedExtensions:

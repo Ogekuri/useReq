@@ -10,16 +10,15 @@ from .compress import compress_file, detect_language
 
 
 def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]:
-    """! @brief Extract source line interval from compressed output with Lnn> prefixes.
+    """! @brief Extract source line interval from compressed output with <n>: prefixes.
     @param compressed_with_line_numbers Compressed payload generated with include_line_numbers=True.
-    @return Tuple (line_start, line_end) derived from preserved Lnn> prefixes; returns (0, 0) when no prefixed lines exist.
+    @return Tuple (line_start, line_end) derived from preserved <n>: prefixes; returns (0, 0) when no prefixed lines exist.
     """
     line_numbers: list[int] = []
     for line in compressed_with_line_numbers.splitlines():
-        if line.startswith("L") and ">" in line:
-            marker = line[1:line.find(">")]
-            if marker.isdigit():
-                line_numbers.append(int(marker))
+        marker, sep, _ = line.partition(":")
+        if sep and marker.isdigit():
+            line_numbers.append(int(marker))
 
     if not line_numbers:
         return 0, 0
@@ -31,7 +30,7 @@ def compress_files(filepaths: list[str],
                    include_line_numbers: bool = True,
                    verbose: bool = False) -> str:
     """! @brief Compress multiple source files and concatenate with identifying headers.
-    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed Lnn> prefixes to preserve existing numbering logic. Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), keep Lnn> prefixes in code block lines. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
+    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), keep <n>: prefixes in code block lines. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
     """
     parts = []
     ok_count = 0
@@ -87,7 +86,7 @@ def main():
     parser.add_argument("files", nargs="+", help="Source files to compress.")
     parser.add_argument("--enable-line-numbers", action="store_true",
                         default=False,
-                        help="Enable line number prefixes (Lnn>) in output.")
+                        help="Enable line number prefixes (<n>:) in output.")
     args = parser.parse_args()
 
     try:

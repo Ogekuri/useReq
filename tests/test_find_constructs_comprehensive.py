@@ -645,15 +645,15 @@ class TestFindConstructsComprehensive:
         fixture = str(self.get_fixture_path(fixtures_dir, "python"))
         output = find_constructs_in_files([fixture], "CLASS", "MyClass", include_line_numbers=True)
 
-        assert "L" in output and ">" in output  # Check for Lnn> format
+        assert "1:" in output  # Check for <n>: format
 
     def test_line_numbers_disabled(self, fixtures_dir):
         """! @brief Test that line numbers can be disabled."""
         fixture = str(self.get_fixture_path(fixtures_dir, "python"))
         output = find_constructs_in_files([fixture], "CLASS", "MyClass", include_line_numbers=False)
 
-        # Should not have Lnn> prefixes
-        assert "L1>" not in output and "L2>" not in output
+        # Should not have <n>: prefixes
+        assert "1:" not in output and "2:" not in output
 
     # ── Error and edge case tests ─────────────────────────────────────────────
 

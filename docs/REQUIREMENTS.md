@@ -95,6 +95,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.69 | Reso condizionale al flag `--verbose` l'output di stato elaborazione per `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find`. |
 | 2026-02-16 | 0.70 | Aggiornato il formato output di `--files-compress` e `--compress` con metadato `- Lines: <inizio>-<fine>` e blocco codice delimitato da triple backtick mantenendo invariata la logica di numerazione `L<n>>`. |
 | 2026-02-16 | 0.71 | Invertita la logica di numerazione riga per `--files-compress`, `--compress`, `--files-find` e `--find`: prefissi `L<n>>` disabilitati di default e abilitabili con `--enable-line-numbers`; rimosso `--disable-line-numbers`. |
+| 2026-02-16 | 0.72 | Sostituito il formato prefisso numerazione riga da `L<n>>` a `<n>:` in `--files-compress`, `--compress`, `--files-find` e `--find`, mantenendo invariata la logica di abilitazione tramite `--enable-line-numbers`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -426,7 +427,7 @@ Il progetto include una suite di test in `tests/`.
 - Questa sezione definisce i requisiti per il modulo di compressione del codice sorgente.
 - **CMP-001**: Il modulo `usereq.compress` deve comprimere il codice sorgente rimuovendo commenti (inline, a riga singola, multi-riga), righe vuote, spazi finali e spaziatura ridondante, preservando la semantica del linguaggio.
 - **CMP-002**: Per i linguaggi con indentazione significativa (Python, Haskell, Elixir), l'indentazione deve essere preservata durante la compressione.
-- **CMP-003**: Il formato di output deve supportare i prefissi con numero di riga nel formato `L<n>> <testo>`, abilitati di default e disabilitabili con l'opzione `include_line_numbers=False`.
+- **CMP-003**: Il formato di output deve supportare i prefissi con numero di riga nel formato `<n>: <testo>`, abilitati di default e disabilitabili con l'opzione `include_line_numbers=False`.
 - **CMP-004**: Le shebang lines (`#!`) alla prima riga del file devono essere preservate.
 - **CMP-005**: I commenti all'interno di stringhe letterali non devono essere rimossi.
 - **CMP-006**: Il modulo deve determinare automaticamente il linguaggio dall'estensione del file, con possibilità di override manuale.
@@ -458,7 +459,7 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-014**: I comandi `--references` e `--compress`, quando utilizzati con `--update`, devono caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
 - **CMD-015**: Il comando `--references` deve anteporre al markdown generato una sezione `# Files Structure` contenente l'albero ASCII dei file effettivamente selezionati dalla scansione (`--src-dir` o `src-dir` da configurazione), applicando gli stessi filtri di estensione supportata (SRC-001) ed esclusione directory (CMD-012); l'albero deve essere racchiuso in code fence Markdown.
 - **CMD-016**: Il comando `--tokens` deve richiedere `--base` o `--here`; con `--base` deve richiedere `--docs-dir`, mentre con `--here` deve usare `docs-dir` da `config.json` ignorando eventuali `--docs-dir` espliciti. La directory documentazione effettiva deve essere risolta rispetto alla root progetto, i file regolari direttamente presenti devono essere elaborati tramite il flusso `--files-tokens`, e il riepilogo deve essere stampato su stdout.
-- **CMD-017**: I comandi `--files-compress` e `--compress` devono accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output compresso non deve includere i prefissi `L<numero>>`, quando il flag è presente i prefissi devono essere inclusi.
+- **CMD-017**: I comandi `--files-compress` e `--compress` devono accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output compresso non deve includere i prefissi `<numero>:`, quando il flag è presente i prefissi devono essere inclusi.
 
 ### 3.21 Estrazione Costrutti Specifici
 - Questa sezione definisce i requisiti per il modulo di estrazione e filtraggio di costrutti specifici dal codice sorgente.
@@ -468,7 +469,7 @@ Il progetto include una suite di test in `tests/`.
 - **FND-004**: Se un file sorgente non supporta nessuno dei tag specificati in `<TAG>` per il suo linguaggio, il file deve essere saltato; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **FND-005**: La funzione `find_constructs_in_files()` deve analizzare ciascun file con `SourceAnalyzer.analyze()` e `SourceAnalyzer.enrich()`, filtrare gli elementi per tag e regex, leggere il contenuto completo di ciascun costrutto filtrato dal file sorgente utilizzando gli indici `line_start` e `line_end`, e formattare l'output in markdown con il codice completo del costrutto.
 - **FND-006**: Il formato di output markdown deve contenere per ciascun file un header `@@@ <percorso> | <linguaggio>`, seguito dall'elenco dei costrutti trovati con: tipo costrutto, nome, firma (se presente), riga iniziale, riga finale, codice estratto completo del costrutto dall'inizio alla fine (senza limitazione di righe o troncamento con `...`), letto direttamente dal file sorgente utilizzando gli indici `line_start` e `line_end` del SourceElement.
-- **FND-007**: Il codice estratto per ciascun costrutto deve includere i prefissi con numero di riga nel formato `L<n>> <testo>` per default. I prefissi devono essere disabilitabili con l'opzione `include_line_numbers=False`.
+- **FND-007**: Il codice estratto per ciascun costrutto deve includere i prefissi con numero di riga nel formato `<n>: <testo>` per default. I prefissi devono essere disabilitabili con l'opzione `include_line_numbers=False`.
 - **FND-008**: Lo stato di elaborazione (OK/SKIP/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
 - **FND-009**: Se nessun file valido viene processato o nessun costrutto viene trovato, deve essere lanciata una eccezione `ValueError`.
 - **FND-010**: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
@@ -480,7 +481,7 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-018**: Il comando `--files-find` deve accettare due parametri obbligatori `<TAG>` e `<REGEXP>`, seguiti da una lista arbitraria di file: `--files-find <TAG> <REGEXP> <FILE1> <FILE2> ...`. Se `<TAG>` non contiene identificatori validi o non è supportato da nessun linguaggio processato, il comando deve stampare un messaggio di errore che include l'elenco completo dei TAG disponibili per linguaggio, generato dinamicamente utilizzando la mappa `LANGUAGE_TAGS` definita in `find_constructs.py`.
 - **CMD-019**: Il comando `--files-find` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
 - **CMD-020**: Il comando `--files-find` deve estrarre e stampare su stdout tutti i costrutti che: appartengono ai tipi specificati in `<TAG>` (separati da `|`), hanno nome che esegue il match con `<REGEXP>`, sono presenti nei file specificati.
-- **CMD-021**: Il comando `--files-find` deve accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output non deve includere i prefissi `L<numero>>`, quando il flag è presente i prefissi devono essere inclusi.
+- **CMD-021**: Il comando `--files-find` deve accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output non deve includere i prefissi `<numero>:`, quando il flag è presente i prefissi devono essere inclusi.
 
 ### 3.23 Comandi di Progetto per Estrazione Costrutti
 - Questa sezione definisce il comando CLI `--find` che opera sulle directory sorgenti configurate nel progetto.
@@ -490,6 +491,6 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-025**: Durante la scansione delle directory sorgenti per il comando `--find`, le directory elencate in CMD-012 devono essere escluse.
 - **CMD-026**: La scansione delle directory sorgenti per il comando `--find` deve essere ricorsiva, esaminando tutte le sottodirectory delle directory sorgenti configurate, escludendo le directory elencate in CMD-012.
 - **CMD-027**: Il comando `--find`, quando utilizzato con `--update`, deve caricare le directory sorgenti dal campo `src-dir` del file `config.json`.
-- **CMD-028**: Il comando `--find` deve accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output non deve includere i prefissi `L<numero>>`, quando il flag è presente i prefissi devono essere inclusi.
+- **CMD-028**: Il comando `--find` deve accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output non deve includere i prefissi `<numero>:`, quando il flag è presente i prefissi devono essere inclusi.
 - **CMD-029**: I comandi `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find` devono stampare su stderr gli output di stato elaborazione (OK/SKIP/FAIL e riepiloghi) solo quando è presente il flag `--verbose`; senza `--verbose` tali output non devono essere stampati.
-- **CMD-030**: I comandi `--files-compress` e `--compress` devono stampare per ogni file processato lo stesso payload strutturato: header `@@@ <percorso> | <linguaggio>`, riga `- Lines: <riga_iniziale>-<riga_finale>` con intervallo derivato dalla numerazione `L<n>>` già calcolata dal compressore, e blocco codice delimitato da triple backtick; la logica di calcolo della numerazione riga esistente non deve essere modificata.
+- **CMD-030**: I comandi `--files-compress` e `--compress` devono stampare per ogni file processato lo stesso payload strutturato: header `@@@ <percorso> | <linguaggio>`, riga `- Lines: <riga_iniziale>-<riga_finale>` con intervallo derivato dalla numerazione `<n>:` già calcolata dal compressore, e blocco codice delimitato da triple backtick; la logica di calcolo della numerazione riga esistente non deve essere modificata.

@@ -88,7 +88,7 @@
     - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2206-L2219`]
       - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` and keeps line numbers disabled by default.
       - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L30-L80`]
-        - description: validates each path/language, applies `compress_file()`, derives line interval from preserved `L<n>>` markers via `_extract_line_range()`, emits each file block as `@@@ <path> | <lang>` + `- Lines: <start>-<end>` + triple-backtick fenced code payload, tracks ok/fail counters, errors if no valid file processed, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
+        - description: validates each path/language, applies `compress_file()`, derives line interval from preserved `<n>:` markers via `_extract_line_range()`, emits each file block as `@@@ <path> | <lang>` + `- Lines: <start>-<end>` + triple-backtick fenced code payload, tracks ok/fail counters, errors if no valid file processed, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
         - `compress_file()`: reads single file and delegates normalization/compression [`src/usereq/compress.py:L320-L343`]
           - description: auto-detects language when not provided, reads source text, invokes `compress_source()`.
           - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
@@ -108,7 +108,7 @@
         - `construct_matches()`: filters element by type and name pattern [`src/usereq/find_constructs.py`]
           - description: tests if element type is in tag set and element name matches regex via `re.search()`.
         - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py:L89-L115`]
-          - description: receives SourceElement instance and complete source file lines list, extracts complete construct code from source_lines using element.line_start and element.line_end indices (replacing truncated element.extract field), emits type, name, signature, line range, and full construct code with optional Lnn> line number prefixes.
+          - description: receives SourceElement instance and complete source file lines list, extracts complete construct code from source_lines using element.line_start and element.line_end indices (replacing truncated element.extract field), emits type, name, signature, line range, and full construct code with optional `<n>:` line number prefixes.
     - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2247-L2258`]
       - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, builds `# Files Structure` fenced tree through `_format_files_structure_markdown()`, then appends markdown from `generate_markdown(verbose=VERBOSE)`.
       - `_format_files_structure_markdown()`: renders markdown wrapper for scanned source tree [`src/usereq/cli.py`]

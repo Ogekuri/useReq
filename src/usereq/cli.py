@@ -247,7 +247,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--enable-line-numbers",
         action="store_true",
         default=False,
-        help="Enable line number prefixes (Lnn>) in output for --files-compress, --compress, --files-find, and --find (disabled by default).",
+        help="Enable line number prefixes (<n>:) in output for --files-compress, --compress, --files-find, and --find (disabled by default).",
     )
     parser.add_argument(
         "--tokens",
@@ -2218,7 +2218,7 @@ def run_files_references(files: list[str]) -> None:
 def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None:
     """! @brief Execute --files-compress: compress arbitrary files.
     @param files List of source file paths to compress.
-    @param enable_line_numbers If True, emits Lnn> prefixes in compressed entries.
+    @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
     """
     from .compress_files import compress_files
 
@@ -2233,7 +2233,7 @@ def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> N
 def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None:
     """! @brief Execute --files-find: find constructs in arbitrary files.
     @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
-    @param enable_line_numbers If True, emits Lnn> prefixes in output.
+    @param enable_line_numbers If True, emits <n>: prefixes in output.
     """
     from .find_constructs import find_constructs_in_files
 

@@ -49,16 +49,16 @@ class TestCompressSource:
         assert "    x = 1" in result or "    return x" in result
 
     def test_line_number_prefix(self):
-        """CMP-003: Line numbers must use Lnn> format."""
+        """CMP-003: Line numbers must use <n>: format."""
         source = "x = 1\ny = 2\n"
         result = compress_source(source, "python", include_line_numbers=True)
-        assert "L1>" in result
+        assert "1: x = 1" in result
 
     def test_no_line_numbers(self):
         """CMP-003: Line numbers can be disabled."""
         source = "x = 1\n"
         result = compress_source(source, "python", include_line_numbers=False)
-        assert "L1>" not in result
+        assert "1: x = 1" not in result
 
     def test_preserves_shebang(self):
         """CMP-004: Shebang lines must be preserved."""
@@ -144,7 +144,7 @@ class TestCompressFiles:
             result = compress_files([path])
             assert f"@@@ {path} | python" in result
             assert "- Lines: 1-1" in result
-            assert "```\nL1> x = 1\n```" in result
+            assert "```\n1: x = 1\n```" in result
         finally:
             os.unlink(path)
 

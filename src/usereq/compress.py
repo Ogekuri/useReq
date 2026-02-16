@@ -140,13 +140,13 @@ def _format_result(entries: list[tuple[int, str]],
     """
     if not include_line_numbers:
         return '\n'.join(text for _, text in entries)
-    return '\n'.join(f"L{lineno}> {text}" for lineno, text in entries)
+    return '\n'.join(f"{lineno}: {text}" for lineno, text in entries)
 
 
 def compress_source(source: str, language: str,
                     include_line_numbers: bool = True) -> str:
     """! @brief Compress source code by removing comments, blank lines, and extra whitespace.
-    @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Args: source: The source code string. language: Language identifier (e.g. "python", "javascript"). include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Compressed source code string.
+    @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Args: source: The source code string. language: Language identifier (e.g. "python", "javascript"). include_line_numbers: If True (default), prefix each line with <n>: format. Returns: Compressed source code string.
     """
     specs = _get_specs()
     lang_key = language.lower().strip().lstrip(".")
@@ -309,7 +309,7 @@ def compress_source(source: str, language: str,
 def compress_file(filepath: str, language: str | None = None,
                   include_line_numbers: bool = True) -> str:
     """! @brief Compress a source file by removing comments and extra whitespace.
-    @details Args: filepath: Path to the source file. language: Optional language override. Auto-detected if None. include_line_numbers: If True (default), prefix each line with Lnn> format. Returns: Compressed source code string.
+    @details Args: filepath: Path to the source file. language: Optional language override. Auto-detected if None. include_line_numbers: If True (default), prefix each line with <n>: format. Returns: Compressed source code string.
     """
     if language is None:
         language = detect_language(filepath)
@@ -334,7 +334,7 @@ def main():
                         help="Language override (auto-detected from extension).")
     parser.add_argument("--enable-line-numbers", action="store_true",
                         default=False,
-                        help="Enable line number prefixes (Lnn>) in output.")
+                        help="Enable line number prefixes (<n>:) in output.")
     args = parser.parse_args()
 
     if not os.path.isfile(args.file):

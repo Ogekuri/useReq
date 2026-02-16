@@ -68,8 +68,8 @@ def test_construct_matches():
     assert not construct_matches(elem_no_name, {"COMMENT"}, ".*")
 
 
-def test_format_construct_with_line_numbers():
-    """! @brief Test construct formatting with line numbers."""
+    def test_format_construct_with_line_numbers():
+        """! @brief Test construct formatting with line numbers."""
     elem = SourceElement(
         element_type=ElementType.FUNCTION,
         line_start=10,
@@ -86,8 +86,8 @@ def test_format_construct_with_line_numbers():
     assert "### FUNCTION: `foo`" in output
     assert "Signature: `def foo()`" in output
     assert "Lines: 10-12" in output
-    assert "L10>" in output
-    assert "L11>" in output
+    assert "10: def foo():" in output
+    assert "11:     return 42" in output
 
 
 def test_format_construct_without_line_numbers():
@@ -106,7 +106,7 @@ def test_format_construct_without_line_numbers():
     output = format_construct(elem, source_lines, include_line_numbers=False)
     assert "### CLASS: `Bar`" in output
     assert "Lines: 1-3" in output
-    assert "L1>" not in output
+    assert "1: class Bar:" not in output
     assert "class Bar:" in output
 
 
@@ -203,8 +203,8 @@ def test_find_constructs_toggle_line_numbers(tmp_path):
         [str(test_file)], "FUNCTION", "foo", include_line_numbers=False
     )
 
-    assert "L1>" in output_with
-    assert "L1>" not in output_without
+    assert "1: def foo():" in output_with
+    assert "1: def foo():" not in output_without
 
 
 def test_find_constructs_no_progress_without_verbose(tmp_path, capsys):

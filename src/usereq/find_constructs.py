@@ -90,7 +90,7 @@ def format_construct(element, source_lines: list[str], include_line_numbers: boo
     """! @brief Format a single matched construct for markdown output with complete code extraction.
     @param element SourceElement instance containing line range indices.
     @param source_lines Complete source file content as list of lines.
-    @param include_line_numbers If True, prefix code lines with Lnn> format.
+    @param include_line_numbers If True, prefix code lines with <n>: format.
     @return Formatted markdown block for the construct with complete code from line_start to line_end.
     @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices, replacing the truncated element.extract field to ensure full construct visibility without snippet limitations or ellipsis truncation.
     """
@@ -104,7 +104,7 @@ def format_construct(element, source_lines: list[str], include_line_numbers: boo
     code_lines = source_lines[element.line_start - 1:element.line_end]
     if include_line_numbers:
         start = element.line_start
-        formatted = "\n".join(f"L{start + i}> {line.rstrip()}" for i, line in enumerate(code_lines))
+        formatted = "\n".join(f"{start + i}: {line.rstrip()}" for i, line in enumerate(code_lines))
     else:
         formatted = "\n".join(line.rstrip() for line in code_lines)
 
@@ -123,7 +123,7 @@ def find_constructs_in_files(
     verbose: bool = False,
 ) -> str:
     """! @brief Find and extract constructs matching tag filter and regex pattern from multiple files.
-    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers. Args: filepaths: List of source file paths. tag_filter: Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION"). pattern: Regex pattern for construct name matching. include_line_numbers: If True (default), prefix code lines with Lnn> format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown output string. Raises: ValueError: If no files could be processed or no constructs found.
+    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers. Args: filepaths: List of source file paths. tag_filter: Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION"). pattern: Regex pattern for construct name matching. include_line_numbers: If True (default), prefix code lines with <n>: format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown output string. Raises: ValueError: If no files could be processed or no constructs found.
     """
     tag_set = parse_tag_filter(tag_filter)
     if not tag_set:
@@ -221,7 +221,7 @@ def main():
         "--enable-line-numbers",
         action="store_true",
         default=False,
-        help="Enable line number prefixes (Lnn>) in output.",
+        help="Enable line number prefixes (<n>:) in output.",
     )
     args = parser.parse_args()
 
