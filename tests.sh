@@ -43,6 +43,9 @@ fi
 # Run tests in 2 phases:
 # 1) Standard suite
 # 2) Only post-link validation tests (only if 1) is successful)
+if [ "$#" -eq 0 ]; then
+  set -- tests
+fi
 
 PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
     ${VENVDIR}/bin/python3 -m 'pytest' "$@"
@@ -56,4 +59,4 @@ echo "[tests.sh] Main test suite OK. Running post-link tests..."
 
 PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
   RUN_POST_LINK_TESTS=1 \
-  ${VENVDIR}/bin/python3 -m 'pytest'
+  ${VENVDIR}/bin/python3 -m 'pytest' "$@"
