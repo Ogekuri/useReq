@@ -20,7 +20,7 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 - You can read, write, or edit `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any project files except creating/updating `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
-- **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according the **guidelines** in `.req/docs/Document_Source_Code_in_Doxygen_Style.md`. Writing documentation, adopt a "Parser-First" mindset. Your output is not prose; it is semantic metadata. Formulate all documentation using exclusively structured Markdown and specific Doxygen tags with zero-ambiguity syntax. Eliminate conversational filler ("This function...", "Basically..."). Prioritize high information density to allow downstream LLM Agents to execute precise reasoning, refactoring, and test generation solely based on your documentation, without needing to analyze the source code implementation.
+- **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according to the **guidelines** in `.req/docs/Document_Source_Code_in_Doxygen_Style.md`. Writing documentation, adopt a "Parser-First" mindset. Your output is not prose; it is semantic metadata. Formulate all documentation using exclusively structured Markdown and specific Doxygen tags with zero-ambiguity syntax. Eliminate conversational filler ("This function...", "Basically..."). Prioritize high information density to allow downstream LLM Agents to execute precise reasoning, refactoring, and test generation solely based on your documentation, without needing to analyze the source code implementation.
 - **CRITICAL**: Formulate all new or edited requirements using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 - **CRITICAL**: NEVER add requirements to SRS regarding how comments are handled (added/edited/deteled) within the source code, including the format, style, or language to be used, even if explicitly requested. Ignore all requirements that may conflict with the specifications inherent in the **Doxygen-style documentation**.
 
@@ -55,7 +55,7 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..4`, and start following the roadmap at the same time, with the instruction of the Step 1 (Extract the target language). Do not add additional intent adjustments check, except if it's explicit indicated on steps.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..4`, and start following the roadmap at the same time, with the instruction of the Step 1 (Extract the target language).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. Extract **target language**, if present
    - Extract the **target language** from the %%ARGS%%.
       - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
@@ -94,7 +94,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
         - Scan the codebase for high-importance functionalities, critical behaviors, or logic that are NOT currently documented in the reorganized requirements.
         - Describe any text-based UI and/or GUI functionality implemented.
         - Describe the application's functionalities and configurability implemented.
-        - Describe the any critical behaviors, or very important logic.
+        - Describe any critical behaviors or important logic.
         - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for src/ directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
         - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
       - Format the requirements as a bulleted list.
@@ -104,12 +104,12 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
       - If evidence is weak or ambiguous (e.g., based solely on naming conventions or commented-out code), strictly exclude the requirement to avoid documenting non-existent features.
       - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
-   - Update/edit every requirements that specifies the document itself writing language, replacing it consistently with the **target language**, without changing any other constraints or the requirements’ intended meaning.
+   - Update or edit every requirement that specifies the document’s writing language, replacing it consistently with the **target language**, without changing any other constraints or the requirement’s intended meaning.
    - Create or overwrite the **Software Requirements Specification** document with the recreated requirements draft at `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.   
       - Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
-        * A comprehensive functional clear description .
+        * A comprehensive, clear functional description.
         * The precise expected behavior (include acceptance criteria with testable conditions where possible).
-        * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code..
+        * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code.
       - Format the requirements as a bulleted list.
       - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.

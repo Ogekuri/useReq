@@ -229,7 +229,7 @@
     - `Path.read_text()` / `open(..., 'r')` in config/template/prompt/model/settings/source loading across `cli.py`, `generate_markdown.py`, `compress.py`, `token_counter.py`, `source_analyzer.py`.
   - Filesystem write operations
     - `Path.write_text()`, `shutil.copyfile()`, `shutil.copytree()`, `mkdir()`, `unlink()`, `rmtree()` in initialization/update/remove flows (`src/usereq/cli.py:L481-L500`, `L1105-L1143`, `L1311-L1928`), plus generated output writers in `compress_files.py` and markdown/compress CLIs (stdout).
-  - External API calls
+  - External API callss
     - GitHub Releases API HTTP GET: `https://api.github.com/repos/Ogekuri/useReq/releases/latest` via `urllib.request.urlopen` in `maybe_notify_newer_version()` (`src/usereq/cli.py:L331-L363`).
   - External process execution
     - `subprocess.run()` for `uv tool install/uninstall` (`src/usereq/cli.py:L306-L348`).

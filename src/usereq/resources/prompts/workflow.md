@@ -61,25 +61,25 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..5`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). Do not stop generating until the tool is invoked. Do not add additional intent adjustments check, except if it's explicit indicated on steps.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..5`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary.Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 3. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
    - Do NOT read any present `%%DOC_PATH%%/WORKFLOW.md` to understand the file's content, strictly follow below istruction to create the file.
    - Analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic:
-      -  Identify the primary functions and architectural components utilized based on static code analysis of the main entry points. Focus on explicit calls and visible dependencies..
+      -  Identify the primary functions and architectural components utilized based on static code analysis of the main entry points. Focus on explicit calls and visible dependencies.
       -  Identify all file-system operations (reading or writing files).
-      -  Identify all external API call.
+      -  Identify all external API calls.
       -  Identify all external database access.
       -  Identify any common code logic.
       -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
       Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, recursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-   - Create overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. Use English language. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
-      -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels fo depth, and for EACH feature you MUST include:
+   - Create or overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. Use English language. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
+      -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels of depth, and for EACH feature you MUST include:
          -  Level 1: High-level Feature or Process description (keep it concise).
          -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
          -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.
-            -  Node Description, every *function node* entry must be described with below informations:
+            -  Node Description, every *function node* entry must include the following information:
                -  `function_name()`: mandatory, the function name exactly as defined in the source code.
                -  `short single-line`: mandatory, a short single-line technical description of its specific action.
                -  `filename`: mandatory, filename where the function is defined.
