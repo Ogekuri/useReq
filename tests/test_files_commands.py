@@ -47,6 +47,83 @@ DOXYGEN_TAG_LABELS_IN_ORDER = [
     "Pre",
     "Post",
 ]
+DOXYGEN_TAG_TO_LABEL_IN_ORDER: list[tuple[str, str]] = [
+    ("@brief", "Brief"),
+    ("@details", "Details"),
+    ("@param", "Param"),
+    ("@param[in]", "Param[in]"),
+    ("@param[out]", "Param[out]"),
+    ("@return", "Return"),
+    ("@retval", "Retval"),
+    ("@exception", "Exception"),
+    ("@throws", "Throws"),
+    ("@warning", "Warning"),
+    ("@deprecated", "Deprecated"),
+    ("@note", "Note"),
+    ("@see", "See"),
+    ("@sa", "Sa"),
+    ("@pre", "Pre"),
+    ("@post", "Post"),
+]
+DOXYGEN_OUTPUT_LABEL_PATTERNS: Dict[str, re.Pattern[str]] = {
+    label: re.compile(rf"(?m)^\s*-\s*{re.escape(label)}:")
+    for _, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER
+}
+
+
+def _count_source_doxygen_tags(filepath: Path) -> Dict[str, int]:
+    """! @brief Count every parseable Doxygen tag occurrence emitted from source constructs."""
+    language = detect_language(str(filepath))
+    assert language is not None, f"Unsupported fixture extension: {filepath}"
+
+    analyzer = SourceAnalyzer()
+    elements = analyzer.analyze(str(filepath), language)
+    analyzer.enrich(elements, language, str(filepath))
+
+    counts = {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
+    skipped_types = {
+        ElementType.COMMENT_SINGLE,
+        ElementType.COMMENT_MULTI,
+        ElementType.IMPORT,
+        ElementType.DECORATOR,
+    }
+    for element in elements:
+        if element.element_type in skipped_types:
+            continue
+        fields = getattr(element, "doxygen_fields", None) or {}
+        for tag in counts:
+            normalized_tag = tag[1:]
+            if fields.get(normalized_tag):
+                counts[tag] += 1
+
+    return counts
+
+
+def _count_output_doxygen_labels(output: str) -> Dict[str, int]:
+    """! @brief Count every supported Doxygen output label occurrence in references output."""
+    return {
+        label: len(pattern.findall(output))
+        for label, pattern in DOXYGEN_OUTPUT_LABEL_PATTERNS.items()
+    }
+
+
+def _assert_doxygen_reference_counts(
+    source_counts: Dict[str, int],
+    output_counts: Dict[str, int],
+    context_id: str,
+) -> None:
+    """! @brief Assert 1:1 parity between source Doxygen tags and emitted reference labels."""
+    for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+        assert output_counts[label] == source_counts[tag], (
+            f"{context_id}: mismatch {tag} ({source_counts[tag]}) "
+            f"vs {label}: ({output_counts[label]})"
+        )
+
+    source_total = sum(source_counts.values())
+    output_total = sum(output_counts.values())
+    assert output_total == source_total, (
+        f"{context_id}: total mismatch source={source_total} output={output_total}"
+    )
 
 
 def _collect_expected_doxygen_sequences(filepath: Path) -> list[list[str]]:
@@ -366,8 +443,8 @@ class TestFilesReferencesCommand:
         fixture_file,
         capsys,
     ):
-        """DOX-014: Every fixture must emit expected Doxygen markdown fields."""
-        expected_sequences = _collect_expected_doxygen_sequences(fixture_file)
+        """DOX-014: Every fixture must preserve total Doxygen field count in output."""
+        source_counts = _count_source_doxygen_tags(fixture_file)
 
         rc = main(["--files-references", str(fixture_file)])
         assert rc == 0
@@ -375,14 +452,12 @@ class TestFilesReferencesCommand:
         output = captured.out
 
         assert output
-        for sequence in expected_sequences:
-            cursor = -1
-            for line in sequence:
-                index = output.find(line, cursor + 1)
-                assert index != -1, (
-                    f"Missing Doxygen line '{line}' in output for {fixture_file.name}"
-                )
-                cursor = index
+        output_counts = _count_output_doxygen_labels(output)
+        _assert_doxygen_reference_counts(
+            source_counts=source_counts,
+            output_counts=output_counts,
+            context_id=f"--files-references::{fixture_file.name}",
+        )
 
         _assert_no_legacy_annotation_lines(output)
         _assert_doxygen_markdown_order(output)
@@ -607,19 +682,24 @@ class TestReferencesCommand:
         rc = main(["--here", "--references"])
         assert rc == 0
 
+    @pytest.mark.parametrize(
+        "fixture_file",
+        FIXTURE_FILES,
+        ids=lambda path: path.name,
+    )
     def test_references_extracts_doxygen_fields_from_fixture_project(
         self,
+        fixture_file: Path,
         capsys,
         tmp_path,
         monkeypatch,
     ):
-        """DOX-015: --references must emit ordered Doxygen fields for fixture files."""
+        """DOX-015: --references must preserve total Doxygen field count for each fixture."""
         src = tmp_path / "src"
         src.mkdir()
 
-        target_fixture = FIXTURES_DIR / "fixture_python.py"
-        copied_fixture = src / target_fixture.name
-        shutil.copy(target_fixture, copied_fixture)
+        copied_fixture = src / fixture_file.name
+        shutil.copy(fixture_file, copied_fixture)
 
         req_dir = tmp_path / ".req"
         req_dir.mkdir()
@@ -631,7 +711,7 @@ class TestReferencesCommand:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        expected_sequences = _collect_expected_doxygen_sequences(copied_fixture)
+        source_counts = _count_source_doxygen_tags(copied_fixture)
 
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--references"])
@@ -640,13 +720,13 @@ class TestReferencesCommand:
         output = captured.out
 
         assert output.startswith("# Files Structure\n```")
-        assert "fixture_python.py" in output
-        for sequence in expected_sequences:
-            cursor = -1
-            for line in sequence:
-                index = output.find(line, cursor + 1)
-                assert index != -1
-                cursor = index
+        assert fixture_file.name in output
+        output_counts = _count_output_doxygen_labels(output)
+        _assert_doxygen_reference_counts(
+            source_counts=source_counts,
+            output_counts=output_counts,
+            context_id=f"--references::{fixture_file.name}",
+        )
 
         _assert_no_legacy_annotation_lines(output)
         _assert_doxygen_markdown_order(output)

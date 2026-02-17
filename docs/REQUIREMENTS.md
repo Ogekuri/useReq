@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-17"
-version: 0.80
+version: 0.81
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.80
+**Versione**: 0.81
 **Autore**: Ogekuri
 **Data**: 2026-02-17
 
@@ -104,6 +104,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-17 | 0.78 | Estesi i requisiti Doxygen con test su tutte le fixture linguistiche per verifica completa dei costrutti e associazione commento pre/post-costrutto. |
 | 2026-02-17 | 0.79 | Aggiornato output `--files-references`/`--references` per emettere campi Doxygen in lista Markdown ordinata senza tracce legacy di commenti/exit points; estesa la suite test dei comandi su tutte le fixture in `tests/fixtures/`. |
 | 2026-02-17 | 0.80 | Aggiornati `--files-find`/`--find` per emissione campi Doxygen estratti dai commenti associati al costrutto con fallback senza campi quando assenti; estesi i test command-level su tutte le fixture per verifica deterministica dei campi attesi. |
+| 2026-02-17 | 0.81 | Aggiornati i test command-level `--files-references`/`--references` imponendo un caso per ogni file fixture (uno per linguaggio) con conteggio totale dei tag Doxygen nel sorgente e confronto 1:1 con le etichette Doxygen emesse in output. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -522,8 +523,8 @@ Il progetto include una suite di test in `tests/`.
 - **DOX-011**: I campi Doxygen devono essere emessi nell'ordine fisso: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post, omettendo tag non presenti.
 - **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 160 test unitari complessivi, derivati da almeno 10 casi per ciascuno dei 16 tag Doxygen supportati in DOX-002; ogni test deve usare un commento sintetico generato per uno scenario specifico del tag target e deve verificare in modo deterministico il risultato atteso dell'estrazione.
 - **DOX-013**: Il progetto deve includere test Doxygen basati su `tests/fixtures/` che, per ciascun file fixture, estraggono tutti i costrutti presenti compatibili con FND-002, validano in modo deterministico i campi Doxygen attesi per ogni costrutto, e verificano che l'associazione commento→costrutto sia corretta sia per commenti pre-costrutto sia per commenti post-costrutto quando consentiti dalla sintassi del linguaggio.
-- **DOX-014**: Il progetto deve includere test command-level in `tests/test_files_commands.py` che eseguono il flusso equivalente a `--files-references` su ogni file in `tests/fixtures/` e verificano in modo deterministico la presenza in output dei campi Doxygen attesi per i costrutti documentati; i test devono anche verificare l'assenza di righe legacy `L<n>>` per commenti/exit points nel payload di riferimento.
-- **DOX-015**: Il progetto deve includere test command-level in `tests/test_files_commands.py` per `--references` su directory progetto configurata che include `tests/fixtures/`; i test devono verificare in modo deterministico l'emissione dei campi Doxygen in ordine DOX-011 per i costrutti documentati e la presenza del solo riferimento costrutto quando i campi Doxygen non sono disponibili.
+- **DOX-014**: Il progetto deve includere test command-level in `tests/test_files_commands.py` che eseguono il flusso equivalente a `--files-references` su ogni file in `tests/fixtures/`; per ogni file fixture (uno per linguaggio) deve esistere un caso di test dedicato che: (a) conta nel file sorgente tutte le occorrenze dei tag Doxygen definiti in DOX-002, (b) estrae il payload references, (c) conta in output tutte le occorrenze delle etichette `Brief:`, `Details:`, `Param:`, `Param[in]:`, `Param[out]:`, `Return:`, `Retval:`, `Exception:`, `Throws:`, `Warning:`, `Deprecated:`, `Note:`, `See:`, `Sa:`, `Pre:`, `Post:`, (d) verifica uguaglianza esatta tra conteggio totale sorgente e conteggio totale output; i test devono anche verificare l'assenza di righe legacy `L<n>>` per commenti/exit points nel payload di riferimento.
+- **DOX-015**: Il progetto deve includere test command-level in `tests/test_files_commands.py` per `--references` su directory progetto configurata che include `tests/fixtures/`; per ogni file fixture (uno per linguaggio) deve esistere un caso di test dedicato che: (a) conta nel file sorgente tutte le occorrenze dei tag Doxygen definiti in DOX-002, (b) estrae il payload references equivalente al comando `--references`, (c) conta in output tutte le occorrenze delle etichette `Brief:`, `Details:`, `Param:`, `Param[in]:`, `Param[out]:`, `Return:`, `Retval:`, `Exception:`, `Throws:`, `Warning:`, `Deprecated:`, `Note:`, `See:`, `Sa:`, `Pre:`, `Post:`, (d) verifica uguaglianza esatta tra conteggio totale sorgente e conteggio totale output.
 - **DOX-016**: Il progetto deve includere test command-level per `--files-find` (o flusso equivalente `find_constructs_in_files()`) che eseguono l'estrazione su ogni file in `tests/fixtures/`, selezionano costrutti tramite pattern regex specifici del file, e verificano in modo deterministico la presenza dei campi Doxygen attesi in output secondo formato DOX-010 e ordine DOX-011.
 - **DOX-017**: Il progetto deve includere test command-level per `--find` su contesto progetto configurato che include `tests/fixtures/`; i test devono verificare in modo deterministico che i campi Doxygen emessi per i costrutti trovati rispettino formato DOX-010, ordine DOX-011 e fallback senza campi quando il commento Doxygen associato non è presente.
 
