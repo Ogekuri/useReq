@@ -9,6 +9,7 @@ import os
 import tempfile
 import shutil
 import re
+from typing import Dict, List
 
 import pytest
 
@@ -20,6 +21,8 @@ from usereq.cli import (
 )
 from pathlib import Path
 from usereq.doxygen_parser import format_doxygen_fields_as_markdown
+from usereq.doxygen_parser import parse_doxygen_comment
+from usereq.find_constructs import LANGUAGE_TAGS
 from usereq.generate_markdown import detect_language
 from usereq.source_analyzer import ElementType, SourceAnalyzer
 
@@ -100,6 +103,162 @@ def _assert_doxygen_markdown_order(output: str) -> None:
                 continue
         in_block = False
         last_index = -1
+
+
+def _merge_doxygen_fields(
+    base_fields: Dict[str, List[str]],
+    extra_fields: Dict[str, List[str]],
+) -> Dict[str, List[str]]:
+    """! @brief Merge Doxygen fields preserving insertion order inside each tag."""
+    for tag, values in extra_fields.items():
+        if tag not in base_fields:
+            base_fields[tag] = []
+        base_fields[tag].extend(values)
+    return base_fields
+
+
+def _collect_expected_find_constructs(
+    filepath: Path,
+    tag_filter: str,
+    pattern: str,
+) -> list[dict]:
+    """! @brief Build deterministic expected find-construct payload from static analysis."""
+    language = detect_language(str(filepath))
+    assert language is not None, f"Unsupported fixture extension: {filepath}"
+
+    analyzer = SourceAnalyzer()
+    elements = analyzer.analyze(str(filepath), language)
+    analyzer.enrich(elements, language, str(filepath))
+
+    tag_set = {tag.strip().upper() for tag in tag_filter.split("|") if tag.strip()}
+    expected = []
+    for element in elements:
+        if not element.name:
+            continue
+        if element.type_label not in tag_set:
+            continue
+        if not re.search(pattern, element.name):
+            continue
+
+        aggregate_fields: Dict[str, List[str]] = {}
+        if getattr(element, "doxygen_fields", None):
+            _merge_doxygen_fields(aggregate_fields, element.doxygen_fields)
+        for body_comment in getattr(element, "body_comments", []):
+            if not isinstance(body_comment, tuple) or len(body_comment) < 3:
+                continue
+            parsed = parse_doxygen_comment(body_comment[2])
+            if parsed:
+                _merge_doxygen_fields(aggregate_fields, parsed)
+
+        expected.append(
+            {
+                "type_label": element.type_label,
+                "name": element.name,
+                "line_start": element.line_start,
+                "line_end": element.line_end,
+                "doxygen_lines": format_doxygen_fields_as_markdown(aggregate_fields),
+            }
+        )
+
+    return expected
+
+
+def _extract_construct_blocks(output: str) -> list[dict]:
+    """! @brief Parse all construct blocks from find-command markdown output."""
+    blocks: list[dict] = []
+    pattern = re.compile(
+        r"### ([A-Z_]+): `([^`]+)`\n(.*?)(?=\n### [A-Z_]+: `|\Z)",
+        re.S,
+    )
+    for match in pattern.finditer(output):
+        type_label = match.group(1)
+        name = match.group(2)
+        block = match.group(0)
+        body = match.group(3)
+        lines_match = re.search(r"- Lines: (\d+)-(\d+)", body)
+        if lines_match is None:
+            continue
+        blocks.append(
+            {
+                "type_label": type_label,
+                "name": name,
+                "line_start": int(lines_match.group(1)),
+                "line_end": int(lines_match.group(2)),
+                "block": block,
+            }
+        )
+    return blocks
+
+
+def _extract_construct_block(
+    output: str,
+    type_label: str,
+    name: str,
+    line_start: int,
+    line_end: int,
+) -> str:
+    """! @brief Extract one construct markdown block by type, name, and line range."""
+    for parsed in _extract_construct_blocks(output):
+        if (
+            parsed["type_label"] == type_label
+            and parsed["name"] == name
+            and parsed["line_start"] == line_start
+            and parsed["line_end"] == line_end
+        ):
+            return parsed["block"]
+
+    escaped_type = re.escape(type_label)
+    escaped_name = re.escape(name)
+    raise AssertionError(
+        "Missing construct block for "
+        f"{escaped_type}:{escaped_name}:{line_start}-{line_end}"
+    )
+
+
+def _assert_find_construct_doxygen_block(
+    output: str,
+    expected_construct: dict,
+) -> None:
+    """! @brief Assert one find-construct block emits expected Doxygen section semantics."""
+    block = _extract_construct_block(
+        output,
+        expected_construct["type_label"],
+        expected_construct["name"],
+        expected_construct["line_start"],
+        expected_construct["line_end"],
+    )
+    expected_lines = expected_construct["doxygen_lines"]
+
+    lines_idx = block.find("- Lines:")
+    code_idx = block.find("```")
+    assert lines_idx != -1
+    assert code_idx != -1
+    assert lines_idx < code_idx
+
+    if expected_lines:
+        cursor = lines_idx
+        for line in expected_lines:
+            idx = block.find(line, cursor + 1)
+            assert idx != -1, (
+                f"Missing expected Doxygen line '{line}' "
+                f"for {expected_construct['type_label']}:{expected_construct['name']}"
+            )
+            assert idx < code_idx
+            cursor = idx
+    else:
+        doxygen_prefixes = [f"- {label}:" for label in DOXYGEN_TAG_LABELS_IN_ORDER]
+        metadata_section = block[lines_idx:code_idx]
+        for prefix in doxygen_prefixes:
+            assert prefix not in metadata_section
+
+
+def _build_language_tag_filter(filepath: Path) -> str:
+    """! @brief Build full language-specific tag filter string for find commands."""
+    language = detect_language(str(filepath))
+    assert language is not None, f"Unsupported fixture extension: {filepath}"
+    tags = sorted(LANGUAGE_TAGS[language])
+    assert tags, f"No tag definition for language '{language}'"
+    return "|".join(tags)
 
 
 class TestFilesTokensCommand:
@@ -653,6 +812,152 @@ class TestFindCommandVerbose:
         assert rc == 0
         captured = capsys.readouterr()
         assert "1: def foo():" in captured.out
+
+
+class TestFindCommandsDoxygen:
+    """DOX-016, DOX-017: Doxygen extraction for --files-find and --find."""
+
+    @pytest.mark.parametrize(
+        "fixture_file",
+        FIXTURE_FILES,
+        ids=lambda path: path.name,
+    )
+    def test_files_find_extracts_doxygen_fields_for_each_fixture(
+        self,
+        fixture_file: Path,
+        capsys,
+    ):
+        """DOX-016: --files-find equivalent flow must emit expected Doxygen fields for each fixture."""
+        tag_filter = _build_language_tag_filter(fixture_file)
+        expected_constructs = _collect_expected_find_constructs(
+            fixture_file,
+            tag_filter,
+            ".*",
+        )
+        assert expected_constructs, f"No expected constructs for {fixture_file.name}"
+
+        rc = main(["--files-find", tag_filter, ".*", str(fixture_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert output
+        for expected_construct in expected_constructs:
+            _assert_find_construct_doxygen_block(output, expected_construct)
+        _assert_doxygen_markdown_order(output)
+
+    def test_files_find_without_doxygen_outputs_only_construct_reference(
+        self,
+        capsys,
+        tmp_path,
+    ):
+        """DOX-010: --files-find must omit Doxygen bullets when no Doxygen comment exists."""
+        source_file = tmp_path / "plain.py"
+        source_file.write_text(
+            "def plain_function(value):\n    return value\n",
+            encoding="utf-8",
+        )
+
+        rc = main(["--files-find", "FUNCTION", "plain_function", str(source_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "FUNCTION: `plain_function`" in output
+
+        block = _extract_construct_block(output, "FUNCTION", "plain_function", 1, 2)
+        lines_idx = block.find("- Lines:")
+        code_idx = block.find("```")
+        assert lines_idx != -1 and code_idx != -1 and lines_idx < code_idx
+        metadata_section = block[lines_idx:code_idx]
+        for label in DOXYGEN_TAG_LABELS_IN_ORDER:
+            assert f"- {label}:" not in metadata_section
+
+    @pytest.mark.parametrize(
+        "fixture_file",
+        FIXTURE_FILES,
+        ids=lambda path: path.name,
+    )
+    def test_find_extracts_doxygen_fields_for_each_fixture(
+        self,
+        fixture_file: Path,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-017: --find must emit expected Doxygen fields for fixture-backed project scans."""
+        src = tmp_path / "src"
+        src.mkdir()
+        copied_fixture = src / fixture_file.name
+        shutil.copy(fixture_file, copied_fixture)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        tag_filter = _build_language_tag_filter(copied_fixture)
+        expected_constructs = _collect_expected_find_constructs(
+            copied_fixture,
+            tag_filter,
+            ".*",
+        )
+        assert expected_constructs, f"No expected constructs for {fixture_file.name}"
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--find", tag_filter, ".*"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert output
+        for expected_construct in expected_constructs:
+            _assert_find_construct_doxygen_block(output, expected_construct)
+        _assert_doxygen_markdown_order(output)
+
+    def test_find_without_doxygen_outputs_only_construct_reference(
+        self,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-010: --find must omit Doxygen bullets when constructs have no Doxygen comments."""
+        src = tmp_path / "src"
+        src.mkdir()
+        source_file = src / "plain.py"
+        source_file.write_text(
+            "def plain_function(value):\n    return value\n",
+            encoding="utf-8",
+        )
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--find", "FUNCTION", "plain_function"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "FUNCTION: `plain_function`" in output
+
+        block = _extract_construct_block(output, "FUNCTION", "plain_function", 1, 2)
+        lines_idx = block.find("- Lines:")
+        code_idx = block.find("```")
+        assert lines_idx != -1 and code_idx != -1 and lines_idx < code_idx
+        metadata_section = block[lines_idx:code_idx]
+        for label in DOXYGEN_TAG_LABELS_IN_ORDER:
+            assert f"- {label}:" not in metadata_section
 
 
 class TestSupportedExtensions:

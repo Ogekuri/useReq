@@ -28,7 +28,11 @@
     - `format_markdown()`: enhanced to render Doxygen fields as Markdown list with optional legacy annotation suppression [`src/usereq/source_analyzer.py`]
       - description: when doxygen_fields are present, emits ordered Markdown bullet fields via `format_doxygen_fields_as_markdown()`; when `include_legacy_annotations=False`, suppresses raw `L<n>>` comment/exit traces and standalone comment sections so output contains construct references plus Doxygen bullets only (DOX-009, MKD-007).
     - `find_constructs.format_construct()`: enhanced to include Doxygen fields after line range [`src/usereq/find_constructs.py`]
-      - description: inserts Doxygen field Markdown list after "- Lines: ..." and before code block, supporting DOX-010.
+      - description: aggregates Doxygen tags from both `element.doxygen_fields` (associated comments) and `element.body_comments` (comments within construct body), formats ordered Markdown bullets, and inserts them after "- Lines: ..." and before code block, preserving fallback without Doxygen lines when no tag is extracted (DOX-010, DOX-011).
+      - `_extract_construct_doxygen_fields()`: aggregate construct-scoped Doxygen tags [`src/usereq/find_constructs.py`]
+        - description: merges parser output from enriched associated comments plus per-body-comment parse results for each construct.
+      - `_merge_doxygen_fields()`: deterministic tag-list concatenation helper [`src/usereq/find_constructs.py`]
+        - description: appends values per tag key while preserving per-tag insertion order for deterministic Markdown output.
 
 - Feature: CLI bootstrap and command dispatch
   - Module: `src/usereq/__main__.py`
@@ -124,8 +128,8 @@
       - description: validates minimum argument count (TAG, PATTERN, FILE), imports `format_available_tags()` to include available TAG listing in error messages when insufficient arguments provided, parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` while keeping default output without line prefixes, forwards `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing.
       - `_get_available_tags_help()`: generates TAG listing for CLI help text [`src/usereq/cli.py:L65-L75`]
         - description: attempts to import `format_available_tags()` from `find_constructs` module to generate dynamic TAG listing for argument parser help display, returns fallback message if import fails.
-      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L118-L198`]
-        - description: parses pipe-separated tags via `parse_tag_filter()`, validates tag set is non-empty and raises `ValueError` with `format_available_tags()` output when empty, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()`, prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors with `format_available_tags()` output if no constructs found, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
+      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L172-L262`]
+        - description: parses pipe-separated tags via `parse_tag_filter()`, validates tag set is non-empty and raises `ValueError` with `format_available_tags()` output when empty, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()` (including aggregated Doxygen fields from associated + body comments), prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors with `format_available_tags()` output if no constructs found, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
         - `format_available_tags()`: generates formatted TAG listing per language [`src/usereq/find_constructs.py:L40-L51`]
           - description: iterates `LANGUAGE_TAGS` dictionary in sorted key order, sorts each language's tag set alphabetically, capitalizes language name, formats each entry as `- Language: TAG1, TAG2, ...` with comma-space separation, returns multi-line string for error messages and help text display.
         - `parse_tag_filter()`: parses pipe-separated TAG string into normalized set [`src/usereq/find_constructs.py:L54-L59`]
@@ -134,8 +138,12 @@
           - description: checks intersection of requested tags with language-specific supported tags from `LANGUAGE_TAGS` map.
         - `construct_matches()`: filters element by type and name pattern [`src/usereq/find_constructs.py`]
           - description: tests if element type is in tag set and element name matches regex via `re.search()`.
-        - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py:L89-L115`]
-          - description: receives SourceElement instance and complete source file lines list, extracts complete construct code from source_lines using element.line_start and element.line_end indices (replacing truncated element.extract field), emits type, name, signature, line range, and full construct code with optional `<n>:` line number prefixes.
+        - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py:L137-L169`]
+          - description: receives SourceElement instance and complete source file lines list, computes merged Doxygen field dictionary via `_extract_construct_doxygen_fields()`, emits ordered Markdown Doxygen bullets between `- Lines:` and fenced code block, and renders complete construct code using element.line_start/line_end with optional `<n>:` prefixes.
+          - `_extract_construct_doxygen_fields()`: aggregate parser results for one construct [`src/usereq/find_constructs.py:L114-L134`]
+            - description: merges `element.doxygen_fields` with parser results from each `element.body_comments` entry.
+          - `_merge_doxygen_fields()`: merge utility for Doxygen dictionaries [`src/usereq/find_constructs.py:L97-L111`]
+            - description: appends values for repeated tags to preserve deterministic output sequencing per tag.
     - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2247-L2258`]
       - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, builds `# Files Structure` fenced tree through `_format_files_structure_markdown()`, then appends markdown from `generate_markdown(verbose=VERBOSE)`.
       - `_format_files_structure_markdown()`: renders markdown wrapper for scanned source tree [`src/usereq/cli.py`]
@@ -244,6 +252,12 @@
       - description: executes `--files-references` on a synthetic undecorated function and asserts construct reference presence without any Doxygen bullet tags, plus absence of legacy `L<n>>` traces.
     - `test_references_extracts_doxygen_fields_from_fixture_project()`: validates project-scan `--references` Doxygen output [`tests/test_files_commands.py`]
       - description: builds temporary project config (`.req/config.json` with `src-dir`), executes `--references` in `--here` mode, checks `# Files Structure` preamble, verifies deterministic Doxygen bullets and ordering, and enforces absence of legacy `L<n>>` traces.
+    - `TestFindCommandsDoxygen.test_files_find_extracts_doxygen_fields_for_each_fixture()`: validates `--files-find` Doxygen extraction on all fixtures [`tests/test_files_commands.py`]
+      - description: parametrizes all fixture files, builds language-specific TAG filters from `LANGUAGE_TAGS`, derives deterministic expected Doxygen bullets per construct via static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + body-comment parsing), and asserts output block-by-block using `type/name/line-range` identity.
+    - `TestFindCommandsDoxygen.test_find_extracts_doxygen_fields_for_each_fixture()`: validates `--find` Doxygen extraction on fixture-backed project scans [`tests/test_files_commands.py`]
+      - description: creates temporary project with `.req/config.json` and copied fixture under configured `src-dir`, executes `--here --find`, verifies deterministic Doxygen bullets/order for each extracted construct block.
+    - `TestFindCommandsDoxygen.test_files_find_without_doxygen_outputs_only_construct_reference()` + `TestFindCommandsDoxygen.test_find_without_doxygen_outputs_only_construct_reference()`: validates fallback without Doxygen bullets [`tests/test_files_commands.py`]
+      - description: executes both command paths on synthetic undecorated function, asserts construct metadata is present and Doxygen bullet labels are absent between `- Lines:` and code fence.
 
 - Requirements alignment evidence (`docs/REQUIREMENTS.md`)
   - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).

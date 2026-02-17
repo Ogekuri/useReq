@@ -12,6 +12,7 @@ import re
 import sys
 from pathlib import Path
 
+from .doxygen_parser import format_doxygen_fields_as_markdown, parse_doxygen_comment
 from .source_analyzer import SourceAnalyzer
 from .compress import detect_language
 
@@ -93,6 +94,46 @@ def construct_matches(element, tag_set: set[str], pattern: str) -> bool:
         return False
 
 
+def _merge_doxygen_fields(
+    base_fields: dict[str, list[str]],
+    extra_fields: dict[str, list[str]],
+) -> dict[str, list[str]]:
+    """! @brief Merge Doxygen fields preserving per-tag content order.
+    @details Appends extra field values to base field lists for matching tags and initializes missing tags. Mutates and returns base_fields.
+    @param base_fields Canonical field dictionary to update.
+    @param extra_fields Additional parsed fields to append.
+    @return Updated base_fields dictionary.
+    """
+    for tag, values in extra_fields.items():
+        if tag not in base_fields:
+            base_fields[tag] = []
+        base_fields[tag].extend(values)
+    return base_fields
+
+
+def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]:
+    """! @brief Build aggregate Doxygen fields for one construct.
+    @details Aggregates fields from two sources: pre-associated element.doxygen_fields and all comment snippets extracted from element.body_comments. Each comment snippet is parsed with parse_doxygen_comment() and merged in discovery order.
+    @param element SourceElement instance potentially enriched with doxygen_fields and body_comments.
+    @return Dictionary tag->list preserving tag content insertion order.
+    """
+    aggregate: dict[str, list[str]] = {}
+
+    if hasattr(element, "doxygen_fields") and element.doxygen_fields:
+        _merge_doxygen_fields(aggregate, element.doxygen_fields)
+
+    body_comments = getattr(element, "body_comments", [])
+    for body_comment in body_comments:
+        if not isinstance(body_comment, tuple) or len(body_comment) < 3:
+            continue
+        comment_text = body_comment[2]
+        parsed_fields = parse_doxygen_comment(comment_text)
+        if parsed_fields:
+            _merge_doxygen_fields(aggregate, parsed_fields)
+
+    return aggregate
+
+
 def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str:
     """! @brief Format a single matched construct for markdown output with complete code extraction.
     @param element SourceElement instance containing line range indices.
@@ -101,17 +142,16 @@ def format_construct(element, source_lines: list[str], include_line_numbers: boo
     @return Formatted markdown block for the construct with complete code from line_start to line_end.
     @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices. Includes Doxygen fields if present.
     """
-    from .doxygen_parser import format_doxygen_fields_as_markdown
-
     lines = []
     lines.append(f"### {element.type_label}: `{element.name}`")
     if element.signature:
         lines.append(f"- Signature: `{element.signature}`")
     lines.append(f"- Lines: {element.line_start}-{element.line_end}")
 
-    # Insert Doxygen fields if present (DOX-010)
-    if hasattr(element, 'doxygen_fields') and element.doxygen_fields:
-        dox_lines = format_doxygen_fields_as_markdown(element.doxygen_fields)
+    # Insert Doxygen fields if present (DOX-010, DOX-011)
+    doxygen_fields = _extract_construct_doxygen_fields(element)
+    if doxygen_fields:
+        dox_lines = format_doxygen_fields_as_markdown(doxygen_fields)
         lines.extend(dox_lines)
 
     # Extract COMPLETE code block from source file (not truncated extract)

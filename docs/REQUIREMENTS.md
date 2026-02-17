@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-17"
-version: 0.79
+version: 0.80
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.79
+**Versione**: 0.80
 **Autore**: Ogekuri
 **Data**: 2026-02-17
 
@@ -103,6 +103,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-17 | 0.77 | Estesi i requisiti test Doxygen per imporre copertura minima di 160 test (10 per ciascuno dei 16 tag supportati) con casi specifici e risultato atteso deterministico per ogni commento. |
 | 2026-02-17 | 0.78 | Estesi i requisiti Doxygen con test su tutte le fixture linguistiche per verifica completa dei costrutti e associazione commento pre/post-costrutto. |
 | 2026-02-17 | 0.79 | Aggiornato output `--files-references`/`--references` per emettere campi Doxygen in lista Markdown ordinata senza tracce legacy di commenti/exit points; estesa la suite test dei comandi su tutte le fixture in `tests/fixtures/`. |
+| 2026-02-17 | 0.80 | Aggiornati `--files-find`/`--find` per emissione campi Doxygen estratti dai commenti associati al costrutto con fallback senza campi quando assenti; estesi i test command-level su tutte le fixture per verifica deterministica dei campi attesi. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -477,7 +478,7 @@ Il progetto include una suite di test in `tests/`.
 - **FND-002**: Il parametro `<TAG>` deve accettare uno o più identificatori di tipo elemento separati dal carattere `|`. Gli identificatori validi per linguaggio sono: Python (`CLASS`, `FUNCTION`, `DECORATOR`, `IMPORT`, `VARIABLE`), C (`STRUCT`, `UNION`, `ENUM`, `TYPEDEF`, `MACRO`, `FUNCTION`, `IMPORT`, `VARIABLE`), C++ (`CLASS`, `STRUCT`, `ENUM`, `NAMESPACE`, `FUNCTION`, `MACRO`, `IMPORT`, `TYPE_ALIAS`), Rust (`FUNCTION`, `STRUCT`, `ENUM`, `TRAIT`, `IMPL`, `MODULE`, `MACRO`, `CONSTANT`, `TYPE_ALIAS`, `IMPORT`, `DECORATOR`), JavaScript (`CLASS`, `FUNCTION`, `COMPONENT`, `CONSTANT`, `IMPORT`, `MODULE`), TypeScript (`INTERFACE`, `TYPE_ALIAS`, `ENUM`, `CLASS`, `FUNCTION`, `NAMESPACE`, `MODULE`, `IMPORT`, `DECORATOR`), Java (`CLASS`, `INTERFACE`, `ENUM`, `FUNCTION`, `IMPORT`, `MODULE`, `DECORATOR`, `CONSTANT`), Go (`FUNCTION`, `METHOD`, `STRUCT`, `INTERFACE`, `TYPE_ALIAS`, `CONSTANT`, `IMPORT`, `MODULE`), Ruby (`CLASS`, `MODULE`, `FUNCTION`, `CONSTANT`, `IMPORT`, `DECORATOR`), PHP (`CLASS`, `INTERFACE`, `TRAIT`, `FUNCTION`, `NAMESPACE`, `IMPORT`, `CONSTANT`), Swift (`CLASS`, `STRUCT`, `ENUM`, `PROTOCOL`, `EXTENSION`, `FUNCTION`, `IMPORT`, `CONSTANT`, `VARIABLE`), Kotlin (`CLASS`, `INTERFACE`, `ENUM`, `FUNCTION`, `CONSTANT`, `VARIABLE`, `MODULE`, `IMPORT`, `DECORATOR`), Scala (`CLASS`, `TRAIT`, `MODULE`, `FUNCTION`, `CONSTANT`, `VARIABLE`, `TYPE_ALIAS`, `IMPORT`), Lua (`FUNCTION`, `VARIABLE`), Shell (`FUNCTION`, `VARIABLE`, `IMPORT`), Perl (`FUNCTION`, `MODULE`, `IMPORT`, `CONSTANT`), Haskell (`MODULE`, `TYPE_ALIAS`, `STRUCT`, `CLASS`, `FUNCTION`, `IMPORT`), Zig (`FUNCTION`, `STRUCT`, `ENUM`, `UNION`, `CONSTANT`, `VARIABLE`, `IMPORT`), Elixir (`MODULE`, `FUNCTION`, `PROTOCOL`, `IMPL`, `STRUCT`, `IMPORT`), C# (`CLASS`, `INTERFACE`, `STRUCT`, `ENUM`, `NAMESPACE`, `FUNCTION`, `PROPERTY`, `IMPORT`, `DECORATOR`, `CONSTANT`).
 - **FND-003**: Il parametro `<REGEXP>` deve essere una espressione regolare Python (sintassi `re` module) applicata al nome del costrutto estratto. Il match deve essere case-sensitive e testato con `re.search()`.
 - **FND-004**: Se un file sorgente non supporta nessuno dei tag specificati in `<TAG>` per il suo linguaggio, il file deve essere saltato; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
-- **FND-005**: La funzione `find_constructs_in_files()` deve analizzare ciascun file con `SourceAnalyzer.analyze()` e `SourceAnalyzer.enrich()`, filtrare gli elementi per tag e regex, leggere il contenuto completo di ciascun costrutto filtrato dal file sorgente utilizzando gli indici `line_start` e `line_end`, e formattare l'output in markdown con il codice completo del costrutto.
+- **FND-005**: La funzione `find_constructs_in_files()` deve analizzare ciascun file con `SourceAnalyzer.analyze()` e `SourceAnalyzer.enrich()`, filtrare gli elementi per tag e regex, usare i commenti associati al costrutto processati in `SourceAnalyzer.enrich()` per popolare i campi `doxygen_fields`, leggere il contenuto completo di ciascun costrutto filtrato dal file sorgente utilizzando gli indici `line_start` e `line_end`, e formattare l'output in markdown con il codice completo del costrutto.
 - **FND-006**: Il formato di output markdown deve contenere per ciascun file un header `@@@ <percorso> | <linguaggio>`, seguito dall'elenco dei costrutti trovati con: tipo costrutto, nome, firma (se presente), riga iniziale, riga finale, campi Doxygen estratti formattati come lista Markdown puntata (se presenti), codice estratto completo del costrutto dall'inizio alla fine (senza limitazione di righe o troncamento con `...`), letto direttamente dal file sorgente utilizzando gli indici `line_start` e `line_end` del SourceElement.
 - **FND-007**: Il codice estratto per ciascun costrutto deve includere i prefissi con numero di riga nel formato `<n>: <testo>` per default. I prefissi devono essere disabilitabili con l'opzione `include_line_numbers=False`.
 - **FND-008**: Lo stato di elaborazione (OK/SKIP/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
@@ -517,12 +518,14 @@ Il progetto include una suite di test in `tests/`.
 - **DOX-007**: Il modulo `usereq.source_analyzer` deve invocare `parse_doxygen_comment()` sui commenti associati ai costrutti e popolare un nuovo campo `doxygen_fields` in `SourceElement`.
 - **DOX-008**: Tutti i file fixture in `tests/fixtures/` devono contenere almeno 5 costrutti documentati con tag Doxygen @brief, @details, @param, @return per ciascun tipo di costrutto obbligatorio del linguaggio definito in FND-002.
 - **DOX-009**: I comandi `--files-references` e `--references` devono formattare l'output Doxygen come lista Markdown puntata con prefisso tag capitalizzato senza chiocciola, aggiungendo ':' (es: `@brief` → `- Brief:`). Se nessun campo Doxygen è presente, l'output deve contenere solo il riferimento del costrutto.
-- **DOX-010**: I comandi `--files-find` e `--find` devono inserire i campi Doxygen estratti dopo la riga `- Lines: ...` e prima del blocco codice. Il formato deve essere lista Markdown puntata con tag capitalizzato senza chiocciola e ':' (es: `@param` → `- Param:`).
+- **DOX-010**: I comandi `--files-find` e `--find` devono inserire i campi Doxygen estratti dopo la riga `- Lines: ...` e prima del blocco codice. Il formato deve essere lista Markdown puntata con prefisso derivato dal tag Doxygen senza carattere iniziale `@`, con primo carattere maiuscolo e suffisso `:` (es: `@brief` → `- Brief:`, `@exception` → `- Exception:`, `@sa` → `- Sa:`). Se il costrutto non ha commento Doxygen associato, l'output deve contenere solo i metadati del costrutto senza righe aggiuntive di campi Doxygen.
 - **DOX-011**: I campi Doxygen devono essere emessi nell'ordine fisso: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post, omettendo tag non presenti.
 - **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 160 test unitari complessivi, derivati da almeno 10 casi per ciascuno dei 16 tag Doxygen supportati in DOX-002; ogni test deve usare un commento sintetico generato per uno scenario specifico del tag target e deve verificare in modo deterministico il risultato atteso dell'estrazione.
 - **DOX-013**: Il progetto deve includere test Doxygen basati su `tests/fixtures/` che, per ciascun file fixture, estraggono tutti i costrutti presenti compatibili con FND-002, validano in modo deterministico i campi Doxygen attesi per ogni costrutto, e verificano che l'associazione commento→costrutto sia corretta sia per commenti pre-costrutto sia per commenti post-costrutto quando consentiti dalla sintassi del linguaggio.
 - **DOX-014**: Il progetto deve includere test command-level in `tests/test_files_commands.py` che eseguono il flusso equivalente a `--files-references` su ogni file in `tests/fixtures/` e verificano in modo deterministico la presenza in output dei campi Doxygen attesi per i costrutti documentati; i test devono anche verificare l'assenza di righe legacy `L<n>>` per commenti/exit points nel payload di riferimento.
 - **DOX-015**: Il progetto deve includere test command-level in `tests/test_files_commands.py` per `--references` su directory progetto configurata che include `tests/fixtures/`; i test devono verificare in modo deterministico l'emissione dei campi Doxygen in ordine DOX-011 per i costrutti documentati e la presenza del solo riferimento costrutto quando i campi Doxygen non sono disponibili.
+- **DOX-016**: Il progetto deve includere test command-level per `--files-find` (o flusso equivalente `find_constructs_in_files()`) che eseguono l'estrazione su ogni file in `tests/fixtures/`, selezionano costrutti tramite pattern regex specifici del file, e verificano in modo deterministico la presenza dei campi Doxygen attesi in output secondo formato DOX-010 e ordine DOX-011.
+- **DOX-017**: Il progetto deve includere test command-level per `--find` su contesto progetto configurato che include `tests/fixtures/`; i test devono verificare in modo deterministico che i campi Doxygen emessi per i costrutti trovati rispettino formato DOX-010, ordine DOX-011 e fallback senza campi quando il commento Doxygen associato non è presente.
 
 ### 3.25 Code Documentation Standards
 - **DOC-001**: All source code files within `src/` must include comprehensive Doxygen-style documentation for modules, classes, functions, and methods.

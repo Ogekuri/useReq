@@ -475,7 +475,7 @@ from typing import Dict, List
 
 ---
 
-# find_constructs.py | Python | 262L | 8 symbols | 8 imports | 15 comments
+# find_constructs.py | Python | 302L | 10 symbols | 8 imports | 17 comments
 > Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 
 ## Imports
@@ -484,40 +484,46 @@ import os
 import re
 import sys
 from pathlib import Path
+from .doxygen_parser import format_doxygen_fields_as_markdown, parse_doxygen_comment
 from .source_analyzer import SourceAnalyzer
 from .compress import detect_language
-from .doxygen_parser import format_doxygen_fields_as_markdown
 import argparse
 ```
 
 ## Definitions
 
-- var `LANGUAGE_TAGS = {` (L20)
-### fn `def format_available_tags() -> str` (L44-57)
+- var `LANGUAGE_TAGS = {` (L21)
+### fn `def format_available_tags() -> str` (L45-58)
 
-### fn `def parse_tag_filter(tag_string: str) -> set[str]` (L58-66)
+### fn `def parse_tag_filter(tag_string: str) -> set[str]` (L59-67)
 
-### fn `def language_supports_tags(lang: str, tag_set: set[str]) -> bool` (L67-77)
+### fn `def language_supports_tags(lang: str, tag_set: set[str]) -> bool` (L68-78)
 
-### fn `def construct_matches(element, tag_set: set[str], pattern: str) -> bool` (L78-95)
+### fn `def construct_matches(element, tag_set: set[str], pattern: str) -> bool` (L79-96)
 
-### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L96-131)
+### fn `def _merge_doxygen_fields(` `priv` (L97-99)
 
-### fn `def find_constructs_in_files(` (L132-137)
+### fn `def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]` `priv` (L114-136)
 
-### fn `def main()` (L225-260)
+### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L137-171)
+
+### fn `def find_constructs_in_files(` (L172-177)
+
+### fn `def main()` (L265-300)
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`LANGUAGE_TAGS`|var|pub|20||
-|`format_available_tags`|fn|pub|44-57|def format_available_tags() -> str|
-|`parse_tag_filter`|fn|pub|58-66|def parse_tag_filter(tag_string: str) -> set[str]|
-|`language_supports_tags`|fn|pub|67-77|def language_supports_tags(lang: str, tag_set: set[str]) ...|
-|`construct_matches`|fn|pub|78-95|def construct_matches(element, tag_set: set[str], pattern...|
-|`format_construct`|fn|pub|96-131|def format_construct(element, source_lines: list[str], in...|
-|`find_constructs_in_files`|fn|pub|132-137|def find_constructs_in_files(|
-|`main`|fn|pub|225-260|def main()|
+|`LANGUAGE_TAGS`|var|pub|21||
+|`format_available_tags`|fn|pub|45-58|def format_available_tags() -> str|
+|`parse_tag_filter`|fn|pub|59-67|def parse_tag_filter(tag_string: str) -> set[str]|
+|`language_supports_tags`|fn|pub|68-78|def language_supports_tags(lang: str, tag_set: set[str]) ...|
+|`construct_matches`|fn|pub|79-96|def construct_matches(element, tag_set: set[str], pattern...|
+|`_merge_doxygen_fields`|fn|priv|97-99|def _merge_doxygen_fields(|
+|`_extract_construct_doxygen_fields`|fn|priv|114-136|def _extract_construct_doxygen_fields(element) -> dict[st...|
+|`format_construct`|fn|pub|137-171|def format_construct(element, source_lines: list[str], in...|
+|`find_constructs_in_files`|fn|pub|172-177|def find_constructs_in_files(|
+|`main`|fn|pub|265-300|def main()|
 
 
 ---
