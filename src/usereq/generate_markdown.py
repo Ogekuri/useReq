@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""! @brief generate_markdown.py - Generate concatenated markdown from arbitrary source files.
-@details Analyzes each input file with source_analyzer and produces a single markdown output concatenating all results. Prints pack summary to stderr. Usage (as module): from generate_markdown import generate_markdown md = generate_markdown(["file1.py", "file2.js"]) Usage (CLI): python generate_markdown.py file1.py file2.js ... python generate_markdown.py file1.py file2.js ... > output.md
+"""!
+@file generate_markdown.py
+@brief Generate concatenated markdown from arbitrary source files.
+@details Analyzes each input file with source_analyzer and produces a single markdown output concatenating all results. Prints pack summary to stderr.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 import os
@@ -38,6 +42,9 @@ EXT_LANG_MAP = {
 
 def detect_language(filepath: str) -> str | None:
     """! @brief Detect language from file extension.
+    @param filepath Path to the source file.
+    @return Language identifier string or None if unknown.
+    @details Uses EXT_LANG_MAP for extension lookup (case-insensitive).
     """
     _, ext = os.path.splitext(filepath)
     return EXT_LANG_MAP.get(ext.lower())
@@ -45,7 +52,11 @@ def detect_language(filepath: str) -> str | None:
 
 def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
     """! @brief Analyze source files and return concatenated markdown.
-    @details Args: filepaths: List of source file paths to analyze. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown string with all file analyses. Raises: ValueError: If no valid source files are found.
+    @param filepaths List of source file paths to analyze.
+    @param verbose If True, emits progress status messages on stderr.
+    @return Concatenated markdown string with all file analyses.
+    @throws ValueError If no valid source files are found.
+    @details Iterates through files, detecting language, analyzing constructs, and formatting output.
     """
     analyzer = SourceAnalyzer()
     md_parts = []
@@ -97,7 +108,9 @@ def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
 
 
 def main():
-    """! @brief Execute the standalone markdown generation CLI command."""
+    """! @brief Execute the standalone markdown generation CLI command.
+    @details Expects file paths as command-line arguments. Prints generated markdown to stdout.
+    """
     if len(sys.argv) < 2:
         print("Usage: python generate_markdown.py file1 [file2 ...]",
               file=sys.stderr)

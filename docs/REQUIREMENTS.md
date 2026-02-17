@@ -499,3 +499,8 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-028**: Il comando `--find` deve accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output non deve includere i prefissi `<numero>:`, quando il flag è presente i prefissi devono essere inclusi.
 - **CMD-029**: I comandi `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find` devono stampare su stderr gli output di stato elaborazione (OK/SKIP/FAIL e riepiloghi) solo quando è presente il flag `--verbose`; senza `--verbose` tali output non devono essere stampati.
 - **CMD-030**: I comandi `--files-compress` e `--compress` devono stampare per ogni file processato lo stesso payload strutturato: header `@@@ <percorso> | <linguaggio>`, riga `- Lines: <riga_iniziale>-<riga_finale>` con intervallo derivato dalla numerazione `<n>:` già calcolata dal compressore, e blocco codice delimitato da triple backtick; la logica di calcolo della numerazione riga esistente non deve essere modificata.
+
+### 3.24 Code Documentation Standards
+- **DOC-001**: All source code files within `src/` must include comprehensive Doxygen-style documentation for modules, classes, functions, and methods.
+- **DOC-002**: The documentation format must strictly follow the guidelines provided in `guidelines/Document_Source_Code_in_Doxygen_Style_for_LLM-Agent.md`, focusing on semantic density for LLM consumption.
+- **DOC-003**: Documentation blocks must use standard language-specific docstring syntax (e.g., triple double quotes `"""` for Python) and include standard Doxygen tags (e.g., `@param`, `@return`, `@brief`) as specified in the guidelines.

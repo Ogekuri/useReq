@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""! @brief compress.py - Source code compressor for LLM context optimization.
-@details Parses a source file and removes all comments (inline, single-line, multi-line), blank lines, trailing whitespace, and redundant spacing while preserving language semantics (e.g. Python indentation). Leverages LanguageSpec from source_analyzer to correctly identify comment syntax for each supported language. Usage (as module): from compress import compress_source, compress_file compressed = compress_source(code, "python") compressed = compress_file("main.py") Usage (CLI): python compress.py file.py python compress.py --lang rust file.rs
+"""!
+@file compress.py
+@brief Source code compressor for LLM context optimization.
+@details Parses a source file and removes all comments (inline, single-line, multi-line), blank lines, trailing whitespace, and redundant spacing while preserving language semantics (e.g. Python indentation). Leverages LanguageSpec from source_analyzer to correctly identify comment syntax for each supported language.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 import os
@@ -32,6 +36,7 @@ _specs_cache = None
 def _get_specs():
     """! @brief Return cached language specifications, initializing once.
     @return Dictionary mapping normalized language keys to language specs.
+    @details If cache is empty, calls `build_language_specs()` to populate it.
     """
     global _specs_cache
     if _specs_cache is None:
@@ -43,6 +48,7 @@ def detect_language(filepath: str) -> str | None:
     """! @brief Detect language key from file extension.
     @param filepath Source file path.
     @return Normalized language key, or None when extension is unsupported.
+    @details Uses `EXT_LANG_MAP` for lookup. Case-insensitive extension matching.
     """
     _, ext = os.path.splitext(filepath)
     return EXT_LANG_MAP.get(ext.lower())
@@ -50,6 +56,11 @@ def detect_language(filepath: str) -> str | None:
 
 def _is_in_string(line: str, pos: int, string_delimiters: tuple) -> bool:
     """! @brief Check if position `pos` in `line` is inside a string literal.
+    @param line The code line string.
+    @param pos The character index to check.
+    @param string_delimiters Tuple of string delimiter characters/sequences.
+    @return True if `pos` is inside a string, False otherwise.
+    @details iterates through the line handling escaped delimiters.
     """
     in_string = None
     i = 0
@@ -88,6 +99,11 @@ def _is_in_string(line: str, pos: int, string_delimiters: tuple) -> bool:
 def _remove_inline_comment(line: str, single_comment: str,
                            string_delimiters: tuple) -> str:
     """! @brief Remove trailing single-line comment from a code line.
+    @param line The code line string.
+    @param single_comment The single-line comment marker (e.g., "//", "#").
+    @param string_delimiters Tuple of string delimiters to respect.
+    @return The line content before the comment starts.
+    @details Respects string literals; does not remove comments inside strings.
     """
     if not single_comment:
         return line
@@ -126,6 +142,8 @@ def _remove_inline_comment(line: str, single_comment: str,
 
 def _is_python_docstring_line(line: str) -> bool:
     """! @brief Check if a line is a standalone Python docstring (triple-quote only).
+    @param line The code line string.
+    @return True if the line appears to be a standalone triple-quoted string.
     """
     stripped = line.strip()
     for q in ('"""', "'''"):
@@ -137,6 +155,9 @@ def _is_python_docstring_line(line: str) -> bool:
 def _format_result(entries: list[tuple[int, str]],
                    include_line_numbers: bool) -> str:
     """! @brief Format compressed entries, optionally prefixing original line numbers.
+    @param entries List of tuples (line_number, text).
+    @param include_line_numbers Boolean flag to enable line prefixes.
+    @return Formatted string.
     """
     if not include_line_numbers:
         return '\n'.join(text for _, text in entries)
@@ -146,7 +167,12 @@ def _format_result(entries: list[tuple[int, str]],
 def compress_source(source: str, language: str,
                     include_line_numbers: bool = True) -> str:
     """! @brief Compress source code by removing comments, blank lines, and extra whitespace.
-    @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir). Args: source: The source code string. language: Language identifier (e.g. "python", "javascript"). include_line_numbers: If True (default), prefix each line with <n>: format. Returns: Compressed source code string.
+    @param source The source code string.
+    @param language Language identifier (e.g. "python", "javascript").
+    @param include_line_numbers If True (default), prefix each line with <n>: format.
+    @return Compressed source code string.
+    @throws ValueError If language is unsupported.
+    @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir).
     """
     specs = _get_specs()
     lang_key = language.lower().strip().lstrip(".")
@@ -309,7 +335,11 @@ def compress_source(source: str, language: str,
 def compress_file(filepath: str, language: str | None = None,
                   include_line_numbers: bool = True) -> str:
     """! @brief Compress a source file by removing comments and extra whitespace.
-    @details Args: filepath: Path to the source file. language: Optional language override. Auto-detected if None. include_line_numbers: If True (default), prefix each line with <n>: format. Returns: Compressed source code string.
+    @param filepath Path to the source file.
+    @param language Optional language override. Auto-detected if None.
+    @param include_line_numbers If True (default), prefix each line with <n>: format.
+    @return Compressed source code string.
+    @throws ValueError If language cannot be detected.
     """
     if language is None:
         language = detect_language(filepath)
@@ -325,7 +355,9 @@ def compress_file(filepath: str, language: str | None = None,
 
 
 def main():
-    """! @brief Execute the standalone compression CLI."""
+    """! @brief Execute the standalone compression CLI.
+    @details Parses command-line arguments and invokes `compress_file`, printing the result to stdout or errors to stderr.
+    """
     import argparse
     parser = argparse.ArgumentParser(
         description="Compress source code for LLM context optimization.")

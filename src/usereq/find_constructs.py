@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""! @brief find_constructs.py - Find and extract specific constructs from source files.
-@details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating markdown output with complete code extracts. Usage (as module): from find_constructs import find_constructs_in_files output = find_constructs_in_files(["main.py"], "FUNCTION", "test_.*") Usage (CLI): python find_constructs.py FUNCTION "test_.*" file1.py file2.py
+"""!
+@file find_constructs.py
+@brief Find and extract specific constructs from source files.
+@details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating markdown output with complete code extracts.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 import os
@@ -55,6 +59,7 @@ def parse_tag_filter(tag_string: str) -> set[str]:
     """! @brief Parse pipe-separated tag filter into a normalized set.
     @param tag_string Raw tag filter string (e.g., "CLASS|FUNCTION").
     @return Set of uppercase tag identifiers.
+    @details Splits the input string by pipe character `|` and strips whitespace from each component.
     """
     return {tag.strip().upper() for tag in tag_string.split("|") if tag.strip()}
 
@@ -64,6 +69,7 @@ def language_supports_tags(lang: str, tag_set: set[str]) -> bool:
     @param lang Normalized language identifier.
     @param tag_set Set of requested TAG identifiers.
     @return True if intersection is non-empty, False otherwise.
+    @details Lookups the language in `LANGUAGE_TAGS` and checks if any of `tag_set` exists in the supported tags.
     """
     supported = LANGUAGE_TAGS.get(lang, set())
     return bool(supported & tag_set)
@@ -75,6 +81,7 @@ def construct_matches(element, tag_set: set[str], pattern: str) -> bool:
     @param tag_set Set of requested TAG identifiers.
     @param pattern Regex pattern string to test against element name.
     @return True if element type is in tag_set and name matches pattern.
+    @details Validates the element type and then applies the regex search on the element name.
     """
     if element.type_label not in tag_set:
         return False
@@ -92,7 +99,7 @@ def format_construct(element, source_lines: list[str], include_line_numbers: boo
     @param source_lines Complete source file content as list of lines.
     @param include_line_numbers If True, prefix code lines with <n>: format.
     @return Formatted markdown block for the construct with complete code from line_start to line_end.
-    @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices, replacing the truncated element.extract field to ensure full construct visibility without snippet limitations or ellipsis truncation.
+    @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices.
     """
     lines = []
     lines.append(f"### {element.type_label}: `{element.name}`")
@@ -123,7 +130,14 @@ def find_constructs_in_files(
     verbose: bool = False,
 ) -> str:
     """! @brief Find and extract constructs matching tag filter and regex pattern from multiple files.
-    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers. Args: filepaths: List of source file paths. tag_filter: Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION"). pattern: Regex pattern for construct name matching. include_line_numbers: If True (default), prefix code lines with <n>: format. verbose: If True, emits progress status messages on stderr. Returns: Concatenated markdown output string. Raises: ValueError: If no files could be processed or no constructs found.
+    @param filepaths List of source file paths.
+    @param tag_filter Pipe-separated TAG identifiers (e.g., "CLASS|FUNCTION").
+    @param pattern Regex pattern for construct name matching.
+    @param include_line_numbers If True (default), prefix code lines with <n>: format.
+    @param verbose If True, emits progress status messages on stderr.
+    @return Concatenated markdown output string.
+    @throws ValueError If no files could be processed or no constructs found.
+    @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers.
     """
     tag_set = parse_tag_filter(tag_filter)
     if not tag_set:
@@ -202,7 +216,9 @@ def find_constructs_in_files(
 
 
 def main():
-    """! @brief Execute the construct finding CLI command."""
+    """! @brief Execute the construct finding CLI command.
+    @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(

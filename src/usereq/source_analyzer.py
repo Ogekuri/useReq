@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""! @brief source_analyzer.py - Multi-language source code analyzer.
-@details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Definitions of functions, methods, classes, structs, enums, traits, interfaces, modules, components and other constructs - Comments (single-line and multi-line) in language-specific syntax - A structured listing of the entire file with line number prefixes Usage: python source_analyzer.py <file_source> <language> Supported languages: python, c, rust, javascript, typescript, java, go, cpp, csharp, ruby, php, swift, kotlin, scala, lua, shell, perl, haskell, zig, elixir
+"""!
+@file source_analyzer.py
+@brief Multi-language source code analyzer.
+@details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Definitions of functions, methods, classes, structs, enums, traits, interfaces, modules, components and other constructs - Comments (single-line and multi-line) in language-specific syntax - A structured listing of the entire file with line number prefixes
+@author GitHub Copilot
+@version 0.0.70
 """
 
 import argparse
@@ -14,6 +18,7 @@ from typing import Optional
 
 class ElementType(Enum):
     """! @brief Element types recognized in source code.
+    @details Enumeration of all supported syntactic constructs across languages.
     """
     FUNCTION = auto()
     METHOD = auto()
@@ -45,6 +50,7 @@ class ElementType(Enum):
 @dataclass
 class SourceElement:
     """! @brief Element found in source file.
+    @details Data class representing a single extracted code construct with its metadata.
     """
     element_type: ElementType
     line_start: int
@@ -63,6 +69,7 @@ class SourceElement:
     def type_label(self) -> str:
         """! @brief Return the normalized printable label for element_type.
         @return Stable uppercase label used in markdown rendering output.
+        @details Maps internal ElementType enum to a string representation for reporting.
         """
         labels = {
             ElementType.FUNCTION: "FUNCTION",
@@ -97,6 +104,7 @@ class SourceElement:
 @dataclass
 class LanguageSpec:
     """! @brief Language recognition pattern specification.
+    @details Holds regex patterns and configuration for parsing a specific programming language.
     """
     name: str
     single_comment: Optional[str] = None
@@ -670,6 +678,7 @@ class SourceAnalyzer:
 
     def get_supported_languages(self) -> list:
         """! @brief Return list of supported languages (without aliases).
+        @return Sorted list of unique language identifiers.
         """
         seen = set()
         result = []
@@ -681,6 +690,11 @@ class SourceAnalyzer:
 
     def analyze(self, filepath: str, language: str) -> list:
         """! @brief Analyze a source file and return the list of SourceElement found.
+        @param filepath Path to the source file.
+        @param language Language identifier.
+        @return List of SourceElement instances.
+        @throws ValueError If language is not supported.
+        @details Reads file content, detects single/multi-line comments, and matches regex patterns for definitions.
         """
         language = language.lower().strip().lstrip(".")
         if language not in self.specs:
@@ -830,6 +844,10 @@ class SourceAnalyzer:
 
     def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool:
         """! @brief Check if position pos is inside a string literal.
+        @param line The line of code.
+        @param pos The column index.
+        @param spec The LanguageSpec instance.
+        @return True if pos is within a string.
         """
         in_string = False
         current_delim = None
@@ -860,6 +878,9 @@ class SourceAnalyzer:
 
     def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]:
         """! @brief Find position of single-line comment, ignoring strings.
+        @param line The line of code.
+        @param spec The LanguageSpec instance.
+        @return Column index of comment start, or None.
         """
         if not spec.single_comment:
             return None
@@ -896,6 +917,11 @@ class SourceAnalyzer:
     def _find_block_end(self, lines: list, start_idx: int,
                         language: str, first_line: str) -> int:
         """! @brief Find the end of a block (function, class, struct, etc.).
+        @param lines List of all file lines.
+        @param start_idx Index of the start line.
+        @param language Language identifier.
+        @param first_line Content of the start line.
+        @return 1-based index of the end line.
         @details Returns the index (1-based) of the final line of the block. Limits search for performance.
         """
         # Per Python: basato sull'indentazione
@@ -1305,127 +1331,6 @@ class SourceAnalyzer:
         return s
 
 
-def format_output(elements: list, filepath: str, language: str,
-                  spec_name: str) -> str:
-    """! @brief Format structured analysis output.
-    """
-    output_lines = []
-    separator = "=" * 78
-
-    output_lines.append(separator)
-    output_lines.append(f"  SOURCE ANALYSIS: {filepath}")
-    output_lines.append(f"  Language: {spec_name} ({language})")
-    output_lines.append(f"  Elements found: {len(elements)}")
-    output_lines.append(separator)
-
-    # ── Definitions section ────────────────────────────────────────────
-    definitions = [e for e in elements
-                   if e.element_type not in (ElementType.COMMENT_SINGLE,
-                                             ElementType.COMMENT_MULTI)]
-    if definitions:
-        output_lines.append("")
-        output_lines.append(f"  {'─' * 36}")
-        output_lines.append(f"  DEFINITIONS ({len(definitions)} elements)")
-        output_lines.append(f"  {'─' * 36}")
-
-        prev_line_end = None
-        for elem in definitions:
-            if prev_line_end is not None and elem.line_start > prev_line_end + 1:
-                output_lines.append("")
-
-            location = (f"L{elem.line_start}"
-                        if elem.line_start == elem.line_end
-                        else f"L{elem.line_start}-L{elem.line_end}")
-
-            name_str = f" ({elem.name})" if elem.name else ""
-            header = f"  [{elem.type_label}]{name_str} {location}"
-            output_lines.append(header)
-
-            for extract_line in elem.extract.split("\n"):
-            # Prefix with line number
-                if elem.line_start == elem.line_end:
-                    output_lines.append(
-                        f"    {elem.line_start:>6} | {extract_line}")
-                else:
-                    output_lines.append(
-                        f"           | {extract_line}")
-
-            prev_line_end = elem.line_end
-
-    # ── Comments section ───────────────────────────────────────────────
-    comments = [e for e in elements
-                if e.element_type in (ElementType.COMMENT_SINGLE,
-                                      ElementType.COMMENT_MULTI)]
-    if comments:
-        output_lines.append("")
-        output_lines.append(f"  {'─' * 36}")
-        output_lines.append(f"  COMMENTS ({len(comments)} elements)")
-        output_lines.append(f"  {'─' * 36}")
-
-        prev_line_end = None
-        for elem in comments:
-            if prev_line_end is not None and elem.line_start > prev_line_end + 1:
-                output_lines.append("")
-
-            location = (f"L{elem.line_start}"
-                        if elem.line_start == elem.line_end
-                        else f"L{elem.line_start}-L{elem.line_end}")
-
-            inline_tag = " [inline]" if elem.name == "inline" else ""
-            header = f"  [{elem.type_label}]{inline_tag} {location}"
-            output_lines.append(header)
-
-            for extract_line in elem.extract.split("\n"):
-                if elem.line_start == elem.line_end:
-                    output_lines.append(
-                        f"    {elem.line_start:>6} | {extract_line}")
-                else:
-                    output_lines.append(
-                        f"           | {extract_line}")
-
-            prev_line_end = elem.line_end
-
-    # ── Complete structured listing ────────────────────────────────────
-    output_lines.append("")
-    output_lines.append(f"  {'─' * 36}")
-    output_lines.append(f"  COMPLETE STRUCTURED LISTING")
-    output_lines.append(f"  {'─' * 36}")
-
-    if elements:
-        # Sort by start line
-        sorted_elements = sorted(elements, key=lambda e: e.line_start)
-        prev_line_end = None
-
-        for elem in sorted_elements:
-            if prev_line_end is not None and elem.line_start > prev_line_end + 1:
-                output_lines.append("")
-
-            location = (f"L{elem.line_start}"
-                        if elem.line_start == elem.line_end
-                        else f"L{elem.line_start}-L{elem.line_end}")
-
-            name_str = f" {elem.name}" if elem.name and elem.name != "inline" else ""
-            inline_tag = " [inline]" if elem.name == "inline" else ""
-
-            output_lines.append(
-                f"  {elem.line_start:>6} | [{elem.type_label}]{name_str}{inline_tag} {location}")
-
-            # Show first line of extract
-            first_line = elem.extract.split("\n")[0]
-            if len(first_line) > 72:
-                first_line = first_line[:69] + "..."
-            output_lines.append(
-                f"         | {first_line}")
-
-            prev_line_end = elem.line_end
-    else:
-        output_lines.append("  (no elements found)")
-
-    output_lines.append("")
-    output_lines.append(separator)
-    return "\n".join(output_lines)
-
-
 def _md_loc(elem) -> str:
     """! @brief Format element location compactly for markdown.
     """
@@ -1452,15 +1357,14 @@ def _md_kind(elem) -> str:
         ElementType.VARIABLE: "var",
         ElementType.TYPE_ALIAS: "type",
         ElementType.COMPONENT: "comp",
-        ElementType.PROTOCOL: "proto",
-        ElementType.EXTENSION: "ext",
-        ElementType.UNION: "union",
-        ElementType.NAMESPACE: "ns",
         ElementType.PROPERTY: "prop",
-        ElementType.SIGNAL: "signal",
+        ElementType.DECORATOR: "dec",
         ElementType.TYPEDEF: "typedef",
+        ElementType.EXTENSION: "ext",
+        ElementType.PROTOCOL: "proto",
+        ElementType.NAMESPACE: "ns",
     }
-    return mapping.get(elem.element_type, "?")
+    return mapping.get(elem.element_type, "unk")
 
 
 def _extract_comment_text(comment_elem, max_length: int = 0) -> str:
@@ -1953,7 +1857,16 @@ def main():
     lang_key = args.language.lower().strip().lstrip(".")
     spec = analyzer.specs[lang_key]
 
-    if args.markdown:
+    if args.definitions_only:
+        elements = [e for e in elements
+                    if e.element_type not in (ElementType.COMMENT_SINGLE,
+                                              ElementType.COMMENT_MULTI)]
+    if args.comments_only:
+        elements = [e for e in elements
+                    if e.element_type in (ElementType.COMMENT_SINGLE,
+                                          ElementType.COMMENT_MULTI)]
+
+    if args.markdown or not args.quiet:
         with open(args.file, "r", encoding="utf-8", errors="replace") as f:
             total_lines = sum(1 for _ in f)
         analyzer.enrich(elements, lang_key, filepath=args.file)
@@ -1976,9 +1889,6 @@ def main():
                 first_line = first_line[:69] + "..."
             print(f"       | {first_line}")
             prev_line_end = elem.line_end
-    else:
-        output = format_output(elements, args.file, lang_key, spec.name)
-        print(output)
 
 
 if __name__ == "__main__":

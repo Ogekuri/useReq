@@ -1,4 +1,9 @@
-"""! @brief Utilities for generating pdoc documentation.
+"""!
+@file pdoc_utils.py
+@brief Utilities for generating pdoc documentation.
+@details Wraps pdoc execution to generate HTML documentation for the project modules.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 from __future__ import annotations
@@ -12,6 +17,8 @@ from typing import Iterable, Sequence
 
 def _normalize_modules(modules: str | Iterable[str]) -> list[str]:
     """! @brief Returns a list of modules from either a string or an iterable.
+    @param modules A single module name string or an iterable of strings.
+    @return List of module names.
     """
     if isinstance(modules, str):
         return [modules]
@@ -20,6 +27,11 @@ def _normalize_modules(modules: str | Iterable[str]) -> list[str]:
 
 def _run_pdoc(command: list[str], *, env: dict[str, str], cwd: Path) -> subprocess.CompletedProcess:
     """! @brief Runs pdoc and captures output for error handling.
+    @param command The command list to execute.
+    @param env Environment variables dictionary.
+    @param cwd Working directory path.
+    @return CompletedProcess object containing execution results.
+    @details Executes pdoc as a subprocess with captured output (stdout/stderr).
     """
     return subprocess.run(
         command,
@@ -38,7 +50,11 @@ def generate_pdoc_docs(
     all_submodules: bool = True,
 ) -> None:
     """! @brief Generates or updates pdoc documentation in the target output directory.
-    @details Args: output_dir: Directory where HTML documentation will be written. modules: Importable modules or packages to document. all_submodules: When True, recurse into submodules even if not exported via __all__.
+    @param output_dir Directory where HTML documentation will be written.
+    @param modules Importable modules or packages to document.
+    @param all_submodules When True, recurse into submodules even if not exported via __all__.
+    @throws RuntimeError If pdoc generation fails.
+    @details Sets up PYTHONPATH to include `src` and executes pdoc via `sys.executable`. Handles fallback if `--all-submodules` is not supported by the installed pdoc version.
     """
 
     output_dir.mkdir(parents=True, exist_ok=True)

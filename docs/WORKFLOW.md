@@ -208,4 +208,5 @@
   - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`).
   - Source analyzer, token, markdown, compression capabilities align with SRC-001..SRC-014, TOK-001..TOK-006, MKD-001..MKD-007, CMP-001..CMP-012 (`docs/REQUIREMENTS.md:L365-L415`; `src/usereq/source_analyzer.py`, `token_counter.py`, `generate_markdown.py`, `compress.py`, `compress_files.py`).
   - Construct extraction and comprehensive testing align with FND-001..FND-014, CMD-018..CMD-028, REQ-100 (`docs/REQUIREMENTS.md:L456-L487`; `src/usereq/find_constructs.py`, `tests/test_find_constructs_comprehensive.py`).
+  - Documentation standards align with DOC-001..DOC-003 (`docs/REQUIREMENTS.md`; `src/usereq/*.py` Doxygen headers and docstrings).
   - CI workflow aligns with REQ-078..REQ-081 (`docs/REQUIREMENTS.md:L358-L363`; `.github/workflows/release-uvx.yml:L1-L48`).

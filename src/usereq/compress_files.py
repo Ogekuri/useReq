@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""! @brief compress_files.py - Compress and concatenate multiple source files.
-@details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with a compact header per file for unique identification by an LLM agent. Usage (as module): from compress_files import compress_files output = compress_files(["main.py", "utils.js"]) Usage (CLI): python compress_files.py file1.py file2.js ... python compress_files.py file1.py file2.js ... > packed.txt
+"""!
+@file compress_files.py
+@brief Compress and concatenate multiple source files.
+@details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with a compact header per file for unique identification by an LLM agent.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 import os
@@ -13,6 +17,7 @@ def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]:
     """! @brief Extract source line interval from compressed output with <n>: prefixes.
     @param compressed_with_line_numbers Compressed payload generated with include_line_numbers=True.
     @return Tuple (line_start, line_end) derived from preserved <n>: prefixes; returns (0, 0) when no prefixed lines exist.
+    @details Parses the first token of each line as an integer line number.
     """
     line_numbers: list[int] = []
     for line in compressed_with_line_numbers.splitlines():
@@ -30,7 +35,12 @@ def compress_files(filepaths: list[str],
                    include_line_numbers: bool = True,
                    verbose: bool = False) -> str:
     """! @brief Compress multiple source files and concatenate with identifying headers.
-    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line. Args: filepaths: List of source file paths. include_line_numbers: If True (default), keep <n>: prefixes in code block lines. verbose: If True, emits progress status messages on stderr. Returns: Concatenated compressed output string. Raises: ValueError: If no files could be processed.
+    @param filepaths List of source file paths.
+    @param include_line_numbers If True (default), keep <n>: prefixes in code block lines.
+    @param verbose If True, emits progress status messages on stderr.
+    @return Concatenated compressed output string.
+    @throws ValueError If no files could be processed.
+    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line.
     """
     parts = []
     ok_count = 0
@@ -79,7 +89,9 @@ def compress_files(filepaths: list[str],
 
 
 def main():
-    """! @brief Execute the multi-file compression CLI command."""
+    """! @brief Execute the multi-file compression CLI command.
+    @details Parses command-line arguments, calls `compress_files`, and prints output or errors.
+    """
     import argparse
     parser = argparse.ArgumentParser(
         description="Compress and concatenate source files for LLM context.")

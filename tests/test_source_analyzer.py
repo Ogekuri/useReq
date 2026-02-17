@@ -17,7 +17,6 @@ from usereq.source_analyzer import (
     SourceElement,
     build_language_specs,
     format_markdown,
-    format_output,
 )
 
 
@@ -694,41 +693,28 @@ class TestBuildLanguageSpecs:
             assert spec.single_comment is not None
 
 
-class TestFormatOutput:
-    """SRC-009: format_output() tests."""
+class TestFormatMarkdown:
+    """SRC-010: format_markdown() tests."""
 
     def test_contains_filepath(self, analyzer):
         """Output must contain the file path."""
         path = fixture_path("python")
         elements = analyzer.analyze(path, "python")
-        output = format_output(elements, path, "python", "Python")
+        output = format_markdown(elements, path, "python", "Python", 100)
         assert path in output
 
     def test_contains_definitions_section(self, analyzer):
-        """Output must contain DEFINITIONS section."""
+        """Output must contain Definitions section."""
         path = fixture_path("python")
         elements = analyzer.analyze(path, "python")
-        output = format_output(elements, path, "python", "Python")
-        assert "DEFINITIONS" in output
+        output = format_markdown(elements, path, "python", "Python", 100)
+        assert "## Definitions" in output
 
     def test_empty_elements_no_definitions(self):
-        """Empty list should not have DEFINITIONS."""
-        output = format_output([], "test.py", "python", "Python")
-        assert "DEFINITIONS" not in output
-
-    @pytest.mark.parametrize("language", ALL_LANGUAGES)
-    def test_format_output_all_languages(self, language, analyzer):
-        """format_output() must work for all languages."""
-        path = fixture_path(language)
-        elements = analyzer.analyze(path, language)
-        spec = analyzer.specs[language]
-        output = format_output(elements, path, language, spec.name)
-        assert isinstance(output, str)
-        assert len(output) > 0
-
-
-class TestFormatMarkdown:
-    """SRC-010: format_markdown() tests."""
+        """Empty list should not have Definitions."""
+        output = format_markdown([], "test.py", "python", "Python", 100)
+        assert "## Definitions" not in output
+        assert "# test.py | Python | 100L | 0 symbols | 0 imports | 0 comments" in output
 
     @pytest.mark.parametrize("language", ALL_LANGUAGES)
     def test_format_markdown_all_languages(self, language, analyzer):
@@ -742,7 +728,7 @@ class TestFormatMarkdown:
         md = format_markdown(elements, path, language, spec.name, total_lines)
         assert isinstance(md, str)
         assert len(md) > 0
-        assert "## Definitions" in md or "## Imports" in md
+        assert "## Definitions" in md or "## Comments" in md or "# File:" in md
 
 
 class TestInternalHelpers:

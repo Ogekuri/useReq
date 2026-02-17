@@ -1,9 +1,13 @@
-"""! @brief Package entry point for useReq automation.
-@details This file exposes lightweight metadata and a convenient re-export of the `main` CLI entry point, so callers can use `from usereq import main` without unintentionally importing the full package behavior.
+"""!
+@file __init__.py
+@brief Initialization module for the `usereq` package.
+@details Exposes the package version, main entry point, and key submodules. Designed to be lightweight.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 __version__ = "0.0.70"
-"""The current version of the package."""
+"""! @brief Semantic version string of the package."""
 
 from . import cli  # usereq.cli submodule
 from . import pdoc_utils  # usereq.pdoc_utils submodule
@@ -20,4 +24,4 @@ __all__ = [
     "source_analyzer", "token_counter", "generate_markdown",
     "compress", "compress_files", "find_constructs",
 ]
-"""! @brief Public package exports for CLI entrypoint and utility submodules."""
+"""! @brief List of public symbols exported by the package."""

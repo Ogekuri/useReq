@@ -1,4 +1,9 @@
-"""! @brief CLI entry point implementing the useReq initialization flow.
+"""!
+@file cli.py
+@brief CLI entry point implementing the useReq initialization flow.
+@details Handles argument parsing, configuration management, and execution of useReq commands.
+@author GitHub Copilot
+@version 0.0.70
 """
 
 from __future__ import annotations
@@ -17,23 +22,24 @@ from pathlib import Path
 from typing import Any, Mapping, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-"""The absolute path to the repository root."""
+"""! @brief The absolute path to the repository root."""
 
 RESOURCE_ROOT = Path(__file__).resolve().parent / "resources"
-"""The absolute path to the resources directory."""
+"""! @brief The absolute path to the resources directory."""
 
 VERBOSE = False
-"""Whether verbose output is enabled."""
+"""! @brief Whether verbose output is enabled."""
 
 DEBUG = False
-"""Whether debug output is enabled."""
+"""! @brief Whether debug output is enabled."""
 
 REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
-"""Name of the packaged requirements template file."""
+"""! @brief Name of the packaged requirements template file."""
 
 
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
+    @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
     """
 
     def __init__(self, message: str, code: int = 1) -> None:
@@ -48,12 +54,14 @@ class ReqError(Exception):
 
 def log(msg: str) -> None:
     """! @brief Prints an informational message.
+    @param msg The message string to print.
     """
     print(msg)
 
 
 def dlog(msg: str) -> None:
     """! @brief Prints a debug message if debugging is active.
+    @param msg The debug message string to print.
     """
     if DEBUG:
         print("DEBUG:", msg)
@@ -61,6 +69,7 @@ def dlog(msg: str) -> None:
 
 def vlog(msg: str) -> None:
     """! @brief Prints a verbose message if verbose mode is active.
+    @param msg The verbose message string to print.
     """
     if VERBOSE:
         print(msg)
@@ -80,6 +89,8 @@ def _get_available_tags_help() -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
+    @return Configured ArgumentParser instance.
+    @details Defines all supported CLI arguments, flags, and help texts.
     """
     version = load_package_version()
     usage = (
@@ -262,12 +273,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 def parse_args(argv: Optional[list[str]] = None) -> Namespace:
     """! @brief Parses command-line arguments into a namespace.
+    @param argv List of arguments (defaults to sys.argv).
+    @return Namespace containing parsed arguments.
     """
     return build_parser().parse_args(argv)
 
 
 def load_package_version() -> str:
     """! @brief Reads the package version from __init__.py.
+    @return Version string extracted from the package.
+    @throws ReqError If version cannot be determined.
     """
     init_path = Path(__file__).resolve().parent / "__init__.py"
     text = init_path.read_text(encoding="utf-8")
@@ -279,6 +294,8 @@ def load_package_version() -> str:
 
 def maybe_print_version(argv: list[str]) -> bool:
     """! @brief Handles --ver/--version by printing the version.
+    @param argv Command line arguments to check.
+    @return True if version was printed, False otherwise.
     """
     if "--ver" in argv or "--version" in argv:
         print(load_package_version())
@@ -288,6 +305,7 @@ def maybe_print_version(argv: list[str]) -> bool:
 
 def run_upgrade() -> None:
     """! @brief Executes the upgrade using uv.
+    @throws ReqError If upgrade fails.
     """
     command = [
         "uv",
@@ -311,6 +329,7 @@ def run_upgrade() -> None:
 
 def run_uninstall() -> None:
     """! @brief Executes the uninstallation using uv.
+    @throws ReqError If uninstall fails.
     """
     command = [
         "uv",
@@ -331,6 +350,8 @@ def run_uninstall() -> None:
 
 def normalize_release_tag(tag: str) -> str:
     """! @brief Normalizes the release tag by removing a 'v' prefix if present.
+    @param tag The raw tag string.
+    @return The normalized version string.
     """
     value = (tag or "").strip()
     if value.lower().startswith("v") and len(value) > 1:
@@ -340,6 +361,8 @@ def normalize_release_tag(tag: str) -> str:
 
 def parse_version_tuple(version: str) -> tuple[int, ...] | None:
     """! @brief Converts a version into a numeric tuple for comparison.
+    @param version The version string to parse.
+    @return Tuple of integers or None if parsing fails.
     @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
     """
 
@@ -363,6 +386,9 @@ def parse_version_tuple(version: str) -> tuple[int, ...] | None:
 
 def is_newer_version(current: str, latest: str) -> bool:
     """! @brief Returns True if latest is greater than current.
+    @param current The current installed version string.
+    @param latest The latest available version string.
+    @return True if update is available, False otherwise.
     """
     current_tuple = parse_version_tuple(current)
     latest_tuple = parse_version_tuple(latest)
@@ -377,6 +403,7 @@ def is_newer_version(current: str, latest: str) -> bool:
 
 def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
     """! @brief Checks online for a new version and prints a warning.
+    @param timeout_seconds Time to wait for the version check response.
     @details If the call fails or the response is invalid, it prints nothing and proceeds.
     """
 
@@ -418,6 +445,9 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
 
 def ensure_doc_directory(path: str, project_base: Path) -> None:
     """! @brief Ensures the documentation directory exists under the project base.
+    @param path The relative path to the documentation directory.
+    @param project_base The project root path.
+    @throws ReqError If path is invalid, absolute, or not a directory.
     """
     normalized = make_relative_if_contains_project(path, project_base)
     doc_path = project_base / normalized
@@ -435,6 +465,9 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
 
 def ensure_test_directory(path: str, project_base: Path) -> None:
     """! @brief Ensures the test directory exists under the project base.
+    @param path The relative path to the test directory.
+    @param project_base The project root path.
+    @throws ReqError If path is invalid, absolute, or not a directory.
     """
     normalized = make_relative_if_contains_project(path, project_base)
     test_path = project_base / normalized
@@ -452,6 +485,9 @@ def ensure_test_directory(path: str, project_base: Path) -> None:
 
 def ensure_src_directory(path: str, project_base: Path) -> None:
     """! @brief Ensures the source directory exists under the project base.
+    @param path The relative path to the source directory.
+    @param project_base The project root path.
+    @throws ReqError If path is invalid, absolute, or not a directory.
     """
     normalized = make_relative_if_contains_project(path, project_base)
     src_path = project_base / normalized
@@ -469,6 +505,10 @@ def ensure_src_directory(path: str, project_base: Path) -> None:
 
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
     """! @brief Normalizes the path relative to the project root when possible.
+    @param path_value The input path string.
+    @param project_base The base path of the project.
+    @return The normalized relative path string.
+    @details Handles cases where the path includes the project directory name redundantly.
     """
     if not path_value:
         return ""
@@ -505,6 +545,9 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
 
 def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
     """! @brief Resolves the absolute path starting from a normalized value.
+    @param normalized The normalized relative path string.
+    @param project_base The project root path.
+    @return Absolute Path object or None if normalized is empty.
     """
     if not normalized:
         return None
@@ -516,6 +559,8 @@ def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
 
 def format_substituted_path(value: str) -> str:
     """! @brief Uniforms path separators for substitutions.
+    @param value The path string to format.
+    @return Path string with forward slashes.
     """
     if not value:
         return ""
@@ -526,6 +571,10 @@ def compute_sub_path(
     normalized: str, absolute: Optional[Path], project_base: Path
 ) -> str:
     """! @brief Calculates the relative path to use in tokens.
+    @param normalized The normalized relative path.
+    @param absolute The absolute path object (can be None).
+    @param project_base The project root path.
+    @return Relative path string formatted with forward slashes.
     """
     if not normalized:
         return ""
@@ -546,6 +595,11 @@ def save_config(
     src_dir_values: list[str],
 ) -> None:
     """! @brief Saves normalized parameters to .req/config.json.
+    @param project_base The project root path.
+    @param guidelines_dir_value Relative path to guidelines directory.
+    @param doc_dir_value Relative path to docs directory.
+    @param test_dir_value Relative path to tests directory.
+    @param src_dir_values List of relative paths to source directories.
     """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -562,6 +616,9 @@ def save_config(
 
 def load_config(project_base: Path) -> dict[str, str | list[str]]:
     """! @brief Loads parameters saved in .req/config.json.
+    @param project_base The project root path.
+    @return Dictionary containing configuration values.
+    @throws ReqError If config file is missing or invalid.
     """
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
