@@ -240,6 +240,29 @@ def _collect_expected_find_constructs(
     return expected
 
 
+def _build_fixture_specific_pattern(filepath: Path, tag_filter: str) -> str:
+    """! @brief Build fixture-specific regex matching every analyzable construct name."""
+    all_constructs = _collect_expected_find_constructs(filepath, tag_filter, ".*")
+    escaped_names = sorted({re.escape(item["name"]) for item in all_constructs})
+    assert escaped_names, f"No analyzable constructs for {filepath.name}"
+    return rf"^(?:{'|'.join(escaped_names)})$"
+
+
+def _count_find_source_doxygen_tags(expected_constructs: list[dict]) -> Dict[str, int]:
+    """! @brief Count source Doxygen tags across expected find-construct payload."""
+    label_to_tag = {label: tag for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
+    counts = {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
+    for expected in expected_constructs:
+        for line in expected["doxygen_lines"]:
+            match = re.match(r"^\s*-\s*([^:]+):", line)
+            if not match:
+                continue
+            tag = label_to_tag.get(match.group(1))
+            if tag is not None:
+                counts[tag] += 1
+    return counts
+
+
 def _extract_construct_blocks(output: str) -> list[dict]:
     """! @brief Parse all construct blocks from find-command markdown output."""
     blocks: list[dict] = []
@@ -289,6 +312,38 @@ def _extract_construct_block(
     raise AssertionError(
         "Missing construct block for "
         f"{escaped_type}:{escaped_name}:{line_start}-{line_end}"
+    )
+
+
+def _assert_find_construct_listing_matches_expected(
+    output: str,
+    expected_constructs: list[dict],
+    context_id: str,
+) -> None:
+    """! @brief Assert output construct listing matches expected fixture constructs 1:1."""
+    actual_constructs = _extract_construct_blocks(output)
+    expected_keys = {
+        (
+            item["type_label"],
+            item["name"],
+            int(item["line_start"]),
+            int(item["line_end"]),
+        )
+        for item in expected_constructs
+    }
+    actual_keys = {
+        (
+            item["type_label"],
+            item["name"],
+            int(item["line_start"]),
+            int(item["line_end"]),
+        )
+        for item in actual_constructs
+    }
+    assert actual_keys == expected_keys, (
+        f"{context_id}: construct set mismatch "
+        f"missing={sorted(expected_keys - actual_keys)} "
+        f"extra={sorted(actual_keys - expected_keys)}"
     )
 
 
@@ -909,19 +964,31 @@ class TestFindCommandsDoxygen:
     ):
         """DOX-016: --files-find equivalent flow must emit expected Doxygen fields for each fixture."""
         tag_filter = _build_language_tag_filter(fixture_file)
+        pattern = _build_fixture_specific_pattern(fixture_file, tag_filter)
         expected_constructs = _collect_expected_find_constructs(
             fixture_file,
             tag_filter,
-            ".*",
+            pattern,
         )
         assert expected_constructs, f"No expected constructs for {fixture_file.name}"
+        source_counts = _count_find_source_doxygen_tags(expected_constructs)
 
-        rc = main(["--files-find", tag_filter, ".*", str(fixture_file)])
+        rc = main(["--files-find", tag_filter, pattern, str(fixture_file)])
         assert rc == 0
         captured = capsys.readouterr()
         output = captured.out
 
         assert output
+        _assert_find_construct_listing_matches_expected(
+            output=output,
+            expected_constructs=expected_constructs,
+            context_id=f"--files-find::{fixture_file.name}",
+        )
+        _assert_doxygen_reference_counts(
+            source_counts=source_counts,
+            output_counts=_count_output_doxygen_labels(output),
+            context_id=f"--files-find::{fixture_file.name}",
+        )
         for expected_construct in expected_constructs:
             _assert_find_construct_doxygen_block(output, expected_construct)
         _assert_doxygen_markdown_order(output)
@@ -981,20 +1048,32 @@ class TestFindCommandsDoxygen:
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
         tag_filter = _build_language_tag_filter(copied_fixture)
+        pattern = _build_fixture_specific_pattern(copied_fixture, tag_filter)
         expected_constructs = _collect_expected_find_constructs(
             copied_fixture,
             tag_filter,
-            ".*",
+            pattern,
         )
         assert expected_constructs, f"No expected constructs for {fixture_file.name}"
+        source_counts = _count_find_source_doxygen_tags(expected_constructs)
 
         monkeypatch.chdir(tmp_path)
-        rc = main(["--here", "--find", tag_filter, ".*"])
+        rc = main(["--here", "--find", tag_filter, pattern])
         assert rc == 0
         captured = capsys.readouterr()
         output = captured.out
 
         assert output
+        _assert_find_construct_listing_matches_expected(
+            output=output,
+            expected_constructs=expected_constructs,
+            context_id=f"--find::{fixture_file.name}",
+        )
+        _assert_doxygen_reference_counts(
+            source_counts=source_counts,
+            output_counts=_count_output_doxygen_labels(output),
+            context_id=f"--find::{fixture_file.name}",
+        )
         for expected_construct in expected_constructs:
             _assert_find_construct_doxygen_block(output, expected_construct)
         _assert_doxygen_markdown_order(output)
