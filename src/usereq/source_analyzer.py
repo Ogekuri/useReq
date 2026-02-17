@@ -1598,6 +1598,44 @@ def _render_body_annotations(out: list, elem, indent: str = "",
                 out.append(f"{indent}L{start}-{end}> {text}")
 
 
+def _merge_doxygen_fields(
+    base_fields: dict[str, list[str]],
+    extra_fields: dict[str, list[str]],
+) -> dict[str, list[str]]:
+    """! @brief Merge Doxygen field dictionaries preserving per-tag value order.
+    @param base_fields Destination dictionary mutated in place.
+    @param extra_fields Source dictionary containing additional tag values.
+    @return Updated destination dictionary.
+    """
+    for tag, values in extra_fields.items():
+        if tag not in base_fields:
+            base_fields[tag] = []
+        base_fields[tag].extend(values)
+    return base_fields
+
+
+def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]:
+    """! @brief Aggregate construct Doxygen fields from associated and body comments.
+    @param elem SourceElement containing optional `doxygen_fields` and `body_comments`.
+    @return Dictionary of normalized Doxygen tags to ordered value lists.
+    @details Parses each body-comment tuple with parse_doxygen_comment() and merges results
+    after pre-associated fields so references output can represent both association styles.
+    """
+    aggregate: dict[str, list[str]] = {}
+    direct_fields = getattr(elem, "doxygen_fields", None) or {}
+    if direct_fields:
+        _merge_doxygen_fields(aggregate, direct_fields)
+
+    for body_comment in getattr(elem, "body_comments", []):
+        if not isinstance(body_comment, tuple) or len(body_comment) < 3:
+            continue
+        parsed = parse_doxygen_comment(body_comment[2])
+        if parsed:
+            _merge_doxygen_fields(aggregate, parsed)
+
+    return aggregate
+
+
 def format_markdown(
     elements: list,
     filepath: str,
@@ -1713,12 +1751,16 @@ def format_markdown(
             doc_lines_list = []
             doc_line_num = 0
             doxygen_markdown = []
+            aggregate_doxygen_fields = _collect_element_doxygen_fields(elem)
 
-            if hasattr(elem, 'doxygen_fields') and elem.doxygen_fields:
-                doxygen_markdown = format_doxygen_fields_as_markdown(elem.doxygen_fields)
+            if aggregate_doxygen_fields:
+                doxygen_markdown = format_doxygen_fields_as_markdown(aggregate_doxygen_fields)
                 # Use brief as inline doc_text if available
-                if 'brief' in elem.doxygen_fields:
-                    doc_text = elem.doxygen_fields['brief'][0]
+                if (
+                    "brief" in aggregate_doxygen_fields
+                    and aggregate_doxygen_fields["brief"]
+                ):
+                    doc_text = aggregate_doxygen_fields["brief"][0]
                     if len(doc_text) > 150:
                         doc_text = doc_text[:147] + "..."
             elif include_legacy_annotations and def_docs:
@@ -1792,9 +1834,10 @@ def format_markdown(
                         child_doc = ""
                         child_doc_ln = ""
                         child_doxygen_markdown = []
-                        if hasattr(child, 'doxygen_fields') and child.doxygen_fields:
+                        child_aggregate_doxygen_fields = _collect_element_doxygen_fields(child)
+                        if child_aggregate_doxygen_fields:
                             child_doxygen_markdown = format_doxygen_fields_as_markdown(
-                                child.doxygen_fields
+                                child_aggregate_doxygen_fields
                             )
                         elif include_legacy_annotations:
                             child_docs = doc_for_def.get(child.line_start, [])

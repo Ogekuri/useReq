@@ -92,8 +92,39 @@ DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
 PROJECT_EXAMPLES_DIR = Path(__file__).parent / "project_examples"
 
 
-def _count_source_doxygen_tags(filepath: Path) -> Dict[str, int]:
-    """! @brief Count every parseable Doxygen tag occurrence emitted from source constructs."""
+def _aggregate_reference_doxygen_fields(element) -> Dict[str, List[str]]:
+    """! @brief Aggregate Doxygen fields for references output from associated and body comments.
+    @param element SourceAnalyzer element potentially containing doxygen_fields and body_comments.
+    @return Deterministic tag->values mapping preserving discovery order.
+    @details Merges `element.doxygen_fields` and parsed Doxygen tags from each body-comment tuple.
+    """
+    aggregate: Dict[str, List[str]] = {}
+
+    direct_fields = getattr(element, "doxygen_fields", None) or {}
+    for tag, values in direct_fields.items():
+        if tag not in aggregate:
+            aggregate[tag] = []
+        aggregate[tag].extend(values)
+
+    for body_comment in getattr(element, "body_comments", []):
+        if not isinstance(body_comment, tuple) or len(body_comment) < 3:
+            continue
+        parsed = parse_doxygen_comment(body_comment[2])
+        for tag, values in parsed.items():
+            if tag not in aggregate:
+                aggregate[tag] = []
+            aggregate[tag].extend(values)
+
+    return aggregate
+
+
+def _collect_reference_rendered_elements(filepath: Path) -> list:
+    """! @brief Collect constructs that are rendered by references markdown definitions section.
+    @param filepath Source file analyzed by references flow.
+    @return Ordered list of elements rendered as top-level definitions plus mapped children.
+    @details Mirrors `format_markdown()` selection strategy: skip comments/imports/decorators,
+    include all depth-0 definitions, then append child elements mapped by parent_name and span.
+    """
     language = detect_language(str(filepath))
     assert language is not None, f"Unsupported fixture extension: {filepath}"
 
@@ -101,17 +132,45 @@ def _count_source_doxygen_tags(filepath: Path) -> Dict[str, int]:
     elements = analyzer.analyze(str(filepath), language)
     analyzer.enrich(elements, language, str(filepath))
 
-    counts = {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
     skipped_types = {
         ElementType.COMMENT_SINGLE,
         ElementType.COMMENT_MULTI,
         ElementType.IMPORT,
         ElementType.DECORATOR,
     }
-    for element in elements:
-        if element.element_type in skipped_types:
+    definitions = sorted(
+        [e for e in elements if e.element_type not in skipped_types],
+        key=lambda e: e.line_start,
+    )
+    top_level = [e for e in definitions if getattr(e, "depth", 0) == 0]
+
+    children_map: Dict[int, List] = {}
+    for element in definitions:
+        if getattr(element, "depth", 0) <= 0 or not getattr(element, "parent_name", None):
             continue
-        fields = getattr(element, "doxygen_fields", None) or {}
+        for top in top_level:
+            if (
+                top.name == element.parent_name
+                and top.line_start <= element.line_start
+                and top.line_end >= element.line_end
+            ):
+                children_map.setdefault(id(top), []).append(element)
+                break
+
+    ordered_elements = []
+    for top in top_level:
+        ordered_elements.append(top)
+        ordered_elements.extend(
+            sorted(children_map.get(id(top), []), key=lambda e: e.line_start)
+        )
+    return ordered_elements
+
+
+def _count_source_doxygen_tags(filepath: Path) -> Dict[str, int]:
+    """! @brief Count every parseable Doxygen tag occurrence emitted from source constructs."""
+    counts = {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
+    for element in _collect_reference_rendered_elements(filepath):
+        fields = _aggregate_reference_doxygen_fields(element)
         for tag in counts:
             normalized_tag = tag[1:]
             if fields.get(normalized_tag):
@@ -243,33 +302,52 @@ def _assert_doxygen_reference_counts(
 
 def _collect_expected_doxygen_sequences(filepath: Path) -> list[list[str]]:
     """! @brief Build deterministic expected Doxygen markdown sequences for one source file."""
-    language = detect_language(str(filepath))
-    assert language is not None, f"Unsupported fixture extension: {filepath}"
-
-    analyzer = SourceAnalyzer()
-    elements = analyzer.analyze(str(filepath), language)
-    analyzer.enrich(elements, language, str(filepath))
-
     sequences: list[list[str]] = []
-    skipped_types = {
-        ElementType.COMMENT_SINGLE,
-        ElementType.COMMENT_MULTI,
-        ElementType.IMPORT,
-        ElementType.DECORATOR,
-    }
-    for element in elements:
-        if element.element_type in skipped_types:
+    for element in _collect_reference_rendered_elements(filepath):
+        aggregate_fields = _aggregate_reference_doxygen_fields(element)
+        if not aggregate_fields:
             continue
-        if getattr(element, "doxygen_fields", None):
-            sequence = format_doxygen_fields_as_markdown(element.doxygen_fields)
-            if sequence:
-                sequences.append(sequence)
+        sequence = format_doxygen_fields_as_markdown(aggregate_fields)
+        if sequence:
+            sequences.append(sequence)
     return sequences
 
 
 def _assert_no_legacy_annotation_lines(output: str) -> None:
     """! @brief Assert output does not contain legacy `L<n>>` annotation traces."""
     assert re.search(r"(?m)^L\d+(?:-\d+)?>", output) is None
+
+
+def _assert_reference_doxygen_sequences(
+    output: str,
+    expected_sequences: list[list[str]],
+    context_id: str,
+) -> None:
+    """! @brief Assert references output emits expected Doxygen lines in deterministic order.
+    @param output Full markdown payload from --files-references or --references.
+    @param expected_sequences Ordered list of expected per-construct Doxygen bullet sequences.
+    @param context_id Context marker for assertion diagnostics.
+    """
+    cursor = -1
+    for sequence in expected_sequences:
+        for expected_line in sequence:
+            idx = output.find(expected_line, cursor + 1)
+            assert idx != -1, (
+                f"{context_id}: missing expected Doxygen line '{expected_line}'"
+            )
+            cursor = idx
+
+
+def _extract_reference_definition_block(output: str, header: str) -> str:
+    """! @brief Extract one references definition block starting from a specific heading."""
+    start = output.find(header)
+    assert start != -1, f"Missing references block header: {header}"
+
+    next_header = output.find("\n### ", start + len(header))
+    symbol_index = output.find("\n## Symbol Index", start + len(header))
+    end_candidates = [idx for idx in (next_header, symbol_index) if idx != -1]
+    end = min(end_candidates) if end_candidates else len(output)
+    return output[start:end]
 
 
 def _assert_doxygen_markdown_order(output: str) -> None:
@@ -628,9 +706,29 @@ class TestFilesReferencesCommand:
             output_counts=output_counts,
             context_id=f"--files-references::{fixture_file.name}",
         )
+        _assert_reference_doxygen_sequences(
+            output=output,
+            expected_sequences=_collect_expected_doxygen_sequences(fixture_file),
+            context_id=f"--files-references::{fixture_file.name}",
+        )
 
         _assert_no_legacy_annotation_lines(output)
         _assert_doxygen_markdown_order(output)
+
+    def test_files_references_cli_log_emits_brief_and_param(self, capsys):
+        """DOX-014: --files-references must emit semantic Doxygen field content for `log()`."""
+        cli_file = Path(__file__).resolve().parents[1] / "src" / "usereq" / "cli.py"
+        rc = main(["--files-references", str(cli_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        block = _extract_reference_definition_block(
+            output=output,
+            header="### fn `def log(msg: str) -> None` (L55-61)",
+        )
+        assert "- Brief: Prints an informational message." in block
+        assert "- Param: msg The message string to print." in block
 
     def test_files_references_without_doxygen_outputs_only_construct_reference(
         self,
@@ -897,9 +995,50 @@ class TestReferencesCommand:
             output_counts=output_counts,
             context_id=f"--references::{fixture_file.name}",
         )
+        _assert_reference_doxygen_sequences(
+            output=output,
+            expected_sequences=_collect_expected_doxygen_sequences(copied_fixture),
+            context_id=f"--references::{fixture_file.name}",
+        )
 
         _assert_no_legacy_annotation_lines(output)
         _assert_doxygen_markdown_order(output)
+
+    def test_references_cli_log_emits_brief_and_param(
+        self,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-015: --references must emit semantic Doxygen field content for `log()`."""
+        src = tmp_path / "src"
+        src.mkdir()
+        cli_source = Path(__file__).resolve().parents[1] / "src" / "usereq" / "cli.py"
+        copied_cli = src / "cli.py"
+        shutil.copy(cli_source, copied_cli)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--references"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        block = _extract_reference_definition_block(
+            output=output,
+            header="### fn `def log(msg: str) -> None` (L55-61)",
+        )
+        assert "- Brief: Prints an informational message." in block
+        assert "- Param: msg The message string to print." in block
 
 
 class TestCompressCommand:

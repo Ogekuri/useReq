@@ -30,8 +30,12 @@
       - `_is_postfix_doxygen_comment(comment_text: str) -> bool`: detect postfix association markers [`src/usereq/source_analyzer.py`]
         - description: matches postfix markers (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to bind comment payload to the preceding construct when language syntax encodes trailing documentation.
       - called by: `SourceAnalyzer.enrich()` after body annotation extraction when filepath is provided.
-    - `format_markdown()`: enhanced to render Doxygen fields as Markdown list with optional legacy annotation suppression [`src/usereq/source_analyzer.py`]
-      - description: when doxygen_fields are present, emits ordered Markdown bullet fields via `format_doxygen_fields_as_markdown()`; when `include_legacy_annotations=False`, suppresses raw `L<n>>` comment/exit traces and standalone comment sections so output contains construct references plus Doxygen bullets only (DOX-009, MKD-007).
+    - `format_markdown()`: enhanced to render aggregated Doxygen fields as Markdown list with optional legacy annotation suppression [`src/usereq/source_analyzer.py`]
+      - description: before rendering each definition, computes aggregate Doxygen fields from both associated comments and in-body comments, emits ordered Markdown bullet fields via `format_doxygen_fields_as_markdown()`, and when `include_legacy_annotations=False` suppresses raw `L<n>>` comment/exit traces and standalone comment sections so output contains construct references plus Doxygen bullets only (DOX-009, MKD-007).
+      - `_collect_element_doxygen_fields()`: aggregate Doxygen tags for one definition [`src/usereq/source_analyzer.py`]
+        - description: merges `element.doxygen_fields` with parsed tags extracted from every tuple in `element.body_comments` using `parse_doxygen_comment()`.
+      - `_merge_doxygen_fields()`: deterministic dictionary merge helper for per-tag value lists [`src/usereq/source_analyzer.py`]
+        - description: appends per-tag value arrays preserving insertion order used by downstream markdown formatter.
     - `find_constructs.format_construct()`: enhanced to include Doxygen fields after line range [`src/usereq/find_constructs.py`]
       - description: aggregates Doxygen tags from both `element.doxygen_fields` (associated comments) and `element.body_comments` (comments within construct body), formats ordered Markdown bullets, and inserts them after "- Lines: ..." and before code block, preserving fallback without Doxygen lines when no tag is extracted (DOX-010, DOX-011).
       - `_extract_construct_doxygen_fields()`: aggregate construct-scoped Doxygen tags [`src/usereq/find_constructs.py`]
@@ -252,11 +256,15 @@
 - Feature: Command-level references Doxygen verification
   - Module: `tests/test_files_commands.py`
     - `test_files_references_extracts_doxygen_fields_for_each_fixture()`: validates `--files-references` across all fixtures [`tests/test_files_commands.py`]
-      - description: parametrizes all `tests/fixtures/fixture_*.*`, derives deterministic expected Doxygen bullet sequences from static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + `format_doxygen_fields_as_markdown()`), asserts expected lines are present, verifies absence of legacy `L<n>>` traces, and validates per-block tag ordering.
+      - description: parametrizes all `tests/fixtures/fixture_*.*`, derives deterministic expected per-construct Doxygen payload from static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + `_collect_reference_rendered_elements()` + `_aggregate_reference_doxygen_fields()`), enforces source/output label-count parity, asserts ordered semantic Doxygen line sequences, verifies absence of legacy `L<n>>` traces, and validates tag ordering.
+    - `test_files_references_cli_log_emits_brief_and_param()`: validates semantic extraction on repository CLI source [`tests/test_files_commands.py`]
+      - description: executes `--files-references` on `src/usereq/cli.py`, extracts block `def log(msg: str) -> None`, asserts exact lines `- Brief: Prints an informational message.` and `- Param: msg The message string to print.`.
     - `test_files_references_without_doxygen_outputs_only_construct_reference()`: validates no-Doxygen fallback behavior [`tests/test_files_commands.py`]
       - description: executes `--files-references` on a synthetic undecorated function and asserts construct reference presence without any Doxygen bullet tags, plus absence of legacy `L<n>>` traces.
     - `test_references_extracts_doxygen_fields_from_fixture_project()`: validates project-scan `--references` Doxygen output [`tests/test_files_commands.py`]
-      - description: builds temporary project config (`.req/config.json` with `src-dir`), executes `--references` in `--here` mode, checks `# Files Structure` preamble, verifies deterministic Doxygen bullets and ordering, and enforces absence of legacy `L<n>>` traces.
+      - description: builds temporary project config (`.req/config.json` with `src-dir`), executes `--references` in `--here` mode, checks `# Files Structure` preamble, enforces source/output label-count parity, verifies deterministic semantic Doxygen sequences and ordering, and enforces absence of legacy `L<n>>` traces.
+    - `test_references_cli_log_emits_brief_and_param()`: validates semantic extraction on project-scan flow [`tests/test_files_commands.py`]
+      - description: creates temp project with copied `cli.py`, executes `--here --references`, extracts block `def log(msg: str) -> None`, asserts exact lines `- Brief: Prints an informational message.` and `- Param: msg The message string to print.`.
     - `TestFindCommandsDoxygen.test_files_find_extracts_doxygen_fields_for_each_fixture()`: validates `--files-find` Doxygen extraction on all fixtures [`tests/test_files_commands.py`]
       - description: parametrizes all fixture files, builds language-specific TAG filters from `LANGUAGE_TAGS`, derives deterministic expected Doxygen bullets per construct via static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + body-comment parsing), and asserts output block-by-block using `type/name/line-range` identity.
     - `TestFindCommandsDoxygen.test_find_extracts_doxygen_fields_for_each_fixture()`: validates `--find` Doxygen extraction on fixture-backed project scans [`tests/test_files_commands.py`]
