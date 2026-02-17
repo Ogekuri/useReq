@@ -8,6 +8,7 @@ import json
 import os
 import tempfile
 import shutil
+import re
 
 import pytest
 
@@ -18,6 +19,87 @@ from usereq.cli import (
     _collect_source_files,
 )
 from pathlib import Path
+from usereq.doxygen_parser import format_doxygen_fields_as_markdown
+from usereq.generate_markdown import detect_language
+from usereq.source_analyzer import ElementType, SourceAnalyzer
+
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+FIXTURE_FILES = sorted(FIXTURES_DIR.glob("fixture_*.*"))
+DOXYGEN_TAG_LABELS_IN_ORDER = [
+    "Brief",
+    "Details",
+    "Param",
+    "Param[in]",
+    "Param[out]",
+    "Return",
+    "Retval",
+    "Exception",
+    "Throws",
+    "Warning",
+    "Deprecated",
+    "Note",
+    "See",
+    "Sa",
+    "Pre",
+    "Post",
+]
+
+
+def _collect_expected_doxygen_sequences(filepath: Path) -> list[list[str]]:
+    """! @brief Build deterministic expected Doxygen markdown sequences for one source file."""
+    language = detect_language(str(filepath))
+    assert language is not None, f"Unsupported fixture extension: {filepath}"
+
+    analyzer = SourceAnalyzer()
+    elements = analyzer.analyze(str(filepath), language)
+    analyzer.enrich(elements, language, str(filepath))
+
+    sequences: list[list[str]] = []
+    skipped_types = {
+        ElementType.COMMENT_SINGLE,
+        ElementType.COMMENT_MULTI,
+        ElementType.IMPORT,
+        ElementType.DECORATOR,
+    }
+    for element in elements:
+        if element.element_type in skipped_types:
+            continue
+        if getattr(element, "doxygen_fields", None):
+            sequence = format_doxygen_fields_as_markdown(element.doxygen_fields)
+            if sequence:
+                sequences.append(sequence)
+    return sequences
+
+
+def _assert_no_legacy_annotation_lines(output: str) -> None:
+    """! @brief Assert output does not contain legacy `L<n>>` annotation traces."""
+    assert re.search(r"(?m)^L\d+(?:-\d+)?>", output) is None
+
+
+def _assert_doxygen_markdown_order(output: str) -> None:
+    """! @brief Assert each contiguous Doxygen bullet block follows DOX-011 ordering."""
+    label_order = {
+        label: index for index, label in enumerate(DOXYGEN_TAG_LABELS_IN_ORDER)
+    }
+    in_block = False
+    last_index = -1
+
+    for line in output.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- ") and ":" in stripped:
+            label = stripped[2:].split(":", 1)[0]
+            if label in label_order:
+                current_index = label_order[label]
+                if not in_block:
+                    in_block = True
+                    last_index = current_index
+                else:
+                    assert current_index >= last_index
+                    last_index = current_index
+                continue
+        in_block = False
+        last_index = -1
 
 
 class TestFilesTokensCommand:
@@ -114,6 +196,59 @@ class TestFilesReferencesCommand:
             assert "Processed:" in captured.err
         finally:
             os.unlink(path)
+
+    @pytest.mark.parametrize(
+        "fixture_file",
+        FIXTURE_FILES,
+        ids=lambda path: path.name,
+    )
+    def test_files_references_extracts_doxygen_fields_for_each_fixture(
+        self,
+        fixture_file,
+        capsys,
+    ):
+        """DOX-014: Every fixture must emit expected Doxygen markdown fields."""
+        expected_sequences = _collect_expected_doxygen_sequences(fixture_file)
+
+        rc = main(["--files-references", str(fixture_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert output
+        for sequence in expected_sequences:
+            cursor = -1
+            for line in sequence:
+                index = output.find(line, cursor + 1)
+                assert index != -1, (
+                    f"Missing Doxygen line '{line}' in output for {fixture_file.name}"
+                )
+                cursor = index
+
+        _assert_no_legacy_annotation_lines(output)
+        _assert_doxygen_markdown_order(output)
+
+    def test_files_references_without_doxygen_outputs_only_construct_reference(
+        self,
+        capsys,
+        tmp_path,
+    ):
+        """DOX-009: Constructs without Doxygen comments must not emit Doxygen bullets."""
+        source_file = tmp_path / "plain.py"
+        source_file.write_text(
+            "def plain_function(value):\n    return value\n",
+            encoding="utf-8",
+        )
+
+        rc = main(["--files-references", str(source_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert "plain_function" in output
+        for label in DOXYGEN_TAG_LABELS_IN_ORDER:
+            assert f"- {label}:" not in output
+        _assert_no_legacy_annotation_lines(output)
 
 
 class TestFilesCompressCommand:
@@ -312,6 +447,50 @@ class TestReferencesCommand:
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--references"])
         assert rc == 0
+
+    def test_references_extracts_doxygen_fields_from_fixture_project(
+        self,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-015: --references must emit ordered Doxygen fields for fixture files."""
+        src = tmp_path / "src"
+        src.mkdir()
+
+        target_fixture = FIXTURES_DIR / "fixture_python.py"
+        copied_fixture = src / target_fixture.name
+        shutil.copy(target_fixture, copied_fixture)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        expected_sequences = _collect_expected_doxygen_sequences(copied_fixture)
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--references"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+
+        assert output.startswith("# Files Structure\n```")
+        assert "fixture_python.py" in output
+        for sequence in expected_sequences:
+            cursor = -1
+            for line in sequence:
+                index = output.find(line, cursor + 1)
+                assert index != -1
+                cursor = index
+
+        _assert_no_legacy_annotation_lines(output)
+        _assert_doxygen_markdown_order(output)
 
 
 class TestCompressCommand:

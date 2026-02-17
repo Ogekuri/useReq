@@ -56,7 +56,7 @@ def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
     @param verbose If True, emits progress status messages on stderr.
     @return Concatenated markdown string with all file analyses.
     @throws ValueError If no valid source files are found.
-    @details Iterates through files, detecting language, analyzing constructs, and formatting output.
+    @details Iterates through files, detecting language, analyzing constructs, and formatting output. Disables legacy comment/exit annotation traces in rendered markdown, emitting only construct references plus Doxygen field bullets when available.
     """
     analyzer = SourceAnalyzer()
     md_parts = []
@@ -85,7 +85,13 @@ def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
                 total_lines = sum(1 for _ in f)
 
             md_output = format_markdown(
-                elements, fpath, lang_key, spec.name, total_lines)
+                elements,
+                fpath,
+                lang_key,
+                spec.name,
+                total_lines,
+                include_legacy_annotations=False,
+            )
 
             md_parts.append(md_output)
             ok_count += 1

@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-17"
-version: 0.77
+version: 0.79
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.77
+**Versione**: 0.79
 **Autore**: Ogekuri
 **Data**: 2026-02-17
 
@@ -102,6 +102,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.76 | Rinominato il flag CLI `--copy-guidelines` in `--upgrade-guidelines` mantenendo invariato il comportamento di sovrascrittura template e mutua esclusione con `--add-guidelines`. |
 | 2026-02-17 | 0.77 | Estesi i requisiti test Doxygen per imporre copertura minima di 160 test (10 per ciascuno dei 16 tag supportati) con casi specifici e risultato atteso deterministico per ogni commento. |
 | 2026-02-17 | 0.78 | Estesi i requisiti Doxygen con test su tutte le fixture linguistiche per verifica completa dei costrutti e associazione commento pre/post-costrutto. |
+| 2026-02-17 | 0.79 | Aggiornato output `--files-references`/`--references` per emettere campi Doxygen in lista Markdown ordinata senza tracce legacy di commenti/exit points; estesa la suite test dei comandi su tutte le fixture in `tests/fixtures/`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -430,7 +431,7 @@ Il progetto include una suite di test in `tests/`.
 - **MKD-004**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **MKD-005**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
 - **MKD-006**: I risultati di analisi markdown devono essere concatenati con separatore `\n\n---\n\n`.
-- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva. L'output markdown deve includere campi Doxygen estratti dai commenti associati ai costrutti, formattati come lista Markdown puntata invece delle righe di codice dei commenti.
+- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva. L'output markdown per ciascun costrutto deve includere esclusivamente il riferimento del costrutto e i campi Doxygen estratti (se presenti), formattati come lista Markdown puntata; non deve includere righe legacy di commenti/exit points nel formato `L<n>>`.
 
 ### 3.18 Compressione Sorgenti
 - Questa sezione definisce i requisiti per il modulo di compressione del codice sorgente.
@@ -452,7 +453,7 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-001**: Il comando `--files-tokens` deve accettare una lista di file come parametro e calcolare il conteggio token e caratteri per ciascun file, stampando un riepilogo con dettagli per file e totali su stdout.
 - **CMD-002**: Il comando `--files-tokens` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
 - **CMD-003**: Il comando `--files-tokens` deve ignorare i file non trovati con un avviso su stderr e terminare con errore se nessun file valido è fornito.
-- **CMD-004**: Il comando `--files-references` deve accettare una lista arbitraria di file e generare un markdown strutturato di riferimento per il contesto LLM, stampandolo su stdout.
+- **CMD-004**: Il comando `--files-references` deve accettare una lista arbitraria di file e generare un markdown strutturato di riferimento per il contesto LLM, stampandolo su stdout; per ogni costrutto deve emettere il riferimento del costrutto e i campi Doxygen estratti (se presenti) nel formato definito da DOX-009 e DOX-011.
 - **CMD-005**: Il comando `--files-references` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
 - **CMD-006**: Il comando `--files-compress` deve accettare una lista arbitraria di file e generare un output compresso per il contesto LLM, stampandolo su stdout.
 - **CMD-007**: Il comando `--files-compress` deve operare indipendentemente da `--base`, `--here` e dalla configurazione di useReq. I parametri `--base` e `--here` non devono essere richiesti.
@@ -460,7 +461,7 @@ Il progetto include una suite di test in `tests/`.
 ### 3.20 Comandi di Progetto su Directory Sorgenti
 - Questa sezione definisce i comandi CLI che operano sulle directory sorgenti configurate nel progetto.
 - **CMD-008**: Il comando `--references` deve richiedere `--base` o `--here` per determinare il contesto di esecuzione. Se nessuno dei due è presente, il comando deve terminare con un messaggio di errore che indica i parametri obbligatori.
-- **CMD-009**: Il comando `--references` deve eseguire la generazione markdown di riferimento utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti effettive: con `--base` usa `--src-dir` se presente altrimenti `src-dir` da `config.json`; con `--here` deve usare solo `src-dir` da `config.json` ignorando eventuali `--src-dir` espliciti.
+- **CMD-009**: Il comando `--references` deve eseguire la generazione markdown di riferimento utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti effettive: con `--base` usa `--src-dir` se presente altrimenti `src-dir` da `config.json`; con `--here` deve usare solo `src-dir` da `config.json` ignorando eventuali `--src-dir` espliciti. Per ogni costrutto deve emettere il riferimento del costrutto e i campi Doxygen estratti (se presenti) nel formato definito da DOX-009 e DOX-011.
 - **CMD-010**: Il comando `--compress` deve richiedere `--base` o `--here` per determinare il contesto di esecuzione. Se nessuno dei due è presente, il comando deve terminare con un messaggio di errore che indica i parametri obbligatori.
 - **CMD-011**: Il comando `--compress` deve eseguire la compressione sorgenti utilizzando come input tutti i file con estensione supportata (come definiti in SRC-001) trovati nelle directory sorgenti effettive: con `--base` usa `--src-dir` se presente altrimenti `src-dir` da `config.json`; con `--here` deve usare solo `src-dir` da `config.json` ignorando eventuali `--src-dir` espliciti.
 - **CMD-012**: Durante la scansione delle directory sorgenti per i comandi `--references` e `--compress`, le seguenti directory devono essere escluse (elenco hardcoded): `.git`, `.vscode`, `tmp`, `temp`, `.cache`, `.pytest_cache`, `node_modules`, `__pycache__`, `.venv`, `venv`, `dist`, `build`, `.tox`, `.mypy_cache`, `.ruff_cache`.
@@ -520,6 +521,8 @@ Il progetto include una suite di test in `tests/`.
 - **DOX-011**: I campi Doxygen devono essere emessi nell'ordine fisso: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post, omettendo tag non presenti.
 - **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 160 test unitari complessivi, derivati da almeno 10 casi per ciascuno dei 16 tag Doxygen supportati in DOX-002; ogni test deve usare un commento sintetico generato per uno scenario specifico del tag target e deve verificare in modo deterministico il risultato atteso dell'estrazione.
 - **DOX-013**: Il progetto deve includere test Doxygen basati su `tests/fixtures/` che, per ciascun file fixture, estraggono tutti i costrutti presenti compatibili con FND-002, validano in modo deterministico i campi Doxygen attesi per ogni costrutto, e verificano che l'associazione commento→costrutto sia corretta sia per commenti pre-costrutto sia per commenti post-costrutto quando consentiti dalla sintassi del linguaggio.
+- **DOX-014**: Il progetto deve includere test command-level in `tests/test_files_commands.py` che eseguono il flusso equivalente a `--files-references` su ogni file in `tests/fixtures/` e verificano in modo deterministico la presenza in output dei campi Doxygen attesi per i costrutti documentati; i test devono anche verificare l'assenza di righe legacy `L<n>>` per commenti/exit points nel payload di riferimento.
+- **DOX-015**: Il progetto deve includere test command-level in `tests/test_files_commands.py` per `--references` su directory progetto configurata che include `tests/fixtures/`; i test devono verificare in modo deterministico l'emissione dei campi Doxygen in ordine DOX-011 per i costrutti documentati e la presenza del solo riferimento costrutto quando i campi Doxygen non sono disponibili.
 
 ### 3.25 Code Documentation Standards
 - **DOC-001**: All source code files within `src/` must include comprehensive Doxygen-style documentation for modules, classes, functions, and methods.

@@ -1598,10 +1598,23 @@ def _render_body_annotations(out: list, elem, indent: str = "",
                 out.append(f"{indent}L{start}-{end}> {text}")
 
 
-def format_markdown(elements: list, filepath: str, language: str,
-                    spec_name: str, total_lines: int) -> str:
+def format_markdown(
+    elements: list,
+    filepath: str,
+    language: str,
+    spec_name: str,
+    total_lines: int,
+    include_legacy_annotations: bool = True,
+) -> str:
     """! @brief Format analysis as compact Markdown optimized for LLM agent consumption.
-    @details Produces token-efficient output with: - File header with language, line count, element summary, and description - Imports in a code block - Hierarchical definitions with line-numbered doc comments - Body comments (L<N>> text) and exit points (L<N>> `return ...`) - Comments grouped with their relevant definitions - Standalone section/region comments preserved as context - Symbol index table for quick reference by line number
+    @details Produces token-efficient output with: - File header with language, line count, element summary, and optional file description - Imports in a code block - Hierarchical definitions enriched with ordered Doxygen field bullets when available - Optional legacy comment/exit traces when include_legacy_annotations is enabled - Symbol index table for quick reference by line number.
+    @param elements Parsed and optionally enriched SourceElement list.
+    @param filepath Absolute or relative source file path.
+    @param language Normalized source language key.
+    @param spec_name Display language name from LanguageSpec.
+    @param total_lines Total source file line count.
+    @param include_legacy_annotations Enable legacy L<n>> comment/exit traces and standalone comments section.
+    @return Markdown payload for one analyzed file.
     """
     out = []
     fname = os.path.basename(filepath)
@@ -1613,6 +1626,14 @@ def format_markdown(elements: list, filepath: str, language: str,
 
     # Build comment association maps
     doc_for_def, standalone_comments, file_desc = _build_comment_maps(elements)
+    if not include_legacy_annotations:
+        standalone_comments = []
+        file_desc = ""
+
+    try:
+        from .doxygen_parser import format_doxygen_fields_as_markdown
+    except ImportError:
+        from doxygen_parser import format_doxygen_fields_as_markdown
 
     # ── Header ────────────────────────────────────────────────────────
     n_comments = sum(1 for e in elements
@@ -1686,7 +1707,7 @@ def format_markdown(elements: list, filepath: str, language: str,
                 dec_str = f" `{dec_map[dec_line]}`"
 
             # Collect associated doc comments for this definition
-            # Prefer Doxygen fields if present (DOX-009)
+            # Prefer Doxygen fields if present (DOX-009).
             def_docs = doc_for_def.get(elem.line_start, [])
             doc_text = ""
             doc_lines_list = []
@@ -1694,17 +1715,13 @@ def format_markdown(elements: list, filepath: str, language: str,
             doxygen_markdown = []
 
             if hasattr(elem, 'doxygen_fields') and elem.doxygen_fields:
-                try:
-                    from .doxygen_parser import format_doxygen_fields_as_markdown
-                except ImportError:
-                    from doxygen_parser import format_doxygen_fields_as_markdown
                 doxygen_markdown = format_doxygen_fields_as_markdown(elem.doxygen_fields)
                 # Use brief as inline doc_text if available
                 if 'brief' in elem.doxygen_fields:
                     doc_text = elem.doxygen_fields['brief'][0]
                     if len(doc_text) > 150:
                         doc_text = doc_text[:147] + "..."
-            elif def_docs:
+            elif include_legacy_annotations and def_docs:
                 doc_lines_list = _extract_comment_lines(def_docs[0])
                 doc_text = " ".join(doc_lines_list) if doc_lines_list else ""
                 doc_line_num = def_docs[0].line_start
@@ -1717,9 +1734,11 @@ def format_markdown(elements: list, filepath: str, language: str,
             if is_inline:
                 first_line = elem.extract.split("\n")[0].strip()
                 line = f"- {kind} `{first_line}`{vis_str} (L{elem.line_start})"
-                if doc_text:
+                if include_legacy_annotations and doc_text:
                     line += f" — {doc_text}"
                 out.append(line)
+                if doxygen_markdown:
+                    out.extend(doxygen_markdown)
                 i += 1
             else:
                 # For impl blocks, use the full first line as sig
@@ -1733,13 +1752,13 @@ def format_markdown(elements: list, filepath: str, language: str,
                 # Show Doxygen fields if present, else raw comment (DOX-009)
                 if doxygen_markdown:
                     out.extend(doxygen_markdown)
-                elif doc_lines_list and len(doc_lines_list) > 1:
+                elif include_legacy_annotations and doc_lines_list and len(doc_lines_list) > 1:
                     for idx, dline in enumerate(doc_lines_list[:5]):
                         ln = doc_line_num + idx
                         out.append(f"L{ln}> {dline}")
                     if len(doc_lines_list) > 5:
                         out.append(f"L{doc_line_num + 5}> ...")
-                elif doc_text and doc_line_num:
+                elif include_legacy_annotations and doc_text and doc_line_num:
                     out.append(f"L{doc_line_num}> {doc_text}")
 
                 # Body annotations: comments and exit points
@@ -1747,17 +1766,18 @@ def format_markdown(elements: list, filepath: str, language: str,
                 # that fall within a child's line range (including
                 # doc comments that immediately precede the child)
                 kids = children_map.get(id(elem), [])
-                child_ranges = []
-                for c in kids:
-                    range_start = c.line_start
-                    # Extend range to include preceding doc comment
-                    c_docs = doc_for_def.get(c.line_start, [])
-                    if c_docs:
-                        range_start = min(range_start,
-                                          c_docs[0].line_start)
-                    child_ranges.append((range_start, c.line_end))
-                _render_body_annotations(out, elem,
-                                         exclude_ranges=child_ranges)
+                if include_legacy_annotations:
+                    child_ranges = []
+                    for c in kids:
+                        range_start = c.line_start
+                        # Extend range to include preceding doc comment
+                        c_docs = doc_for_def.get(c.line_start, [])
+                        if c_docs:
+                            range_start = min(range_start,
+                                              c_docs[0].line_start)
+                        child_ranges.append((range_start, c.line_end))
+                    _render_body_annotations(out, elem,
+                                             exclude_ranges=child_ranges)
 
                 # Children with their doc comments and body annotations
                 if kids:
@@ -1770,25 +1790,34 @@ def format_markdown(elements: list, filepath: str, language: str,
                                 and child.visibility not in ("pub", "public")):
                             child_vis = f" `{child.visibility}`"
                         child_doc = ""
-                        child_docs = doc_for_def.get(child.line_start, [])
                         child_doc_ln = ""
-                        if child_docs:
-                            child_doc_text = _extract_comment_text(
-                                child_docs[0], max_length=100)
-                            if child_doc_text:
-                                child_doc_ln = f" L{child_docs[0].line_start}>"
-                                child_doc = f" {child_doc_text}"
+                        child_doxygen_markdown = []
+                        if hasattr(child, 'doxygen_fields') and child.doxygen_fields:
+                            child_doxygen_markdown = format_doxygen_fields_as_markdown(
+                                child.doxygen_fields
+                            )
+                        elif include_legacy_annotations:
+                            child_docs = doc_for_def.get(child.line_start, [])
+                            if child_docs:
+                                child_doc_text = _extract_comment_text(
+                                    child_docs[0], max_length=100)
+                                if child_doc_text:
+                                    child_doc_ln = f" L{child_docs[0].line_start}>"
+                                    child_doc = f" {child_doc_text}"
                         out.append(f"- {child_kind} `{child_sig}`"
                                    f"{child_vis} ({child_loc})"
                                    f"{child_doc_ln}{child_doc}")
+                        if child_doxygen_markdown:
+                            out.extend(f"  {line}" for line in child_doxygen_markdown)
                         # Child body annotations (indented)
-                        _render_body_annotations(out, child, indent="  ")
+                        if include_legacy_annotations:
+                            _render_body_annotations(out, child, indent="  ")
 
                 out.append("")
                 i += 1
 
     # ── Standalone Comments (section/region markers, TODOs, notes) ────
-    if standalone_comments:
+    if include_legacy_annotations and standalone_comments:
         out.append("## Comments")
         # Group consecutive comments (within 2 lines of each other)
         groups = []

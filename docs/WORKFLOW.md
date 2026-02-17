@@ -25,8 +25,8 @@
       - `_is_postfix_doxygen_comment(comment_text: str) -> bool`: detect postfix association markers [`src/usereq/source_analyzer.py`]
         - description: matches postfix markers (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to bind comment payload to the preceding construct when language syntax encodes trailing documentation.
       - called by: `SourceAnalyzer.enrich()` after body annotation extraction when filepath is provided.
-    - `format_markdown()`: enhanced to render Doxygen fields as Markdown list [`src/usereq/source_analyzer.py`]
-      - description: when doxygen_fields present, outputs formatted Markdown list via format_doxygen_fields_as_markdown() instead of raw comment lines with L{n}> prefixes, supporting DOX-009.
+    - `format_markdown()`: enhanced to render Doxygen fields as Markdown list with optional legacy annotation suppression [`src/usereq/source_analyzer.py`]
+      - description: when doxygen_fields are present, emits ordered Markdown bullet fields via `format_doxygen_fields_as_markdown()`; when `include_legacy_annotations=False`, suppresses raw `L<n>>` comment/exit traces and standalone comment sections so output contains construct references plus Doxygen bullets only (DOX-009, MKD-007).
     - `find_constructs.format_construct()`: enhanced to include Doxygen fields after line range [`src/usereq/find_constructs.py`]
       - description: inserts Doxygen field Markdown list after "- Lines: ..." and before code block, supporting DOX-010.
 
@@ -111,7 +111,7 @@
     - `run_files_references()`: markdown references for explicit file lists [`src/usereq/cli.py:L2197-L2203`]
       - description: delegates to `generate_markdown()` passing `verbose=VERBOSE` and prints concatenated analysis output.
       - `generate_markdown()`: file-wise analysis and markdown concatenation [`src/usereq/generate_markdown.py:L46-L95`]
-        - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown()`, joins outputs with `---` separator, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
+        - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown(include_legacy_annotations=False)` to remove legacy `L<n>>` comment/exit traces, joins outputs with `---` separator, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
     - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2206-L2219`]
       - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` and keeps line numbers disabled by default.
       - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L30-L80`]
@@ -169,8 +169,8 @@
       - description: sequentially enriches extracted elements with clean names, signatures, hierarchy depth, visibility, inheritance, and optional body comments/exit points.
       - `_extract_body_annotations()`: scans definition bodies for comment and exit semantics [`src/usereq/source_analyzer.py:L1181-L1310`]
         - description: re-reads full file and stores normalized body comment spans plus control-flow exits (`return`, `raise`, `throw`, `panic!`, process exits) per definition.
-    - `format_markdown()`: compact LLM-optimized markdown formatter [`src/usereq/source_analyzer.py:L1642-L1894`]
-      - description: emits header/imports/definitions/comments/symbol-index sections, utilizing Markdown tables for definitions and symbol index to maximize token efficiency, maps nearby doc comments to definitions via `_build_comment_maps()`, renders child definitions and body annotations with line-local traceability.
+    - `format_markdown()`: compact LLM-optimized markdown formatter [`src/usereq/source_analyzer.py:L1601-L1902`]
+      - description: emits header/imports/definitions/symbol-index sections with ordered Doxygen bullets for each construct; optional flag `include_legacy_annotations` gates legacy body comment/exit trace emission (`L<n>>`) and standalone comments section, enabling references-mode output without legacy traces.
       - `_build_comment_maps()`: associates comments with nearest definitions [`src/usereq/source_analyzer.py:L1520-L1583`]
         - description: builds adjacency map for preceding comments, standalone comments, and file-level description signal.
       - `_render_body_annotations()`: emits ordered body comment/exit annotations [`src/usereq/source_analyzer.py:L1586-L1640`]
@@ -235,6 +235,15 @@
         - description: selects associated comment using same-line postfix inline markers, nearest preceding non-inline comments, and nearest following postfix non-inline comments, then parses expected fields with `parse_doxygen_comment()`.
       - `_is_postfix_comment_text()`: postfix marker classifier for fixture expectations [`tests/test_doxygen_parser.py`]
         - description: classifies trailing Doxygen syntaxes (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to validate languages where documentation is placed after the construct.
+
+- Feature: Command-level references Doxygen verification
+  - Module: `tests/test_files_commands.py`
+    - `test_files_references_extracts_doxygen_fields_for_each_fixture()`: validates `--files-references` across all fixtures [`tests/test_files_commands.py`]
+      - description: parametrizes all `tests/fixtures/fixture_*.*`, derives deterministic expected Doxygen bullet sequences from static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + `format_doxygen_fields_as_markdown()`), asserts expected lines are present, verifies absence of legacy `L<n>>` traces, and validates per-block tag ordering.
+    - `test_files_references_without_doxygen_outputs_only_construct_reference()`: validates no-Doxygen fallback behavior [`tests/test_files_commands.py`]
+      - description: executes `--files-references` on a synthetic undecorated function and asserts construct reference presence without any Doxygen bullet tags, plus absence of legacy `L<n>>` traces.
+    - `test_references_extracts_doxygen_fields_from_fixture_project()`: validates project-scan `--references` Doxygen output [`tests/test_files_commands.py`]
+      - description: builds temporary project config (`.req/config.json` with `src-dir`), executes `--references` in `--here` mode, checks `# Files Structure` preamble, verifies deterministic Doxygen bullets and ordering, and enforces absence of legacy `L<n>>` traces.
 
 - Requirements alignment evidence (`docs/REQUIREMENTS.md`)
   - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).
