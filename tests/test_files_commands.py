@@ -4,6 +4,8 @@
 Covers: CMD-001 through CMD-017.
 """
 
+import contextlib
+import io
 import json
 import os
 import tempfile
@@ -69,6 +71,25 @@ DOXYGEN_OUTPUT_LABEL_PATTERNS: Dict[str, re.Pattern[str]] = {
     label: re.compile(rf"(?m)^\s*-\s*{re.escape(label)}:")
     for _, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER
 }
+DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
+    "@brief": re.compile(r"(?<!\w)@brief\b"),
+    "@details": re.compile(r"(?<!\w)@details\b"),
+    "@param": re.compile(r"(?<!\w)@param(?!\s*\[)\b"),
+    "@param[in]": re.compile(r"(?<!\w)@param\s*\[\s*in\s*\]"),
+    "@param[out]": re.compile(r"(?<!\w)@param\s*\[\s*out\s*\]"),
+    "@return": re.compile(r"(?<!\w)@return\b"),
+    "@retval": re.compile(r"(?<!\w)@retval\b"),
+    "@exception": re.compile(r"(?<!\w)@exception\b"),
+    "@throws": re.compile(r"(?<!\w)@throws\b"),
+    "@warning": re.compile(r"(?<!\w)@warning\b"),
+    "@deprecated": re.compile(r"(?<!\w)@deprecated\b"),
+    "@note": re.compile(r"(?<!\w)@note\b"),
+    "@see": re.compile(r"(?<!\w)@see\b"),
+    "@sa": re.compile(r"(?<!\w)@sa\b"),
+    "@pre": re.compile(r"(?<!\w)@pre\b"),
+    "@post": re.compile(r"(?<!\w)@post\b"),
+}
+PROJECT_EXAMPLES_DIR = Path(__file__).parent / "project_examples"
 
 
 def _count_source_doxygen_tags(filepath: Path) -> Dict[str, int]:
@@ -105,6 +126,100 @@ def _count_output_doxygen_labels(output: str) -> Dict[str, int]:
         label: len(pattern.findall(output))
         for label, pattern in DOXYGEN_OUTPUT_LABEL_PATTERNS.items()
     }
+
+
+def _run_cli_capture(args: list[str]) -> tuple[int, str, str]:
+    """! @brief Run CLI main() capturing stdout/stderr as plain strings."""
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+    with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(
+        stderr_buffer
+    ):
+        rc = main(args)
+    return rc, stdout_buffer.getvalue(), stderr_buffer.getvalue()
+
+
+def _collect_project_examples_source_files() -> list[Path]:
+    """! @brief Collect the full list of parser-compatible source files under tests/project_examples."""
+    files = []
+    for path in PROJECT_EXAMPLES_DIR.rglob("*"):
+        if path.is_file() and detect_language(str(path)) is not None:
+            files.append(path)
+    return sorted(files)
+
+
+def _init_zero_tag_counts() -> Dict[str, int]:
+    """! @brief Initialize zeroed counters for all supported source Doxygen tags."""
+    return {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
+
+
+def _count_source_doxygen_tags_with_regex(filepath: Path) -> Dict[str, int]:
+    """! @brief Count source Doxygen tag occurrences in one file using regex."""
+    text = filepath.read_text(encoding="utf-8", errors="replace")
+    counts = _init_zero_tag_counts()
+    for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+        counts[tag] = len(DOXYGEN_SOURCE_TAG_PATTERNS[tag].findall(text))
+    return counts
+
+
+def _labels_to_tags_counts(label_counts: Dict[str, int]) -> Dict[str, int]:
+    """! @brief Convert output-label counts (Brief:, Param:, ...) to source-tag keys (@brief, @param, ...)."""
+    return {
+        tag: int(label_counts.get(label, 0))
+        for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER
+    }
+
+
+def _merge_tag_counts(base: Dict[str, int], extra: Dict[str, int]) -> Dict[str, int]:
+    """! @brief Merge field counters by summation."""
+    for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+        base[tag] += int(extra.get(tag, 0))
+    return base
+
+
+def _sum_tag_counts(tag_counts: Dict[str, int]) -> int:
+    """! @brief Return total occurrences across all supported Doxygen tags."""
+    return sum(int(tag_counts[tag]) for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER)
+
+
+def _format_tag_counts_line(tag_counts: Dict[str, int]) -> str:
+    """! @brief Serialize all field counters in fixed deterministic order."""
+    return ", ".join(
+        f"{tag}={int(tag_counts[tag])}" for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER
+    )
+
+
+def _print_file_tag_counts(phase: str, filepath: Path, tag_counts: Dict[str, int]) -> None:
+    """! @brief Print one per-file Doxygen field report line for debugging and auditability."""
+    print(
+        f"[{phase}] {filepath.as_posix()} | "
+        f"fields={_sum_tag_counts(tag_counts)} | {_format_tag_counts_line(tag_counts)}"
+    )
+
+
+def _print_directory_tag_counts(phase: str, tag_counts: Dict[str, int]) -> None:
+    """! @brief Print one full-directory Doxygen field report line for debugging and auditability."""
+    print(
+        f"[{phase}] DIRECTORY_TOTAL | "
+        f"fields={_sum_tag_counts(tag_counts)} | {_format_tag_counts_line(tag_counts)}"
+    )
+
+
+def _assert_tag_counts_match(
+    expected: Dict[str, int],
+    actual: Dict[str, int],
+    context_id: str,
+) -> None:
+    """! @brief Assert exact parity for every tag and total with context-rich mismatch traces."""
+    for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+        assert int(actual[tag]) == int(expected[tag]), (
+            f"{context_id}: mismatch field={tag} expected={int(expected[tag])} "
+            f"actual={int(actual[tag])}"
+        )
+    assert _sum_tag_counts(actual) == _sum_tag_counts(expected), (
+        f"{context_id}: mismatch total expected={_sum_tag_counts(expected)} "
+        f"actual={_sum_tag_counts(actual)}"
+    )
 
 
 def _assert_doxygen_reference_counts(
@@ -1117,6 +1232,115 @@ class TestFindCommandsDoxygen:
         metadata_section = block[lines_idx:code_idx]
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
             assert f"- {label}:" not in metadata_section
+
+
+class TestProjectExamplesDoxygenOccurrences:
+    """DOX-018: Directory-wide Doxygen field parity checks across source, --files-references, and --files-find."""
+
+    def test_project_examples_doxygen_occurrence_parity_two_phase_flow(self):
+        """DOX-018: Build full file list, store source regex baseline, then validate phase 1 and phase 2 parity."""
+        files = _collect_project_examples_source_files()
+        assert files, "No parser-compatible source files found in tests/project_examples"
+
+        print("[FILE-LIST] Complete parser-compatible source files:")
+        for index, filepath in enumerate(files, start=1):
+            print(f"[FILE-LIST] {index:02d}. {filepath.as_posix()}")
+
+        baseline_by_file: Dict[Path, Dict[str, int]] = {}
+        baseline_directory = _init_zero_tag_counts()
+
+        for filepath in files:
+            baseline_counts = _count_source_doxygen_tags_with_regex(filepath)
+            baseline_by_file[filepath] = baseline_counts
+            _merge_tag_counts(baseline_directory, baseline_counts)
+            _print_file_tag_counts("BASELINE", filepath, baseline_counts)
+
+        _print_directory_tag_counts("BASELINE", baseline_directory)
+
+        phase1_directory = _init_zero_tag_counts()
+        for filepath in files:
+            rc, stdout, _ = _run_cli_capture(["--files-references", str(filepath)])
+            assert rc == 0, f"phase1::{filepath.as_posix()}: --files-references failed"
+
+            phase1_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
+            _merge_tag_counts(phase1_directory, phase1_counts)
+            _print_file_tag_counts("PHASE1", filepath, phase1_counts)
+
+            _assert_tag_counts_match(
+                expected=baseline_by_file[filepath],
+                actual=phase1_counts,
+                context_id=f"phase1::{filepath.as_posix()}",
+            )
+
+        _print_directory_tag_counts("PHASE1", phase1_directory)
+        _assert_tag_counts_match(
+            expected=baseline_directory,
+            actual=phase1_directory,
+            context_id="phase1::directory",
+        )
+
+        phase2_directory = _init_zero_tag_counts()
+        for filepath in files:
+            tag_filter = _build_language_tag_filter(filepath)
+            constructs = _collect_expected_find_constructs(
+                filepath=filepath,
+                tag_filter=tag_filter,
+                pattern=".*",
+            )
+            print(
+                f"[PHASE2] {filepath.as_posix()} | "
+                f"extractable_constructs={len(constructs)}"
+            )
+
+            phase2_file_counts = _init_zero_tag_counts()
+            for construct in constructs:
+                pattern = rf"^{re.escape(str(construct['name']))}$"
+                rc, stdout, _ = _run_cli_capture(
+                    [
+                        "--files-find",
+                        str(construct["type_label"]),
+                        pattern,
+                        str(filepath),
+                    ]
+                )
+                assert rc == 0, (
+                    f"phase2::{filepath.as_posix()}: --files-find failed "
+                    f"for {construct['type_label']}:{construct['name']}"
+                )
+
+                block = _extract_construct_block(
+                    output=stdout,
+                    type_label=str(construct["type_label"]),
+                    name=str(construct["name"]),
+                    line_start=int(construct["line_start"]),
+                    line_end=int(construct["line_end"]),
+                )
+                construct_counts = _labels_to_tags_counts(
+                    _count_output_doxygen_labels(block)
+                )
+                _merge_tag_counts(phase2_file_counts, construct_counts)
+
+                print(
+                    f"[PHASE2-CONSTRUCT] {filepath.name} | "
+                    f"{construct['type_label']}:{construct['name']} "
+                    f"{construct['line_start']}-{construct['line_end']} | "
+                    f"fields={_sum_tag_counts(construct_counts)}"
+                )
+
+            _merge_tag_counts(phase2_directory, phase2_file_counts)
+            _print_file_tag_counts("PHASE2", filepath, phase2_file_counts)
+            _assert_tag_counts_match(
+                expected=baseline_by_file[filepath],
+                actual=phase2_file_counts,
+                context_id=f"phase2::{filepath.as_posix()}",
+            )
+
+        _print_directory_tag_counts("PHASE2", phase2_directory)
+        _assert_tag_counts_match(
+            expected=baseline_directory,
+            actual=phase2_directory,
+            context_id="phase2::directory",
+        )
 
 
 class TestSupportedExtensions:
