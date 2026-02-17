@@ -1235,10 +1235,10 @@ class TestFindCommandsDoxygen:
 
 
 class TestProjectExamplesDoxygenOccurrences:
-    """DOX-018: Directory-wide Doxygen field parity checks across source, --files-references, and --files-find."""
+    """DOX-018: Directory-wide Doxygen parity checks split by command semantics."""
 
     def test_project_examples_doxygen_occurrence_parity_two_phase_flow(self):
-        """DOX-018: Build full file list, store source regex baseline, then validate phase 1 and phase 2 parity."""
+        """DOX-018: Validate phase-specific parity for --files-references and --files-find."""
         files = _collect_project_examples_source_files()
         assert files, "No parser-compatible source files found in tests/project_examples"
 
@@ -1246,16 +1246,16 @@ class TestProjectExamplesDoxygenOccurrences:
         for index, filepath in enumerate(files, start=1):
             print(f"[FILE-LIST] {index:02d}. {filepath.as_posix()}")
 
-        baseline_by_file: Dict[Path, Dict[str, int]] = {}
-        baseline_directory = _init_zero_tag_counts()
+        phase1_baseline_by_file: Dict[Path, Dict[str, int]] = {}
+        phase1_baseline_directory = _init_zero_tag_counts()
 
         for filepath in files:
-            baseline_counts = _count_source_doxygen_tags_with_regex(filepath)
-            baseline_by_file[filepath] = baseline_counts
-            _merge_tag_counts(baseline_directory, baseline_counts)
-            _print_file_tag_counts("BASELINE", filepath, baseline_counts)
+            baseline_counts = _count_source_doxygen_tags(filepath)
+            phase1_baseline_by_file[filepath] = baseline_counts
+            _merge_tag_counts(phase1_baseline_directory, baseline_counts)
+            _print_file_tag_counts("PHASE1-BASELINE", filepath, baseline_counts)
 
-        _print_directory_tag_counts("BASELINE", baseline_directory)
+        _print_directory_tag_counts("PHASE1-BASELINE", phase1_baseline_directory)
 
         phase1_directory = _init_zero_tag_counts()
         for filepath in files:
@@ -1267,18 +1267,19 @@ class TestProjectExamplesDoxygenOccurrences:
             _print_file_tag_counts("PHASE1", filepath, phase1_counts)
 
             _assert_tag_counts_match(
-                expected=baseline_by_file[filepath],
+                expected=phase1_baseline_by_file[filepath],
                 actual=phase1_counts,
                 context_id=f"phase1::{filepath.as_posix()}",
             )
 
         _print_directory_tag_counts("PHASE1", phase1_directory)
         _assert_tag_counts_match(
-            expected=baseline_directory,
+            expected=phase1_baseline_directory,
             actual=phase1_directory,
             context_id="phase1::directory",
         )
 
+        phase2_expected_directory = _init_zero_tag_counts()
         phase2_directory = _init_zero_tag_counts()
         for filepath in files:
             tag_filter = _build_language_tag_filter(filepath)
@@ -1291,6 +1292,10 @@ class TestProjectExamplesDoxygenOccurrences:
                 f"[PHASE2] {filepath.as_posix()} | "
                 f"extractable_constructs={len(constructs)}"
             )
+
+            phase2_expected_counts = _count_find_source_doxygen_tags(constructs)
+            _merge_tag_counts(phase2_expected_directory, phase2_expected_counts)
+            _print_file_tag_counts("PHASE2-BASELINE", filepath, phase2_expected_counts)
 
             phase2_file_counts = _init_zero_tag_counts()
             for construct in constructs:
@@ -1330,14 +1335,15 @@ class TestProjectExamplesDoxygenOccurrences:
             _merge_tag_counts(phase2_directory, phase2_file_counts)
             _print_file_tag_counts("PHASE2", filepath, phase2_file_counts)
             _assert_tag_counts_match(
-                expected=baseline_by_file[filepath],
+                expected=phase2_expected_counts,
                 actual=phase2_file_counts,
                 context_id=f"phase2::{filepath.as_posix()}",
             )
 
+        _print_directory_tag_counts("PHASE2-BASELINE", phase2_expected_directory)
         _print_directory_tag_counts("PHASE2", phase2_directory)
         _assert_tag_counts_match(
-            expected=baseline_directory,
+            expected=phase2_expected_directory,
             actual=phase2_directory,
             context_id="phase2::directory",
         )
