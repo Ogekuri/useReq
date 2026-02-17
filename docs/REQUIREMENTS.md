@@ -1,8 +1,8 @@
 ---
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
-date: "2026-02-16"
-version: 0.76
+date: "2026-02-17"
+version: 0.77
 author: "Ogekuri"
 scope:
   paths:
@@ -18,9 +18,9 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.76
+**Versione**: 0.77
 **Autore**: Ogekuri
-**Data**: 2026-02-16
+**Data**: 2026-02-17
 
 ## Indice
 <!-- TOC -->
@@ -100,6 +100,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.74 | Esteso `tests/test_find_constructs_comprehensive.py` imponendo almeno cinque estrazioni distinte per ogni combinazione linguaggio-TAG definita in FND-002 usando fixture in `tests/fixtures/`. |
 | 2026-02-16 | 0.75 | Rimossi i template guideline predefiniti dal pacchetto e aggiornata la gestione `--add-guidelines`/`--copy-guidelines` per supportare directory sorgente guideline vuota senza errore. |
 | 2026-02-16 | 0.76 | Rinominato il flag CLI `--copy-guidelines` in `--upgrade-guidelines` mantenendo invariato il comportamento di sovrascrittura template e mutua esclusione con `--add-guidelines`. |
+| 2026-02-17 | 0.77 | Estesi i requisiti test Doxygen per imporre copertura minima di 160 test (10 per ciascuno dei 16 tag supportati) con casi specifici e risultato atteso deterministico per ogni commento. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -219,7 +220,7 @@ Il progetto include una suite di test in `tests/`.
 - `tests/test_generate_markdown.py` verifica la generazione di markdown di riferimento.
 - `tests/test_compress.py` verifica la compressione del codice sorgente.
 - `tests/test_files_commands.py` verifica i comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`.
-- `tests/test_doxygen_parser.py` verifica l'estrazione dei campi Doxygen dai commenti, coprendo tutti i 14 tag supportati con almeno 10 test per tag.
+- `tests/test_doxygen_parser.py` verifica l'estrazione dei campi Doxygen dai commenti, coprendo tutti i 16 tag supportati con almeno 10 test per tag (minimo 160 test) e risultato atteso deterministico per ogni commento.
 - `tests/test_find_constructs.py` verifica l'estrazione e filtraggio di costrutti per tag e pattern regex.
 - `tests/test_find_constructs_comprehensive.py` verifica l'estrazione di tutti i costrutti specifici per linguaggio utilizzando le fixture in `tests/fixtures/`, garantendo copertura completa per ogni combinazione linguaggio-costrutto definita in FND-002.
 
@@ -516,7 +517,7 @@ Il progetto include una suite di test in `tests/`.
 - **DOX-009**: I comandi `--files-references` e `--references` devono formattare l'output Doxygen come lista Markdown puntata con prefisso tag capitalizzato senza chiocciola, aggiungendo ':' (es: `@brief` → `- Brief:`). Se nessun campo Doxygen è presente, l'output deve contenere solo il riferimento del costrutto.
 - **DOX-010**: I comandi `--files-find` e `--find` devono inserire i campi Doxygen estratti dopo la riga `- Lines: ...` e prima del blocco codice. Il formato deve essere lista Markdown puntata con tag capitalizzato senza chiocciola e ':' (es: `@param` → `- Param:`).
 - **DOX-011**: I campi Doxygen devono essere emessi nell'ordine fisso: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post, omettendo tag non presenti.
-- **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 10 test unitari per ciascun tag Doxygen supportato (DOX-002), verificando estrazione corretta, gestione multi-line, e casi limite.
+- **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 160 test unitari complessivi, derivati da almeno 10 casi per ciascuno dei 16 tag Doxygen supportati in DOX-002; ogni test deve usare un commento sintetico generato per uno scenario specifico del tag target e deve verificare in modo deterministico il risultato atteso dell'estrazione.
 
 ### 3.25 Code Documentation Standards
 - **DOC-001**: All source code files within `src/` must include comprehensive Doxygen-style documentation for modules, classes, functions, and methods.

@@ -8,7 +8,7 @@
 - Feature: Doxygen comment parsing and field extraction
   - Module: `src/usereq/doxygen_parser.py`
     - `parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]`: extract structured Doxygen tag fields from documentation comments [`src/usereq/doxygen_parser.py`]
-      - description: parses both @tag and \\tag syntax across 14 supported tags (@brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post), returns dictionary mapping normalized tag names to content lists, strips comment delimiters, normalizes whitespace.
+      - description: parses both @tag and \\tag syntax across 16 supported tags (@brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post), returns dictionary mapping normalized tag names to content lists, strips comment delimiters, normalizes whitespace.
       - `_strip_comment_delimiters(text: str) -> str`: remove language-specific comment syntax [`src/usereq/doxygen_parser.py`]
         - description: strips /**, */, //, #, triple quotes and intermediate column markers while preserving content.
       - `_normalize_whitespace(text: str) -> str`: collapse and clean whitespace [`src/usereq/doxygen_parser.py`]
