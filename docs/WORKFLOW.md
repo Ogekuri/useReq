@@ -5,6 +5,29 @@
     - `module/class/function docstrings`: structured Doxygen normalization for parser-safe metadata extraction [`src/usereq/*.py`]
       - description: each Python module/class/function docstring is normalized to include `@brief` blocks to maintain machine-interpretable documentation consistency without altering runtime behavior or call order.
 
+- Feature: Doxygen comment parsing and field extraction
+  - Module: `src/usereq/doxygen_parser.py`
+    - `parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]`: extract structured Doxygen tag fields from documentation comments [`src/usereq/doxygen_parser.py`]
+      - description: parses both @tag and \\tag syntax across 14 supported tags (@brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post), returns dictionary mapping normalized tag names to content lists, strips comment delimiters, normalizes whitespace.
+      - `_strip_comment_delimiters(text: str) -> str`: remove language-specific comment syntax [`src/usereq/doxygen_parser.py`]
+        - description: strips /**, */, //, #, triple quotes and intermediate column markers while preserving content.
+      - `_normalize_whitespace(text: str) -> str`: collapse and clean whitespace [`src/usereq/doxygen_parser.py`]
+        - description: collapses multiple spaces, strips trailing whitespace per line, removes consecutive blank lines.
+    - `format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]`: format extracted fields as Markdown bulleted list [`src/usereq/doxygen_parser.py`]
+      - description: emits fields in fixed tag order (DOXYGEN_TAGS), capitalizes tag labels, omits @ prefix, appends colon, skips absent tags.
+
+- Feature: Doxygen integration into source analysis pipeline
+  - Module: `src/usereq/source_analyzer.py`
+    - `SourceElement.doxygen_fields`: field storing parsed Doxygen tag dictionary [`src/usereq/source_analyzer.py`]
+      - description: dictionary populated by _extract_doxygen_fields() during enrichment phase, maps tag names to content lists.
+    - `SourceAnalyzer._extract_doxygen_fields(elements: list)`: extract Doxygen fields from associated comments [`src/usereq/source_analyzer.py`]
+      - description: for each non-comment element, searches for adjacent preceding comment blocks (within 2 lines), invokes parse_doxygen_comment(), stores results in element.doxygen_fields.
+      - called by: `SourceAnalyzer.enrich()` after body annotation extraction when filepath is provided.
+    - `format_markdown()`: enhanced to render Doxygen fields as Markdown list [`src/usereq/source_analyzer.py`]
+      - description: when doxygen_fields present, outputs formatted Markdown list via format_doxygen_fields_as_markdown() instead of raw comment lines with L{n}> prefixes, supporting DOX-009.
+    - `find_constructs.format_construct()`: enhanced to include Doxygen fields after line range [`src/usereq/find_constructs.py`]
+      - description: inserts Doxygen field Markdown list after "- Lines: ..." and before code block, supporting DOX-010.
+
 - Feature: CLI bootstrap and command dispatch
   - Module: `src/usereq/__main__.py`
     - `main()`: module execution entrypoint forwarding process exit code [`src/usereq/__main__.py:L1-L7`]

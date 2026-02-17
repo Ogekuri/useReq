@@ -8,6 +8,7 @@
         ├── cli.py
         ├── compress.py
         ├── compress_files.py
+        ├── doxygen_parser.py
         ├── find_constructs.py
         ├── generate_markdown.py
         ├── pdoc_utils.py
@@ -89,10 +90,10 @@ import traceback
 ## Definitions
 
 - var `REPO_ROOT = Path(__file__).resolve().parents[2]` (L24)
-- var `RESOURCE_ROOT = Path(__file__).resolve().parent / "resources"` (L27) — ! @brief The absolute path to the repository root.
-- var `VERBOSE = False` (L30) — ! @brief The absolute path to the resources directory.
-- var `DEBUG = False` (L33) — ! @brief Whether verbose output is enabled.
-- var `REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"` (L36) — ! @brief Whether debug output is enabled.
+- var `RESOURCE_ROOT = Path(__file__).resolve().parent / "resources"` (L27) — The absolute path to the repository root."""
+- var `VERBOSE = False` (L30) — The absolute path to the resources directory."""
+- var `DEBUG = False` (L33) — Whether verbose output is enabled."""
+- var `REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"` (L36) — Whether debug output is enabled."""
 ### class `class ReqError(Exception)` : Exception (L40-54)
 L37> ! @brief Name of the packaged requirements template file.
 - fn `def __init__(self, message: str, code: int = 1) -> None` `priv` (L45-54) L41> ! @brief Dedicated exception for expected CLI errors. @details This exception is used to bubble u...
@@ -399,7 +400,7 @@ L1486> Copy guidelines templates if requested (REQ-085, REQ-086, REQ-087, REQ-08
 L1517> `raise ReqError(`
 L1522> After validation and before any operation that modifies the filesystem, check for a new version.
 
-- var `VERBOSE = args.verbose` (L1348) — ! @brief Handles the main initialization flow.
+- var `VERBOSE = args.verbose` (L1348) — Handles the main initialization flow.
 - var `DEBUG = args.debug` (L1349)
 - var `PROMPT = prompt_path.stem` (L1691)
 ### fn `def _format_install_table(` `priv` (L2121-2123)
@@ -912,7 +913,82 @@ L109> `sys.exit(1)`
 
 ---
 
-# find_constructs.py | Python | 255L | 8 symbols | 7 imports | 14 comments
+# doxygen_parser.py | Python | 163L | 5 symbols | 2 imports | 19 comments
+> Path: `/home/ogekuri/useReq/src/usereq/doxygen_parser.py`
+> ! @file doxygen_parser.py @brief Doxygen comment parser for extracting structured documentation fields. @details Parses Doxygen-formatted documentation comments and extracts recognized tags (@brief...
+
+## Imports
+```
+import re
+from typing import Dict, List
+```
+
+## Definitions
+
+- var `DOXYGEN_TAGS = [` (L15) — Supported Doxygen tags in extraction order
+### fn `def parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]` (L35-91)
+L36-43> ! @brief Extract Doxygen fields from a documentation comment block. @details Parses both @tag and \\tag syntax. Each tag's content extends until the next tag or end of comment. Multiple occurrences of the same tag accumulate in the returned list. Whitespace is normalized. @param comment_text Raw comment string potentially containing Doxygen tags. @return Dictionary mapping normalized tag names to lists of extracted content strings. @note Returns empty dict if no Doxygen tags are found. @see DOXYGEN_TAGS for recognized tag list.
+L45> `return {}`
+L49> Normalize line endings and strip comment delimiters
+L53> Pattern matches @tag or \tag, optionally with [direction] for param
+L54> Captures: tag name (group 1), optional direction like [in] (group 2)
+L56> @ or \ prefix
+L58> known tags
+L59> optional [in], [out], [in,out]
+L65> `return {}`
+L71> Normalize tag key: param[in], param[out], param (no direction)
+L77> Extract content from end of tag to start of next tag (or end of text)
+L89> `return result`
+
+### fn `def _strip_comment_delimiters(text: str) -> str` `priv` (L92-120)
+L93-98> ! @brief Remove common comment delimiters from text block. @details Strips leading/trailing /**, */, //, #, triple quotes, and intermediate * column markers. Preserves content while removing comment syntax artifacts. @param text Raw comment block possibly containing comment delimiters. @return Cleaned text with delimiters removed.
+L105> Remove common comment starters/enders
+L109> Remove leading comment markers: //, #, *, etc.
+L111> leading * from multi-line C-style
+L112> or /// or //!
+L113> Python #
+L118> `return '\n'.join(cleaned_lines)`
+
+### fn `def _normalize_whitespace(text: str) -> str` `priv` (L121-146)
+L122-127> ! @brief Normalize internal whitespace in extracted tag content. @details Collapses multiple spaces to single space, preserves single newlines, removes redundant blank lines. @param text Tag content with potentially irregular whitespace. @return Whitespace-normalized content.
+L128> Collapse multiple spaces to single space
+L130> Remove leading/trailing whitespace per line
+L132> Remove consecutive blank lines
+L144> `return '\n'.join(normalized_lines).strip()`
+
+### fn `def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]` (L147-163)
+L148-154> ! @brief Format extracted Doxygen fields as Markdown bulleted list. @details Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ prefix, appends ':'. Skips tags not present in input. Each tag's content items are concatenated. @param doxygen_fields Dictionary of tag -> content list from parse_doxygen_comment(). @return List of Markdown lines (each starting with '- '). @note Output order matches DOXYGEN_TAGS sequence.
+L158> Capitalize first letter, append colon
+L160> Join multiple content entries with space
+L163> `return lines`
+
+## Comments
+- L2: ! @file doxygen_parser.py @brief Doxygen comment parser for extracting structured documentation fields. @details Parses Doxygen-formatted documenta...
+- L36: ! @brief Extract Doxygen fields from a documentation comment block. @details Parses both @tag and \\tag syntax. Each tag's content extends until th...
+- L49: Normalize line endings and strip comment delimiters
+- L53-54: Pattern matches @tag or \tag, optionally with [direction] for param | Captures: tag name (group 1), optional direction like [in] (group 2)
+- L71: Normalize tag key: param[in], param[out], param (no direction)
+- L77: Extract content from end of tag to start of next tag (or end of text)
+- L93: ! @brief Remove common comment delimiters from text block. @details Strips leading/trailing /**, */, //, #, triple quotes, and intermediate * colum...
+- L105: Remove common comment starters/enders
+- L109: Remove leading comment markers: //, #, *, etc.
+- L122-132: ! @brief Normalize internal whitespace in extracted tag content. @details Collapses multiple spac... | Collapse multiple spaces to single space | Remove leading/trailing whitespace per line | Remove consecutive blank lines
+- L148: ! @brief Format extracted Doxygen fields as Markdown bulleted list. @details Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ p...
+- L158-160: Capitalize first letter, append colon | Join multiple content entries with space
+
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`DOXYGEN_TAGS`|var|pub|15||
+|`parse_doxygen_comment`|fn|pub|35-91|def parse_doxygen_comment(comment_text: str) -> Dict[str,...|
+|`_strip_comment_delimiters`|fn|priv|92-120|def _strip_comment_delimiters(text: str) -> str|
+|`_normalize_whitespace`|fn|priv|121-146|def _normalize_whitespace(text: str) -> str|
+|`format_doxygen_fields_as_markdown`|fn|pub|147-163|def format_doxygen_fields_as_markdown(doxygen_fields: Dic...|
+
+
+---
+
+# find_constructs.py | Python | 262L | 8 symbols | 8 imports | 15 comments
 > Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 > ! @file find_constructs.py @brief Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generat...
 
@@ -924,6 +1000,7 @@ import sys
 from pathlib import Path
 from .source_analyzer import SourceAnalyzer
 from .compress import detect_language
+from .doxygen_parser import format_doxygen_fields_as_markdown
 import argparse
 ```
 
@@ -949,16 +1026,17 @@ L89> `return False`
 L91> `return bool(re.search(pattern, element.name))`
 L93> `return False`
 
-### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L96-124)
-L97-103> ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line range indices. @param source_lines Complete source file content as list of lines. @param include_line_numbers If True, prefix code lines with <n>: format. @return Formatted markdown block for the construct with complete code from line_start to line_end. @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices.
-L110> Extract COMPLETE code block from source file (not truncated extract)
-L122> `return "\n".join(lines)`
+### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L96-131)
+L97-103> ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line range indices. @param source_lines Complete source file content as list of lines. @param include_line_numbers If True, prefix code lines with <n>: format. @return Formatted markdown block for the construct with complete code from line_start to line_end. @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices. Includes Doxygen fields if present.
+L112> Insert Doxygen fields if present (DOX-010)
+L117> Extract COMPLETE code block from source file (not truncated extract)
+L129> `return "\n".join(lines)`
 
-### fn `def find_constructs_in_files(` (L125-130)
+### fn `def find_constructs_in_files(` (L132-137)
 
-### fn `def main()` (L218-253)
-L219-221> ! @brief Execute the construct finding CLI command. @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
-L251> `sys.exit(1)`
+### fn `def main()` (L225-260)
+L226-228> ! @brief Execute the construct finding CLI command. @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
+L258> `sys.exit(1)`
 
 ## Comments
 - L2: ! @file find_constructs.py @brief Find and extract specific constructs from source files. @details Filters source code constructs (CLASS, FUNCTION,...
@@ -967,12 +1045,13 @@ L251> `sys.exit(1)`
 - L68: ! @brief Check if the language supports at least one of the requested tags. @param lang Normalized language identifier. @param tag_set Set of reque...
 - L79: ! @brief Check if a source element matches tag filter and regex pattern. @param element SourceElement instance from analyzer. @param tag_set Set of...
 - L97: ! @brief Format a single matched construct for markdown output with complete code extraction. @param element SourceElement instance containing line...
-- L110: Extract COMPLETE code block from source file (not truncated extract)
-- L132: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @param filepaths List of source file paths. @param ...
-- L167: Check if language supports at least one requested tag
-- L175: Read complete source file for full construct extraction
-- L183: Filter elements matching tag and pattern
-- L219: ! @brief Execute the construct finding CLI command. @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing er...
+- L112: Insert Doxygen fields if present (DOX-010)
+- L117: Extract COMPLETE code block from source file (not truncated extract)
+- L139: ! @brief Find and extract constructs matching tag filter and regex pattern from multiple files. @param filepaths List of source file paths. @param ...
+- L174: Check if language supports at least one requested tag
+- L182: Read complete source file for full construct extraction
+- L190: Filter elements matching tag and pattern
+- L226: ! @brief Execute the construct finding CLI command. @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing er...
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -982,9 +1061,9 @@ L251> `sys.exit(1)`
 |`parse_tag_filter`|fn|pub|58-66|def parse_tag_filter(tag_string: str) -> set[str]|
 |`language_supports_tags`|fn|pub|67-77|def language_supports_tags(lang: str, tag_set: set[str]) ...|
 |`construct_matches`|fn|pub|78-95|def construct_matches(element, tag_set: set[str], pattern...|
-|`format_construct`|fn|pub|96-124|def format_construct(element, source_lines: list[str], in...|
-|`find_constructs_in_files`|fn|pub|125-130|def find_constructs_in_files(|
-|`main`|fn|pub|218-253|def main()|
+|`format_construct`|fn|pub|96-131|def format_construct(element, source_lines: list[str], in...|
+|`find_constructs_in_files`|fn|pub|132-137|def find_constructs_in_files(|
+|`main`|fn|pub|225-260|def main()|
 
 
 ---
@@ -1078,7 +1157,7 @@ L36> `return subprocess.run(`
 
 ---
 
-# source_analyzer.py | Python | 1895L | 55 symbols | 7 imports | 123 comments
+# source_analyzer.py | Python | 1942L | 56 symbols | 11 imports | 129 comments
 > Path: `/home/ogekuri/useReq/src/usereq/source_analyzer.py`
 > ! @file source_analyzer.py @brief Multi-language source code analyzer. @details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Defin...
 
@@ -1091,418 +1170,435 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Optional
+from .doxygen_parser import parse_doxygen_comment
+from doxygen_parser import parse_doxygen_comment
+from .doxygen_parser import format_doxygen_fields_as_markdown
+from doxygen_parser import format_doxygen_fields_as_markdown
 ```
 
 ## Definitions
 
-### class `class ElementType(Enum)` : Enum (L19-49)
-- var `FUNCTION = auto()` (L23) L20> ! @brief Element types recognized in source code. @details Enumeration of all supported syntactic...
-- var `METHOD = auto()` (L24)
-- var `CLASS = auto()` (L25)
-- var `STRUCT = auto()` (L26)
-- var `ENUM = auto()` (L27)
-- var `TRAIT = auto()` (L28)
-- var `INTERFACE = auto()` (L29)
-- var `MODULE = auto()` (L30)
-- var `IMPL = auto()` (L31)
-- var `MACRO = auto()` (L32)
-- var `CONSTANT = auto()` (L33)
-- var `VARIABLE = auto()` (L34)
-- var `TYPE_ALIAS = auto()` (L35)
-- var `IMPORT = auto()` (L36)
-- var `DECORATOR = auto()` (L37)
-- var `COMMENT_SINGLE = auto()` (L38)
-- var `COMMENT_MULTI = auto()` (L39)
-- var `COMPONENT = auto()` (L40)
-- var `PROTOCOL = auto()` (L41)
-- var `EXTENSION = auto()` (L42)
-- var `UNION = auto()` (L43)
-- var `NAMESPACE = auto()` (L44)
-- var `PROPERTY = auto()` (L45)
-- var `SIGNAL = auto()` (L46)
-- var `TYPEDEF = auto()` (L47)
+### class `class ElementType(Enum)` : Enum (L24-54)
+- var `FUNCTION = auto()` (L28) L25> ! @brief Element types recognized in source code. @details Enumeration of all supported syntactic...
+- var `METHOD = auto()` (L29)
+- var `CLASS = auto()` (L30)
+- var `STRUCT = auto()` (L31)
+- var `ENUM = auto()` (L32)
+- var `TRAIT = auto()` (L33)
+- var `INTERFACE = auto()` (L34)
+- var `MODULE = auto()` (L35)
+- var `IMPL = auto()` (L36)
+- var `MACRO = auto()` (L37)
+- var `CONSTANT = auto()` (L38)
+- var `VARIABLE = auto()` (L39)
+- var `TYPE_ALIAS = auto()` (L40)
+- var `IMPORT = auto()` (L41)
+- var `DECORATOR = auto()` (L42)
+- var `COMMENT_SINGLE = auto()` (L43)
+- var `COMMENT_MULTI = auto()` (L44)
+- var `COMPONENT = auto()` (L45)
+- var `PROTOCOL = auto()` (L46)
+- var `EXTENSION = auto()` (L47)
+- var `UNION = auto()` (L48)
+- var `NAMESPACE = auto()` (L49)
+- var `PROPERTY = auto()` (L50)
+- var `SIGNAL = auto()` (L51)
+- var `TYPEDEF = auto()` (L52)
 
-### class `class SourceElement` `@dataclass` (L51-103)
-L52-54> ! @brief Element found in source file. @details Data class representing a single extracted code construct with its metadata.
-- fn `def type_label(self) -> str` (L69-103)
-  L70-73> ! @brief Return the normalized printable label for element_type. @return Stable uppercase label used in markdown rendering output. @details Maps internal ElementType enum to a string representation for reporting.
-  L101> `return labels.get(self.element_type, "UNKNOWN")`
+### class `class SourceElement` `@dataclass` (L56-109)
+L57-59> ! @brief Element found in source file. @details Data class representing a single extracted code construct with its metadata.
+- fn `def type_label(self) -> str` (L75-109)
+  L76-79> ! @brief Return the normalized printable label for element_type. @return Stable uppercase label used in markdown rendering output. @details Maps internal ElementType enum to a string representation for reporting.
+  L107> `return labels.get(self.element_type, "UNKNOWN")`
 
-### class `class LanguageSpec` `@dataclass` (L105-116)
-L106-108> ! @brief Language recognition pattern specification. @details Holds regex patterns and configuration for parsing a specific programming language.
+### class `class LanguageSpec` `@dataclass` (L111-122)
+L112-114> ! @brief Language recognition pattern specification. @details Holds regex patterns and configuration for parsing a specific programming language.
 
-### fn `def build_language_specs() -> dict` (L117-316)
-L118-119> ! @brief Build specifications for all supported languages.
-L122> ── Python ──────────────────────────────────────────────────────────
-L143> ── C ───────────────────────────────────────────────────────────────
-L177> ── C++ ─────────────────────────────────────────────────────────────
-L207> ── Rust ────────────────────────────────────────────────────────────
-L239> ── JavaScript ──────────────────────────────────────────────────────
-L267> ── TypeScript ──────────────────────────────────────────────────────
-L300> ── Java ────────────────────────────────────────────────────────────
+### fn `def build_language_specs() -> dict` (L123-322)
+L124-125> ! @brief Build specifications for all supported languages.
+L128> ── Python ──────────────────────────────────────────────────────────
+L149> ── C ───────────────────────────────────────────────────────────────
+L183> ── C++ ─────────────────────────────────────────────────────────────
+L213> ── Rust ────────────────────────────────────────────────────────────
+L245> ── JavaScript ──────────────────────────────────────────────────────
+L273> ── TypeScript ──────────────────────────────────────────────────────
+L306> ── Java ────────────────────────────────────────────────────────────
 
-### class `class SourceAnalyzer` (L670-869)
-L846-851> ! @brief Check if position pos is inside a string literal. @param line The line of code. @param pos The column index. @param spec The LanguageSpec instance. @return True if pos is within a string.
-- fn `def __init__(self)` `priv` (L675-678) L671> ! @brief Multi-language source file analyzer. @details Analyzes a source file identifying definit...
-  L676> ! @brief Initialize analyzer state with language specifications.
-- fn `def get_supported_languages(self) -> list` (L679-690) L676> ! @brief Initialize analyzer state with language specifications.
-  L680-682> ! @brief Return list of supported languages (without aliases). @return Sorted list of unique language identifiers.
-  L689> `return sorted(result)`
-- fn `def analyze(self, filepath: str, language: str) -> list` (L691-844)
-  L692-698> ! @brief Analyze a source file and return the list of SourceElement found. @param filepath Path to the source file. @param language Language identifier. @return List of SourceElement instances. @throws ValueError If language is not supported. @details Reads file content, detects single/multi-line comments, and matches regex patterns for definitions.
-  L701> `raise ValueError(`
-  L713> Multi-line comment state
-  L721> ── Multi-line comment handling ──────────────────────────
-  L738> ── Multi-line comment start ────────────────────────────
-  L740> Special handling for Python docstrings and =begin/=pod blocks
-  L744> Check not inside a string
-  L746> Check if multi-line comment closes on same line
-  L758> Python: """ ... """ sulla stessa riga
-  L775> ── Single-line comment ───────────────────────────────────
-  L779> If comment is the entire line (aside from whitespace)
-  L790> Inline comment: add both element and comment
-  L800> ── Language patterns ─────────────────────────────────────
-  L813> Single-line types: don't search for block
-  L830> Limit extract to max 5 lines for readability
-  L843> `return elements`
+### class `class SourceAnalyzer` (L676-875)
+L852-857> ! @brief Check if position pos is inside a string literal. @param line The line of code. @param pos The column index. @param spec The LanguageSpec instance. @return True if pos is within a string.
+- fn `def __init__(self)` `priv` (L681-684) L677> ! @brief Multi-language source file analyzer. @details Analyzes a source file identifying definit...
+  L682> ! @brief Initialize analyzer state with language specifications.
+- fn `def get_supported_languages(self) -> list` (L685-696) L682> ! @brief Initialize analyzer state with language specifications.
+  L686-688> ! @brief Return list of supported languages (without aliases). @return Sorted list of unique language identifiers.
+  L695> `return sorted(result)`
+- fn `def analyze(self, filepath: str, language: str) -> list` (L697-850)
+  L698-704> ! @brief Analyze a source file and return the list of SourceElement found. @param filepath Path to the source file. @param language Language identifier. @return List of SourceElement instances. @throws ValueError If language is not supported. @details Reads file content, detects single/multi-line comments, and matches regex patterns for definitions.
+  L707> `raise ValueError(`
+  L719> Multi-line comment state
+  L727> ── Multi-line comment handling ──────────────────────────
+  L744> ── Multi-line comment start ────────────────────────────
+  L746> Special handling for Python docstrings and =begin/=pod blocks
+  L750> Check not inside a string
+  L752> Check if multi-line comment closes on same line
+  L764> Python: """ ... """ sulla stessa riga
+  L781> ── Single-line comment ───────────────────────────────────
+  L785> If comment is the entire line (aside from whitespace)
+  L796> Inline comment: add both element and comment
+  L806> ── Language patterns ─────────────────────────────────────
+  L819> Single-line types: don't search for block
+  L836> Limit extract to max 5 lines for readability
+  L849> `return elements`
 
-### fn `def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool` `priv` (L845-878)
-L846-851> ! @brief Check if position pos is inside a string literal. @param line The line of code. @param pos The column index. @param spec The LanguageSpec instance. @return True if pos is within a string.
-L877> `return in_string`
+### fn `def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool` `priv` (L851-884)
+L852-857> ! @brief Check if position pos is inside a string literal. @param line The line of code. @param pos The column index. @param spec The LanguageSpec instance. @return True if pos is within a string.
+L883> `return in_string`
 
-### fn `def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]` `priv` (L879-916)
-L880-884> ! @brief Find position of single-line comment, ignoring strings. @param line The line of code. @param spec The LanguageSpec instance. @return Column index of comment start, or None.
-L886> `return None`
-L903> `return i`
-L915> `return None`
+### fn `def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]` `priv` (L885-922)
+L886-890> ! @brief Find position of single-line comment, ignoring strings. @param line The line of code. @param spec The LanguageSpec instance. @return Column index of comment start, or None.
+L892> `return None`
+L909> `return i`
+L921> `return None`
 
-### fn `def _find_block_end(self, lines: list, start_idx: int,` `priv` (L917-995)
-L919-926> ! @brief Find the end of a block (function, class, struct, etc.). @param lines List of all file lines. @param start_idx Index of the start line. @param language Language identifier. @param first_line Content of the start line. @return 1-based index of the end line. @details Returns the index (1-based) of the final line of the block. Limits search for performance.
-L927> Per Python: basato sull'indentazione
-L940> `return end`
-L942> Per linguaggi con parentesi graffe
-L959> `return end + 1`
-L961> If no opening braces found, return just the first line
-L963> `return start_idx + 1`
-L964> `return end`
-L966> Per Ruby/Elixir/Lua: basato su end keyword
-L975> `return end + 1`
-L977> `return start_idx + 1`
-L979> Per Haskell: basato sull'indentazione
-L992> `return end`
-L994> `return start_idx + 1`
+### fn `def _find_block_end(self, lines: list, start_idx: int,` `priv` (L923-1001)
+L925-932> ! @brief Find the end of a block (function, class, struct, etc.). @param lines List of all file lines. @param start_idx Index of the start line. @param language Language identifier. @param first_line Content of the start line. @return 1-based index of the end line. @details Returns the index (1-based) of the final line of the block. Limits search for performance.
+L933> Per Python: basato sull'indentazione
+L946> `return end`
+L948> Per linguaggi con parentesi graffe
+L965> `return end + 1`
+L967> If no opening braces found, return just the first line
+L969> `return start_idx + 1`
+L970> `return end`
+L972> Per Ruby/Elixir/Lua: basato su end keyword
+L981> `return end + 1`
+L983> `return start_idx + 1`
+L985> Per Haskell: basato sull'indentazione
+L998> `return end`
+L1000> `return start_idx + 1`
 
-### fn `def enrich(self, elements: list, language: str,` (L998-1012)
-L996> ── Enrichment methods for LLM-optimized output ───────────────────
-L1000-1002> ! @brief Enrich elements with signatures, hierarchy, visibility, inheritance. @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
-L1011> `return elements`
+### fn `def enrich(self, elements: list, language: str,` (L1004-1019)
+L1002> ── Enrichment methods for LLM-optimized output ───────────────────
+L1006-1008> ! @brief Enrich elements with signatures, hierarchy, visibility, inheritance. @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
+L1018> `return elements`
 
-### fn `def _clean_names(self, elements: list, language: str)` `priv` (L1013-1038)
-L1014-1016> ! @brief Extract clean identifiers from name fields. @details Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
-L1021> Try to re-extract the name from the element's extract line
-L1022> using the original pattern (which has group 2 as the identifier)
-L1030> Take highest non-None non-empty group
-L1031> (group 2+ = identifier, group 1 = full match)
+### fn `def _clean_names(self, elements: list, language: str)` `priv` (L1020-1045)
+L1021-1023> ! @brief Extract clean identifiers from name fields. @details Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
+L1028> Try to re-extract the name from the element's extract line
+L1029> using the original pattern (which has group 2 as the identifier)
+L1037> Take highest non-None non-empty group
+L1038> (group 2+ = identifier, group 1 = full match)
 
-### fn `def _extract_signatures(self, elements: list, language: str)` `priv` (L1039-1054)
-L1040-1041> ! @brief Extract clean signatures from element extracts.
+### fn `def _extract_signatures(self, elements: list, language: str)` `priv` (L1046-1061)
+L1047-1048> ! @brief Extract clean signatures from element extracts.
 
-### fn `def _detect_hierarchy(self, elements: list)` `priv` (L1055-1088)
-L1056-1058> ! @brief Detect parent-child relationships between elements. @details Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
+### fn `def _detect_hierarchy(self, elements: list)` `priv` (L1062-1095)
+L1063-1065> ! @brief Detect parent-child relationships between elements. @details Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
 
-### fn `def _extract_visibility(self, elements: list, language: str)` `priv` (L1089-1101)
-L1090-1091> ! @brief Extract visibility/access modifiers from elements.
+### fn `def _extract_visibility(self, elements: list, language: str)` `priv` (L1096-1108)
+L1097-1098> ! @brief Extract visibility/access modifiers from elements.
 
-### fn `def _parse_visibility(self, sig: str, name: Optional[str],` `priv` (L1102-1147)
-L1104-1105> ! @brief Parse visibility modifier from a signature line.
-L1108> `return "priv"`
-L1110> `return "priv"`
-L1111> `return "pub"`
-L1114> `return "pub"`
-L1116> `return "priv"`
-L1118> `return "prot"`
-L1120> `return "int"`
-L1121> `return None`
-L1124> `return "pub"`
-L1125> `return "priv"`
-L1128> `return "pub"`
-L1129> `return "priv"`
+### fn `def _parse_visibility(self, sig: str, name: Optional[str],` `priv` (L1109-1154)
+L1111-1112> ! @brief Parse visibility modifier from a signature line.
+L1115> `return "priv"`
+L1117> `return "priv"`
+L1118> `return "pub"`
+L1121> `return "pub"`
+L1123> `return "priv"`
+L1125> `return "prot"`
+L1127> `return "int"`
+L1128> `return None`
+L1131> `return "pub"`
 L1132> `return "priv"`
-L1134> `return "fpriv"`
-L1136> `return "pub"`
-L1137> `return None`
-L1140> `return "pub"`
-L1142> `return "priv"`
-L1144> `return "prot"`
-L1145> `return None`
-L1146> `return None`
+L1135> `return "pub"`
+L1136> `return "priv"`
+L1139> `return "priv"`
+L1141> `return "fpriv"`
+L1143> `return "pub"`
+L1144> `return None`
+L1147> `return "pub"`
+L1149> `return "priv"`
+L1151> `return "prot"`
+L1152> `return None`
+L1153> `return None`
 
-### fn `def _extract_inheritance(self, elements: list, language: str)` `priv` (L1148-1159)
-L1149-1150> ! @brief Extract inheritance/implementation info from class-like elements.
+### fn `def _extract_inheritance(self, elements: list, language: str)` `priv` (L1155-1166)
+L1156-1157> ! @brief Extract inheritance/implementation info from class-like elements.
 
-### fn `def _parse_inheritance(self, first_line: str,` `priv` (L1160-1189)
-L1162-1163> ! @brief Parse inheritance info from a class/struct declaration line.
-L1166> `return m.group(1).strip() if m else None`
-L1175> `return ", ".join(parts) if parts else None`
-L1179> `return m.group(1).strip() if m else None`
-L1184> `return m.group(1).strip() if m else None`
-L1187> `return m.group(1) if m else None`
-L1188> `return None`
+### fn `def _parse_inheritance(self, first_line: str,` `priv` (L1167-1196)
+L1169-1170> ! @brief Parse inheritance info from a class/struct declaration line.
+L1173> `return m.group(1).strip() if m else None`
+L1182> `return ", ".join(parts) if parts else None`
+L1186> `return m.group(1).strip() if m else None`
+L1191> `return m.group(1).strip() if m else None`
+L1194> `return m.group(1) if m else None`
+L1195> `return None`
 
-### fn `def _extract_body_annotations(self, elements: list,` `priv` (L1197-1320)
-L1199-1201> ! @brief Extract comments and exit points from within function/class bodies. @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
-L1204> `return`
-L1210> `return`
-L1212> Only process definitions that span multiple lines
-L1230> Scan the body (lines after the definition line)
-L1231> 1-based, skip def line itself
-L1245> Multi-line comment tracking within body
-L1260> Check for multi-line comment start
-L1265> Single-line multi-comment
-L1289> Single-line comment (full line)
-L1299> Standalone comment line in body
-L1305> Inline comment after code
-L1310> Exit points
+### fn `def _extract_body_annotations(self, elements: list,` `priv` (L1204-1327)
+L1206-1208> ! @brief Extract comments and exit points from within function/class bodies. @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
+L1211> `return`
+L1217> `return`
+L1219> Only process definitions that span multiple lines
+L1237> Scan the body (lines after the definition line)
+L1238> 1-based, skip def line itself
+L1252> Multi-line comment tracking within body
+L1267> Check for multi-line comment start
+L1272> Single-line multi-comment
+L1296> Single-line comment (full line)
+L1306> Standalone comment line in body
+L1312> Inline comment after code
+L1317> Exit points
 
-### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1322-1333)
-L1323-1324> ! @brief Strip comment markers from a single line of comment text.
-L1331> `return s`
+### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1328-1351)
+L1329-1331> ! @brief Extract Doxygen tag fields from associated documentation comments. @details For each non-comment element, searches for adjacent comment blocks and parses Doxygen tags via parse_doxygen_comment(), storing results in element.doxygen_fields.
+L1336> Skip comments themselves
+L1340> Find adjacent preceding comment (within 2 lines)
+L1343> Comment must end just before or at the element start
 
-### fn `def _md_loc(elem) -> str` `priv` (L1334-1341)
-L1335-1336> ! @brief Format element location compactly for markdown.
-L1338> `return f"L{elem.line_start}"`
-L1339> `return f"L{elem.line_start}-{elem.line_end}"`
+### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1353-1364)
+L1354-1355> ! @brief Strip comment markers from a single line of comment text.
+L1362> `return s`
 
-### fn `def _md_kind(elem) -> str` `priv` (L1342-1369)
-L1343-1344> ! @brief Short kind label for markdown output.
-L1367> `return mapping.get(elem.element_type, "unk")`
+### fn `def _md_loc(elem) -> str` `priv` (L1365-1372)
+L1366-1367> ! @brief Format element location compactly for markdown.
+L1369> `return f"L{elem.line_start}"`
+L1370> `return f"L{elem.line_start}-{elem.line_end}"`
 
-### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1370-1392)
-L1371-1373> ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
-L1378> Strip comment markers
-L1383> Strip multi-line markers
-L1390> `return text`
+### fn `def _md_kind(elem) -> str` `priv` (L1373-1400)
+L1374-1375> ! @brief Short kind label for markdown output.
+L1398> `return mapping.get(elem.element_type, "unk")`
 
-### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1393-1409)
-L1394-1395> ! @brief Extract clean text lines from a multi-line comment (preserving structure).
-L1407> `return cleaned`
+### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1401-1423)
+L1402-1404> ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
+L1409> Strip comment markers
+L1414> Strip multi-line markers
+L1421> `return text`
 
-### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1410-1470)
-L1411-1413> ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
-L1416> Identify definition elements
-L1424> Build adjacency map: comments preceding a definition (within 2 lines)
-L1433> Extract file description from first comment(s), skip shebangs
-L1438> Skip shebang lines and empty comments
-L1446> Skip inline comments (name == "inline")
-L1451> Check if this comment precedes a definition within 2 lines
-L1458> Stop if we hit another element
-L1463> Skip file-level description (already captured)
-L1468> `return doc_for_def, standalone_comments, file_description`
+### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1424-1440)
+L1425-1426> ! @brief Extract clean text lines from a multi-line comment (preserving structure).
+L1438> `return cleaned`
 
-### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1471-1522)
-L1473-1475> ! @brief Render body comments and exit points for a definition element. @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
-L1476> Build maps by line number
-L1485> Collect all annotated line numbers
-L1489> Skip if within an excluded range (child element)
-L1503> Merge: show exit point code with comment as context
-L1506> Strip inline comment from exit_text if it contains it
+### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1441-1501)
+L1442-1444> ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
+L1447> Identify definition elements
+L1455> Build adjacency map: comments preceding a definition (within 2 lines)
+L1464> Extract file description from first comment(s), skip shebangs
+L1469> Skip shebang lines and empty comments
+L1477> Skip inline comments (name == "inline")
+L1482> Check if this comment precedes a definition within 2 lines
+L1489> Stop if we hit another element
+L1494> Skip file-level description (already captured)
+L1499> `return doc_for_def, standalone_comments, file_description`
 
-### fn `def format_markdown(elements: list, filepath: str, language: str,` (L1523-1722)
-L1525-1527> ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with language, line count, element summary, and description - Imports in a code block - Hierarchical definitions with line-numbered doc comments - Body comments (L<N>> text) and exit points (L<N>> `return ...`) - Comments grouped with their relevant definitions - Standalone section/region comments preserved as context - Symbol index table for quick reference by line number
-L1536> Build comment association maps
-L1539> ── Header ────────────────────────────────────────────────────────
-L1551> ── Imports ───────────────────────────────────────────────────────
-L1564> ── Build decorator map: line -> decorator text ───────────────────
-L1570> ── Definitions ───────────────────────────────────────────────────
-L1610> Collect associated doc comments for this definition
-L1633> For impl blocks, use the full first line as sig
-L1641> Show associated doc comment with line number
-L1651> Body annotations: comments and exit points
-L1652> For containers with children, exclude annotations
-L1653> that fall within a child's line range (including
-L1654> doc comments that immediately precede the child)
-L1659> Extend range to include preceding doc comment
-L1668> Children with their doc comments and body annotations
-L1690> Child body annotations (indented)
-L1696> ── Standalone Comments (section/region markers, TODOs, notes) ────
-L1699> Group consecutive comments (within 2 lines of each other)
-L1718> Multi-line comment block: show as region
+### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1502-1553)
+L1504-1506> ! @brief Render body comments and exit points for a definition element. @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
+L1507> Build maps by line number
+L1516> Collect all annotated line numbers
+L1520> Skip if within an excluded range (child element)
+L1534> Merge: show exit point code with comment as context
+L1537> Strip inline comment from exit_text if it contains it
 
-### fn `def main()` (L1770-1893)
-L1771> ! @brief Execute the standalone source analyzer CLI command.
-L1836> `sys.exit(0)`
-L1842> `sys.exit(1)`
-L1845> `sys.exit(1)`
-L1847> Optional filtering
+### fn `def format_markdown(elements: list, filepath: str, language: str,` (L1554-1753)
+L1556-1558> ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with language, line count, element summary, and description - Imports in a code block - Hierarchical definitions with line-numbered doc comments - Body comments (L<N>> text) and exit points (L<N>> `return ...`) - Comments grouped with their relevant definitions - Standalone section/region comments preserved as context - Symbol index table for quick reference by line number
+L1567> Build comment association maps
+L1570> ── Header ────────────────────────────────────────────────────────
+L1582> ── Imports ───────────────────────────────────────────────────────
+L1595> ── Build decorator map: line -> decorator text ───────────────────
+L1601> ── Definitions ───────────────────────────────────────────────────
+L1641> Collect associated doc comments for this definition
+L1642> Prefer Doxygen fields if present (DOX-009)
+L1655> Use brief as inline doc_text if available
+L1678> For impl blocks, use the full first line as sig
+L1686> Show Doxygen fields if present, else raw comment (DOX-009)
+L1698> Body annotations: comments and exit points
+L1699> For containers with children, exclude annotations
+L1700> that fall within a child's line range (including
+L1701> doc comments that immediately precede the child)
+L1706> Extend range to include preceding doc comment
+L1715> Children with their doc comments and body annotations
+L1737> Child body annotations (indented)
+L1743> ── Standalone Comments (section/region markers, TODOs, notes) ────
+L1746> Group consecutive comments (within 2 lines of each other)
+
+### fn `def main()` (L1817-1940)
+L1818> ! @brief Execute the standalone source analyzer CLI command.
+L1883> `sys.exit(0)`
+L1889> `sys.exit(1)`
+L1892> `sys.exit(1)`
+L1894> Optional filtering
 
 ## Comments
 - L2: ! @file source_analyzer.py @brief Multi-language source code analyzer. @details Inspired by tree-sitter, this module analyzes source files across m...
-- L52: ! @brief Element found in source file. @details Data class representing a single extracted code construct with its metadata.
-- L70: ! @brief Return the normalized printable label for element_type. @return Stable uppercase label used in markdown rendering output. @details Maps in...
-- L106: ! @brief Language recognition pattern specification. @details Holds regex patterns and configuration for parsing a specific programming language.
-- L118: ! @brief Build specifications for all supported languages.
-- L122: ── Python ──────────────────────────────────────────────────────────
-- L143: ── C ───────────────────────────────────────────────────────────────
-- L177: ── C++ ─────────────────────────────────────────────────────────────
-- L207: ── Rust ────────────────────────────────────────────────────────────
-- L239: ── JavaScript ──────────────────────────────────────────────────────
-- L267: ── TypeScript ──────────────────────────────────────────────────────
-- L300: ── Java ────────────────────────────────────────────────────────────
-- L332: ── Go ──────────────────────────────────────────────────────────────
-- L359: ── Ruby ────────────────────────────────────────────────────────────
-- L381: ── PHP ─────────────────────────────────────────────────────────────
-- L405: ── Swift ───────────────────────────────────────────────────────────
-- L435: ── Kotlin ──────────────────────────────────────────────────────────
-- L464: ── Scala ───────────────────────────────────────────────────────────
-- L490: ── Lua ─────────────────────────────────────────────────────────────
-- L506: ── Shell (Bash) ────────────────────────────────────────────────────
-- L526: ── Perl ────────────────────────────────────────────────────────────
-- L544: ── Haskell ─────────────────────────────────────────────────────────
-- L566: ── Zig ─────────────────────────────────────────────────────────────
-- L590: ── Elixir ──────────────────────────────────────────────────────────
-- L612: ── C# ──────────────────────────────────────────────────────────────
-- L651: Common aliases
-- L680: ! @brief Return list of supported languages (without aliases). @return Sorted list of unique language identifiers.
-- L692: ! @brief Analyze a source file and return the list of SourceElement found. @param filepath Path to the source file. @param language Language identi...
-- L713: Multi-line comment state
-- L721: ── Multi-line comment handling ──────────────────────────
-- L738-740: ── Multi-line comment start ──────────────────────────── | Special handling for Python docstrings and =begin/=pod blocks
-- L744-746: Check not inside a string | Check if multi-line comment closes on same line
-- L758: Python: """ ... """ sulla stessa riga
-- L775: ── Single-line comment ───────────────────────────────────
-- L779: If comment is the entire line (aside from whitespace)
-- L790: Inline comment: add both element and comment
-- L800: ── Language patterns ─────────────────────────────────────
-- L813: Single-line types: don't search for block
-- L830: Limit extract to max 5 lines for readability
-- L846: ! @brief Check if position pos is inside a string literal. @param line The line of code. @param pos The column index. @param spec The LanguageSpec ...
-- L880: ! @brief Find position of single-line comment, ignoring strings. @param line The line of code. @param spec The LanguageSpec instance. @return Colum...
-- L919-927: ! @brief Find the end of a block (function, class, struct, etc.). @param lines List of all file l... | Per Python: basato sull'indentazione
-- L942: Per linguaggi con parentesi graffe
-- L961: If no opening braces found, return just the first line
-- L966: Per Ruby/Elixir/Lua: basato su end keyword
-- L979: Per Haskell: basato sull'indentazione
-- L1000: ! @brief Enrich elements with signatures, hierarchy, visibility, inheritance. @details Call after analyze() to add metadata for LLM-optimized markd...
-- L1014: ! @brief Extract clean identifiers from name fields. @details Due to regex group nesting, name may contain the full match expression (e.g. 'class M...
-- L1021-1022: Try to re-extract the name from the element's extract line | using the original pattern (which has group 2 as the identifier)
-- L1030-1031: Take highest non-None non-empty group | (group 2+ = identifier, group 1 = full match)
-- L1040: ! @brief Extract clean signatures from element extracts.
-- L1056: ! @brief Detect parent-child relationships between elements. @details Containers (class, struct, module, etc.) remain at depth=0. Non-container ele...
-- L1090: ! @brief Extract visibility/access modifiers from elements.
-- L1104: ! @brief Parse visibility modifier from a signature line.
-- L1149: ! @brief Extract inheritance/implementation info from class-like elements.
-- L1162: ! @brief Parse inheritance info from a class/struct declaration line.
-- L1190: ── Exit point patterns per language family ──────────────────────
-- L1199: ! @brief Extract comments and exit points from within function/class bodies. @details Reads the source file and scans each definition's line range ...
-- L1212: Only process definitions that span multiple lines
-- L1230: Scan the body (lines after the definition line)
-- L1245: Multi-line comment tracking within body
-- L1260: Check for multi-line comment start
-- L1265: Single-line multi-comment
-- L1289: Single-line comment (full line)
-- L1299: Standalone comment line in body
-- L1305: Inline comment after code
-- L1310: Exit points
-- L1323: ! @brief Strip comment markers from a single line of comment text.
-- L1335: ! @brief Format element location compactly for markdown.
-- L1343: ! @brief Short kind label for markdown output.
-- L1371: ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, trun...
-- L1378: Strip comment markers
-- L1383: Strip multi-line markers
-- L1394: ! @brief Extract clean text lines from a multi-line comment (preserving structure).
-- L1411: ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list o...
-- L1416: Identify definition elements
-- L1424: Build adjacency map: comments preceding a definition (within 2 lines)
-- L1433: Extract file description from first comment(s), skip shebangs
-- L1438: Skip shebang lines and empty comments
-- L1446: Skip inline comments (name == "inline")
-- L1451: Check if this comment precedes a definition within 2 lines
-- L1458: Stop if we hit another element
-- L1463: Skip file-level description (already captured)
-- L1473-1476: ! @brief Render body comments and exit points for a definition element. @details Merges body_comm... | Build maps by line number
-- L1485: Collect all annotated line numbers
-- L1489: Skip if within an excluded range (child element)
-- L1503: Merge: show exit point code with comment as context
-- L1506: Strip inline comment from exit_text if it contains it
-- L1525: ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with...
-- L1536: Build comment association maps
-- L1539: ── Header ────────────────────────────────────────────────────────
-- L1551: ── Imports ───────────────────────────────────────────────────────
-- L1564: ── Build decorator map: line -> decorator text ───────────────────
-- L1570: ── Definitions ───────────────────────────────────────────────────
-- L1610: Collect associated doc comments for this definition
-- L1633: For impl blocks, use the full first line as sig
-- L1641: Show associated doc comment with line number
-- L1651-1654: Body annotations: comments and exit points | For containers with children, exclude annotations | that fall within a child's line range (including | doc comments that immediately precede the child)
-- L1659: Extend range to include preceding doc comment
-- L1668: Children with their doc comments and body annotations
-- L1690: Child body annotations (indented)
-- L1696: ── Standalone Comments (section/region markers, TODOs, notes) ────
-- L1699: Group consecutive comments (within 2 lines of each other)
-- L1718: Multi-line comment block: show as region
-- L1731: ── Symbol Index ──────────────────────────────────────────────────
-- L1751-1752: Only show sig for functions/methods/classes (not vars/consts | which already show full content in Definitions section)
-- L1771: ! @brief Execute the standalone source analyzer CLI command.
-- L1847: Optional filtering
+- L57: ! @brief Element found in source file. @details Data class representing a single extracted code construct with its metadata.
+- L76: ! @brief Return the normalized printable label for element_type. @return Stable uppercase label used in markdown rendering output. @details Maps in...
+- L112: ! @brief Language recognition pattern specification. @details Holds regex patterns and configuration for parsing a specific programming language.
+- L124: ! @brief Build specifications for all supported languages.
+- L128: ── Python ──────────────────────────────────────────────────────────
+- L149: ── C ───────────────────────────────────────────────────────────────
+- L183: ── C++ ─────────────────────────────────────────────────────────────
+- L213: ── Rust ────────────────────────────────────────────────────────────
+- L245: ── JavaScript ──────────────────────────────────────────────────────
+- L273: ── TypeScript ──────────────────────────────────────────────────────
+- L306: ── Java ────────────────────────────────────────────────────────────
+- L338: ── Go ──────────────────────────────────────────────────────────────
+- L365: ── Ruby ────────────────────────────────────────────────────────────
+- L387: ── PHP ─────────────────────────────────────────────────────────────
+- L411: ── Swift ───────────────────────────────────────────────────────────
+- L441: ── Kotlin ──────────────────────────────────────────────────────────
+- L470: ── Scala ───────────────────────────────────────────────────────────
+- L496: ── Lua ─────────────────────────────────────────────────────────────
+- L512: ── Shell (Bash) ────────────────────────────────────────────────────
+- L532: ── Perl ────────────────────────────────────────────────────────────
+- L550: ── Haskell ─────────────────────────────────────────────────────────
+- L572: ── Zig ─────────────────────────────────────────────────────────────
+- L596: ── Elixir ──────────────────────────────────────────────────────────
+- L618: ── C# ──────────────────────────────────────────────────────────────
+- L657: Common aliases
+- L686: ! @brief Return list of supported languages (without aliases). @return Sorted list of unique language identifiers.
+- L698: ! @brief Analyze a source file and return the list of SourceElement found. @param filepath Path to the source file. @param language Language identi...
+- L719: Multi-line comment state
+- L727: ── Multi-line comment handling ──────────────────────────
+- L744-746: ── Multi-line comment start ──────────────────────────── | Special handling for Python docstrings and =begin/=pod blocks
+- L750-752: Check not inside a string | Check if multi-line comment closes on same line
+- L764: Python: """ ... """ sulla stessa riga
+- L781: ── Single-line comment ───────────────────────────────────
+- L785: If comment is the entire line (aside from whitespace)
+- L796: Inline comment: add both element and comment
+- L806: ── Language patterns ─────────────────────────────────────
+- L819: Single-line types: don't search for block
+- L836: Limit extract to max 5 lines for readability
+- L852: ! @brief Check if position pos is inside a string literal. @param line The line of code. @param pos The column index. @param spec The LanguageSpec ...
+- L886: ! @brief Find position of single-line comment, ignoring strings. @param line The line of code. @param spec The LanguageSpec instance. @return Colum...
+- L925-933: ! @brief Find the end of a block (function, class, struct, etc.). @param lines List of all file l... | Per Python: basato sull'indentazione
+- L948: Per linguaggi con parentesi graffe
+- L967: If no opening braces found, return just the first line
+- L972: Per Ruby/Elixir/Lua: basato su end keyword
+- L985: Per Haskell: basato sull'indentazione
+- L1006: ! @brief Enrich elements with signatures, hierarchy, visibility, inheritance. @details Call after analyze() to add metadata for LLM-optimized markd...
+- L1021: ! @brief Extract clean identifiers from name fields. @details Due to regex group nesting, name may contain the full match expression (e.g. 'class M...
+- L1028-1029: Try to re-extract the name from the element's extract line | using the original pattern (which has group 2 as the identifier)
+- L1037-1038: Take highest non-None non-empty group | (group 2+ = identifier, group 1 = full match)
+- L1047: ! @brief Extract clean signatures from element extracts.
+- L1063: ! @brief Detect parent-child relationships between elements. @details Containers (class, struct, module, etc.) remain at depth=0. Non-container ele...
+- L1097: ! @brief Extract visibility/access modifiers from elements.
+- L1111: ! @brief Parse visibility modifier from a signature line.
+- L1156: ! @brief Extract inheritance/implementation info from class-like elements.
+- L1169: ! @brief Parse inheritance info from a class/struct declaration line.
+- L1197: ── Exit point patterns per language family ──────────────────────
+- L1206: ! @brief Extract comments and exit points from within function/class bodies. @details Reads the source file and scans each definition's line range ...
+- L1219: Only process definitions that span multiple lines
+- L1237: Scan the body (lines after the definition line)
+- L1252: Multi-line comment tracking within body
+- L1267: Check for multi-line comment start
+- L1272: Single-line multi-comment
+- L1296: Single-line comment (full line)
+- L1306: Standalone comment line in body
+- L1312: Inline comment after code
+- L1317: Exit points
+- L1329: ! @brief Extract Doxygen tag fields from associated documentation comments. @details For each non-comment element, searches for adjacent comment bl...
+- L1336: Skip comments themselves
+- L1340: Find adjacent preceding comment (within 2 lines)
+- L1343: Comment must end just before or at the element start
+- L1354: ! @brief Strip comment markers from a single line of comment text.
+- L1366: ! @brief Format element location compactly for markdown.
+- L1374: ! @brief Short kind label for markdown output.
+- L1402: ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, trun...
+- L1409: Strip comment markers
+- L1414: Strip multi-line markers
+- L1425: ! @brief Extract clean text lines from a multi-line comment (preserving structure).
+- L1442: ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list o...
+- L1447: Identify definition elements
+- L1455: Build adjacency map: comments preceding a definition (within 2 lines)
+- L1464: Extract file description from first comment(s), skip shebangs
+- L1469: Skip shebang lines and empty comments
+- L1477: Skip inline comments (name == "inline")
+- L1482: Check if this comment precedes a definition within 2 lines
+- L1489: Stop if we hit another element
+- L1494: Skip file-level description (already captured)
+- L1504-1507: ! @brief Render body comments and exit points for a definition element. @details Merges body_comm... | Build maps by line number
+- L1516: Collect all annotated line numbers
+- L1520: Skip if within an excluded range (child element)
+- L1534: Merge: show exit point code with comment as context
+- L1537: Strip inline comment from exit_text if it contains it
+- L1556: ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with...
+- L1567: Build comment association maps
+- L1570: ── Header ────────────────────────────────────────────────────────
+- L1582: ── Imports ───────────────────────────────────────────────────────
+- L1595: ── Build decorator map: line -> decorator text ───────────────────
+- L1601: ── Definitions ───────────────────────────────────────────────────
+- L1641-1642: Collect associated doc comments for this definition | Prefer Doxygen fields if present (DOX-009)
+- L1655: Use brief as inline doc_text if available
+- L1678: For impl blocks, use the full first line as sig
+- L1686: Show Doxygen fields if present, else raw comment (DOX-009)
+- L1698-1701: Body annotations: comments and exit points | For containers with children, exclude annotations | that fall within a child's line range (including | doc comments that immediately precede the child)
+- L1706: Extend range to include preceding doc comment
+- L1715: Children with their doc comments and body annotations
+- L1737: Child body annotations (indented)
+- L1743: ── Standalone Comments (section/region markers, TODOs, notes) ────
+- L1746: Group consecutive comments (within 2 lines of each other)
+- L1765: Multi-line comment block: show as region
+- L1778: ── Symbol Index ──────────────────────────────────────────────────
+- L1798-1799: Only show sig for functions/methods/classes (not vars/consts | which already show full content in Definitions section)
+- L1818: ! @brief Execute the standalone source analyzer CLI command.
+- L1894: Optional filtering
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`ElementType`|class|pub|19-49|class ElementType(Enum)|
-|`ElementType.FUNCTION`|var|pub|23||
-|`ElementType.METHOD`|var|pub|24||
-|`ElementType.CLASS`|var|pub|25||
-|`ElementType.STRUCT`|var|pub|26||
-|`ElementType.ENUM`|var|pub|27||
-|`ElementType.TRAIT`|var|pub|28||
-|`ElementType.INTERFACE`|var|pub|29||
-|`ElementType.MODULE`|var|pub|30||
-|`ElementType.IMPL`|var|pub|31||
-|`ElementType.MACRO`|var|pub|32||
-|`ElementType.CONSTANT`|var|pub|33||
-|`ElementType.VARIABLE`|var|pub|34||
-|`ElementType.TYPE_ALIAS`|var|pub|35||
-|`ElementType.IMPORT`|var|pub|36||
-|`ElementType.DECORATOR`|var|pub|37||
-|`ElementType.COMMENT_SINGLE`|var|pub|38||
-|`ElementType.COMMENT_MULTI`|var|pub|39||
-|`ElementType.COMPONENT`|var|pub|40||
-|`ElementType.PROTOCOL`|var|pub|41||
-|`ElementType.EXTENSION`|var|pub|42||
-|`ElementType.UNION`|var|pub|43||
-|`ElementType.NAMESPACE`|var|pub|44||
-|`ElementType.PROPERTY`|var|pub|45||
-|`ElementType.SIGNAL`|var|pub|46||
-|`ElementType.TYPEDEF`|var|pub|47||
-|`SourceElement`|class|pub|51-103|class SourceElement|
-|`SourceElement.type_label`|fn|pub|69-103|def type_label(self) -> str|
-|`LanguageSpec`|class|pub|105-116|class LanguageSpec|
-|`build_language_specs`|fn|pub|117-316|def build_language_specs() -> dict|
-|`SourceAnalyzer`|class|pub|670-869|class SourceAnalyzer|
-|`SourceAnalyzer.__init__`|fn|priv|675-678|def __init__(self)|
-|`SourceAnalyzer.get_supported_languages`|fn|pub|679-690|def get_supported_languages(self) -> list|
-|`SourceAnalyzer.analyze`|fn|pub|691-844|def analyze(self, filepath: str, language: str) -> list|
-|`_in_string_context`|fn|priv|845-878|def _in_string_context(self, line: str, pos: int, spec: L...|
-|`_find_comment`|fn|priv|879-916|def _find_comment(self, line: str, spec: LanguageSpec) ->...|
-|`_find_block_end`|fn|priv|917-995|def _find_block_end(self, lines: list, start_idx: int,|
-|`enrich`|fn|pub|998-1012|def enrich(self, elements: list, language: str,|
-|`_clean_names`|fn|priv|1013-1038|def _clean_names(self, elements: list, language: str)|
-|`_extract_signatures`|fn|priv|1039-1054|def _extract_signatures(self, elements: list, language: str)|
-|`_detect_hierarchy`|fn|priv|1055-1088|def _detect_hierarchy(self, elements: list)|
-|`_extract_visibility`|fn|priv|1089-1101|def _extract_visibility(self, elements: list, language: str)|
-|`_parse_visibility`|fn|priv|1102-1147|def _parse_visibility(self, sig: str, name: Optional[str],|
-|`_extract_inheritance`|fn|priv|1148-1159|def _extract_inheritance(self, elements: list, language: ...|
-|`_parse_inheritance`|fn|priv|1160-1189|def _parse_inheritance(self, first_line: str,|
-|`_extract_body_annotations`|fn|priv|1197-1320|def _extract_body_annotations(self, elements: list,|
-|`_clean_comment_line`|fn|priv|1322-1333|def _clean_comment_line(text: str, spec) -> str|
-|`_md_loc`|fn|priv|1334-1341|def _md_loc(elem) -> str|
-|`_md_kind`|fn|priv|1342-1369|def _md_kind(elem) -> str|
-|`_extract_comment_text`|fn|priv|1370-1392|def _extract_comment_text(comment_elem, max_length: int =...|
-|`_extract_comment_lines`|fn|priv|1393-1409|def _extract_comment_lines(comment_elem) -> list|
-|`_build_comment_maps`|fn|priv|1410-1470|def _build_comment_maps(elements: list) -> tuple|
-|`_render_body_annotations`|fn|priv|1471-1522|def _render_body_annotations(out: list, elem, indent: str...|
-|`format_markdown`|fn|pub|1523-1722|def format_markdown(elements: list, filepath: str, langua...|
-|`main`|fn|pub|1770-1893|def main()|
+|`ElementType`|class|pub|24-54|class ElementType(Enum)|
+|`ElementType.FUNCTION`|var|pub|28||
+|`ElementType.METHOD`|var|pub|29||
+|`ElementType.CLASS`|var|pub|30||
+|`ElementType.STRUCT`|var|pub|31||
+|`ElementType.ENUM`|var|pub|32||
+|`ElementType.TRAIT`|var|pub|33||
+|`ElementType.INTERFACE`|var|pub|34||
+|`ElementType.MODULE`|var|pub|35||
+|`ElementType.IMPL`|var|pub|36||
+|`ElementType.MACRO`|var|pub|37||
+|`ElementType.CONSTANT`|var|pub|38||
+|`ElementType.VARIABLE`|var|pub|39||
+|`ElementType.TYPE_ALIAS`|var|pub|40||
+|`ElementType.IMPORT`|var|pub|41||
+|`ElementType.DECORATOR`|var|pub|42||
+|`ElementType.COMMENT_SINGLE`|var|pub|43||
+|`ElementType.COMMENT_MULTI`|var|pub|44||
+|`ElementType.COMPONENT`|var|pub|45||
+|`ElementType.PROTOCOL`|var|pub|46||
+|`ElementType.EXTENSION`|var|pub|47||
+|`ElementType.UNION`|var|pub|48||
+|`ElementType.NAMESPACE`|var|pub|49||
+|`ElementType.PROPERTY`|var|pub|50||
+|`ElementType.SIGNAL`|var|pub|51||
+|`ElementType.TYPEDEF`|var|pub|52||
+|`SourceElement`|class|pub|56-109|class SourceElement|
+|`SourceElement.type_label`|fn|pub|75-109|def type_label(self) -> str|
+|`LanguageSpec`|class|pub|111-122|class LanguageSpec|
+|`build_language_specs`|fn|pub|123-322|def build_language_specs() -> dict|
+|`SourceAnalyzer`|class|pub|676-875|class SourceAnalyzer|
+|`SourceAnalyzer.__init__`|fn|priv|681-684|def __init__(self)|
+|`SourceAnalyzer.get_supported_languages`|fn|pub|685-696|def get_supported_languages(self) -> list|
+|`SourceAnalyzer.analyze`|fn|pub|697-850|def analyze(self, filepath: str, language: str) -> list|
+|`_in_string_context`|fn|priv|851-884|def _in_string_context(self, line: str, pos: int, spec: L...|
+|`_find_comment`|fn|priv|885-922|def _find_comment(self, line: str, spec: LanguageSpec) ->...|
+|`_find_block_end`|fn|priv|923-1001|def _find_block_end(self, lines: list, start_idx: int,|
+|`enrich`|fn|pub|1004-1019|def enrich(self, elements: list, language: str,|
+|`_clean_names`|fn|priv|1020-1045|def _clean_names(self, elements: list, language: str)|
+|`_extract_signatures`|fn|priv|1046-1061|def _extract_signatures(self, elements: list, language: str)|
+|`_detect_hierarchy`|fn|priv|1062-1095|def _detect_hierarchy(self, elements: list)|
+|`_extract_visibility`|fn|priv|1096-1108|def _extract_visibility(self, elements: list, language: str)|
+|`_parse_visibility`|fn|priv|1109-1154|def _parse_visibility(self, sig: str, name: Optional[str],|
+|`_extract_inheritance`|fn|priv|1155-1166|def _extract_inheritance(self, elements: list, language: ...|
+|`_parse_inheritance`|fn|priv|1167-1196|def _parse_inheritance(self, first_line: str,|
+|`_extract_body_annotations`|fn|priv|1204-1327|def _extract_body_annotations(self, elements: list,|
+|`_extract_doxygen_fields`|fn|priv|1328-1351|def _extract_doxygen_fields(self, elements: list)|
+|`_clean_comment_line`|fn|priv|1353-1364|def _clean_comment_line(text: str, spec) -> str|
+|`_md_loc`|fn|priv|1365-1372|def _md_loc(elem) -> str|
+|`_md_kind`|fn|priv|1373-1400|def _md_kind(elem) -> str|
+|`_extract_comment_text`|fn|priv|1401-1423|def _extract_comment_text(comment_elem, max_length: int =...|
+|`_extract_comment_lines`|fn|priv|1424-1440|def _extract_comment_lines(comment_elem) -> list|
+|`_build_comment_maps`|fn|priv|1441-1501|def _build_comment_maps(elements: list) -> tuple|
+|`_render_body_annotations`|fn|priv|1502-1553|def _render_body_annotations(out: list, elem, indent: str...|
+|`format_markdown`|fn|pub|1554-1753|def format_markdown(elements: list, filepath: str, langua...|
+|`main`|fn|pub|1817-1940|def main()|
 
 
 ---

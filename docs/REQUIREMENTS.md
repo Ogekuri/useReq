@@ -159,6 +159,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
         ├── cli.py
         ├── compress.py
         ├── compress_files.py
+        ├── doxygen_parser.py
         ├── find_constructs.py
         ├── generate_markdown.py
         ├── source_analyzer.py
@@ -193,6 +194,7 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 - `usereq.__main__` espone l'esecuzione come modulo Python e delega a `usereq.cli.main`.
 - `usereq.__init__` fornisce metadati di versione e riesporta l'entry point `main`.
 - `usereq.source_analyzer` implementa l'analisi multi-linguaggio del codice sorgente, estraendo definizioni, commenti e struttura.
+- `usereq.doxygen_parser` implementa l'estrazione di campi Doxygen strutturati dai commenti di documentazione.
 - `usereq.token_counter` implementa il conteggio token e caratteri tramite la libreria `tiktoken`.
 - `usereq.generate_markdown` implementa la generazione di markdown strutturato di riferimento per il contesto LLM.
 - `usereq.compress` implementa la compressione del codice sorgente rimuovendo commenti, righe vuote e spazi ridondanti.
@@ -217,6 +219,7 @@ Il progetto include una suite di test in `tests/`.
 - `tests/test_generate_markdown.py` verifica la generazione di markdown di riferimento.
 - `tests/test_compress.py` verifica la compressione del codice sorgente.
 - `tests/test_files_commands.py` verifica i comandi `--files-tokens`, `--files-references`, `--files-compress`, `--references`, `--compress`.
+- `tests/test_doxygen_parser.py` verifica l'estrazione dei campi Doxygen dai commenti, coprendo tutti i 14 tag supportati con almeno 10 test per tag.
 - `tests/test_find_constructs.py` verifica l'estrazione e filtraggio di costrutti per tag e pattern regex.
 - `tests/test_find_constructs_comprehensive.py` verifica l'estrazione di tutti i costrutti specifici per linguaggio utilizzando le fixture in `tests/fixtures/`, garantendo copertura completa per ogni combinazione linguaggio-costrutto definita in FND-002.
 
@@ -406,6 +409,7 @@ Il progetto include una suite di test in `tests/`.
 - **SRC-012**: La ricerca della fine dei blocchi deve utilizzare strategie specifiche per famiglia di linguaggio: indentazione per Python e Haskell, parentesi graffe per C/C++/Rust/JavaScript/TypeScript/Java/Go/C#/Swift/Kotlin/PHP/Scala/Zig, keyword `end` per Ruby/Elixir/Lua.
 - **SRC-013**: I commenti all'interno di stringhe letterali non devono essere riconosciuti come commenti.
 - **SRC-014**: I fixture di test per tutti i 20 linguaggi devono essere presenti nella directory `tests/fixtures/` con il formato `fixture_<linguaggio>.<estensione>`.
+- **SRC-015**: Il modulo `usereq.source_analyzer` deve estrarre i blocchi di commento di documentazione associati a ciascun costrutto e archiviarli in `SourceElement` per il parsing Doxygen a valle.
 
 ### 3.16 Conteggio Token
 - Questa sezione definisce i requisiti per il modulo di conteggio token.
@@ -424,7 +428,7 @@ Il progetto include una suite di test in `tests/`.
 - **MKD-004**: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **MKD-005**: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
 - **MKD-006**: I risultati di analisi markdown devono essere concatenati con separatore `\n\n---\n\n`.
-- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
+- **MKD-007**: Lo stato di elaborazione (OK/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva. L'output markdown deve includere campi Doxygen estratti dai commenti associati ai costrutti, formattati come lista Markdown puntata invece delle righe di codice dei commenti.
 
 ### 3.18 Compressione Sorgenti
 - Questa sezione definisce i requisiti per il modulo di compressione del codice sorgente.
@@ -471,7 +475,7 @@ Il progetto include una suite di test in `tests/`.
 - **FND-003**: Il parametro `<REGEXP>` deve essere una espressione regolare Python (sintassi `re` module) applicata al nome del costrutto estratto. Il match deve essere case-sensitive e testato con `re.search()`.
 - **FND-004**: Se un file sorgente non supporta nessuno dei tag specificati in `<TAG>` per il suo linguaggio, il file deve essere saltato; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **FND-005**: La funzione `find_constructs_in_files()` deve analizzare ciascun file con `SourceAnalyzer.analyze()` e `SourceAnalyzer.enrich()`, filtrare gli elementi per tag e regex, leggere il contenuto completo di ciascun costrutto filtrato dal file sorgente utilizzando gli indici `line_start` e `line_end`, e formattare l'output in markdown con il codice completo del costrutto.
-- **FND-006**: Il formato di output markdown deve contenere per ciascun file un header `@@@ <percorso> | <linguaggio>`, seguito dall'elenco dei costrutti trovati con: tipo costrutto, nome, firma (se presente), riga iniziale, riga finale, codice estratto completo del costrutto dall'inizio alla fine (senza limitazione di righe o troncamento con `...`), letto direttamente dal file sorgente utilizzando gli indici `line_start` e `line_end` del SourceElement.
+- **FND-006**: Il formato di output markdown deve contenere per ciascun file un header `@@@ <percorso> | <linguaggio>`, seguito dall'elenco dei costrutti trovati con: tipo costrutto, nome, firma (se presente), riga iniziale, riga finale, campi Doxygen estratti formattati come lista Markdown puntata (se presenti), codice estratto completo del costrutto dall'inizio alla fine (senza limitazione di righe o troncamento con `...`), letto direttamente dal file sorgente utilizzando gli indici `line_start` e `line_end` del SourceElement.
 - **FND-007**: Il codice estratto per ciascun costrutto deve includere i prefissi con numero di riga nel formato `<n>: <testo>` per default. I prefissi devono essere disabilitabili con l'opzione `include_line_numbers=False`.
 - **FND-008**: Lo stato di elaborazione (OK/SKIP/FAIL e conteggio) deve essere stampato su stderr solo quando la modalità verbose è attiva.
 - **FND-009**: Se nessun file valido viene processato o nessun costrutto viene trovato, deve essere lanciata una eccezione `ValueError`.
@@ -499,7 +503,22 @@ Il progetto include una suite di test in `tests/`.
 - **CMD-029**: I comandi `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find` devono stampare su stderr gli output di stato elaborazione (OK/SKIP/FAIL e riepiloghi) solo quando è presente il flag `--verbose`; senza `--verbose` tali output non devono essere stampati.
 - **CMD-030**: I comandi `--files-compress` e `--compress` devono stampare per ogni file processato lo stesso payload strutturato: header `@@@ <percorso> | <linguaggio>`, riga `- Lines: <riga_iniziale>-<riga_finale>` con intervallo derivato dalla numerazione `<n>:` già calcolata dal compressore, e blocco codice delimitato da triple backtick; la logica di calcolo della numerazione riga esistente non deve essere modificata.
 
-### 3.24 Code Documentation Standards
+### 3.24 Parsing Doxygen e Estrazione Campi
+- Questa sezione definisce i requisiti per il modulo di parsing Doxygen e l'estrazione dei campi documentazione.
+- **DOX-001**: Il modulo `usereq.doxygen_parser` deve estrarre campi Doxygen da commenti di documentazione seguendo la sintassi standard Doxygen per tutti i linguaggi supportati.
+- **DOX-002**: Il parser deve riconoscere i seguenti tag Doxygen: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post.
+- **DOX-003**: La funzione `parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]` deve restituire un dizionario dove le chiavi sono i tag Doxygen normalizzati e i valori sono liste di contenuti estratti.
+- **DOX-004**: Il parser deve supportare sia la sintassi `@tag` che `\tag` per la compatibilità Doxygen standard.
+- **DOX-005**: Per tag `@param` il parser deve distinguere tra `@param`, `@param[in]`, e `@param[out]` preservando la direzionalità.
+- **DOX-006**: Il contenuto di ciascun tag deve estendersi fino al prossimo tag Doxygen o alla fine del commento, con normalizzazione degli spazi.
+- **DOX-007**: Il modulo `usereq.source_analyzer` deve invocare `parse_doxygen_comment()` sui commenti associati ai costrutti e popolare un nuovo campo `doxygen_fields` in `SourceElement`.
+- **DOX-008**: Tutti i file fixture in `tests/fixtures/` devono contenere almeno 5 costrutti documentati con tag Doxygen @brief, @details, @param, @return per ciascun tipo di costrutto obbligatorio del linguaggio definito in FND-002.
+- **DOX-009**: I comandi `--files-references` e `--references` devono formattare l'output Doxygen come lista Markdown puntata con prefisso tag capitalizzato senza chiocciola, aggiungendo ':' (es: `@brief` → `- Brief:`). Se nessun campo Doxygen è presente, l'output deve contenere solo il riferimento del costrutto.
+- **DOX-010**: I comandi `--files-find` e `--find` devono inserire i campi Doxygen estratti dopo la riga `- Lines: ...` e prima del blocco codice. Il formato deve essere lista Markdown puntata con tag capitalizzato senza chiocciola e ':' (es: `@param` → `- Param:`).
+- **DOX-011**: I campi Doxygen devono essere emessi nell'ordine fisso: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post, omettendo tag non presenti.
+- **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 10 test unitari per ciascun tag Doxygen supportato (DOX-002), verificando estrazione corretta, gestione multi-line, e casi limite.
+
+### 3.25 Code Documentation Standards
 - **DOC-001**: All source code files within `src/` must include comprehensive Doxygen-style documentation for modules, classes, functions, and methods.
 - **DOC-002**: The documentation format must strictly follow the guidelines provided in `guidelines/Document_Source_Code_in_Doxygen_Style_for_LLM-Agent.md`, focusing on semantic density for LLM consumption.
 - **DOC-003**: Documentation blocks must use standard language-specific docstring syntax (e.g., triple double quotes `"""` for Python) and include standard Doxygen tags (e.g., `@param`, `@return`, `@brief`) as specified in the guidelines.

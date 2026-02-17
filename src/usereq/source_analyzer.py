@@ -15,6 +15,11 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Optional
 
+try:
+    from .doxygen_parser import parse_doxygen_comment
+except ImportError:
+    from doxygen_parser import parse_doxygen_comment
+
 
 class ElementType(Enum):
     """! @brief Element types recognized in source code.
@@ -64,6 +69,7 @@ class SourceElement:
     depth: int = 0
     body_comments: list = field(default_factory=list)
     exit_points: list = field(default_factory=list)
+    doxygen_fields: dict = field(default_factory=dict)
 
     @property
     def type_label(self) -> str:
@@ -1008,6 +1014,7 @@ class SourceAnalyzer:
         self._extract_inheritance(elements, language)
         if filepath:
             self._extract_body_annotations(elements, language, filepath)
+            self._extract_doxygen_fields(elements)
         return elements
 
     def _clean_names(self, elements: list, language: str):
@@ -1318,6 +1325,30 @@ class SourceAnalyzer:
             elem.body_comments = body_comments
             elem.exit_points = exit_points
 
+    def _extract_doxygen_fields(self, elements: list):
+        """! @brief Extract Doxygen tag fields from associated documentation comments.
+        @details For each non-comment element, searches for adjacent comment blocks and parses Doxygen tags via parse_doxygen_comment(), storing results in element.doxygen_fields.
+        """
+        comment_elements = [e for e in elements if e.element_type in
+                           (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)]
+
+        for elem in elements:
+            # Skip comments themselves
+            if elem.element_type in (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI):
+                continue
+
+            # Find adjacent preceding comment (within 2 lines)
+            associated_comment = None
+            for comment in comment_elements:
+                # Comment must end just before or at the element start
+                if comment.line_end >= elem.line_start - 2 and comment.line_end < elem.line_start:
+                    associated_comment = comment
+                    break
+
+            if associated_comment:
+                comment_text = associated_comment.extract
+                elem.doxygen_fields = parse_doxygen_comment(comment_text)
+
     @staticmethod
     def _clean_comment_line(text: str, spec) -> str:
         """! @brief Strip comment markers from a single line of comment text.
@@ -1608,11 +1639,25 @@ def format_markdown(elements: list, filepath: str, language: str,
                 dec_str = f" `{dec_map[dec_line]}`"
 
             # Collect associated doc comments for this definition
+            # Prefer Doxygen fields if present (DOX-009)
             def_docs = doc_for_def.get(elem.line_start, [])
             doc_text = ""
             doc_lines_list = []
             doc_line_num = 0
-            if def_docs:
+            doxygen_markdown = []
+
+            if hasattr(elem, 'doxygen_fields') and elem.doxygen_fields:
+                try:
+                    from .doxygen_parser import format_doxygen_fields_as_markdown
+                except ImportError:
+                    from doxygen_parser import format_doxygen_fields_as_markdown
+                doxygen_markdown = format_doxygen_fields_as_markdown(elem.doxygen_fields)
+                # Use brief as inline doc_text if available
+                if 'brief' in elem.doxygen_fields:
+                    doc_text = elem.doxygen_fields['brief'][0]
+                    if len(doc_text) > 150:
+                        doc_text = doc_text[:147] + "..."
+            elif def_docs:
                 doc_lines_list = _extract_comment_lines(def_docs[0])
                 doc_text = " ".join(doc_lines_list) if doc_lines_list else ""
                 doc_line_num = def_docs[0].line_start
@@ -1638,8 +1683,10 @@ def format_markdown(elements: list, filepath: str, language: str,
                 out.append(f"### {kind} `{sig}`{inherit_str}{vis_str}"
                            f"{dec_str} ({loc})")
 
-                # Show associated doc comment with line number
-                if doc_lines_list and len(doc_lines_list) > 1:
+                # Show Doxygen fields if present, else raw comment (DOX-009)
+                if doxygen_markdown:
+                    out.extend(doxygen_markdown)
+                elif doc_lines_list and len(doc_lines_list) > 1:
                     for idx, dline in enumerate(doc_lines_list[:5]):
                         ln = doc_line_num + idx
                         out.append(f"L{ln}> {dline}")

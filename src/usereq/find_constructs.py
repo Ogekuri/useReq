@@ -99,13 +99,20 @@ def format_construct(element, source_lines: list[str], include_line_numbers: boo
     @param source_lines Complete source file content as list of lines.
     @param include_line_numbers If True, prefix code lines with <n>: format.
     @return Formatted markdown block for the construct with complete code from line_start to line_end.
-    @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices.
+    @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices. Includes Doxygen fields if present.
     """
+    from .doxygen_parser import format_doxygen_fields_as_markdown
+
     lines = []
     lines.append(f"### {element.type_label}: `{element.name}`")
     if element.signature:
         lines.append(f"- Signature: `{element.signature}`")
     lines.append(f"- Lines: {element.line_start}-{element.line_end}")
+
+    # Insert Doxygen fields if present (DOX-010)
+    if hasattr(element, 'doxygen_fields') and element.doxygen_fields:
+        dox_lines = format_doxygen_fields_as_markdown(element.doxygen_fields)
+        lines.extend(dox_lines)
 
     # Extract COMPLETE code block from source file (not truncated extract)
     code_lines = source_lines[element.line_start - 1:element.line_end]
