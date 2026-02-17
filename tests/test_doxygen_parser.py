@@ -6,6 +6,8 @@
 """
 
 from collections import Counter
+from pathlib import Path
+import re
 
 import pytest
 from usereq.doxygen_parser import (
@@ -15,9 +17,37 @@ from usereq.doxygen_parser import (
     format_doxygen_fields_as_markdown,
     parse_doxygen_comment,
 )
+from usereq.source_analyzer import ElementType, SourceAnalyzer
 
 SCENARIOS_PER_TAG = 10
 TOTAL_REQUIRED_EXTRACTION_TESTS = len(DOXYGEN_TAGS) * SCENARIOS_PER_TAG
+FIXTURE_EXTENSION_LANGUAGE_MAP = {
+    ".py": "python",
+    ".c": "c",
+    ".cpp": "cpp",
+    ".rs": "rust",
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".java": "java",
+    ".go": "go",
+    ".rb": "ruby",
+    ".php": "php",
+    ".swift": "swift",
+    ".kt": "kotlin",
+    ".scala": "scala",
+    ".lua": "lua",
+    ".sh": "shell",
+    ".pl": "perl",
+    ".hs": "haskell",
+    ".zig": "zig",
+    ".ex": "elixir",
+    ".cs": "csharp",
+}
+FIXTURE_DIR = Path(__file__).parent / "fixtures"
+FIXTURE_FILE_NAMES = sorted(
+    fixture_path.name
+    for fixture_path in FIXTURE_DIR.glob("fixture_*.*")
+)
 
 
 def _tag_slug(tag: str) -> str:
@@ -236,3 +266,116 @@ class TestNormalizeWhitespace:
         text = "line1  \nline2  "
         result = _normalize_whitespace(text)
         assert result == "line1\nline2"
+
+
+def _fixture_language_from_path(fixture_path: Path) -> str:
+    """!
+    @brief Resolve normalized analyzer language from fixture extension.
+    @param fixture_path Absolute or relative fixture path.
+    @return Canonical language key consumed by SourceAnalyzer.
+    @throws KeyError If fixture extension is not mapped.
+    """
+    return FIXTURE_EXTENSION_LANGUAGE_MAP[fixture_path.suffix]
+
+
+def _is_comment_element(element) -> bool:
+    """!
+    @brief Determine whether an analyzed element is a comment node.
+    @param element SourceElement produced by SourceAnalyzer.
+    @return True when element type is COMMENT_SINGLE or COMMENT_MULTI.
+    """
+    return element.element_type in (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)
+
+
+def _is_postfix_comment_text(comment_text: str) -> bool:
+    """!
+    @brief Detect postfix comment markers that bind docs to a preceding construct.
+    @param comment_text Raw extracted comment text.
+    @return True for markers such as `#!<`, `//!<`, `///<`, `/*!<`, `/**<`.
+    """
+    if not comment_text:
+        return False
+    return bool(re.match(r"^\s*(?:#|//+|--|/\*+|;+)!?<", comment_text))
+
+
+def _expected_doxygen_fields_for_construct(construct, comment_elements) -> dict[str, list[str]]:
+    """!
+    @brief Compute deterministic expected Doxygen fields for one construct.
+    @details Resolves candidate comments in this order: same-line postfix inline comment, nearest preceding standalone comment block within two lines, nearest following standalone postfix comment within two lines.
+    @param construct Non-comment SourceElement under validation.
+    @param comment_elements Sequence of comment SourceElement values extracted from the same fixture.
+    @return Expected Doxygen fields dictionary for the construct.
+    """
+    associated_comment = None
+
+    same_line_postfix_candidates = [
+        comment
+        for comment in comment_elements
+        if comment.line_start == construct.line_end
+        and comment.name == "inline"
+        and _is_postfix_comment_text(comment.extract)
+    ]
+    if same_line_postfix_candidates:
+        associated_comment = min(
+            same_line_postfix_candidates,
+            key=lambda comment: comment.line_start,
+        )
+
+    if associated_comment is None:
+        preceding_candidates = [
+            comment
+            for comment in comment_elements
+            if comment.name != "inline"
+            and comment.line_end < construct.line_start
+            and construct.line_start - comment.line_end <= 2
+        ]
+        if preceding_candidates:
+            associated_comment = max(
+                preceding_candidates,
+                key=lambda comment: (comment.line_end, comment.line_start),
+            )
+
+    if associated_comment is None:
+        following_postfix_candidates = [
+            comment
+            for comment in comment_elements
+            if comment.name != "inline"
+            and comment.line_start > construct.line_end
+            and comment.line_start - construct.line_end <= 2
+            and _is_postfix_comment_text(comment.extract)
+        ]
+        if following_postfix_candidates:
+            associated_comment = min(
+                following_postfix_candidates,
+                key=lambda comment: (comment.line_start, comment.line_end),
+            )
+
+    return parse_doxygen_comment(associated_comment.extract) if associated_comment else {}
+
+
+class TestFixtureDoxygenFieldExtraction:
+    """! @brief Integration tests validating Doxygen field extraction for all fixture constructs."""
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_FILE_NAMES)
+    def test_extracts_expected_fields_for_each_construct_in_fixture(self, fixture_name):
+        """! @brief Validate deterministic Doxygen extraction for every construct in each fixture file."""
+        fixture_path = FIXTURE_DIR / fixture_name
+        language = _fixture_language_from_path(fixture_path)
+        analyzer = SourceAnalyzer()
+        elements = analyzer.enrich(
+            analyzer.analyze(str(fixture_path), language),
+            str(fixture_path),
+            language,
+        )
+        construct_elements = [element for element in elements if not _is_comment_element(element)]
+        comment_elements = [element for element in elements if _is_comment_element(element)]
+
+        assert construct_elements, f"No constructs extracted from fixture {fixture_name}"
+
+        for construct in construct_elements:
+            expected_fields = _expected_doxygen_fields_for_construct(construct, comment_elements)
+            assert construct.doxygen_fields == expected_fields, (
+                f"Unexpected Doxygen fields for fixture={fixture_name} "
+                f"type={construct.type_label} name={construct.name} "
+                f"lines={construct.line_start}-{construct.line_end}"
+            )

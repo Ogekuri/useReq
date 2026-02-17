@@ -101,6 +101,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-16 | 0.75 | Rimossi i template guideline predefiniti dal pacchetto e aggiornata la gestione `--add-guidelines`/`--copy-guidelines` per supportare directory sorgente guideline vuota senza errore. |
 | 2026-02-16 | 0.76 | Rinominato il flag CLI `--copy-guidelines` in `--upgrade-guidelines` mantenendo invariato il comportamento di sovrascrittura template e mutua esclusione con `--add-guidelines`. |
 | 2026-02-17 | 0.77 | Estesi i requisiti test Doxygen per imporre copertura minima di 160 test (10 per ciascuno dei 16 tag supportati) con casi specifici e risultato atteso deterministico per ogni commento. |
+| 2026-02-17 | 0.78 | Estesi i requisiti Doxygen con test su tutte le fixture linguistiche per verifica completa dei costrutti e associazione commento pre/post-costrutto. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -518,6 +519,7 @@ Il progetto include una suite di test in `tests/`.
 - **DOX-010**: I comandi `--files-find` e `--find` devono inserire i campi Doxygen estratti dopo la riga `- Lines: ...` e prima del blocco codice. Il formato deve essere lista Markdown puntata con tag capitalizzato senza chiocciola e ':' (es: `@param` → `- Param:`).
 - **DOX-011**: I campi Doxygen devono essere emessi nell'ordine fisso: @brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post, omettendo tag non presenti.
 - **DOX-012**: Il progetto deve includere il modulo di test `tests/test_doxygen_parser.py` con almeno 160 test unitari complessivi, derivati da almeno 10 casi per ciascuno dei 16 tag Doxygen supportati in DOX-002; ogni test deve usare un commento sintetico generato per uno scenario specifico del tag target e deve verificare in modo deterministico il risultato atteso dell'estrazione.
+- **DOX-013**: Il progetto deve includere test Doxygen basati su `tests/fixtures/` che, per ciascun file fixture, estraggono tutti i costrutti presenti compatibili con FND-002, validano in modo deterministico i campi Doxygen attesi per ogni costrutto, e verificano che l'associazione commento→costrutto sia corretta sia per commenti pre-costrutto sia per commenti post-costrutto quando consentiti dalla sintassi del linguaggio.
 
 ### 3.25 Code Documentation Standards
 - **DOC-001**: All source code files within `src/` must include comprehensive Doxygen-style documentation for modules, classes, functions, and methods.

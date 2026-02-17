@@ -1327,7 +1327,7 @@ class SourceAnalyzer:
 
     def _extract_doxygen_fields(self, elements: list):
         """! @brief Extract Doxygen tag fields from associated documentation comments.
-        @details For each non-comment element, searches for adjacent comment blocks and parses Doxygen tags via parse_doxygen_comment(), storing results in element.doxygen_fields.
+        @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. Parses the resolved comment via parse_doxygen_comment() and stores the extracted fields in element.doxygen_fields.
         """
         comment_elements = [e for e in elements if e.element_type in
                            (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)]
@@ -1337,17 +1337,64 @@ class SourceAnalyzer:
             if elem.element_type in (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI):
                 continue
 
-            # Find adjacent preceding comment (within 2 lines)
             associated_comment = None
-            for comment in comment_elements:
-                # Comment must end just before or at the element start
-                if comment.line_end >= elem.line_start - 2 and comment.line_end < elem.line_start:
-                    associated_comment = comment
-                    break
+
+            same_line_postfix_candidates = [
+                comment
+                for comment in comment_elements
+                if comment.line_start == elem.line_end
+                and comment.name == "inline"
+                and self._is_postfix_doxygen_comment(comment.extract)
+            ]
+            if same_line_postfix_candidates:
+                associated_comment = min(
+                    same_line_postfix_candidates,
+                    key=lambda comment: comment.line_start,
+                )
+
+            if associated_comment is None:
+                preceding_candidates = [
+                    comment
+                    for comment in comment_elements
+                    if comment.name != "inline"
+                    and comment.line_end < elem.line_start
+                    and elem.line_start - comment.line_end <= 2
+                ]
+                if preceding_candidates:
+                    associated_comment = max(
+                        preceding_candidates,
+                        key=lambda comment: (comment.line_end, comment.line_start),
+                    )
+
+            if associated_comment is None:
+                following_postfix_candidates = [
+                    comment
+                    for comment in comment_elements
+                    if comment.name != "inline"
+                    and comment.line_start > elem.line_end
+                    and comment.line_start - elem.line_end <= 2
+                    and self._is_postfix_doxygen_comment(comment.extract)
+                ]
+                if following_postfix_candidates:
+                    associated_comment = min(
+                        following_postfix_candidates,
+                        key=lambda comment: (comment.line_start, comment.line_end),
+                    )
 
             if associated_comment:
                 comment_text = associated_comment.extract
                 elem.doxygen_fields = parse_doxygen_comment(comment_text)
+
+    @staticmethod
+    def _is_postfix_doxygen_comment(comment_text: str) -> bool:
+        """! @brief Detect whether a comment uses postfix Doxygen association markers.
+        @details Returns True for comment prefixes that explicitly bind documentation to a preceding construct, including variants like `#!<`, `//!<`, `///<`, `/*!<`, and `/**<`.
+        @param comment_text Raw extracted comment text.
+        @return True when the comment text starts with a supported postfix marker; otherwise False.
+        """
+        if not comment_text:
+            return False
+        return bool(re.match(r"^\s*(?:#|//+|--|/\*+|;+)!?<", comment_text))
 
     @staticmethod
     def _clean_comment_line(text: str, spec) -> str:

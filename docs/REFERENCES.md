@@ -1157,7 +1157,7 @@ L36> `return subprocess.run(`
 
 ---
 
-# source_analyzer.py | Python | 1942L | 56 symbols | 11 imports | 129 comments
+# source_analyzer.py | Python | 1989L | 57 symbols | 11 imports | 128 comments
 > Path: `/home/ogekuri/useReq/src/usereq/source_analyzer.py`
 > ! @file source_analyzer.py @brief Multi-language source code analyzer. @details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Defin...
 
@@ -1347,83 +1347,86 @@ L1306> Standalone comment line in body
 L1312> Inline comment after code
 L1317> Exit points
 
-### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1328-1351)
-L1329-1331> ! @brief Extract Doxygen tag fields from associated documentation comments. @details For each non-comment element, searches for adjacent comment blocks and parses Doxygen tags via parse_doxygen_comment(), storing results in element.doxygen_fields.
+### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1328-1387)
+L1329-1331> ! @brief Extract Doxygen tag fields from associated documentation comments. @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. Parses the resolved comment via parse_doxygen_comment() and stores the extracted fields in element.doxygen_fields.
 L1336> Skip comments themselves
-L1340> Find adjacent preceding comment (within 2 lines)
-L1343> Comment must end just before or at the element start
 
-### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1353-1364)
-L1354-1355> ! @brief Strip comment markers from a single line of comment text.
-L1362> `return s`
+### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1389-1398)
+L1390-1394> ! @brief Detect whether a comment uses postfix Doxygen association markers. @details Returns True for comment prefixes that explicitly bind documentation to a preceding construct, including variants like `#!<`, `//!<`, `///<`, `/*!<`, and `/**<`. @param comment_text Raw extracted comment text. @return True when the comment text starts with a supported postfix marker; otherwise False.
+L1396> `return False`
+L1397> `return bool(re.match(r"^\s*(?:#|//+|--|/\*+|;+)!?<", comment_text))`
 
-### fn `def _md_loc(elem) -> str` `priv` (L1365-1372)
-L1366-1367> ! @brief Format element location compactly for markdown.
-L1369> `return f"L{elem.line_start}"`
-L1370> `return f"L{elem.line_start}-{elem.line_end}"`
+### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1400-1411)
+L1401-1402> ! @brief Strip comment markers from a single line of comment text.
+L1409> `return s`
 
-### fn `def _md_kind(elem) -> str` `priv` (L1373-1400)
-L1374-1375> ! @brief Short kind label for markdown output.
-L1398> `return mapping.get(elem.element_type, "unk")`
+### fn `def _md_loc(elem) -> str` `priv` (L1412-1419)
+L1413-1414> ! @brief Format element location compactly for markdown.
+L1416> `return f"L{elem.line_start}"`
+L1417> `return f"L{elem.line_start}-{elem.line_end}"`
 
-### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1401-1423)
-L1402-1404> ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
-L1409> Strip comment markers
-L1414> Strip multi-line markers
-L1421> `return text`
+### fn `def _md_kind(elem) -> str` `priv` (L1420-1447)
+L1421-1422> ! @brief Short kind label for markdown output.
+L1445> `return mapping.get(elem.element_type, "unk")`
 
-### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1424-1440)
-L1425-1426> ! @brief Extract clean text lines from a multi-line comment (preserving structure).
-L1438> `return cleaned`
+### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1448-1470)
+L1449-1451> ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
+L1456> Strip comment markers
+L1461> Strip multi-line markers
+L1468> `return text`
 
-### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1441-1501)
-L1442-1444> ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
-L1447> Identify definition elements
-L1455> Build adjacency map: comments preceding a definition (within 2 lines)
-L1464> Extract file description from first comment(s), skip shebangs
-L1469> Skip shebang lines and empty comments
-L1477> Skip inline comments (name == "inline")
-L1482> Check if this comment precedes a definition within 2 lines
-L1489> Stop if we hit another element
-L1494> Skip file-level description (already captured)
-L1499> `return doc_for_def, standalone_comments, file_description`
+### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1471-1487)
+L1472-1473> ! @brief Extract clean text lines from a multi-line comment (preserving structure).
+L1485> `return cleaned`
 
-### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1502-1553)
-L1504-1506> ! @brief Render body comments and exit points for a definition element. @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
-L1507> Build maps by line number
-L1516> Collect all annotated line numbers
-L1520> Skip if within an excluded range (child element)
-L1534> Merge: show exit point code with comment as context
-L1537> Strip inline comment from exit_text if it contains it
+### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1488-1548)
+L1489-1491> ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
+L1494> Identify definition elements
+L1502> Build adjacency map: comments preceding a definition (within 2 lines)
+L1511> Extract file description from first comment(s), skip shebangs
+L1516> Skip shebang lines and empty comments
+L1524> Skip inline comments (name == "inline")
+L1529> Check if this comment precedes a definition within 2 lines
+L1536> Stop if we hit another element
+L1541> Skip file-level description (already captured)
+L1546> `return doc_for_def, standalone_comments, file_description`
 
-### fn `def format_markdown(elements: list, filepath: str, language: str,` (L1554-1753)
-L1556-1558> ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with language, line count, element summary, and description - Imports in a code block - Hierarchical definitions with line-numbered doc comments - Body comments (L<N>> text) and exit points (L<N>> `return ...`) - Comments grouped with their relevant definitions - Standalone section/region comments preserved as context - Symbol index table for quick reference by line number
-L1567> Build comment association maps
-L1570> ── Header ────────────────────────────────────────────────────────
-L1582> ── Imports ───────────────────────────────────────────────────────
-L1595> ── Build decorator map: line -> decorator text ───────────────────
-L1601> ── Definitions ───────────────────────────────────────────────────
-L1641> Collect associated doc comments for this definition
-L1642> Prefer Doxygen fields if present (DOX-009)
-L1655> Use brief as inline doc_text if available
-L1678> For impl blocks, use the full first line as sig
-L1686> Show Doxygen fields if present, else raw comment (DOX-009)
-L1698> Body annotations: comments and exit points
-L1699> For containers with children, exclude annotations
-L1700> that fall within a child's line range (including
-L1701> doc comments that immediately precede the child)
-L1706> Extend range to include preceding doc comment
-L1715> Children with their doc comments and body annotations
-L1737> Child body annotations (indented)
-L1743> ── Standalone Comments (section/region markers, TODOs, notes) ────
-L1746> Group consecutive comments (within 2 lines of each other)
+### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1549-1600)
+L1551-1553> ! @brief Render body comments and exit points for a definition element. @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
+L1554> Build maps by line number
+L1563> Collect all annotated line numbers
+L1567> Skip if within an excluded range (child element)
+L1581> Merge: show exit point code with comment as context
+L1584> Strip inline comment from exit_text if it contains it
 
-### fn `def main()` (L1817-1940)
-L1818> ! @brief Execute the standalone source analyzer CLI command.
-L1883> `sys.exit(0)`
-L1889> `sys.exit(1)`
-L1892> `sys.exit(1)`
-L1894> Optional filtering
+### fn `def format_markdown(elements: list, filepath: str, language: str,` (L1601-1800)
+L1603-1605> ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with language, line count, element summary, and description - Imports in a code block - Hierarchical definitions with line-numbered doc comments - Body comments (L<N>> text) and exit points (L<N>> `return ...`) - Comments grouped with their relevant definitions - Standalone section/region comments preserved as context - Symbol index table for quick reference by line number
+L1614> Build comment association maps
+L1617> ── Header ────────────────────────────────────────────────────────
+L1629> ── Imports ───────────────────────────────────────────────────────
+L1642> ── Build decorator map: line -> decorator text ───────────────────
+L1648> ── Definitions ───────────────────────────────────────────────────
+L1688> Collect associated doc comments for this definition
+L1689> Prefer Doxygen fields if present (DOX-009)
+L1702> Use brief as inline doc_text if available
+L1725> For impl blocks, use the full first line as sig
+L1733> Show Doxygen fields if present, else raw comment (DOX-009)
+L1745> Body annotations: comments and exit points
+L1746> For containers with children, exclude annotations
+L1747> that fall within a child's line range (including
+L1748> doc comments that immediately precede the child)
+L1753> Extend range to include preceding doc comment
+L1762> Children with their doc comments and body annotations
+L1784> Child body annotations (indented)
+L1790> ── Standalone Comments (section/region markers, TODOs, notes) ────
+L1793> Group consecutive comments (within 2 lines of each other)
+
+### fn `def main()` (L1864-1987)
+L1865> ! @brief Execute the standalone source analyzer CLI command.
+L1930> `sys.exit(0)`
+L1936> `sys.exit(1)`
+L1939> `sys.exit(1)`
+L1941> Optional filtering
 
 ## Comments
 - L2: ! @file source_analyzer.py @brief Multi-language source code analyzer. @details Inspired by tree-sitter, this module analyzes source files across m...
@@ -1493,52 +1496,51 @@ L1894> Optional filtering
 - L1306: Standalone comment line in body
 - L1312: Inline comment after code
 - L1317: Exit points
-- L1329: ! @brief Extract Doxygen tag fields from associated documentation comments. @details For each non-comment element, searches for adjacent comment bl...
+- L1329: ! @brief Extract Doxygen tag fields from associated documentation comments. @details For each non-comment element, resolves the nearest associated ...
 - L1336: Skip comments themselves
-- L1340: Find adjacent preceding comment (within 2 lines)
-- L1343: Comment must end just before or at the element start
-- L1354: ! @brief Strip comment markers from a single line of comment text.
-- L1366: ! @brief Format element location compactly for markdown.
-- L1374: ! @brief Short kind label for markdown output.
-- L1402: ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, trun...
-- L1409: Strip comment markers
-- L1414: Strip multi-line markers
-- L1425: ! @brief Extract clean text lines from a multi-line comment (preserving structure).
-- L1442: ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list o...
-- L1447: Identify definition elements
-- L1455: Build adjacency map: comments preceding a definition (within 2 lines)
-- L1464: Extract file description from first comment(s), skip shebangs
-- L1469: Skip shebang lines and empty comments
-- L1477: Skip inline comments (name == "inline")
-- L1482: Check if this comment precedes a definition within 2 lines
-- L1489: Stop if we hit another element
-- L1494: Skip file-level description (already captured)
-- L1504-1507: ! @brief Render body comments and exit points for a definition element. @details Merges body_comm... | Build maps by line number
-- L1516: Collect all annotated line numbers
-- L1520: Skip if within an excluded range (child element)
-- L1534: Merge: show exit point code with comment as context
-- L1537: Strip inline comment from exit_text if it contains it
-- L1556: ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with...
-- L1567: Build comment association maps
-- L1570: ── Header ────────────────────────────────────────────────────────
-- L1582: ── Imports ───────────────────────────────────────────────────────
-- L1595: ── Build decorator map: line -> decorator text ───────────────────
-- L1601: ── Definitions ───────────────────────────────────────────────────
-- L1641-1642: Collect associated doc comments for this definition | Prefer Doxygen fields if present (DOX-009)
-- L1655: Use brief as inline doc_text if available
-- L1678: For impl blocks, use the full first line as sig
-- L1686: Show Doxygen fields if present, else raw comment (DOX-009)
-- L1698-1701: Body annotations: comments and exit points | For containers with children, exclude annotations | that fall within a child's line range (including | doc comments that immediately precede the child)
-- L1706: Extend range to include preceding doc comment
-- L1715: Children with their doc comments and body annotations
-- L1737: Child body annotations (indented)
-- L1743: ── Standalone Comments (section/region markers, TODOs, notes) ────
-- L1746: Group consecutive comments (within 2 lines of each other)
-- L1765: Multi-line comment block: show as region
-- L1778: ── Symbol Index ──────────────────────────────────────────────────
-- L1798-1799: Only show sig for functions/methods/classes (not vars/consts | which already show full content in Definitions section)
-- L1818: ! @brief Execute the standalone source analyzer CLI command.
-- L1894: Optional filtering
+- L1390: ! @brief Detect whether a comment uses postfix Doxygen association markers. @details Returns True for comment prefixes that explicitly bind documen...
+- L1401: ! @brief Strip comment markers from a single line of comment text.
+- L1413: ! @brief Format element location compactly for markdown.
+- L1421: ! @brief Short kind label for markdown output.
+- L1449: ! @brief Extract clean text content from a comment element. @details Args: comment_elem: SourceElement with comment content max_length: if >0, trun...
+- L1456: Strip comment markers
+- L1461: Strip multi-line markers
+- L1472: ! @brief Extract clean text lines from a multi-line comment (preserving structure).
+- L1489: ! @brief Build maps that associate comments with their adjacent definitions. @details Returns: - doc_for_def: dict mapping def line_start -> list o...
+- L1494: Identify definition elements
+- L1502: Build adjacency map: comments preceding a definition (within 2 lines)
+- L1511: Extract file description from first comment(s), skip shebangs
+- L1516: Skip shebang lines and empty comments
+- L1524: Skip inline comments (name == "inline")
+- L1529: Check if this comment precedes a definition within 2 lines
+- L1536: Stop if we hit another element
+- L1541: Skip file-level description (already captured)
+- L1551-1554: ! @brief Render body comments and exit points for a definition element. @details Merges body_comm... | Build maps by line number
+- L1563: Collect all annotated line numbers
+- L1567: Skip if within an excluded range (child element)
+- L1581: Merge: show exit point code with comment as context
+- L1584: Strip inline comment from exit_text if it contains it
+- L1603: ! @brief Format analysis as compact Markdown optimized for LLM agent consumption. @details Produces token-efficient output with: - File header with...
+- L1614: Build comment association maps
+- L1617: ── Header ────────────────────────────────────────────────────────
+- L1629: ── Imports ───────────────────────────────────────────────────────
+- L1642: ── Build decorator map: line -> decorator text ───────────────────
+- L1648: ── Definitions ───────────────────────────────────────────────────
+- L1688-1689: Collect associated doc comments for this definition | Prefer Doxygen fields if present (DOX-009)
+- L1702: Use brief as inline doc_text if available
+- L1725: For impl blocks, use the full first line as sig
+- L1733: Show Doxygen fields if present, else raw comment (DOX-009)
+- L1745-1748: Body annotations: comments and exit points | For containers with children, exclude annotations | that fall within a child's line range (including | doc comments that immediately precede the child)
+- L1753: Extend range to include preceding doc comment
+- L1762: Children with their doc comments and body annotations
+- L1784: Child body annotations (indented)
+- L1790: ── Standalone Comments (section/region markers, TODOs, notes) ────
+- L1793: Group consecutive comments (within 2 lines of each other)
+- L1812: Multi-line comment block: show as region
+- L1825: ── Symbol Index ──────────────────────────────────────────────────
+- L1845-1846: Only show sig for functions/methods/classes (not vars/consts | which already show full content in Definitions section)
+- L1865: ! @brief Execute the standalone source analyzer CLI command.
+- L1941: Optional filtering
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -1589,16 +1591,17 @@ L1894> Optional filtering
 |`_extract_inheritance`|fn|priv|1155-1166|def _extract_inheritance(self, elements: list, language: ...|
 |`_parse_inheritance`|fn|priv|1167-1196|def _parse_inheritance(self, first_line: str,|
 |`_extract_body_annotations`|fn|priv|1204-1327|def _extract_body_annotations(self, elements: list,|
-|`_extract_doxygen_fields`|fn|priv|1328-1351|def _extract_doxygen_fields(self, elements: list)|
-|`_clean_comment_line`|fn|priv|1353-1364|def _clean_comment_line(text: str, spec) -> str|
-|`_md_loc`|fn|priv|1365-1372|def _md_loc(elem) -> str|
-|`_md_kind`|fn|priv|1373-1400|def _md_kind(elem) -> str|
-|`_extract_comment_text`|fn|priv|1401-1423|def _extract_comment_text(comment_elem, max_length: int =...|
-|`_extract_comment_lines`|fn|priv|1424-1440|def _extract_comment_lines(comment_elem) -> list|
-|`_build_comment_maps`|fn|priv|1441-1501|def _build_comment_maps(elements: list) -> tuple|
-|`_render_body_annotations`|fn|priv|1502-1553|def _render_body_annotations(out: list, elem, indent: str...|
-|`format_markdown`|fn|pub|1554-1753|def format_markdown(elements: list, filepath: str, langua...|
-|`main`|fn|pub|1817-1940|def main()|
+|`_extract_doxygen_fields`|fn|priv|1328-1387|def _extract_doxygen_fields(self, elements: list)|
+|`_is_postfix_doxygen_comment`|fn|priv|1389-1398|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
+|`_clean_comment_line`|fn|priv|1400-1411|def _clean_comment_line(text: str, spec) -> str|
+|`_md_loc`|fn|priv|1412-1419|def _md_loc(elem) -> str|
+|`_md_kind`|fn|priv|1420-1447|def _md_kind(elem) -> str|
+|`_extract_comment_text`|fn|priv|1448-1470|def _extract_comment_text(comment_elem, max_length: int =...|
+|`_extract_comment_lines`|fn|priv|1471-1487|def _extract_comment_lines(comment_elem) -> list|
+|`_build_comment_maps`|fn|priv|1488-1548|def _build_comment_maps(elements: list) -> tuple|
+|`_render_body_annotations`|fn|priv|1549-1600|def _render_body_annotations(out: list, elem, indent: str...|
+|`format_markdown`|fn|pub|1601-1800|def format_markdown(elements: list, filepath: str, langua...|
+|`main`|fn|pub|1864-1987|def main()|
 
 
 ---

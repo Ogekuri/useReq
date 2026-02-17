@@ -21,7 +21,9 @@
     - `SourceElement.doxygen_fields`: field storing parsed Doxygen tag dictionary [`src/usereq/source_analyzer.py`]
       - description: dictionary populated by _extract_doxygen_fields() during enrichment phase, maps tag names to content lists.
     - `SourceAnalyzer._extract_doxygen_fields(elements: list)`: extract Doxygen fields from associated comments [`src/usereq/source_analyzer.py`]
-      - description: for each non-comment element, searches for adjacent preceding comment blocks (within 2 lines), invokes parse_doxygen_comment(), stores results in element.doxygen_fields.
+      - description: for each non-comment element, resolves associated documentation comments with ordered adjacency rules (same-line postfix inline comment, nearest preceding non-inline comment within 2 lines, nearest following postfix non-inline comment within 2 lines), invokes parse_doxygen_comment(), stores results in element.doxygen_fields.
+      - `_is_postfix_doxygen_comment(comment_text: str) -> bool`: detect postfix association markers [`src/usereq/source_analyzer.py`]
+        - description: matches postfix markers (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to bind comment payload to the preceding construct when language syntax encodes trailing documentation.
       - called by: `SourceAnalyzer.enrich()` after body annotation extraction when filepath is provided.
     - `format_markdown()`: enhanced to render Doxygen fields as Markdown list [`src/usereq/source_analyzer.py`]
       - description: when doxygen_fields present, outputs formatted Markdown list via format_doxygen_fields_as_markdown() instead of raw comment lines with L{n}> prefixes, supporting DOX-009.
@@ -224,6 +226,15 @@
         - description: tests anchored regex patterns to ensure exact matching without false positives from partial name matches.
       - `test_multiple_tags_extraction()`: validates extraction with pipe-separated multiple tag filter [`tests/test_find_constructs_comprehensive.py:L528-L533`]
         - description: extracts constructs matching multiple types (CLASS|FUNCTION) with pattern filter to verify tag union semantics.
+
+- Feature: Fixture-driven Doxygen association testing
+  - Module: `tests/test_doxygen_parser.py`
+    - `TestFixtureDoxygenFieldExtraction.test_extracts_expected_fields_for_each_construct_in_fixture()`: validates Doxygen extraction for all constructs in each fixture [`tests/test_doxygen_parser.py`]
+      - description: iterates all `tests/fixtures/fixture_*.*`, resolves language by extension, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, and asserts per-construct `doxygen_fields` against deterministic expected fields computed from explicit comment association precedence.
+      - `_expected_doxygen_fields_for_construct()`: deterministic comment-to-construct oracle [`tests/test_doxygen_parser.py`]
+        - description: selects associated comment using same-line postfix inline markers, nearest preceding non-inline comments, and nearest following postfix non-inline comments, then parses expected fields with `parse_doxygen_comment()`.
+      - `_is_postfix_comment_text()`: postfix marker classifier for fixture expectations [`tests/test_doxygen_parser.py`]
+        - description: classifies trailing Doxygen syntaxes (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to validate languages where documentation is placed after the construct.
 
 - Requirements alignment evidence (`docs/REQUIREMENTS.md`)
   - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).
