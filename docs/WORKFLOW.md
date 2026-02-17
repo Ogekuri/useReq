@@ -145,7 +145,7 @@
       - `_extract_body_annotations()`: scans definition bodies for comment and exit semantics [`src/usereq/source_analyzer.py:L1181-L1310`]
         - description: re-reads full file and stores normalized body comment spans plus control-flow exits (`return`, `raise`, `throw`, `panic!`, process exits) per definition.
     - `format_markdown()`: compact LLM-optimized markdown formatter [`src/usereq/source_analyzer.py:L1642-L1894`]
-      - description: emits header/imports/definitions/comments/symbol-index sections, maps nearby doc comments to definitions via `_build_comment_maps()`, renders child definitions and body annotations with line-local traceability.
+      - description: emits header/imports/definitions/comments/symbol-index sections, utilizing Markdown tables for definitions and symbol index to maximize token efficiency, maps nearby doc comments to definitions via `_build_comment_maps()`, renders child definitions and body annotations with line-local traceability.
       - `_build_comment_maps()`: associates comments with nearest definitions [`src/usereq/source_analyzer.py:L1520-L1583`]
         - description: builds adjacency map for preceding comments, standalone comments, and file-level description signal.
       - `_render_body_annotations()`: emits ordered body comment/exit annotations [`src/usereq/source_analyzer.py:L1586-L1640`]

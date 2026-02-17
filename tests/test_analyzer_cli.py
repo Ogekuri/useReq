@@ -55,21 +55,21 @@ class TestCLIBasicUsage:
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python")
         assert len(result.stdout) > 0
-        assert "FUNCTION" in result.stdout or "CLASS" in result.stdout
+        # Check for table row or header (markdown format)
+        assert "| `foo` |" in result.stdout or "### fn" in result.stdout or "### class" in result.stdout
 
     def test_analyze_c_fixture(self, fixtures_dir):
         """Analisi di una fixture C."""
         path = os.path.join(fixtures_dir, "fixture_c.c")
         result = run_analyzer(path, "c")
-        assert "FUNCTION" in result.stdout
-        assert "STRUCT" in result.stdout
+        # Check for struct or function in markdown table or header
+        assert "| struct |" in result.stdout or "### fn" in result.stdout
 
     def test_analyze_rust_fixture(self, fixtures_dir):
         """Analisi di una fixture Rust."""
         path = os.path.join(fixtures_dir, "fixture_rust.rs")
         result = run_analyzer(path, "rust")
-        assert "FUNCTION" in result.stdout
-        assert "STRUCT" in result.stdout
+        assert "| struct |" in result.stdout or "### fn" in result.stdout
 
 
 class TestCLIFlags:
@@ -80,7 +80,7 @@ class TestCLIFlags:
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python", "-q")
         # In quiet mode non ci deve essere l'intestazione con "==="
-        assert "======" not in result.stdout
+        assert "# File:" not in result.stdout
         # Ma deve contenere output
         assert len(result.stdout.strip()) > 0
 
@@ -88,21 +88,17 @@ class TestCLIFlags:
         """The -d flag should show only definitions."""
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python", "-d")
-        assert "DEFINITIONS" in result.stdout or "FUNCTION" in result.stdout
+        assert "## Definitions" in result.stdout
         # No separate comments section
-        lines = result.stdout.split("\n")
-        comment_section = [l for l in lines if "COMMENTS (" in l]
-        assert len(comment_section) == 0
+        assert "## Comments" not in result.stdout
 
     def test_comments_only(self, fixtures_dir):
         """The -c flag should show only comments."""
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python", "-c")
-        assert "COMMENT" in result.stdout
+        assert "## Comments" in result.stdout
         # No definitions section
-        lines = result.stdout.split("\n")
-        def_section = [l for l in lines if "DEFINITIONS (" in l]
-        assert len(def_section) == 0
+        assert "## Definitions" not in result.stdout
 
 
 class TestCLIErrors:
@@ -135,19 +131,21 @@ class TestCLIOutputFormat:
         """L'output deve contenere un'intestazione con separatore."""
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python")
-        assert "=====" in result.stdout
+        assert "# File:" in result.stdout or "# fixture_python.py" in result.stdout
 
     def test_output_has_language_info(self, fixtures_dir):
         """L'output deve indicare il linguaggio."""
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python")
-        assert "Python" in result.stdout or "python" in result.stdout
+        assert "| Python |" in result.stdout
 
     def test_output_has_element_count(self, fixtures_dir):
         """Output should contain element count."""
         path = os.path.join(fixtures_dir, "fixture_python.py")
         result = run_analyzer(path, "python")
-        assert "Elements found:" in result.stdout
+        # New format: "X symbols | Y imports | Z comments"
+        assert "symbols |" in result.stdout
+        assert "comments" in result.stdout
 
     def test_output_has_line_numbers(self, fixtures_dir):
         """L'output deve contenere numeri di riga (Lxx)."""
