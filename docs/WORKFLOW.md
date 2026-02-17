@@ -5,6 +5,11 @@
     - `module/class/function docstrings`: structured Doxygen normalization for parser-safe metadata extraction [`src/usereq/*.py`]
       - description: each Python module/class/function docstring is normalized to include `@brief` blocks to maintain machine-interpretable documentation consistency without altering runtime behavior or call order.
 
+- Feature: Test suite discovery scoping
+  - Module: `pyproject.toml`
+    - `tool.pytest.ini_options.testpaths`: constrain default test discovery to canonical unit suite [`pyproject.toml`]
+      - description: configures `testpaths = ["tests"]` to prevent default collection of `import/tests`, avoiding `ImportPathMismatchError` caused by duplicate `tests.conftest` module names while preserving deterministic execution of the repository-owned suite.
+
 - Feature: Doxygen comment parsing and field extraction
   - Module: `src/usereq/doxygen_parser.py`
     - `parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]`: extract structured Doxygen tag fields from documentation comments [`src/usereq/doxygen_parser.py`]

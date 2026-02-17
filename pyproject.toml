@@ -48,6 +48,9 @@ usereq = [
   "resources/vscode/settings.json",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.uv.forms.use-req-init]
 description = "Run the Req initialize workflow with uvx --form use-req-init."
 command = "use-req"
