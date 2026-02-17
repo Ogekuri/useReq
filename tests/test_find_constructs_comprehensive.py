@@ -674,9 +674,9 @@ class TestFindConstructsComprehensive:
         fixture = str(self.get_fixture_path(fixtures_dir, "python"))
         output = find_constructs_in_files([fixture], "CLASS", "^Config$")
 
-        # Verify complete extraction: class should include docstring, fields, and all methods
+        # Verify complete extraction: class should include fields/methods while code comments are stripped
         assert "class Config:" in output, "Missing class declaration"
-        assert "Configuration data holder" in output, "Missing class docstring"
+        assert "Configuration data holder" not in output, "Class docstring comment must be stripped"
         assert "name: str" in output, "Missing first field"
         assert "debug: bool = False" in output, "Missing last field"
         assert "def get(self, key: str" in output, "Missing get method"

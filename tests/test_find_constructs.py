@@ -311,5 +311,70 @@ def test_find_constructs_error_shows_available_tags(tmp_path):
         assert "Available tags by language:" in error_msg
 
 
+def test_format_construct_strips_comments_and_keeps_doxygen_fields():
+    """! @brief Verify extracted construct code strips comments and keeps Doxygen bullets."""
+    elem = SourceElement(
+        element_type=ElementType.FUNCTION,
+        line_start=2,
+        line_end=7,
+        extract="int inc(int value)",
+        name="inc",
+    )
+    elem.doxygen_fields = {"brief": ["Increment value by one."]}
+    source_lines = [
+        "/** @brief Increment value by one. */\n",
+        "int inc(int value) {\n",
+        "    // single-line comment\n",
+        "    int result = value + 1; /* inline block */\n",
+        "    /* multi-line\n",
+        "       comment */\n",
+        "    return result;\n",
+        "}\n",
+    ]
+
+    output = format_construct(
+        elem,
+        source_lines,
+        include_line_numbers=False,
+        language="c",
+    )
+
+    assert "- Brief: Increment value by one." in output
+    assert "single-line comment" not in output
+    assert "inline block" not in output
+    assert "multi-line" not in output
+    assert "int result = value + 1;" in output
+    assert "return result;" in output
+
+
+def test_format_construct_preserves_absolute_line_numbers_after_comment_strip():
+    """! @brief Verify line-number prefixes map to original file lines after stripping comments."""
+    elem = SourceElement(
+        element_type=ElementType.FUNCTION,
+        line_start=10,
+        line_end=13,
+        extract="def foo()",
+        name="foo",
+    )
+    source_lines = ["\n"] * 9 + [
+        "def foo():\n",
+        "    # drop comment\n",
+        "    value = 1  # inline\n",
+        "    return value\n",
+    ]
+
+    output = format_construct(
+        elem,
+        source_lines,
+        include_line_numbers=True,
+        language="python",
+    )
+
+    assert "10: def foo():" in output
+    assert "12:     value = 1" in output
+    assert "13:     return value" in output
+    assert "11:" not in output
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

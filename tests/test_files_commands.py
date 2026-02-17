@@ -1273,6 +1273,39 @@ class TestFindCommandsDoxygen:
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
             assert f"- {label}:" not in metadata_section
 
+    def test_files_find_strips_comments_from_code_and_keeps_doxygen_header(
+        self,
+        capsys,
+        tmp_path,
+    ):
+        """FND-005/FND-006/DOX-010: --files-find strips code comments while keeping Doxygen metadata."""
+        source_file = tmp_path / "sample.c"
+        source_file.write_text(
+            "/** @brief Increment value */\n"
+            "int inc(int value) {\n"
+            "    // single-line comment\n"
+            "    int out = value + 1; /* inline block */\n"
+            "    return out;\n"
+            "}\n",
+            encoding="utf-8",
+        )
+
+        rc = main(["--files-find", "FUNCTION", "^inc$", str(source_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "- Brief: Increment value" in output
+
+        block = _extract_construct_block(output, "FUNCTION", "inc", 2, 6)
+        code_start = block.find("```")
+        code_end = block.rfind("```")
+        assert code_start != -1 and code_end > code_start
+        code_payload = block[code_start:code_end]
+        assert "//" not in code_payload
+        assert "/*" not in code_payload
+        assert "single-line comment" not in code_payload
+        assert "inline block" not in code_payload
+
     @pytest.mark.parametrize(
         "fixture_file",
         FIXTURE_FILES,
@@ -1371,6 +1404,53 @@ class TestFindCommandsDoxygen:
         metadata_section = block[lines_idx:code_idx]
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
             assert f"- {label}:" not in metadata_section
+
+    def test_find_strips_comments_from_code_and_keeps_doxygen_header(
+        self,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """FND-005/FND-006/DOX-010: --find strips code comments while keeping Doxygen metadata."""
+        src = tmp_path / "src"
+        src.mkdir()
+        source_file = src / "sample.c"
+        source_file.write_text(
+            "/** @brief Increment value */\n"
+            "int inc(int value) {\n"
+            "    // single-line comment\n"
+            "    int out = value + 1; /* inline block */\n"
+            "    return out;\n"
+            "}\n",
+            encoding="utf-8",
+        )
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--find", "FUNCTION", "^inc$"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        output = captured.out
+        assert "- Brief: Increment value" in output
+
+        block = _extract_construct_block(output, "FUNCTION", "inc", 2, 6)
+        code_start = block.find("```")
+        code_end = block.rfind("```")
+        assert code_start != -1 and code_end > code_start
+        code_payload = block[code_start:code_end]
+        assert "//" not in code_payload
+        assert "/*" not in code_payload
+        assert "single-line comment" not in code_payload
+        assert "inline block" not in code_payload
 
 
 class TestProjectExamplesDoxygenOccurrences:

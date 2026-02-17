@@ -673,7 +673,7 @@ from typing import Dict, List
 
 ---
 
-# find_constructs.py | Python | 302L | 10 symbols | 8 imports | 17 comments
+# find_constructs.py | Python | 357L | 11 symbols | 8 imports | 18 comments
 > Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 
 ## Imports
@@ -684,7 +684,7 @@ import sys
 from pathlib import Path
 from .doxygen_parser import format_doxygen_fields_as_markdown, parse_doxygen_comment
 from .source_analyzer import SourceAnalyzer
-from .compress import detect_language
+from .compress import compress_source, detect_language
 import argparse
 ```
 
@@ -722,15 +722,13 @@ import argparse
 - Param: element SourceElement instance potentially enriched with doxygen_fields and body_comments.
 - Return: Dictionary tag->list preserving tag content insertion order.
 
-### fn `def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str` (L137-171)
-- Brief: Format a single matched construct for markdown output with complete code extraction.
-- Details: Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices. Includes Doxygen fields if present.
-- Param: element SourceElement instance containing line range indices. source_lines Complete source file content as list of lines. include_line_numbers If True, prefix code lines with <n>: format.
-- Return: Formatted markdown block for the construct with complete code from line_start to line_end.
+### fn `def _strip_construct_comments(` `priv` (L137-141)
 
-### fn `def find_constructs_in_files(` (L172-177)
+### fn `def format_construct(` (L177-181)
 
-### fn `def main()` (L265-300)
+### fn `def find_constructs_in_files(` (L219-224)
+
+### fn `def main()` (L320-355)
 - Brief: Execute the construct finding CLI command.
 - Details: Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
 
@@ -744,9 +742,10 @@ import argparse
 |`construct_matches`|fn|pub|79-96|def construct_matches(element, tag_set: set[str], pattern...|
 |`_merge_doxygen_fields`|fn|priv|97-99|def _merge_doxygen_fields(|
 |`_extract_construct_doxygen_fields`|fn|priv|114-136|def _extract_construct_doxygen_fields(element) -> dict[st...|
-|`format_construct`|fn|pub|137-171|def format_construct(element, source_lines: list[str], in...|
-|`find_constructs_in_files`|fn|pub|172-177|def find_constructs_in_files(|
-|`main`|fn|pub|265-300|def main()|
+|`_strip_construct_comments`|fn|priv|137-141|def _strip_construct_comments(|
+|`format_construct`|fn|pub|177-181|def format_construct(|
+|`find_constructs_in_files`|fn|pub|219-224|def find_constructs_in_files(|
+|`main`|fn|pub|320-355|def main()|
 
 
 ---

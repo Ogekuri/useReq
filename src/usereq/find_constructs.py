@@ -14,7 +14,7 @@ from pathlib import Path
 
 from .doxygen_parser import format_doxygen_fields_as_markdown, parse_doxygen_comment
 from .source_analyzer import SourceAnalyzer
-from .compress import detect_language
+from .compress import compress_source, detect_language
 
 
 # ── Language-specific TAG support map ────────────────────────────────────────
@@ -134,13 +134,59 @@ def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]:
     return aggregate
 
 
-def format_construct(element, source_lines: list[str], include_line_numbers: bool) -> str:
+def _strip_construct_comments(
+    code_lines: list[str],
+    language: str,
+    line_start: int,
+    include_line_numbers: bool,
+) -> str:
+    """! @brief Remove comments from extracted construct code while preserving source line mapping.
+    @param code_lines Raw construct code lines sliced by SourceElement line range.
+    @param language Normalized language key used by the compression parser.
+    @param line_start Absolute start line number of the construct in the original file.
+    @param include_line_numbers If True, emit `<n>:` prefixes with absolute source line numbers.
+    @return Comment-stripped construct code string.
+    @details Delegates comment stripping to `compress_source()` to remove inline, single-line, and multi-line comments while preserving string literals. When line numbers are enabled, remaps local compressed line indices back to absolute file line numbers using `line_start`.
+    """
+    raw_source = "".join(code_lines)
+    stripped_with_local_numbers = compress_source(
+        raw_source,
+        language,
+        include_line_numbers=True,
+    )
+    stripped_lines = stripped_with_local_numbers.splitlines()
+
+    if not include_line_numbers:
+        return "\n".join(
+            line.split(": ", 1)[1] if ": " in line else line
+            for line in stripped_lines
+        )
+
+    remapped_lines: list[str] = []
+    for line in stripped_lines:
+        match = re.match(r"^(\d+):\s(.*)$", line)
+        if not match:
+            remapped_lines.append(line)
+            continue
+        local_line = int(match.group(1))
+        absolute_line = line_start + local_line - 1
+        remapped_lines.append(f"{absolute_line}: {match.group(2)}")
+    return "\n".join(remapped_lines)
+
+
+def format_construct(
+    element,
+    source_lines: list[str],
+    include_line_numbers: bool,
+    language: str = "python",
+) -> str:
     """! @brief Format a single matched construct for markdown output with complete code extraction.
     @param element SourceElement instance containing line range indices.
     @param source_lines Complete source file content as list of lines.
     @param include_line_numbers If True, prefix code lines with <n>: format.
+    @param language Normalized source language key used for comment stripping.
     @return Formatted markdown block for the construct with complete code from line_start to line_end.
-    @details Extracts the complete construct code directly from source_lines using element.line_start and element.line_end indices. Includes Doxygen fields if present.
+    @details Extracts construct code directly from source_lines using element.line_start and element.line_end indices, removes inline/single-line/multi-line comments from the extracted block, and inserts Doxygen metadata before the code fence when available.
     """
     lines = []
     lines.append(f"### {element.type_label}: `{element.name}`")
@@ -154,13 +200,14 @@ def format_construct(element, source_lines: list[str], include_line_numbers: boo
         dox_lines = format_doxygen_fields_as_markdown(doxygen_fields)
         lines.extend(dox_lines)
 
-    # Extract COMPLETE code block from source file (not truncated extract)
+    # Extract COMPLETE code block from source file and strip comments
     code_lines = source_lines[element.line_start - 1:element.line_end]
-    if include_line_numbers:
-        start = element.line_start
-        formatted = "\n".join(f"{start + i}: {line.rstrip()}" for i, line in enumerate(code_lines))
-    else:
-        formatted = "\n".join(line.rstrip() for line in code_lines)
+    formatted = _strip_construct_comments(
+        code_lines=code_lines,
+        language=language,
+        line_start=element.line_start,
+        include_line_numbers=include_line_numbers,
+    )
 
     lines.append("```")
     lines.append(formatted)
@@ -232,7 +279,15 @@ def find_constructs_in_files(
 
             if matches:
                 header = f"@@@ {fpath} | {lang}"
-                constructs_md = "\n\n".join(format_construct(el, source_lines, include_line_numbers) for el in matches)
+                constructs_md = "\n\n".join(
+                    format_construct(
+                        el,
+                        source_lines,
+                        include_line_numbers,
+                        language=lang,
+                    )
+                    for el in matches
+                )
                 parts.append(f"{header}\n\n{constructs_md}")
                 total_matches += len(matches)
                 ok_count += 1
