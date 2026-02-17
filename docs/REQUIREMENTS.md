@@ -109,6 +109,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-17 | 0.83 | Rafforzati DOX-014..DOX-017 imponendo verifica semantica deterministica del contenuto dei campi Doxygen emessi (`Brief`, `Param`, ecc.) per costrutto, oltre ai conteggi aggregati. |
 | 2026-02-17 | 0.84 | Aggiornata estrazione `--files-find`/`--find`: il blocco codice del costrutto deve rimuovere commenti inline/single-line/multi-line preservando semantica e mantenendo separati i campi Doxygen nell'header markdown. |
 | 2026-02-17 | 0.85 | Rimossi supporto, riferimenti e asset di documentazione HTML legacy dalla specifica di progetto e allineata la documentazione Doxygen ai sorgenti `src/`. |
+| 2026-02-17 | 0.86 | Aggiunto script `doxygen.sh` in root per generazione documentazione Doxygen dei sorgenti `src/` con output in `doxygen/html`, `doxygen/pdf` e `doxygen/markdown`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -298,6 +299,9 @@ Il progetto include una suite di test in `tests/`.
 - **REQ-019**: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
 - **REQ-020**: Lo script `req.sh` deve essere eseguibile da qualsiasi percorso, risolvere la propria directory, verificare `.venv` e crearlo se assente.
 - **REQ-021**: Se `.venv` esiste, `req.sh` deve eseguire il comando usando il Python del venv inoltrando gli argomenti.
+- **REQ-101**: Il progetto deve includere uno script `doxygen.sh` nella root repository per generare documentazione Doxygen dai sorgenti presenti in `src/`.
+- **REQ-102**: Lo script `doxygen.sh` deve risolvere la root del repository dal proprio percorso, usare l'eseguibile `doxygen` installato nel sistema operativo, e generare output nei path `doxygen/html`, `doxygen/pdf`, `doxygen/markdown`.
+- **REQ-103**: La configurazione Doxygen usata da `doxygen.sh` deve applicare opzioni best-practice per documentazione completa del codice in `src/`, includendo estrazione membri pubblici/privati/statici e ricorsione input; per il formato Markdown lo script deve usare `GENERATE_MARKDOWN` quando supportato dalla versione Doxygen installata, altrimenti deve produrre `doxygen/markdown` tramite trasformazione deterministica dei metadati XML generati da Doxygen.
 - **REQ-022**: Il comando deve salvare i valori di `--guidelines-dir`, `--docs-dir`, `--tests-dir`, e l'elenco di `--src-dir` in `.req/config.json` come percorsi relativi.
 - **REQ-023**: Il file `.req/config.json` deve includere campi `guidelines-dir`, `docs-dir`, `tests-dir`, e `src-dir` preservando slash finali; `src-dir` deve essere un array con una voce per ogni directory passata.
 - **REQ-024**: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione usando parametri salvati.

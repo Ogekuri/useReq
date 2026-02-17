@@ -1,5 +1,20 @@
 # WORKFLOW
 
+- Feature: Doxygen source documentation generation
+  - Module: `doxygen.sh`
+    - `main()`: orchestrate Doxygen documentation generation pipeline [`doxygen.sh`]
+      - description: entrypoint sequence that installs EXIT cleanup trap for temporary config, validates runtime prerequisites and source path, resets output directories, emits dynamic Doxygen config with feature detection, executes doxygen, applies XML-to-Markdown fallback when native Markdown backend is unavailable, compiles LaTeX into PDF artifact, and prints deterministic generated-path summary.
+      - `check_prerequisites()`: validate required binaries and discover markdown backend support [`doxygen.sh`]
+        - description: verifies presence of `doxygen`, validates `src/` existence, probes `doxygen -x` for `GENERATE_MARKDOWN` support flag used by later config generation branch.
+      - `prepare_output_dirs()`: recreate output layout [`doxygen.sh`]
+        - description: removes stale `doxygen/html`, `doxygen/markdown`, `doxygen/pdf`, `doxygen/latex`, `doxygen/xml` and recreates root and PDF destination to ensure deterministic run artifacts.
+      - `write_doxyfile()`: materialize temporary Doxygen configuration [`doxygen.sh`]
+        - description: writes temporary config targeting `src/` with recursive traversal and full extraction options (`EXTRACT_ALL`, `EXTRACT_PRIVATE`, `EXTRACT_STATIC`, local classes, anonymous namespaces), enables HTML/LaTeX/XML outputs, and conditionally appends native Markdown directives when supported by runtime Doxygen version.
+      - `generate_markdown_fallback()`: synthesize markdown output from Doxygen XML index [`doxygen.sh`]
+        - description: creates `doxygen/markdown/index.md` by parsing `doxygen/xml/index.xml`, extracting compound kind/name/refid tuples, sorting deterministically, and emitting machine-parsable markdown list when native markdown output is unsupported.
+      - `build_pdf_output()`: compile and publish PDF artifact [`doxygen.sh`]
+        - description: validates LaTeX Makefile and required build tools (`make`, `pdflatex`), executes LaTeX build in `doxygen/latex`, verifies `refman.pdf` existence, and copies final artifact to `doxygen/pdf/refman.pdf`.
+
 - Feature: Documentation maintenance and comment conformance
   - Module: `src/usereq/*.py`
     - `module/class/function docstrings`: structured Doxygen normalization for parser-safe metadata extraction [`src/usereq/*.py`]

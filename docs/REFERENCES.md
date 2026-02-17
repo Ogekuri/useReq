@@ -1,5 +1,22 @@
+# Files Structure
+```
+.
+└── src
+    └── usereq
+        ├── __init__.py
+        ├── __main__.py
+        ├── cli.py
+        ├── compress.py
+        ├── compress_files.py
+        ├── doxygen_parser.py
+        ├── find_constructs.py
+        ├── generate_markdown.py
+        ├── source_analyzer.py
+        └── token_counter.py
+```
+
 # __init__.py | Python | 26L | 0 symbols | 8 imports | 3 comments
-> Path: `src/usereq/__init__.py`
+> Path: `/home/ogekuri/useReq/src/usereq/__init__.py`
 
 ## Imports
 ```
@@ -17,7 +34,7 @@ from .cli import main  # re-export of CLI entry point
 ---
 
 # __main__.py | Python | 17L | 0 symbols | 2 imports | 2 comments
-> Path: `src/usereq/__main__.py`
+> Path: `/home/ogekuri/useReq/src/usereq/__main__.py`
 
 ## Imports
 ```
@@ -29,7 +46,7 @@ import sys
 ---
 
 # cli.py | Python | 2537L | 94 symbols | 23 imports | 149 comments
-> Path: `src/usereq/cli.py`
+> Path: `/home/ogekuri/useReq/src/usereq/cli.py`
 
 ## Imports
 ```
@@ -480,7 +497,7 @@ import traceback
 ---
 
 # compress.py | Python | 386L | 11 symbols | 5 imports | 41 comments
-> Path: `src/usereq/compress.py`
+> Path: `/home/ogekuri/useReq/src/usereq/compress.py`
 
 ## Imports
 ```
@@ -564,7 +581,7 @@ import argparse
 ---
 
 # compress_files.py | Python | 113L | 3 symbols | 4 imports | 5 comments
-> Path: `src/usereq/compress_files.py`
+> Path: `/home/ogekuri/useReq/src/usereq/compress_files.py`
 
 ## Imports
 ```
@@ -604,7 +621,7 @@ import argparse
 ---
 
 # doxygen_parser.py | Python | 163L | 5 symbols | 2 imports | 19 comments
-> Path: `src/usereq/doxygen_parser.py`
+> Path: `/home/ogekuri/useReq/src/usereq/doxygen_parser.py`
 
 ## Imports
 ```
@@ -655,7 +672,7 @@ from typing import Dict, List
 ---
 
 # find_constructs.py | Python | 357L | 11 symbols | 8 imports | 18 comments
-> Path: `src/usereq/find_constructs.py`
+> Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
 
 ## Imports
 ```
@@ -732,7 +749,7 @@ import argparse
 ---
 
 # generate_markdown.py | Python | 134L | 4 symbols | 3 imports | 7 comments
-> Path: `src/usereq/generate_markdown.py`
+> Path: `/home/ogekuri/useReq/src/usereq/generate_markdown.py`
 
 ## Imports
 ```
@@ -773,7 +790,7 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 ---
 
 # source_analyzer.py | Python | 2061L | 59 symbols | 11 imports | 130 comments
-> Path: `src/usereq/source_analyzer.py`
+> Path: `/home/ogekuri/useReq/src/usereq/source_analyzer.py`
 
 ## Imports
 ```
@@ -1021,7 +1038,7 @@ from doxygen_parser import format_doxygen_fields_as_markdown
 ---
 
 # token_counter.py | Python | 116L | 7 symbols | 2 imports | 8 comments
-> Path: `src/usereq/token_counter.py`
+> Path: `/home/ogekuri/useReq/src/usereq/token_counter.py`
 
 ## Imports
 ```
