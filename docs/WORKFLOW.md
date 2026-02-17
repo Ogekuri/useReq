@@ -217,7 +217,7 @@
   - External API calls
     - GitHub Releases API HTTP GET: `https://api.github.com/repos/Ogekuri/useReq/releases/latest` via `urllib.request.urlopen` in `maybe_notify_newer_version()` (`src/usereq/cli.py:L331-L363`).
   - External process execution
-    - `subprocess.run()` for `uv tool install/uninstall` and pdoc invocation (`src/usereq/cli.py:L238-L277`, `src/usereq/pdoc_utils.py:L19-L84`).
+    - `subprocess.run()` for `uv tool install/uninstall` (`src/usereq/cli.py:L306-L348`).
   - External database access
     - No database client usage or DB connection logic detected in analyzed modules.
 

@@ -1,28 +1,9 @@
-# Files Structure
-```
-.
-└── src
-    └── usereq
-        ├── __init__.py
-        ├── __main__.py
-        ├── cli.py
-        ├── compress.py
-        ├── compress_files.py
-        ├── doxygen_parser.py
-        ├── find_constructs.py
-        ├── generate_markdown.py
-        ├── pdoc_utils.py
-        ├── source_analyzer.py
-        └── token_counter.py
-```
-
-# __init__.py | Python | 27L | 0 symbols | 9 imports | 3 comments
-> Path: `/home/ogekuri/useReq/src/usereq/__init__.py`
+# __init__.py | Python | 26L | 0 symbols | 8 imports | 3 comments
+> Path: `src/usereq/__init__.py`
 
 ## Imports
 ```
 from . import cli  # usereq.cli submodule
-from . import pdoc_utils  # usereq.pdoc_utils submodule
 from . import source_analyzer  # usereq.source_analyzer submodule
 from . import token_counter  # usereq.token_counter submodule
 from . import generate_markdown  # usereq.generate_markdown submodule
@@ -36,7 +17,7 @@ from .cli import main  # re-export of CLI entry point
 ---
 
 # __main__.py | Python | 17L | 0 symbols | 2 imports | 2 comments
-> Path: `/home/ogekuri/useReq/src/usereq/__main__.py`
+> Path: `src/usereq/__main__.py`
 
 ## Imports
 ```
@@ -48,7 +29,7 @@ import sys
 ---
 
 # cli.py | Python | 2537L | 94 symbols | 23 imports | 149 comments
-> Path: `/home/ogekuri/useReq/src/usereq/cli.py`
+> Path: `src/usereq/cli.py`
 
 ## Imports
 ```
@@ -499,7 +480,7 @@ import traceback
 ---
 
 # compress.py | Python | 386L | 11 symbols | 5 imports | 41 comments
-> Path: `/home/ogekuri/useReq/src/usereq/compress.py`
+> Path: `src/usereq/compress.py`
 
 ## Imports
 ```
@@ -583,7 +564,7 @@ import argparse
 ---
 
 # compress_files.py | Python | 113L | 3 symbols | 4 imports | 5 comments
-> Path: `/home/ogekuri/useReq/src/usereq/compress_files.py`
+> Path: `src/usereq/compress_files.py`
 
 ## Imports
 ```
@@ -623,7 +604,7 @@ import argparse
 ---
 
 # doxygen_parser.py | Python | 163L | 5 symbols | 2 imports | 19 comments
-> Path: `/home/ogekuri/useReq/src/usereq/doxygen_parser.py`
+> Path: `src/usereq/doxygen_parser.py`
 
 ## Imports
 ```
@@ -674,7 +655,7 @@ from typing import Dict, List
 ---
 
 # find_constructs.py | Python | 357L | 11 symbols | 8 imports | 18 comments
-> Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
+> Path: `src/usereq/find_constructs.py`
 
 ## Imports
 ```
@@ -751,7 +732,7 @@ import argparse
 ---
 
 # generate_markdown.py | Python | 134L | 4 symbols | 3 imports | 7 comments
-> Path: `/home/ogekuri/useReq/src/usereq/generate_markdown.py`
+> Path: `src/usereq/generate_markdown.py`
 
 ## Imports
 ```
@@ -791,46 +772,8 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 
 ---
 
-# pdoc_utils.py | Python | 98L | 3 symbols | 6 imports | 5 comments
-> Path: `/home/ogekuri/useReq/src/usereq/pdoc_utils.py`
-
-## Imports
-```
-from __future__ import annotations
-import os
-import subprocess
-import sys
-from pathlib import Path
-from typing import Iterable, Sequence
-```
-
-## Definitions
-
-### fn `def _normalize_modules(modules: str | Iterable[str]) -> list[str]` `priv` (L18-27)
-- Brief: Returns a list of modules from either a string or an iterable.
-- Param: modules A single module name string or an iterable of strings.
-- Return: List of module names.
-
-### fn `def _run_pdoc(command: list[str], *, env: dict[str, str], cwd: Path) -> subprocess.CompletedProcess` `priv` (L28-45)
-- Brief: Runs pdoc and captures output for error handling.
-- Details: Executes pdoc as a subprocess with captured output (stdout/stderr).
-- Param: command The command list to execute. env Environment variables dictionary. cwd Working directory path.
-- Return: CompletedProcess object containing execution results.
-
-### fn `def generate_pdoc_docs(` (L46-50)
-
-## Symbol Index
-|Symbol|Kind|Vis|Lines|Sig|
-|---|---|---|---|---|
-|`_normalize_modules`|fn|priv|18-27|def _normalize_modules(modules: str | Iterable[str]) -> l...|
-|`_run_pdoc`|fn|priv|28-45|def _run_pdoc(command: list[str], *, env: dict[str, str],...|
-|`generate_pdoc_docs`|fn|pub|46-50|def generate_pdoc_docs(|
-
-
----
-
 # source_analyzer.py | Python | 2061L | 59 symbols | 11 imports | 130 comments
-> Path: `/home/ogekuri/useReq/src/usereq/source_analyzer.py`
+> Path: `src/usereq/source_analyzer.py`
 
 ## Imports
 ```
@@ -1078,7 +1021,7 @@ from doxygen_parser import format_doxygen_fields_as_markdown
 ---
 
 # token_counter.py | Python | 116L | 7 symbols | 2 imports | 8 comments
-> Path: `/home/ogekuri/useReq/src/usereq/token_counter.py`
+> Path: `src/usereq/token_counter.py`
 
 ## Imports
 ```

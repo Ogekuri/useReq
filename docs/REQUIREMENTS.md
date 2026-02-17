@@ -2,7 +2,7 @@
 title: "Requisiti useReq"
 description: "Specifica dei Requisiti Software"
 date: "2026-02-17"
-version: 0.83
+version: 0.85
 author: "Ogekuri"
 scope:
   paths:
@@ -18,7 +18,7 @@ tags: ["markdown", "requisiti", "useReq"]
 ---
 
 # Requisiti useReq
-**Versione**: 0.83
+**Versione**: 0.85
 **Autore**: Ogekuri
 **Data**: 2026-02-17
 
@@ -108,6 +108,7 @@ tags: ["markdown", "requisiti", "useReq"]
 | 2026-02-17 | 0.82 | Aggiornati i requisiti test command-level `--files-find`/`--find`: un test per ogni file fixture (uno per linguaggio), enumerazione costrutti estratti e confronto 1:1 tra conteggio totale tag Doxygen nel sorgente e totale etichette Doxygen emesse in output. |
 | 2026-02-17 | 0.83 | Rafforzati DOX-014..DOX-017 imponendo verifica semantica deterministica del contenuto dei campi Doxygen emessi (`Brief`, `Param`, ecc.) per costrutto, oltre ai conteggi aggregati. |
 | 2026-02-17 | 0.84 | Aggiornata estrazione `--files-find`/`--find`: il blocco codice del costrutto deve rimuovere commenti inline/single-line/multi-line preservando semantica e mantenendo separati i campi Doxygen nell'header markdown. |
+| 2026-02-17 | 0.85 | Rimossi supporto, riferimenti e asset di documentazione HTML legacy dalla specifica di progetto e allineata la documentazione Doxygen ai sorgenti `src/`. |
 
 ## 1. Introduzione
 Questo documento definisce i requisiti software per useReq, una utility CLI che inizializza un progetto con template, prompt e risorse per agenti, garantendo percorsi relativi coerenti rispetto alla root del progetto.
@@ -137,7 +138,6 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 ├── CHANGELOG.md
 ├── LICENSE
 ├── package.json
-├── pdoc.sh
 ├── pyproject.toml
 ├── README.md
 ├── req.sh
@@ -155,11 +155,6 @@ L'ambito del progetto è fornire un comando `use-req`/`req` che, dato un progett
 │   └── templates
 │       ├── srs-template-bare.md
 │       └── srs-template.md
-├── pdoc
-│   ├── index.html
-│   ├── search.js
-│   ├── usereq.html
-│   └── usereq
 ├── src
     └── usereq
         ├── __init__.py

@@ -18,7 +18,6 @@ from unittest.mock import patch
 
 # Imports the CLI module to test.
 from usereq import cli
-from usereq.pdoc_utils import generate_pdoc_docs
 
 KIRO_READ_ONLY_TOOLS = [
     "read",
@@ -579,14 +578,6 @@ class TestCLI(unittest.TestCase):
                 "description:", content, f"{agent} must contain 'description:'"
             )
             self.assertIn("mode: all", content, f"{agent} must contain 'mode: all'")
-
-    def test_pdoc_documentation_generated(self) -> None:
-        """REQ-081: Verifies pdoc documentation is generated in the pdoc/ folder."""
-        output_dir = self.TEST_DIR / "pdoc"
-        generate_pdoc_docs(output_dir)
-        self.assertTrue(output_dir.exists(), "The pdoc/ directory must be created")
-        html_files = list(output_dir.glob("*.html"))
-        self.assertTrue(html_files, "The pdoc/ directory must contain HTML files")
 
     def test_opencode_command_contains_metadata(self) -> None:
         """Verifies that .opencode/command files include description and argument-hint."""
