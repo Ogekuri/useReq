@@ -1,3 +1,7 @@
+// @file fixture_go.go
+// @brief Go language test fixture.
+// @details Parser validation constructs.
+
 // Single line comment
 /* Multi-line
    comment */

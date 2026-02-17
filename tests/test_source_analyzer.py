@@ -121,7 +121,7 @@ EXPECTED_COUNTS = {
     },
     "go": {
         ElementType.COMMENT_MULTI: 15,
-        ElementType.COMMENT_SINGLE: 81,
+        ElementType.COMMENT_SINGLE: 84,
         ElementType.CONSTANT: 5,
         ElementType.FUNCTION: 8,
         ElementType.IMPORT: 5,
@@ -204,7 +204,7 @@ EXPECTED_COUNTS = {
     "python": {
         ElementType.CLASS: 7,
         ElementType.COMMENT_MULTI: 41,
-        ElementType.COMMENT_SINGLE: 24,
+        ElementType.COMMENT_SINGLE: 32,
         ElementType.DECORATOR: 9,
         ElementType.FUNCTION: 32,
         ElementType.IMPORT: 7,
@@ -293,9 +293,9 @@ EXPECTED_COUNTS = {
 
 
 EXPECTED_NAMED = [
-    ("python", ElementType.CLASS, "class MyClass:", 59),
-    ("python", ElementType.FUNCTION, "def regular_function(", 276),
-    ("python", ElementType.FUNCTION, "async def async_function(", 390),
+    ("python", ElementType.CLASS, "class MyClass:", 61),
+    ("python", ElementType.FUNCTION, "def regular_function(", 286),
+    ("python", ElementType.FUNCTION, "async def async_function(", 400),
     ("python", ElementType.IMPORT, "import os", 7),
     ("python", ElementType.VARIABLE, "MAX_RETRIES = ", 18),
     ("python", ElementType.DECORATOR, "dataclass", 25),
@@ -320,10 +320,10 @@ EXPECTED_NAMED = [
     ("javascript", ElementType.FUNCTION, "const handler = (event) =>", 122),
     ("javascript", ElementType.COMPONENT, "const MyWrapped = React.memo(", 153),
     ("javascript", ElementType.MODULE, "const fs = require(", 297),
-    ("go", ElementType.STRUCT, "type Server struct", 39),
-    ("go", ElementType.INTERFACE, "type Handler interface", 67),
-    ("go", ElementType.FUNCTION, "func main(", 107),
-    ("go", ElementType.METHOD, "func (s *Server) Start(", 119),
+    ("go", ElementType.STRUCT, "type Server struct", 43),
+    ("go", ElementType.INTERFACE, "type Handler interface", 71),
+    ("go", ElementType.FUNCTION, "func main(", 111),
+    ("go", ElementType.METHOD, "func (s *Server) Start(", 123),
     ("swift", ElementType.CLASS, "class Animal", 16),
     ("swift", ElementType.STRUCT, "struct Point", 85),
     ("swift", ElementType.ENUM, "enum Direction", 140),

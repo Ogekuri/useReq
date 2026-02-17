@@ -4,9 +4,9 @@
 Multi-line docstring comment
 spanning multiple lines
 """
-import os
-import sys
-from pathlib import Path
+import os  #!< @brief OS interface module. @details Provides OS-dependent functionality.
+import sys  #!< @brief System-specific parameters. @see sys.exit() for exit handling.
+from pathlib import Path  #!< @brief Object-oriented filesystem paths. @note Preferred over os.path.
 from typing import (
     Optional, List, Dict, Union, Protocol,
     TypeVar, Generic, Iterator, AsyncIterator
@@ -15,9 +15,9 @@ from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-MAX_RETRIES = 3
-DEFAULT_TIMEOUT = 30.0
-_INTERNAL_CACHE: Dict[str, int] = {}
+MAX_RETRIES = 3  #!< @brief Maximum retry attempts. @details Applied to network operations. @warning Tune per use case.
+DEFAULT_TIMEOUT = 30.0  #!< @brief Default timeout in seconds. @note For I/O operations.
+_INTERNAL_CACHE: Dict[str, int] = {}  #!< @brief Internal cache dict. @deprecated Use lru_cache instead.
 
 T = TypeVar("T")
 
@@ -27,7 +27,9 @@ class Config:
     """Configuration data holder for the application.
 
     @brief Stores key-value pairs with optional default fallback.
+    @details Dataclass-based configuration with validation.
     @note Immutable after creation when frozen=True is used.
+    @see __post_init__() for validation logic.
     """
     name: str
     values: Dict[str, str] = field(default_factory=dict)
@@ -166,7 +168,10 @@ class AbstractProcessor(ABC):
     """Abstract base class for all data processors.
 
     @brief Defines the interface that concrete processors must implement.
+    @details ABC-based interface with abstract methods.
+    @note Subclasses must implement execute() and execute_async().
     @see ConcreteProcessor for a working implementation.
+    @sa ABC documentation for abstract base class patterns.
     """
 
     @abstractmethod
@@ -192,7 +197,9 @@ class ConcreteProcessor(AbstractProcessor):
     """Concrete implementation of AbstractProcessor.
 
     @brief Processes byte data by decoding and validating content.
-    @extends AbstractProcessor
+    @details Implements synchronous and async execute methods.
+    @note Thread-safe for read operations.
+    @see AbstractProcessor for interface definition.
     """
 
     def execute(self, data: bytes) -> bool:
@@ -225,7 +232,10 @@ class GenericContainer(Generic[T]):
     """Generic container holding items of type T.
 
     @brief Type-safe collection with iteration and lookup support.
+    @details Generic collection with find and iteration.
     @tparam T The element type stored in this container.
+    @note Implements __iter__ for iteration protocol.
+    @see typing.Generic for generics documentation.
     """
 
     def __init__(self) -> None:
@@ -272,8 +282,8 @@ class Renderable(Protocol):
         ...
 
 
-@property
-def regular_function(x: int) -> int:
+@property  #!< @brief Property decorator. @details Converts function to property.
+ def regular_function(x: int) -> int:
     """Simple function demonstrating decorator and return.
 
     @param x Input integer value.
@@ -334,7 +344,7 @@ async def async_generator(items: List[str]) -> AsyncIterator[str]:
             yield item.upper()
 
 
-@contextmanager
+@contextmanager  #!< @brief Context manager decorator. @see contextlib.contextmanager
 def managed_resource(path: str):
     """Context manager for safe resource acquisition and release.
 
