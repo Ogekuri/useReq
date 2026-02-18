@@ -9,7 +9,26 @@ argument-hint: "No arguments utilized by the prompt logic"
 Maintain an LLM-oriented runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`) derived from repository evidence so downstream LLM Agents can reason about execution units, communication edges, and internal call-traces during SRS-driven design/implementation.
 
 ## Scope
-In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite only `%%DOC_PATH%%/WORKFLOW.md` in the specified language following the mandated schema, then commit that doc change. Out of scope: changes to requirements, references, source code, or tests.
+In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite only `%%DOC_PATH%%/WORKFLOW.md` in English only, following the mandated schema, then commit that doc change. Out of scope: changes to requirements, references, source code, or tests.
+
+## Canonical Terminology (MUST use these exact terms)
+- **Process**: an OS process execution unit (MUST include the main process).
+- **Thread**: an OS thread execution unit within a process.
+- **Execution Unit**: a Process or a Thread.
+- **Internal function**: a function/method defined in repository source under %%SRC_PATHS%% (only these can appear as call-trace nodes).
+- **External boundary**: any call/interaction whose target implementation is not defined under %%SRC_PATHS%% (libraries/frameworks/OS/network/DB/etc.). External boundaries MUST NOT appear as call-trace nodes.
+- **Communication Edge**: an explicit runtime interaction between two execution units (direction + mechanism + endpoint/channel + payload/data-shape reference).
+
+## WORKFLOW.md Output Contract (MUST preserve this schema)
+- The generated `%%DOC_PATH%%/WORKFLOW.md` MUST be optimized for downstream LLM Agents (high semantic density, machine-interpretable Markdown, no filler).
+- The document MUST be structured as:
+  - `## Execution Units Index`
+  - `## Execution Units` (one subsection per execution unit ID)
+  - `## Communication Edges`
+- The model MUST cover:
+  - ALL processes and threads used at runtime (static analysis), including the main process.
+  - For EACH execution unit: a complete internal call-trace tree from entrypoint(s) down to internal leaf functions (internal functions only).
+  - ALL explicit communication/interconnection paths between execution units.
 
 
 ## Professional Personas
@@ -31,13 +50,13 @@ In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite on
    - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
-- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
 - Write `%%DOC_PATH%%/WORKFLOW.md` document in English language.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
-- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
+- Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 
 ## Source Construct Extraction via req --find / req --files-find
@@ -100,43 +119,41 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..5`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary.Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..5`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
+2. Static analysis: build the runtime model from %%SRC_PATHS%%
+   - Ignore unit test source code, documentation automation source code, and any companion scripts (e.g., launching scripts, environment management scripts, example scripts, ...).
+   - Identify ALL execution units used at runtime:
+      - OS processes (MUST include the main process).
+      - OS threads (per process), including their entry functions/methods.
+   - For EACH execution unit, derive entrypoint(s) and build a complete internal call-trace tree:
+      - Include ONLY internal functions as call-trace nodes (defined under %%SRC_PATHS%%).
+      - Do NOT include external boundaries (system/library/framework calls) as nodes; annotate them only as external boundaries where relevant.
+      - No maximum depth: expand until an internal leaf function or an external boundary is reached.
+   - Identify ALL explicit communication edges between execution units and record for each edge:
+      - Direction (source -> destination), mechanism (IPC/thread communication), endpoint/channel (queue/topic/path/socket/etc.), and payload/data-shape references.
 3. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
-   - Do NOT read any present `%%DOC_PATH%%/WORKFLOW.md` to understand the file's content, strictly follow below istruction to create the file.
-   - Analyze the entire project's main existing source code from %%SRC_PATHS%% to infer the software’s behavior and main features to reconstruct the software's execution logic:
-      -  Identify the primary functions and architectural components utilized based on static code analysis of the main entry points. Focus on explicit calls and visible dependencies.
-      -  Identify all file-system operations (reading or writing files).
-      -  Identify all external API calls.
-      -  Identify all external database access.
-      -  Identify any common code logic.
-      -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
-      Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, recursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-   - Create or overwriting the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. Use English language. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
-      -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels of depth, and for EACH feature you MUST include:
-         -  Level 1: High-level Feature or Process description (keep it concise).
-         -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
-         -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.
-            -  Node Description, every *function node* entry must include the following information:
-               -  `function_name()`: mandatory, the function name exactly as defined in the source code.
-               -  `filename`: mandatory, filename where the function is defined.
-               -  `child nodes as child bullet-list`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
-            -  Hierarchical Structure, child *function node* MUST be added to parent *function node* as child bullet-list. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
-               -  `parent_func1()`: `short single-line for parent_func1` [`filename where is declared parent_func1`]
-                  -  `description of parent_func1`
-                  -  `child_func2()`: `short single-line for child_func2` [`filename where is declared child_func2`]
-                     -  `description of child_func2`
-                  -  `child_func3()`: `short single-line for child_func3` [`filename where is declared child_func3`]
-                     -  `description of child_func3`
-                     -  `child_child_func4()`: `short single-line for child_child_func4` [`filename where is declared child_child_func4`]
-                        -  `description of child_child_func4`
-                        -  ...
-      -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
-      -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
+   - Do NOT read any present `%%DOC_PATH%%/WORKFLOW.md` to understand the file's content; strictly follow the Output Contract above to create the file.
+   - Create/overwrite `%%DOC_PATH%%/WORKFLOW.md` in English only, using machine-interpretable Markdown and the required schema:
+      - `## Execution Units Index` (stable IDs)
+         - Use stable IDs: `PROC:main`, `PROC:<name>` for processes; `THR:<proc_id>#<name>` for threads.
+         - For each execution unit: ID, type (process/thread), parent process (for threads), role, entrypoint symbol(s), and defining file(s).
+      - `## Execution Units`
+         - One subsection per execution unit ID including:
+           - Entrypoint(s)
+           - Lifecycle/trigger (how it starts, stops, and loops/blocks)
+           - Internal Call-Trace Tree (internal functions only; no maximum depth)
+           - External Boundaries (file I/O, network, DB, external APIs, OS interaction)
+      - `## Communication Edges`
+         - List ALL `Communication Edge` items with direction + mechanism + endpoint/channel + payload/data-shape reference + evidence pointers.
+   - Call-trace node format (MUST be consistent):
+      - `symbol_name(...)`: `<single-line role>` [`<defining filepath>`]
+         - `<optional: brief invariants/external boundaries>`
+         - `<child internal calls as nested bullet list, in call order>`
 4. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
-   - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
+   - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include only `%%DOC_PATH%%/WORKFLOW.md`).
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "docs(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
       - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.

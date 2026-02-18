@@ -11,6 +11,12 @@ Close coverage gaps by implementing the missing behaviors for uncovered requirem
 ## Scope
 In scope: identify uncovered requirement IDs, implement minimal code changes under %%SRC_PATHS%%, add/adjust tests under %%TEST_PATH%% as needed, run verification, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing `%%DOC_PATH%%/REQUIREMENTS.md`, introducing new requirements/features, or performing large-scale rewrites (use `/req.implement` for “from scratch” rebuilds).
 
+## WORKFLOW.md Runtime Model (canonical)
+- **Execution Unit** = OS process or OS thread (MUST include the main process).
+- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
+- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
+- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
+
 
 ## Professional Personas
 - **Act as a QA Automation Engineer** when identifying uncovered requirements: you must prove the lack of coverage through code analysis or failing test scenarios.
@@ -23,7 +29,7 @@ In scope: identify uncovered requirement IDs, implement minimal code changes und
 ## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).
 - You MUST read `%%DOC_PATH%%/REQUIREMENTS.md`, but you MUST NOT modify it in this workflow.
-- Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`,`.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
+- Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: GIT operations and GIT rules:
    - Do not run any shell/git commands and do not modify any files before starting Step 1 (including creating/modifying files, installing deps, formatting, etc.): **CRITICAL**: Check GIT Status.
    - Step 1 may run only the git commands `git rev-parse --is-inside-work-tree`, `git status --porcelain`, and `git symbolic-ref -q HEAD` (plus minimal shell built-ins to combine their outputs into a single cleanliness check).
@@ -32,13 +38,13 @@ In scope: identify uncovered requirement IDs, implement minimal code changes und
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
 - **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according to the **guidelines** in `.req/docs/Document_Source_Code_in_Doxygen_Style.md`. Writing documentation, adopt a "Parser-First" mindset. Your output is not prose; it is semantic metadata. Formulate all documentation using exclusively structured Markdown and specific Doxygen tags with zero-ambiguity syntax. Eliminate conversational filler ("This function...", "Basically..."). Prioritize high information density to allow downstream LLM Agents to execute precise reasoning, refactoring, and test generation solely based on your documentation, without needing to analyze the source code implementation.
-- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** are other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
 - Do not modify files that contain requirements.
 - Always strictly respect requirements.
 - Use technical documents to implement features and changes.
-- Any new text added to an existing document MUST match that document’s current language.
+- Any new text added to an existing document MUST match that document’s current language, EXCEPT for `%%DOC_PATH%%/WORKFLOW.md`, which MUST always be written and maintained in English (rewrite any non-English WORKFLOW.md content into English during updates).
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. If maintaining compatibility would require migrations/auto-upgrades conversion logic, report the conflict instead of implementing, and then terminate the execution.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`,`PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
@@ -104,7 +110,7 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..8`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary.Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..8`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` files presence
@@ -125,54 +131,44 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - **CRITICAL**: All tests MUST implement these instructions: `.req/docs/HDT_Test_Authoring_Guide.md`.
       - Read %%GUIDELINES_FILES%% files and apply those **guidelines**; ensure the proposed code changes conform to those **guidelines**, and adjust the **Comprehensive Technical Implementation Report** if needed. Do not apply unrelated **guidelines**.
    - IMPLEMENT the **Comprehensive Technical Implementation Report** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Comprehensive Technical Implementation Report**.
-4. Test the implementation result and implement needed bug-fix
+4. Test the implementation result and implement needed bug fixes
    - Read previously `FAIL` requirements from `%%DOC_PATH%%/REQUIREMENTS.md` and analyze one-by-one and cross-reference with the source code to check requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance and do not assume compliance without locating the specific code implementation.
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
       - Do not mark a requirement as `OK` without code evidence; for `OK` items provide only a compact pointer (file path + symbol + line range). For each requirement, provide a concise evidence pointer (file path + symbol + line range) excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "shall not..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
       - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
-   -  Perform a regression test executing ALL tests of test suite. 
+   -  Perform a regression test by executing ALL tests in the test suite. 
       - Verify that the implemented changes satisfy the requirements and pass tests.
       - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. You must NOT modify existing tests unless the new requirement causes an unavoidable breaking change strictly documented in the requirements update. If an existing test fails and it is not related to a breaking change, assume you introduced a regression in the source code and fix the code.
       - Fix the source code to pass valid tests autonomously without asking for user intervention. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Analyze the root cause internally based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Requirements coverage failed due unable to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Requirements coverage failed due incompatible requirement with tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
 5. Update `%%DOC_PATH%%/WORKFLOW.md` document
-   - Analyze the recently implemented code changes and identify new features and behavioral updates to infer the software’s behavior and main features to reconstruct the software's execution logic: 
-      -  Identify the primary functions and architectural components utilized based on static code analysis of the main entry points. Focus on explicit calls and visible dependencies.
-      -  Identify all file-system operations (reading or writing files).
-      -  Identify all external API calls.
-      -  Identify all external database access.
-      -  Identify any common code logic.
-      -  Ignore unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..).
-      Produce a hierarchical structure of bullet lists that reflect the implemented functionality. Detail the complete execution workflow, naming each function and sub-function called, recursively, only to the extent it is directly evidenced by the source code and repository artifacts. For every function, include a single-line description. Avoid unverified assumptions; focus strictly on the provided code; don't summarize.
-      Review and update the file `%%DOC_PATH%%/WORKFLOW.md` following a strict Technical Call Tree structure. For each main feature, you must drill down from the entry point to the lower-level internal functions, and document structure and traceability, until you reach stable abstraction boundaries (public APIs, core domain functions, or I/O boundaries); do not expand further unless required for traceability:
-      -  Use a hierarchical structure of bullet lists with at least 3 levels of depth, maximum 6 levels of depth, and for EACH feature you MUST include:
-         -  Level 1: High-level Feature or Process description (keep it concise).
-         -  Level 2: Component, Class, or Module involved, list classes/services/modules used in the trace.
-         -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.
-            -  Node Description, every *function node* entry must include the following information:
-               -  `function_name()`: mandatory, the function name exactly as defined in the source code.
-               -  `filename`: mandatory, filename where the function is defined.
-               -  `child nodes as child bullet-list`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
-            -  Hierarchical Structure, child *function node* MUST be added to parent *function node* as child bullet-list. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
-               -  `parent_func1()`: `short single-line for parent_func1` [`filename where is declared parent_func1`]
-                  -  `description of parent_func1`
-                  -  `child_func2()`: `short single-line for child_func2` [`filename where is declared child_func2`]
-                     -  `description of child_func2`
-                  -  `child_func3()`: `short single-line for child_func3` [`filename where is declared child_func3`]
-                     -  `description of child_func3`
-                     -  `child_child_func4()`: `short single-line for child_child_func4` [`filename where is declared child_child_func4`]
-                        -  `description of child_child_func4`
-                        -  ...
-      -  Ensure the workflow reflects the actual sequence of calls found in the code. Do not skip intermediate logic layers. Highlight existing common code logic.
-      -  Prefer concise traces over prose, but expand the call-tree to the minimum needed for traceability.
+   - Update `%%DOC_PATH%%/WORKFLOW.md` as an LLM-first runtime model (English only) that enumerates ALL execution units and their interactions.
+   - Identify ALL execution units used at runtime (static analysis of %%SRC_PATHS%%):
+      - OS processes (MUST include the main process).
+      - OS threads (per process), including their entry functions/methods.
+   - For EACH execution unit, generate a complete internal call-trace tree starting from its entrypoint(s):
+      - Include ONLY internal functions/methods defined in repository source under %%SRC_PATHS%%.
+      - Do NOT include external boundaries (system/library/framework calls) as nodes; annotate them only as external boundaries where relevant.
+      - No maximum depth: expand until an internal leaf function or an external boundary is reached.
+   - Determine communication/interconnection between execution units and document ALL explicit communication edges:
+      - For each edge: direction (source -> destination), mechanism, endpoint/channel, payload/data-shape reference, and evidence pointers.
+   - Preserve and maintain the canonical `WORKFLOW.md` schema:
+      - `## Execution Units Index`
+      - `## Execution Units`
+      - `## Communication Edges`
+   - Use stable execution unit IDs: `PROC:main`, `PROC:<name>` for processes; `THR:<proc_id>#<name>` for threads.
+   - Call-trace node format (MUST be consistent):
+      - `symbol_name(...)`: `<single-line role>` [`<defining filepath>`]
+         - `<optional: brief invariants/external boundaries>`
+         - `<child internal calls as nested bullet list, in call order>`
 6. Update `%%DOC_PATH%%/REFERENCES.md` references file
    -  Create/update the references file with `req --references --here "%%DOC_PATH%%/REFERENCES.md"`
 7. **CRITICAL**: Stage & commit
       - Show a summary of changes with `git diff` and `git diff --stat`.
       - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
-      - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains"Aborting",  OUTPUT exactly "No changes to commit.", and then terminate the execution.
-      - Commit a structured commit message with: `git commit -m "cover(<COMPONENT>):<DESCRIPTION> [<DATE>]"`
+      - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
+      - Commit a structured commit message with: `git commit -m "cover(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
          - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
          - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
          - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
