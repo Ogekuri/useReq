@@ -18,75 +18,25 @@ tags: ["markdown", "requirements", "example"]
 ---
 
 # {{project name}} Requirements
-**Version**: {{version}}
-**Author**: {{author}}  
-**Date**: {{date_modified}}
-<!-- Example:
----
-title: "Foo Bar Web Interface Requirements"
-description: Software requirements specification
-version: 0.1
-date: "2025-12-25"
-author: "John Doe"
-scope:
-  paths:
-    - "**/*.py"
-    - "**/*.ipynb"
-    - "**/*.c"
-    - "**/*.h"
-    - "**/*.cpp"
-  excludes:
-    - ".*/**"
-visibility: "draft"
-tags: ["markdown", "requirements", "example"]
----
+<!-- Metadata is in the YAML front matter; do not duplicate it in the body. -->
 
-# Foo Bar Web Interface Requirements
-**Version**: 0.1
-**Author**: John Doe
-**Date**: 2025-12-25
--->
-
-## Table of Contents
-<!-- TOC -->
-- [{{project name}} Requirements](#project-name-requirements)
-  - [Table of Contents](#table-of-contents)
-  - [1. Introduction](#1-introduction)
-    - [1.1 Document Rules](#11-document-rules)
-    - [1.2 Project Scope](#12-project-scope)
-  - [2. Project Requirements](#2-project-requirements)
-    - [2.1 Project Functions](#21-project-functions)
-    - [2.2 Project Constraints](#22-project-constraints)
-  - [3. Requirements](#3-requirements)
-    - [3.1 Design and Implementation](#31-design-and-implementation)
-    - [3.2 Functions](#32-functions)
-  - [4. Test Requirements](#4-test-requirements)
-  - [5. Revision History](#5-revision-history)
-<!-- TOC -->
+<!-- Optional: omit a Table of Contents to reduce token footprint for LLM agents. If a TOC is included, it MUST be auto-generated and kept minimal. -->
 
 ## 1. Introduction
 <!-- Overview of the SRS: purpose, scope, audience, and document organization. Avoid detailed requirements here. -->
 
 ### 1.1 Document Rules
-This document shall always follow these rules:
-- This document must be written in English.
-- Format the requirements as a bulleted list, utilizing the keywords 'shall' or 'must' to denote mandatory actions.
-- Each requirement ID (for example, **PRJ-001**, **PRJ-002**,..  **CTN-001**, **CTN-002**,.. **DES-001**, **DES-002**,.. **REQ-001**, **REQ-002**,.. **TST-001**, **TST-002**,..) must be unique; do not assign the same ID to different requirements.
-- Each requirement ID start with string that identify the requirement's group:
-  * All project function requirements start with **PRJ-**
-  * All project constraint requirements start with **CTN-**
-  * All design and implementation requirements start with **DES-**
-  * All function requirements start with **REQ-**
-  * All test requirements start with **TST-**
-- Every requirement shall be identifiable, verifiable, and testable.
-- Format the requirements as a bulleted list.
-- Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
-- Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
-- Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
+This document MUST follow these authoring rules (LLM-first, normative SRS):
+- This document MUST be written and maintained in English.
+- Use RFC 2119 keywords exclusively (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY). Do not use "shall".
+- In requirements sections, every bullet MUST be a requirement and MUST start with a unique, stable Requirement ID (e.g., **REQ-001**).
+- Requirement IDs MUST be stable: never renumber, reuse, or repurpose an ID. Only the dedicated reorganization workflow may renumber and it MUST emit an old→new ID mapping.
+- Requirement ID prefixes MUST be consistent; if additional prefixes are needed beyond PRJ/CTN/DES/REQ/TST, they MUST be defined once in this section before first use.
+- Each requirement MUST be atomic (one behavior/constraint) and testable; if a requirement becomes long or compound, split it into multiple requirements.
+- Write for other LLM Agents and automated parsers (high semantic density; no filler).
 - On every change to this document:
-  - Update the date to today's date both in the document body and the header.
-  - Increment the version number both in the document body and the header.
-  - Append a new row to the Revision History table detailing the changes made.
+  - Update `date` and `version` in the YAML front matter only (avoid duplicating metadata in the body).
+  - Do NOT maintain an in-document revision history; use git history / CHANGELOG.md for change tracking.
 
 ### 1.2 Project Scope
 <!-- The project (name/version), primary purpose, key capabilities, and boundaries. Keep brief and focus on the "what" and "why", not the "how". Avoid detailed requirements here. -->
@@ -128,9 +78,4 @@ This document shall always follow these rules:
 | **TST-001**         | Code execution               | Execute the code with the defined input(s). Verify the expected output(s) match the specification and that no runtime errors occur. |
 | **TST-002**         | **REQ-002**                  | Run the unit test suite covering REQ-002. Assert all expected behaviors and defined edge cases pass. |
 
-## 5. Revision History
-<!-- On every change to this document, update the version number and add a new row to the revision history -->
-| Date | Version | Change reason and description |
-|------|---------|-------------------------------|
-|      |         |                               |
-|      |         |                               |
+<!-- Do not add a revision history section here; use git history / CHANGELOG.md instead. -->

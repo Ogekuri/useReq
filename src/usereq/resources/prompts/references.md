@@ -9,7 +9,7 @@ argument-hint: "No arguments utilized by the prompt logic"
 Maintain a machine-usable reference index (`%%DOC_PATH%%/REFERENCES.md`) derived from repository evidence so downstream LLM Agents can quickly discover entrypoints, modules, dependencies, and other navigational anchors during SRS-driven work.
 
 ## Scope
-In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in the specified language (following the prompt’s `req --references` workflow) and commit that doc change. Out of scope: changes to requirements, workflow docs, source code, or tests.
+In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in English (following the prompt’s `req --references` workflow) and commit that doc change. Out of scope: changes to requirements, workflow docs, source code, or tests.
 
 
 ## Absolute Rules, Non-Negotiable

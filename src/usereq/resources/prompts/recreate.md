@@ -1,6 +1,6 @@
 ---
 description: "Reorganize, update, and renumber the Software Requirements Specification draft based on source code analysis"
-argument-hint: "Target language (English only)"
+argument-hint: "No arguments utilized by the prompt logic (English only)"
 ---
 
 # Reorganize, update, and renumber the Software Requirements Specification draft based on source code analysis
@@ -14,7 +14,7 @@ In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when analyzing source code to infer behavior: ensure every software requirement generated is atomic, unambiguous, and empirically testable.
-- **Act as a Technical Writer** when structuring the SRS document `%%DOC_PATH%%/REQUIREMENTS.md`: apply ISO-standard terminology (e.g., "shall", "must") and maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
+- **Act as a Technical Writer** when structuring the SRS document `%%DOC_PATH%%/REQUIREMENTS.md`: use RFC 2119 keywords exclusively (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) and never use "shall"; maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
 - **Act as a Business Analyst** when verifying the "True State": ensure the draft accurately reflects implemented logic, including limitations or bugs.
 
 
@@ -77,13 +77,10 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Perform a strict one-to-one coverage check: every extracted "Original ID" MUST appear exactly once in the reorganized structure (either as the requirement itself or as an explicitly merged/rewritten equivalent).
       - If any requirement was rewritten for clarity, you MUST ensure the rewrite is meaning-preserving.
       - If any requirement is missing or duplicated, you MUST fix the structure before proceeding.
-   - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of the document itself.
-      - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
-      - Format the requirements as a bulleted list.
-      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
-      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
-      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-      - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
+   - Follow the template’s section schema; use headings to encode grouping.
+   - Do NOT add per-section "Scope/Grouping" requirements.
+   - Ensure every requirement remains atomic and testable after reorganization; split compound statements rather than adding meta-requirements.
+   - Keep document-authoring rules only in the dedicated section (no duplication).
    - Analyze the project's main existing source code, ignoring unit test source code, documentation automation source code, and any companion scripts (e.g., launching scripts, environment management scripts, example scripts, ...), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
       - Add missing requirements to the reorganized draft and place them into the appropriate section/subsection (respecting the max 3-level hierarchy).
       - Requirements for the output:

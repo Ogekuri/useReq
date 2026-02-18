@@ -1,6 +1,6 @@
 ---
 description: "Produce a Software Requirements Specification draft based on the User Request description"
-argument-hint: "Description of the application to be drafted from scratch"
+argument-hint: "Description of the application to be drafted from scratch (English only)"
 ---
 
 # Produce a Software Requirements Specification draft based on the User Request description
@@ -13,7 +13,7 @@ In scope: author/update only `%%DOC_PATH%%/REQUIREMENTS.md` from [User Request](
 
 
 ## Professional Personas
-- **Act as a Senior Technical Requirements Engineer** when drafting software requirements: ensure every requirement is atomic, unambiguous, and formatted for maximum testability using standard "shall/must" terminology.
+- **Act as a Senior Technical Requirements Engineer** when drafting software requirements: ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) and never use "shall".
 - **Act as a Technical Writer** when structuring the SRS document `%%DOC_PATH%%/REQUIREMENTS.md`: apply a clean, hierarchical Markdown structure (max depth 3) and ensure technical precision, clarity, and adherence to professional documentation standards.
 - **Act as a Business Analyst** when interpreting project goals: bridge the gap between technical implementation and user needs, ensuring the document provides clear value and aligns with the system's intended purpose.
 - **Act as a Senior System Architect** when describing components or relationships: ensure the technical descriptions reflect a modular, scalable, and robust architecture consistent with industry best practices.
@@ -69,20 +69,16 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
            - Describe the application's functionalities and configurability requested.
            - Describe any requested unit tests.
            - Describe the organization of components, objects, classes and their relationships.
-           - Propose a logical file/folder structure for the project as an ascii tree view based on the requirements.
+           - Propose a logical file/folder structure as an ASCII tree view with a strict depth limit (max depth 3, or 4 for `src/`), and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
            - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
          - Format the requirements as a bulleted list.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-       - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft.
-       - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of the document itself.
-          - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
-          - Format the requirements as a bulleted list.
-      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
-      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
-      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-          - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
+       - Read the template at `.req/docs/Requirements_Template.md` and follow its section schema.
+       - Do NOT add per-section "Scope/Grouping" requirements; use headings to encode grouping.
+       - Use a single canonical requirement line schema: `- **<ID>**: <RFC2119 keyword> <single-sentence requirement>.` Keep each requirement short; split compound statements into multiple requirements.
+       - If document-authoring rules are needed, keep them only under the dedicated "Document Rules" section (do not duplicate them across sections).
      - List requested components and libraries. Integrate mandatory libraries into the requirements.
      - Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
    - Create the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.

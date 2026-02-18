@@ -1,6 +1,6 @@
 ---
 description: "Write a Software Requirements Specification draft using the project's source code"
-argument-hint: "Target language (English only)"
+argument-hint: "No arguments utilized by the prompt logic (English only)"
 ---
 
 # Write a Software Requirements Specification draft using the project's source code
@@ -14,7 +14,7 @@ In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when analyzing source code to infer behavior: ensure every software requirement generated is atomic, unambiguous, and empirically testable.
-- **Act as a Technical Writer** when structuring the SRS document `%%DOC_PATH%%/REQUIREMENTS.md`: apply ISO-standard terminology (e.g., "shall", "must") and maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
+- **Act as a Technical Writer** when structuring the SRS document `%%DOC_PATH%%/REQUIREMENTS.md`: use RFC 2119 keywords exclusively (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) and never use "shall"; maintain a clean, hierarchical Markdown structure with a maximum depth of 3 levels.
 - **Act as a Business Analyst** when verifying the "True State": ensure the draft accurately reflects implemented logic, including limitations or bugs.
 
 
@@ -75,13 +75,10 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
       - If evidence is weak or ambiguous (e.g., based solely on naming conventions or commented-out code), strictly exclude the requirement to avoid documenting non-existent features.
       - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
-   - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of the document itself.
-      - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
-      - Format the requirements as a bulleted list.
-      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
-      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
-      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-      - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
+   - Follow the template’s section schema; use headings to encode grouping.
+   - Do NOT add per-section "Scope/Grouping" requirements.
+   - Preserve Requirement IDs and keep requirements short and atomic; split compound requirements into multiple IDs.
+   - Keep document-authoring rules only in the dedicated section (no duplication).
    - List used components and libraries ONLY if evidenced by manifest/lock/config files or direct imports; cite the file path(s) used as evidence and do not guess.
    - Locate and read only the unit tests relevant to the inferred features/requirements; summarize test coverage at a high level and deep-dive only into failing or high-risk areas. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
    - Create the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.

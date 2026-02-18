@@ -1,6 +1,6 @@
 ---
-title: "Requisiti useReq"
-description: "Specifica dei Requisiti Software"
+title: "useReq Requirements"
+description: "Software Requirements Specification"
 date: "2026-02-17"
 version: 0.85
 author: "Ogekuri"
@@ -17,7 +17,7 @@ visibility: "draft"
 tags: ["markdown", "requisiti", "useReq"]
 ---
 
-# Requisiti useReq
+# useReq Requirements
 **Versione**: 0.85
 **Autore**: Ogekuri
 **Data**: 2026-02-17
@@ -117,8 +117,8 @@ Questo documento definisce i requisiti software per useReq, una utility CLI che 
 ### 1.1 Regole del Documento
 Questo documento deve sempre seguire queste regole:
 - Una breve descrizione dello scopo/raggruppamento delle regole del documento.
-- Questo documento deve essere scritto in Italiano.
-- I requisiti devono essere formattati come elenco puntato, utilizzando il verbo "deve" per indicare azioni obbligatorie.
+- This document MUST be written and maintained in English. If any section is non-English, it MUST be rewritten into English on the next edit while preserving meaning and Requirement IDs.
+- Requirements MUST use RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY). Do not use "shall".
 - Ogni identificatore (**PRJ-001**, **PRJ-002**, **CTN-001**, **CTN-002**, **DES-001**, **DES-002**, **REQ-012**, **REQ-036**, …) deve essere univoco.
 - Ogni identificatore deve iniziare con il prefisso del gruppo del requisito (PRJ-, CTN-, DES-, REQ-).
 - Ogni requisito deve essere identificabile, verificabile e testabile.
