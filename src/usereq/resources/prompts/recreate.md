@@ -77,7 +77,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
         - Keep the document’s top-level sections in the same order.
         - Within the most appropriate document’s section(s), create subsections/sub-subsections (still respecting the max depth) to represent the chosen groupings.
    - Verify full coverage of the input requirements after reorganization.
-      - Perform a strict one-to-one coverage check: every extracted "Original ID" MUST appear exactly once in the reorganized structure (either as the requirement itself or as an explicitly merged/rewritten equivalent).
+      - Perform a strict one-to-one coverage check: every extracted "Original ID" MUST appear exactly once in the reorganized structure (either as the requirement itself or as an explicitly merged/rewritten equivalent). When the validation process is completely finished "Original ID" must be removed.
       - If any requirement was rewritten for clarity, you MUST ensure the rewrite is meaning-preserving.
       - If any requirement is missing or duplicated, you MUST fix the structure before proceeding.
    - Follow the template’s section schema; use headings to encode grouping.
