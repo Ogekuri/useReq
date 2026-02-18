@@ -22,6 +22,6 @@ else
     mkdir -p "${FOLDER_PATH}/src"
     mkdir -p "${FOLDER_PATH}/.github/workflows"
 
-    #echo req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
-    req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    #echo req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --enable-skills --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" --enable-skills --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
 fi

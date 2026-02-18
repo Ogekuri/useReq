@@ -14,6 +14,6 @@ if [ ! -d "$FOLDER_PATH" ]; then
     echo "Path does not exist"
     exit 1
 else
-    #echo req --update --preserve-models --base "${FOLDER_PATH}" --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
-    req --update --preserve-models --base "${FOLDER_PATH}" --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    #echo req --update --preserve-models --base "${FOLDER_PATH}" --enable-skills --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    req --update --preserve-models --base "${FOLDER_PATH}" --enable-skills --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
 fi
