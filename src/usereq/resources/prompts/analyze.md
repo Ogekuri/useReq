@@ -95,7 +95,7 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..2`, and start following the roadmap at the same time, with the instruction of the Step 1 (Read docs and user request).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..2`, and start following the roadmap at the same time, with the instruction of the Step 1 (Check files presence).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` files presence
    - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md not exist, generate it with /req.write prompt!", and then terminate the execution.
    - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.workflow prompt!", and then terminate the execution.
