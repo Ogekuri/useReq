@@ -17,6 +17,7 @@ import sys
 import subprocess
 import urllib.error
 import urllib.request
+import yaml
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Mapping, Optional
@@ -925,21 +926,23 @@ def _extract_section_text(body: str, section_name: str) -> str:
     return " ".join(parts)
 
 
-def extract_skill_description(body: str) -> str:
-    """! @brief Concatenates Purpose, Scope, and Usage section texts into a single YAML-safe line.
-    @details Invokes `_extract_section_text` for each of the three canonical sections in fixed
-    order: Purpose, Scope, Usage. Non-empty section texts are joined with a single space.
-    Absent sections are omitted. Result contains no newlines and no leading/trailing whitespace.
-    @param[in] body str -- Full prompt body text (after front matter removal).
-    @return str -- Single-line concatenation of Purpose, Scope, and Usage section texts.
-    @see _extract_section_text
+def extract_skill_description(frontmatter: str) -> str:
+    """! @brief Extracts the usage field from YAML front matter as a single YAML-safe line.
+    @details Parses the YAML front matter and returns the `usage` field value with all
+    whitespace normalized to a single line. Returns an empty string if the field is absent.
+    @param[in] frontmatter str -- YAML front matter text (without the leading/trailing `---` delimiters).
+    @return str -- Single-line text of the usage field; empty string if absent.
     """
-    parts: list[str] = []
-    for section in ("purpose", "scope", "usage"):
-        text = _extract_section_text(body, section)
-        if text:
-            parts.append(text)
-    return " ".join(parts)
+    try:
+        data = yaml.safe_load(frontmatter)
+    except yaml.YAMLError:
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    usage = data.get("usage", "")
+    if not usage:
+        return ""
+    return " ".join(str(usage).split())
 
 
 def json_escape(value: str) -> str:
@@ -1804,7 +1807,7 @@ def run(args: Namespace) -> None:
 
         # Precompute description and Claude metadata so provider blocks can reuse them safely.
         desc_yaml = yaml_double_quote_escape(description)
-        skill_desc_yaml = yaml_double_quote_escape(extract_skill_description(prompt_body))
+        skill_desc_yaml = yaml_double_quote_escape(extract_skill_description(frontmatter))
         claude_model = None
         claude_tools = None
         if configs:
