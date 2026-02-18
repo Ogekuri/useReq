@@ -37,6 +37,42 @@ Analyze the existing source code to generate a workflow description (`%%DOC_PATH
 - Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 
+## Source Construct Extraction via req --find / req --files-find
+When you need hard evidence from source code (APIs, entrypoints, data types, imports, constants, decorators/annotations, modules/namespaces), use req to extract language constructs as structured markdown (with signatures + line ranges, and optional line-numbered code).
+### What these commands do (and what they don’t)
+- They extract named constructs (e.g., CLASS, FUNCTION, STRUCT, INTERFACE, IMPORT, …) and filter them by TAG and name-regex.
+- The regex (PATTERN) matches the construct name only (not the body). If you need “search inside code”, use rg/git grep in addition.
+- Output is markdown, grouped by file: header @@@ <filepath> | <language>, then per-construct blocks with:
+    - ### <TAG>: <name> + optional Signature + Lines: <start>-<end>
+    - optional extracted Doxygen fields (if present in/around the construct)
+    - a fenced code block containing the complete construct slice, with comments stripped (strings preserved)
+### Choose the right mode
+- Project-wide scan (configured --src-dir): use --find (requires --here or --base)
+    - Correct syntax is: req --here --find <TAG_FILTER> <NAME_REGEX>
+    - Note: --find does not take a filename; it scans all files under the configured source dirs.
+- Target specific files: use --files-find (standalone; --here is optional but harmless)
+    - Syntax: req --here --files-find <TAG_FILTER> <NAME_REGEX> <FILE1> [FILE2 ...]
+### Always enable line-numbered code when you plan to cite evidence
+Add --enable-line-numbers so code lines are prefixed as <n>::
+- req --here --enable-line-numbers --find "<TAG_FILTER>" "<NAME_REGEX>"
+- req --here --enable-line-numbers --files-find "<TAG_FILTER>" "<NAME_REGEX>" <FILE...>
+### TAGs and filters
+- TAG_FILTER is a pipe-separated list (case-insensitive): e.g. CLASS|FUNCTION|IMPORT
+- Tags are language-dependent; unsupported tags are simply ignored for that language, and files may be skipped if none of the requested tags apply.
+- To discover the exact supported TAGs list (per language), run: req -h and read the --files-find help section.
+- Practical “broad but safe” TAG_FILTER for analysis (cross-language): CLASS|STRUCT|ENUM|INTERFACE|TRAIT|IMPL|FUNCTION|METHOD|MODULE|NAMESPACE|TYPE_ALIAS|TYPEDEF|IMPORT|CONSTANT|VARIABLE|MACRO|DECORATOR|COMPONENT|PROPERTY|PROTOCOL|EXTENSION|UNION
+### Regex rules (NAME_REGEX)
+- It’s a Python-style regex applied with re.search() against the construct name.
+- Prefer anchored patterns when possible:
+    - Exact: ^Foo$
+    - Prefix: ^parse_
+    - Suffix: Service$
+    - Fallback: .* (only when scope is already constrained by files/TAGs)
+### Failure modes you must handle
+- If you get “no constructs found”, adjust one of: TAGs (supported?), file paths, or NAME_REGEX (valid regex?).
+- This extractor is regex-based (not a full AST parser); treat results as evidence pointers, and confirm edge cases by opening the referenced file/lines if needed.
+
+
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap** (*check-list*): 
