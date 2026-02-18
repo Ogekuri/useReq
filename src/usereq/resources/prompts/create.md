@@ -6,7 +6,10 @@ argument-hint: "Target language for the generated SRS draft"
 # Write a Software Requirements Specification draft using the project's source code
 
 ## Purpose
-Analyze the existing source code to generate a comprehensive **Software Requirements Specification** draft in the specified language, reflecting the current state of the project.
+Bootstrap an SRS draft (`%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`) from repository evidence so downstream LLM Agents can start SRS-driven work grounded in what the code actually does (requirements → design → implementation → verification), without guessing undocumented behavior.
+
+## Scope
+In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only as evidence when needed) to create/update `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md` in the requested language. Out of scope: any changes to source code, tests, `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md`, or `%%DOC_PATH%%/REFERENCES.md`.
 
 
 ## Professional Personas
@@ -34,7 +37,7 @@ Analyze the existing source code to generate a comprehensive **Software Requirem
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap** (*check-list*): 
-   - You MUST maintain a *check-list* internally with `4` Steps (one item per Step).
+   - You MUST maintain a *check-list* internally with `3` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
    - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
@@ -55,16 +58,9 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..4`, and start following the roadmap at the same time, with the instruction of the Step 1 (Extract the target language).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
-1. Extract **target language**, if present
-   - Extract the **target language** from the %%ARGS%%.
-      - "<name>" (single token, e.g., "Italian", "English", "Deutsch").
-      - an explicit marker like "language: <name>".
-      - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-      - If multiple natural languages are mentioned and the **target language** is not explicitly identified, use English language as **target language**.
-      - If no language is specified, use English language as **target language**.
-2. Generate the **Software Requirements Specification**
-   - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..3`, and start following the roadmap at the same time, with the instruction of the Step 1 (Generate the Software Requirements Specification).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+1. Generate the **Software Requirements Specification**
+   - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft.
    - Analyze the project's main existing source code, ignoring unit tests source code, documents automation source code and any companion-scripts (e.g., launching scripts, environments management scripts, examples scripts,..), to infer the software’s behavior and main features, then produce a hierarchical requirements structure with a maximum depth of 3 levels.
       - Requirements for the output:
          - Describe any text-based UI and/or GUI functionality implemented.
@@ -73,7 +69,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
          - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for src/ directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
          - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
       - Format the requirements as a bulleted list.
-      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
@@ -82,7 +78,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
       - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
       - Format the requirements as a bulleted list.
-      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
@@ -94,16 +90,16 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
         * The precise expected behavior (include acceptance criteria with testable conditions where possible).
         * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code.
       - Format the requirements as a bulleted list.
-      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-      - Write requirements, section titles, tables, and other content in **target language**.
-      - Follow `.req/docs/Requirements_Template.md` translated into **target language**.
+      - Write requirements, section titles, tables, and other content in **English language**.
+      - Follow `.req/docs/Requirements_Template.md`.
       - Output the entire response in clean, properly formatted Markdown.
-3. Validate the **Software Requirements Specification**
+2. Validate the **Software Requirements Specification**
    - Review `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code.
       - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).
       - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
       - Report `OK` if the draft accurately describes the code (even if the code is buggy). Report `FAIL` only if the draft makes assertions that are not present or contradicted by the source code.
-4. Present results
+3. Present results
    - PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Requirements written!".

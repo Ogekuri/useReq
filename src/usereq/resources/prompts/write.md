@@ -6,7 +6,10 @@ argument-hint: "Description of the application to be drafted from scratch"
 # Produce a Software Requirements Specification draft based on the User Request description
 
 ## Purpose
-Draft a new **Software Requirements Specification** draft based entirely on the user's description and specifications, without referencing existing source code.
+Capture the user's intent as an SRS draft (`%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`) suitable for automated, SRS-driven development (requirements → design → implementation → verification), so downstream LLM Agents can implement the system without inventing unstated requirements.
+
+## Scope
+In scope: author/update only `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md` from [User Request](#users-request) in the requested language, using explicit Assumptions for missing details and the canonical template structure. Out of scope: using repository source code as evidence, changing any other project file, generating workflow/references docs, or committing code changes.
 
 
 ## Professional Personas
@@ -36,7 +39,7 @@ Draft a new **Software Requirements Specification** draft based entirely on the 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap** (*check-list*): 
-   - You MUST maintain a *check-list* internally with `3` Steps (one item per Step).
+   - You MUST maintain a *check-list* internally with `2` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
    - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
@@ -57,14 +60,8 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..3`, and start following the roadmap at the same time, with the instruction of the Step 1 (Read user request).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
-1. Extract **target language**, if present
-   - Extract the **target language** from the [User Request](#users-request).
-      - Prefer an explicit marker like "language: <name>".
-      - Ignore programming languages (e.g., Python, Java, Rust) unless explicitly requested as the document language.
-      - If multiple natural languages are mentioned, infer the **target language** based on context (e.g., phrases like "translate into...", "write in..."). Only if the target remains completely ambiguous, use English language as **target language**.
-      - If no language is specified, use English language as **target language**.
-2. Generate the **Software Requirements Specification**
+Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..2`, and start following the roadmap at the same time, with the instruction of the Step 1 (Generate the Software Requirements Specification).Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+1. Generate the **Software Requirements Specification**
    - Read [User Request](#users-request) to identify and extract all project and application requirements.
      - Analyze the [User Request](#users-request) to infer the software’s behavior and main features, then produce a hierarchical requirements list.
         - Requirements for the output:
@@ -75,26 +72,27 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
            - Propose a logical file/folder structure for the project as an ascii tree view based on the requirements.
            - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
          - Format the requirements as a bulleted list.
-      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-       - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft. If the **target language** is not English, you MUST translate all template section headers and structural text into the **target language**.
+       - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft.
        - Add or modify requirements necessary to ensure each future requirement will be placed in the correct section/subsection, as part of document itself.
           - For each section/subsection you created, add a short, unambiguous "Scope/Grouping" requirement stating what belongs there.
           - Format the requirements as a bulleted list.
-      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
           - If it does not exist, create the appropriate section for the requirements that define how to edit the document itself.
      - List requested components and libraries. Integrate mandatory libraries into the requirements.
      - Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.
    - Create the **Software Requirements Specification** document with the requirements draft at `%%DOC_PATH%%/REQUIREMENTS_DRAFT.md`.
-      - Write requirements, section titles, tables, and other content in **target language**.
+      - Write requirements, section titles, tables, and other content in **English language**.
       - Follow `.req/docs/Requirements_Template.md` translated into requested language.
       - Describe every project requirement clearly, succinctly, and unambiguously.
-      - Format the requirements as a bulleted list, using 'shall' or 'must' to indicate mandatory actions. Translate these terms using their closest equivalents in the **target language**.
+      - Format the requirements as a bulleted list.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).
       - Output the entire response in clean, properly formatted Markdown.
-3. Present results
+2. Present results
    - PRINT a structured summary (outline + key requirements + assumptions) in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user. The final line of the output must be EXACTLY "Requirements written!".
 
 <h2 id="users-request">User's Request</h2>

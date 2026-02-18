@@ -25,12 +25,12 @@ You must strictly adhere to the following classification of Doxygen tags. Missin
 
 ### A. MANDATORY TAGS (Must appear in every functional block)
 These tags define the core interface contract.
-* **`@brief`**: Immediate summary. atomic imperative statement.
+* **`@brief`**: Mandatory, a short single-line technical description of its specific action.
     * *Ex:* `@brief Initializes sensor array.`
-* **`@details`**: Detailed logical description. Must cover implementation strategy and complexity.
-* **`@param`**: Input definition. Must include type constraints if the language is dynamic.
+* **`@details`**: Mandatory,  detailed logical description. Must provide a high-density technical summary detailing critical algorithmic logic, complexity and side effects. Write description for other LLM **Agents**, NOT humans. Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
+* **`@param`**: Mandatory is params are defined, input definition. Must include type constraints if the language is dynamic.
     * *Ex:* `@param[in] id Unique identifier (UUIDv4 format).`
-* **`@return`** (or **`@retval`**): Output definition. Describe the data structure returned in a single block or list specific return values.
+* **`@return`** (or **`@retval`**): Mandatory, output definition. Describe the data structure returned in a single block or list specific return values.
     * *Ex:* `@return {bool} True if connection established; structure {x,y} otherwise.`
 
 ### B. CONTEXT-MANDATORY TAGS (Required based on logic)

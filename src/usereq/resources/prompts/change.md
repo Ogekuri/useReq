@@ -6,7 +6,10 @@ argument-hint: "Description of the requirements changes to implement"
 # Update the requirements and implement the corresponding changes
 
 ## Purpose
-Update the requirements document based on the user request and make the necessary source code changes to satisfy the updated requirements.
+Evolve existing system behavior safely by first updating the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) to encode the requested change, then implementing and verifying the corresponding code/test deltas with strict traceability to requirement IDs so downstream LLM Agents can reason over the change deterministically.
+
+## Scope
+In scope: patch-style edits to `%%DOC_PATH%%/REQUIREMENTS.md`, an implementation plan, code/test changes under %%SRC_PATHS%% and %%TEST_PATH%%, verification via the test suite, and updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, ending with a clean git commit. Out of scope: work that keeps requirements unchanged (use `/req.fix`, `/req.refactor`, or `/req.cover`), and any implementation not justified by the updated requirements.
 
 
 ## Professional Personas
@@ -113,7 +116,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Apply the outlined guidelines when documenting changes to the requirements (follow the existing style, structure, and language)
       - Never introduce new requirements solely to explicitly forbid functions/features/behaviors. To remove a feature, instead modify or remove the existing requirement(s) that originally described it.
       - Format the requirements as a bulleted list.
-      - Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
       - In this step, do not edit, create, delete, or rename any source code files in the project (including refactors or formatting-only changes).
@@ -157,9 +160,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
          -  Level 3+: Call Trace, specific Function/Method name (including sub functions) Called.
             -  Node Description, every *function node* entry must include the following information:
                -  `function_name()`: mandatory, the function name exactly as defined in the source code.
-               -  `short single-line`: mandatory, a short single-line technical description of its specific action.
                -  `filename`: mandatory, filename where the function is defined.
-               -  `description`: a high-density technical summary detailing critical algorithmic logic and side effects. Write description for other LLM **Agents** and Automated Parsers, NOT humans. Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
                -  `child nodes as child bullet-list`: optional, nested sub-function calls, in the same order as are called inside `function_name()`.
             -  Hierarchical Structure, child *function node* MUST be added to parent *function node* as child bullet-list. Do NOT add system, library or module functions (e.g., `os.walk()`, `re.sub()`, `<foobar>.open()`). Example:
                -  `parent_func1()`: `short single-line for parent_func1` [`filename where is declared parent_func1`]
@@ -181,7 +182,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
       - Commit a structured commit message with: `git commit -m "change(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
          - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
-         - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
+         - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
          - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
    - Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: Change request completed with unclean git repository!".
 9.  Present results

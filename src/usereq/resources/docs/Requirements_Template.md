@@ -80,7 +80,7 @@ This document shall always follow these rules:
   * All test requirements start with **TST-**
 - Every requirement shall be identifiable, verifiable, and testable.
 - Format the requirements as a bulleted list.
-- Utilizing 'shall' or 'must' to indicate mandatory actions. Translate 'shall'/'must' into their closest equivalents in the **target language**.
+- Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
 - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
 - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
 - On every change to this document:

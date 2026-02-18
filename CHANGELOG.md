@@ -33,7 +33,7 @@
 ## [0.0.69](https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69) - 2026-02-15
 ### ⛰️  Features
 - *(core)* add REFERENCES.md as source of true.
-- *(core)* set English language for WORKFLOW.md.
+- *(core)* set **English language** for WORKFLOW.md.
 - *(core)* add REFERENCES.md management and /req.references prompt.
 
 ### 🐛  Bug Fixes

@@ -6,7 +6,10 @@ argument-hint: "No arguments utilized by the prompt logic"
 # Write a REFERENCES.md using the project's source code
 
 ## Purpose
-Analyze the existing source code to generate a references file (`%%DOC_PATH%%/REFERENCES.md`) in the specified language, reflecting the current state of the project.
+Maintain a machine-usable reference index (`%%DOC_PATH%%/REFERENCES.md`) derived from repository evidence so downstream LLM Agents can quickly discover entrypoints, modules, dependencies, and other navigational anchors during SRS-driven work.
+
+## Scope
+In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in the specified language (following the prompt’s `req --references` workflow) and commit that doc change. Out of scope: changes to requirements, workflow docs, source code, or tests.
 
 
 ## Absolute Rules, Non-Negotiable
@@ -63,7 +66,7 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "docs(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
       - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
-      - Set `<DESCRIPTION>` to a short, clear summary in English language of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
+      - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
    - Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: References request completed with unclean git repository!".
 4. Present results
