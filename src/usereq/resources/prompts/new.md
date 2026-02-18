@@ -11,6 +11,9 @@ Introduce a new, backwards-compatible capability by first extending the normativ
 ## Scope
 In scope: patch-style updates to `%%DOC_PATH%%/REQUIREMENTS.md` that add the new feature requirements, an implementation plan, code/test changes under %%SRC_PATHS%% and %%TEST_PATH%%, verification via the test suite, updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and a clean git commit. Out of scope: breaking changes, migrations/compatibility conversions, or any feature work not captured as explicit requirements (report conflicts and terminate per prompt rules).
 
+## Usage
+Use this prompt when adding a strictly additive, backwards-compatible feature: append new requirement IDs to the SRS, then implement them. Do not use it when any existing requirement must be modified/removed or when breaking changes/migrations are required; use `/req.change` instead.
+
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
 - **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).

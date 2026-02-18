@@ -11,6 +11,9 @@ Produce a working implementation from the normative SRS (`%%DOC_PATH%%/REQUIREME
 ## Scope
 In scope: read `%%DOC_PATH%%/REQUIREMENTS.md`, implement/introduce source under %%SRC_PATHS%% (including new modules/files), add tests under %%TEST_PATH%%, verify via the test suite, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing requirements or introducing features not present in the SRS (use `/req.change` or `/req.new` to evolve requirements first).
 
+## Usage
+Use this prompt when the SRS is already authoritative and stable, but the codebase is missing large parts of the required implementation (greenfield or major gaps), and you must build functionality end-to-end without changing requirements. If only a small, known set of requirement IDs is uncovered in an otherwise working codebase, use `/req.cover` instead.
+
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
 - **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).

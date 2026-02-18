@@ -11,6 +11,9 @@ Maintain a machine-usable reference index (`%%DOC_PATH%%/REFERENCES.md`) derived
 ## Scope
 In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in English (following the prompt’s `req --references` workflow) and commit that doc change. Out of scope: changes to requirements, workflow docs, source code, or tests.
 
+## Usage
+Use this prompt when `%%DOC_PATH%%/REFERENCES.md` is missing or out of date and you need to regenerate the repository navigation/index from evidence, without touching requirements or implementation. Run it as a docs-maintenance step (especially when `/req.check` reports the file missing) or after structural repo changes to refresh entrypoints/modules/dependencies.
+
 
 ## Absolute Rules, Non-Negotiable
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the project’s home directory, except under `/tmp`, where creating temporary files and writing outputs is allowed (the only permitted location outside the project).

@@ -11,6 +11,9 @@ Maintain an LLM-oriented runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`) der
 ## Scope
 In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite only `%%DOC_PATH%%/WORKFLOW.md` in English only, following the mandated schema, then commit that doc change. Out of scope: changes to requirements, references, source code, or tests.
 
+## Usage
+Use this prompt when `%%DOC_PATH%%/WORKFLOW.md` is missing or out of date and you need to regenerate the runtime model from repository evidence, without touching requirements or implementation. Run it as a docs-maintenance step (especially when `/req.check` reports the file missing) or after implementation changes to refresh execution-unit/call-trace documentation.
+
 ## Canonical Terminology (MUST use these exact terms)
 - **Process**: an OS process execution unit (MUST include the main process).
 - **Thread**: an OS thread execution unit within a process.

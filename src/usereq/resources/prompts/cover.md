@@ -11,6 +11,9 @@ Close coverage gaps by implementing the missing behaviors for uncovered requirem
 ## Scope
 In scope: identify uncovered requirement IDs, implement minimal code changes under %%SRC_PATHS%%, add/adjust tests under %%TEST_PATH%% as needed, run verification, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing `%%DOC_PATH%%/REQUIREMENTS.md`, introducing new requirements/features, or performing large-scale rewrites (use `/req.implement` for “from scratch” rebuilds).
 
+## Usage
+Use this prompt after `/req.check` (or equivalent evidence) has identified specific uncovered requirement IDs in an otherwise existing codebase, and the goal is to implement minimal deltas to satisfy those IDs without changing the SRS. Do not use it when the SRS itself must change (`/req.change` or `/req.new`) or when the implementation is largely absent and needs end-to-end build-out (`/req.implement`).
+
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
 - **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).

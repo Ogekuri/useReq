@@ -11,6 +11,9 @@ Rebuild, reorganize, and deterministically renumber the SRS (`%%DOC_PATH%%/REQUI
 ## Scope
 In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only as evidence when needed) to rewrite `%%DOC_PATH%%/REQUIREMENTS.md` in English, including required ID mapping and complete renumbering per the prompt’s rules. Out of scope: any changes to source code, tests, `%%DOC_PATH%%/WORKFLOW.md`, or `%%DOC_PATH%%/REFERENCES.md`.
 
+## Usage
+Use this prompt when `%%DOC_PATH%%/REQUIREMENTS.md` already exists but needs deterministic reorganization and complete renumbering with an explicit old-ID → new-ID mapping, grounded in repository evidence. Do not use it for incremental requirement edits or for feature/behavior changes; use `/req.change` (modify existing requirements) or `/req.new` (append new requirements) instead.
+
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when analyzing source code to infer behavior: ensure every software requirement generated is atomic, unambiguous, and empirically testable.

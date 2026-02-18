@@ -11,6 +11,9 @@ Evolve existing system behavior safely by first updating the normative SRS (`%%D
 ## Scope
 In scope: patch-style edits to `%%DOC_PATH%%/REQUIREMENTS.md`, an implementation plan, code/test changes under %%SRC_PATHS%% and %%TEST_PATH%%, verification via the test suite, and updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, ending with a clean git commit. Out of scope: work that keeps requirements unchanged (use `/req.fix`, `/req.refactor`, or `/req.cover`), and any implementation not justified by the updated requirements.
 
+## Usage
+Use this prompt when the requested work changes existing requirements/behavior (you must edit/replace/remove requirement IDs), and you must update the SRS first and only then implement the corresponding code/test changes. Do not use it if the SRS must remain unchanged (use `/req.fix`, `/req.refactor`, `/req.cover`, or `/req.implement`). If the change is strictly additive (only append new requirement IDs without modifying existing ones), use `/req.new` instead.
+
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
 - **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).

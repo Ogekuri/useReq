@@ -11,6 +11,9 @@ Bootstrap an SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) from repository evidence so do
 ## Scope
 In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only as evidence when needed) to create/update `%%DOC_PATH%%/REQUIREMENTS.md` in English. Out of scope: any changes to source code, tests, `%%DOC_PATH%%/WORKFLOW.md`, or `%%DOC_PATH%%/REFERENCES.md`.
 
+## Usage
+Use this prompt when the repository already contains an implementation but the SRS is missing or incomplete, and you need to draft requirements that reflect current behavior from code evidence. Do not use it to reorganize and deterministically renumber an existing SRS with explicit ID mapping (use `/req.recreate`). Do not use it to implement changes.
+
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when analyzing source code to infer behavior: ensure every software requirement generated is atomic, unambiguous, and empirically testable.

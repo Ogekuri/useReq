@@ -11,6 +11,9 @@ Improve maintainability, structure, and/or performance while strictly preserving
 ## Scope
 In scope: internal refactors under %%SRC_PATHS%% (including private API reshaping) that preserve public interfaces/data formats, optional test adjustments only when objectively incorrect, verification via the test suite, updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and a clean git commit. Out of scope: editing requirements, introducing new features, or making intentional behavioral changes (use `/req.change` or `/req.new`).
 
+## Usage
+Use this prompt when the goal is purely internal improvement (structure/maintainability/performance) and externally observable behavior must remain unchanged; keep the SRS unchanged. Do not use it to fix defects relative to requirements (`/req.fix`) or to introduce/modify behavior (`/req.change` or `/req.new`).
+
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
 - **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).

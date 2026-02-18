@@ -6,11 +6,13 @@ argument-hint: "Description of the analysis/investigation to perform"
 # Produce an analysis report
 
 ## Purpose
-Enable evidence-backed reasoning about the user request by grounding the answer in the SRS (`%%DOC_PATH%%/REQUIREMENTS.md`), workflow/runtime model (`%%DOC_PATH%%/WORKFLOW.md`), references (`%%DOC_PATH%%/REFERENCES.md`), and the actual implementation, so downstream LLM Agents can choose the correct follow-up workflow with minimal re-discovery.
+Enable evidence-backed reasoning about a request or investigation by grounding conclusions in the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`), the runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`), references (`%%DOC_PATH%%/REFERENCES.md`), and the actual implementation, so downstream LLM Agents can choose the correct follow-up workflow with minimal re-discovery.
 
 ## Scope
-In scope: read-only analysis of the above documents plus source under %%SRC_PATHS%% (and tests only as evidence when explicitly needed) and tool-assisted extraction; output is an analysis report with concrete evidence (paths/line numbers). Out of scope: any repository modification (requirements/code/tests/docs), generating patches, or applying fixes.
- 
+In scope: read-only analysis of the above documents plus source under %%SRC_PATHS%% (and tests only as evidence when explicitly needed), including tool-assisted extraction; output is an analysis report with concrete evidence (paths/line numbers). Out of scope: any repository modification (requirements/code/tests/docs), generating patches, or applying fixes.
+
+## Usage
+Use this prompt to triage or investigate: when you need an evidence-backed understanding of the current SRS/docs/code to decide which next workflow applies (e.g., `/req.fix` vs `/req.refactor` vs `/req.change`, or whether a full `/req.check` audit is needed). Use it before making any changes; this workflow is strictly read-only.
 
 ## Professional Personas
 - **Act as a Senior System Engineer** when analyzing source code and directory structures to understand the system's architecture and logic.

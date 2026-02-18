@@ -11,6 +11,9 @@ Restore required behavior by diagnosing and fixing a defect while keeping the no
 ## Scope
 In scope: reproduce/triage the defect with concrete evidence, implement the smallest safe fix under %%SRC_PATHS%%, add regression tests under %%TEST_PATH%% when appropriate, run verification, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing requirements, adding new features, or refactoring beyond what is necessary to implement the fix safely.
 
+## Usage
+Use this prompt when behavior is incorrect relative to the current SRS (a defect), and the correct behavior is already specified by existing requirement IDs; keep the SRS unchanged and implement the smallest safe fix plus regression coverage. Do not use it when the request is actually a requirements/behavior change (`/req.change` or `/req.new`) or when the goal is purely internal restructuring with no behavioral impact (`/req.refactor`).
+
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
 - **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
