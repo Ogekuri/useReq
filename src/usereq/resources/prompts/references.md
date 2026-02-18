@@ -1,6 +1,8 @@
 ---
 description: "Write a REFERENCES.md using the project's source code"
 argument-hint: "No arguments utilized by the prompt logic"
+usage: >
+  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/REFERENCES.md: when that file is missing/outdated and you need to regenerate the repository navigation/index from evidence (entrypoints, modules, dependencies) and commit that doc change. Do NOT select if any other file (requirements, workflow, source, tests) must change; use /req.change, /req.new, /req.fix, /req.refactor, /req.cover, /req.implement, /req.create, or /req.recreate for those workflows. Do NOT select for read-only analysis/audits (use /req.analyze or /req.check).
 ---
 
 # Write a REFERENCES.md using the project's source code

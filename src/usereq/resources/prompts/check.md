@@ -1,6 +1,8 @@
 ---
 description: "Run the requirements check"
 argument-hint: "No arguments utilized by the prompt logic"
+usage: >
+  Select this prompt if you need a complete, repository-read-only compliance audit that outputs an OK/FAIL verdict for EVERY requirement ID in %%DOC_PATH%%/REQUIREMENTS.md, backed by concrete code/test evidence (and typically by running the test suite). Use after requirements/code changes to measure coverage and to produce a gap list + implementation-only technical report when FAILs exist. Do NOT select if you will modify any files (requirements/code/tests/docs) or implement fixes; downstream implementation should be done via /req.cover (small set of uncovered IDs), /req.implement (large/greenfield gaps), /req.fix, /req.refactor, /req.new, or /req.change depending on intent.
 ---
 
 # Run the requirements check

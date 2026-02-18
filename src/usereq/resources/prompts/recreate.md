@@ -1,6 +1,8 @@
 ---
 description: "Reorganize, update, and renumber the Software Requirements Specification draft based on source code analysis"
 argument-hint: "No arguments utilized by the prompt logic (English only)"
+usage: >
+  Select this prompt when %%DOC_PATH%%/REQUIREMENTS.md already exists but must be rebuilt into a clean structure and deterministically RENUMBERED, including an explicit old-ID → new-ID mapping, grounded in evidence from code under %%SRC_PATHS%%. Output is only the rewritten SRS (English), preserving meaning while improving organization and traceability; source code, tests, %%DOC_PATH%%/WORKFLOW.md, and %%DOC_PATH%%/REFERENCES.md must not change. Do NOT select for incremental requirement edits or behavior changes (use /req.change or /req.new), for drafting SRS from user request only (use /req.write), or for implementation/fixing/refactoring work (use /req.fix, /req.refactor, /req.cover, /req.implement).
 ---
 
 # Reorganize, update, and renumber the Software Requirements Specification draft based on source code analysis

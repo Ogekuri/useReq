@@ -1,6 +1,8 @@
 ---
 description: "Implement a new requirement and make the corresponding source code changes"
 argument-hint: "Description of the new requirement/feature to implement"
+usage: >
+  Select this prompt if and only if the work is a strictly additive, backwards-compatible feature: you will append new requirement IDs to %%DOC_PATH%%/REQUIREMENTS.md (no edits/removals of existing IDs), then implement and verify the corresponding code/tests under %%SRC_PATHS%%/%%TEST_PATH%% with traceability, and update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md. Do NOT select if any existing requirement must be modified/removed, or if breaking changes/migrations are needed (use /req.change). Do NOT select if requirements must remain unchanged (use /req.fix, /req.refactor, /req.cover, /req.implement) or for read-only analysis/audits (use /req.analyze or /req.check).
 ---
 
 # Implement a new requirement and make the corresponding source code changes

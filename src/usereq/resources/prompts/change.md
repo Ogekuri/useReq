@@ -1,6 +1,8 @@
 ---
 description: "Update the requirements and implement the corresponding changes"
 argument-hint: "Description of the requirements changes to implement"
+usage: >
+  Select this prompt if and only if the request requires changing existing requirements/behavior: you must edit/replace/remove existing requirement IDs in %%DOC_PATH%%/REQUIREMENTS.md (not just append), then implement the corresponding code/tests under %%SRC_PATHS%%/%%TEST_PATH%% with verification and traceability, and update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md. Do NOT select if the SRS must remain unchanged (use /req.fix, /req.refactor, /req.cover, or /req.implement). Do NOT select if the change is strictly additive/backwards-compatible and can be expressed only by appending new requirement IDs (use /req.new). Do NOT select for read-only auditing/triage (use /req.check or /req.analyze) or docs-only maintenance (use /req.workflow or /req.references).
 ---
 
 # Update the requirements and implement the corresponding changes

@@ -1,6 +1,8 @@
 ---
 description: "Fix a defect without changing the requirements"
 argument-hint: "Description of the defect/bug to fix"
+usage: >
+  Select this prompt when behavior is wrong relative to already-existing requirement IDs in %%DOC_PATH%%/REQUIREMENTS.md (a defect), and the intent is to restore compliance without changing the SRS. Use to reproduce/triage, implement the smallest safe code fix under %%SRC_PATHS%%, add regression tests under %%TEST_PATH%% when appropriate, verify, update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md, and commit. Do NOT select if the requested outcome changes requirements/behavior (use /req.change or /req.new), if the goal is structural/performance improvement with no behavioral change (use /req.refactor), or if the primary task is satisfying a set of uncovered requirement IDs (use /req.cover or /req.implement).
 ---
 
 # Fix a defect without changing the requirements
