@@ -90,7 +90,7 @@ def _get_available_tags_help() -> str:
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
     @return Configured ArgumentParser instance.
-    @details Defines all supported CLI arguments, flags, and help texts.
+    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --enable-skills).
     """
     version = load_package_version()
     usage = (
@@ -98,6 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
+        "[--enable-prompts] [--enable-agents] [--enable-skills] "
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
@@ -190,6 +191,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--enable-opencode",
         action="store_true",
         help="Enable generation of OpenCode prompts and agents for this run.",
+    )
+    parser.add_argument(
+        "--enable-prompts",
+        action="store_true",
+        help="Enable generation of prompt/command artifact files for each enabled provider.",
+    )
+    parser.add_argument(
+        "--enable-agents",
+        action="store_true",
+        help="Enable generation of agent artifact files for each enabled provider.",
+    )
+    parser.add_argument(
+        "--enable-skills",
+        action="store_true",
+        help="Enable generation of skill artifact files for each enabled provider.",
     )
     parser.add_argument(
         "--prompts-use-agents",
@@ -1343,6 +1359,8 @@ def run_remove(args: Namespace) -> None:
 
 def run(args: Namespace) -> None:
     """! @brief Handles the main initialization flow.
+    @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one of --enable-prompts, --enable-agents, --enable-skills.
+    @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type flags (enable_prompts, enable_agents, enable_skills).
     """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
@@ -1502,6 +1520,9 @@ def run(args: Namespace) -> None:
     enable_github = args.enable_github
     enable_kiro = args.enable_kiro
     enable_opencode = args.enable_opencode
+    enable_prompts = args.enable_prompts
+    enable_agents = args.enable_agents
+    enable_skills = args.enable_skills
     if not any(
         (
             enable_claude,
@@ -1515,7 +1536,14 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one --enable-* flag is required to generate prompts",
+            "Error: at least one --enable-* provider flag is required to generate prompts",
+            4,
+        )
+    if not any((enable_prompts, enable_agents, enable_skills)):
+        parser = build_parser()
+        parser.print_help()
+        raise ReqError(
+            "Error: at least one of --enable-prompts, --enable-agents, --enable-skills is required",
             4,
         )
 
@@ -1598,46 +1626,39 @@ def run(args: Namespace) -> None:
 
     codex_skills_root = None
     target_folders: list[Path] = []
-    if enable_codex:
+    if enable_codex and enable_prompts:
         target_folders.append(project_base / ".codex" / "prompts")
+    if enable_codex and enable_skills:
         codex_skills_root = project_base / ".codex" / "skills" / "req"
         target_folders.append(codex_skills_root)
-    if enable_github:
-        target_folders.extend(
-            [
-                project_base / ".github" / "agents",
-                project_base / ".github" / "prompts",
-            ]
-        )
-    if enable_gemini:
+    if enable_github and enable_agents:
+        target_folders.append(project_base / ".github" / "agents")
+    if enable_github and enable_prompts:
+        target_folders.append(project_base / ".github" / "prompts")
+    if enable_gemini and enable_prompts:
         target_folders.extend(
             [
                 project_base / ".gemini" / "commands",
                 project_base / ".gemini" / "commands" / "req",
             ]
         )
-    if enable_kiro:
+    if enable_kiro and enable_agents:
+        target_folders.append(project_base / ".kiro" / "agents")
+    if enable_kiro and enable_prompts:
+        target_folders.append(project_base / ".kiro" / "prompts")
+    if enable_claude and enable_agents:
+        target_folders.append(project_base / ".claude" / "agents")
+    if enable_claude and enable_prompts:
         target_folders.extend(
             [
-                project_base / ".kiro" / "agents",
-                project_base / ".kiro" / "prompts",
-            ]
-        )
-    if enable_claude:
-        target_folders.extend(
-            [
-                project_base / ".claude" / "agents",
                 project_base / ".claude" / "commands",
                 project_base / ".claude" / "commands" / "req",
             ]
         )
-    if enable_opencode:
-        target_folders.extend(
-            [
-                project_base / ".opencode" / "agent",
-                project_base / ".opencode" / "command",
-            ]
-        )
+    if enable_opencode and enable_agents:
+        target_folders.append(project_base / ".opencode" / "agent")
+    if enable_opencode and enable_prompts:
+        target_folders.append(project_base / ".opencode" / "command")
     for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -1720,7 +1741,7 @@ def run(args: Namespace) -> None:
                 configs.get("claude"), PROMPT, "claude"
             )
 
-        if enable_codex:
+        if enable_codex and enable_prompts:
             # .codex/prompts
             dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_codex_prompt.exists()
@@ -1730,36 +1751,36 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("prompts")
 
+        if enable_codex and enable_skills and codex_skills_root is not None:
             # .codex/skills/req/<prompt>/SKILL.md
-            if codex_skills_root is not None:
-                codex_skill_dir = codex_skills_root / PROMPT
-                codex_skill_dir.mkdir(parents=True, exist_ok=True)
-                codex_model = None
-                codex_tools = None
-                if configs:
-                    codex_model, codex_tools = get_model_tools_for_prompt(
-                        configs.get("codex"), PROMPT, "codex"
-                    )
-                codex_header_lines = [
-                    "---",
-                    f"name: req-{PROMPT}",
-                    f'description: "{desc_yaml}"',
-                ]
-                if include_models and codex_model:
-                    codex_header_lines.append(f"model: {codex_model}")
-                if include_tools and codex_tools:
-                    codex_header_lines.append(
-                        f"tools: {format_tools_inline_list(codex_tools)}"
-                    )
-                codex_skill_text = (
-                    "\n".join(codex_header_lines) + "\n---\n\n" + prompt_body_replaced
+            codex_skill_dir = codex_skills_root / PROMPT
+            codex_skill_dir.mkdir(parents=True, exist_ok=True)
+            codex_model = None
+            codex_tools = None
+            if configs:
+                codex_model, codex_tools = get_model_tools_for_prompt(
+                    configs.get("codex"), PROMPT, "codex"
                 )
-                if not codex_skill_text.endswith("\n"):
-                    codex_skill_text += "\n"
-                write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
-                modules_installed["codex"].add("skills")
+            codex_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{desc_yaml}"',
+            ]
+            if include_models and codex_model:
+                codex_header_lines.append(f"model: {codex_model}")
+            if include_tools and codex_tools:
+                codex_header_lines.append(
+                    f"tools: {format_tools_inline_list(codex_tools)}"
+                )
+            codex_skill_text = (
+                "\n".join(codex_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not codex_skill_text.endswith("\n"):
+                codex_skill_text += "\n"
+            write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
+            modules_installed["codex"].add("skills")
 
-        if enable_gemini:
+        if enable_gemini and enable_prompts:
             # Gemini TOML
             dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
             existed = dst_toml.exists()
@@ -1797,7 +1818,7 @@ def run(args: Namespace) -> None:
             prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("commands")
 
-        if enable_kiro:
+        if enable_kiro and enable_prompts:
             # .kiro/prompts
             dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
@@ -1807,7 +1828,7 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("prompts")
 
-        if enable_claude:
+        if enable_claude and enable_agents:
             # .claude/agents
             dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
             existed = dst_claude_agent.exists()
@@ -1833,7 +1854,7 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
             modules_installed["claude"].add("agents")
 
-        if enable_github:
+        if enable_github and enable_agents:
             # .github/agents
             dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
             existed = dst_gh_agent.exists()
@@ -1861,7 +1882,7 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
             modules_installed["github"].add("agents")
 
-        if enable_github:
+        if enable_github and enable_prompts:
             # .github/prompts
             dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
             existed = dst_gh_prompt.exists()
@@ -1893,7 +1914,7 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("prompts")
 
-        if enable_kiro:
+        if enable_kiro and enable_agents:
             # .kiro/agents
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()
@@ -1923,7 +1944,7 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
             modules_installed["kiro"].add("agents")
 
-        if enable_opencode:
+        if enable_opencode and enable_agents:
             # .opencode/agent
             dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
             existed = dst_opencode_agent.exists()
@@ -1955,6 +1976,7 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
             modules_installed["opencode"].add("agent")
 
+        if enable_opencode and enable_prompts:
             # .opencode/command
             dst_opencode_command = (
                 project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
@@ -1999,7 +2021,7 @@ def run(args: Namespace) -> None:
             prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("command")
 
-        if enable_claude:
+        if enable_claude and enable_prompts:
             # .claude/commands/req
             dst_claude_command = (
                 project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"

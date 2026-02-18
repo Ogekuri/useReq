@@ -71,7 +71,7 @@
         - `maybe_print_version()`: handles explicit version query [`src/usereq/cli.py:L230-L235`]
           - description: checks `--ver`/`--version`, prints value from `load_package_version()`, short-circuits command flow.
         - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L236-L239`]
-          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, update/remove, standalone file analysis/compression/token counting, and `--enable-line-numbers` routing for compression and construct extraction commands.
+          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, artifact-type flags (`--enable-prompts`, `--enable-agents`, `--enable-skills`), update/remove, standalone file analysis/compression/token counting, and `--enable-line-numbers` routing for compression and construct extraction commands.
         - `_is_standalone_command()`: identifies file-list execution mode [`src/usereq/cli.py:L2032-L2038`]
           - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress`, `--files-find` is set.
         - `_is_project_scan_command()`: identifies project source scan mode [`src/usereq/cli.py:L2041-L2046`]
@@ -80,7 +80,7 @@
 - Feature: Project initialization/update and provider resource generation
   - Module: `src/usereq/cli.py`
     - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py:L1186-L1989`]
-      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), performs version check and then writes project resources (`.req`, provider prompts/agents, docs, VS Code settings), finally emits installation report.
+      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), enforces at least one provider flag (exit code 4) and at least one artifact-type flag from `--enable-prompts`, `--enable-agents`, `--enable-skills` (exit code 4), performs version check and then writes project resources (`.req`, provider prompts/agents selected by compound provider+artifact-type conditions, docs, VS Code settings), finally emits installation report.
       - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py:L1145-L1184`]
         - description: validates incompatible flags, verifies `.req/config.json`, ignores explicit path flags in `--here` mode, executes online version notice check, removes generated resources and prunes empty provider directories.
       - `load_config()`: reads persisted initialization parameters [`src/usereq/cli.py:L502-L536`]
@@ -292,7 +292,7 @@
 - Requirements alignment evidence (`docs/REQUIREMENTS.md`)
   - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).
   - Version check flow aligns with REQ-016..REQ-017 (`docs/REQUIREMENTS.md:L259-L263`; `src/usereq/cli.py:L324-L363`).
-  - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`).
+  - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096, SRS-231 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`). Artifact-type flag enforcement (`--enable-prompts`, `--enable-agents`, `--enable-skills`) aligns with SRS-034, SRS-035, SRS-089..SRS-111, SRS-231 (`src/usereq/cli.py:L196-L211`, `L1523-L1548`, `L1629-L2024`).
   - Source analyzer, token, markdown, compression capabilities align with SRC-001..SRC-014, TOK-001..TOK-006, MKD-001..MKD-007, CMP-001..CMP-012 (`docs/REQUIREMENTS.md:L365-L415`; `src/usereq/source_analyzer.py`, `token_counter.py`, `generate_markdown.py`, `compress.py`, `compress_files.py`).
   - Construct extraction and comprehensive testing align with FND-001..FND-014, CMD-018..CMD-028, REQ-100 (`docs/REQUIREMENTS.md:L456-L487`; `src/usereq/find_constructs.py`, `tests/test_find_constructs_comprehensive.py`).
   - Documentation standards align with DOC-001..DOC-003 (`docs/REQUIREMENTS.md`; `src/usereq/*.py` Doxygen headers and docstrings).

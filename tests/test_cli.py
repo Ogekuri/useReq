@@ -52,6 +52,13 @@ PROVIDER_FLAGS = [
 ]
 """Provider-specific CLI flags that enable prompt generation."""
 
+ARTIFACT_TYPE_FLAGS = [
+    "--enable-prompts",
+    "--enable-agents",
+    "--enable-skills",
+]
+"""Artifact-type CLI flags that control which artifact categories are generated."""
+
 
 class TestCLI(unittest.TestCase):
     """Test suite for the useReq CLI command."""
@@ -99,6 +106,7 @@ class TestCLI(unittest.TestCase):
                     str(cls.TEST_DIR / "src"),
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -761,6 +769,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
                     str(cls.TEST_DIR / "lib"),
                     "--enable-codex",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
 
     @classmethod
@@ -916,6 +925,7 @@ class TestModelsAndTools(unittest.TestCase):
                     "--enable-tools",
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -997,6 +1007,7 @@ class TestModelsAndTools(unittest.TestCase):
                     str(self.TEST_DIR / "src"),
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
         gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
@@ -1031,6 +1042,7 @@ class TestModelsAndTools(unittest.TestCase):
                     "--enable-tools",
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -1097,6 +1109,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                     str(cls.TEST_DIR / "src"),
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1202,6 +1215,7 @@ class TestPromptsUseAgents(unittest.TestCase):
                     "--enable-tools",
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1281,6 +1295,7 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     "--enable-tools",
                 ]
                 + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1450,6 +1465,7 @@ class TestCLIWithoutClaude(unittest.TestCase):
                     str(cls.TEST_DIR / "src"),
                     "--enable-github",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
 
     @classmethod
@@ -1564,6 +1580,7 @@ class TestBasePrefixedRelativePaths(unittest.TestCase):
                     f"{self.BASE_ARG}/src",
                     "--enable-codex",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
         config = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
@@ -1619,6 +1636,7 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR / "src"),
                     ]
                     + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
                 )
 
         # Note: we do not check exit code because stdout capture might vary based on runner.
@@ -1652,6 +1670,7 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR / "src"),
                     ]
                     + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
                 )
 
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
@@ -1754,6 +1773,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--add-guidelines",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -1794,6 +1814,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "--upgrade-guidelines",
                         "--enable-claude",
                     ]
+                    + ARTIFACT_TYPE_FLAGS
                 )
         finally:
             cli.RESOURCE_ROOT = original_resource_root
@@ -1834,6 +1855,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "--upgrade-guidelines",
                         "--enable-claude",
                     ]
+                    + ARTIFACT_TYPE_FLAGS
                 )
         finally:
             cli.RESOURCE_ROOT = original_resource_root
@@ -1868,6 +1890,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--upgrade-guidelines",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
 
     def test_no_copy_without_flags(self) -> None:
@@ -1889,6 +1912,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "src",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -1936,6 +1960,7 @@ class TestPreserveModels(unittest.TestCase):
                     "src",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -1959,6 +1984,7 @@ class TestPreserveModels(unittest.TestCase):
                     "--preserve-models",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -1999,6 +2025,7 @@ class TestPreserveModels(unittest.TestCase):
                     "src",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
 
         # Create custom models.json
@@ -2021,6 +2048,7 @@ class TestPreserveModels(unittest.TestCase):
                     "--legacy",
                     "--enable-claude",
                 ]
+                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -2030,4 +2058,188 @@ class TestPreserveModels(unittest.TestCase):
             preserved_content["settings"]["marker"],
             "preserve-wins",
             "--preserve-models should take precedence over --legacy",
+        )
+
+
+class TestArtifactTypeFlags(unittest.TestCase):
+    """Verifies enforcement and behavior of --enable-prompts, --enable-agents, --enable-skills (SRS-231, SRS-035)."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-artifact-type-flags"
+    )
+
+    def setUp(self) -> None:
+        """Creates a clean temporary project directory before each test."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        """Removes the temporary project directory after each test."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def _base_args(self) -> list:
+        """Returns the base CLI args common to all test invocations."""
+        return [
+            "--base",
+            str(self.TEST_DIR),
+            "--docs-dir",
+            str(self.TEST_DIR / "docs"),
+            "--guidelines-dir",
+            str(self.TEST_DIR / "guidelines"),
+            "--tests-dir",
+            str(self.TEST_DIR / "tests"),
+            "--src-dir",
+            str(self.TEST_DIR / "src"),
+        ]
+
+    def test_requires_at_least_one_artifact_type_flag(self) -> None:
+        """SRS-035, SRS-231: CLI MUST exit with code 4 when no artifact-type flag is provided."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                exit_code = cli.main(
+                    self._base_args() + ["--enable-claude"]
+                )
+
+        self.assertEqual(
+            exit_code,
+            4,
+            "Missing artifact-type flag must cause exit code 4",
+        )
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "--enable-prompts",
+            written,
+            "Error message must mention --enable-prompts",
+        )
+
+    def test_enable_prompts_only_generates_prompt_artifacts(self) -> None:
+        """SRS-231: --enable-prompts generates only prompt/command artifacts; agent/skill dirs absent."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--enable-claude",
+                    "--enable-codex",
+                    "--enable-prompts",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "CLI must succeed with --enable-prompts")
+        # Prompt artifacts MUST exist
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "commands").is_dir(),
+            ".claude/commands must be created with --enable-prompts",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".codex" / "prompts").is_dir(),
+            ".codex/prompts must be created with --enable-prompts",
+        )
+        # Agent artifacts MUST NOT exist (--enable-agents not set)
+        self.assertFalse(
+            (self.TEST_DIR / ".claude" / "agents").exists(),
+            ".claude/agents must NOT be created without --enable-agents",
+        )
+        # Skill artifacts MUST NOT exist (--enable-skills not set)
+        self.assertFalse(
+            (self.TEST_DIR / ".codex" / "skills").exists(),
+            ".codex/skills must NOT be created without --enable-skills",
+        )
+
+    def test_enable_agents_only_generates_agent_artifacts(self) -> None:
+        """SRS-231: --enable-agents generates only agent artifacts; prompt/skill dirs absent."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--enable-claude",
+                    "--enable-codex",
+                    "--enable-agents",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "CLI must succeed with --enable-agents")
+        # Agent artifacts MUST exist
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "agents").is_dir(),
+            ".claude/agents must be created with --enable-agents",
+        )
+        # Prompt artifacts MUST NOT exist
+        self.assertFalse(
+            (self.TEST_DIR / ".claude" / "commands").exists(),
+            ".claude/commands must NOT be created without --enable-prompts",
+        )
+        # Codex prompt artifacts MUST NOT exist
+        self.assertFalse(
+            (self.TEST_DIR / ".codex" / "prompts").exists(),
+            ".codex/prompts must NOT be created without --enable-prompts",
+        )
+        # Skill artifacts MUST NOT exist
+        self.assertFalse(
+            (self.TEST_DIR / ".codex" / "skills").exists(),
+            ".codex/skills must NOT be created without --enable-skills",
+        )
+
+    def test_enable_skills_only_generates_skill_artifacts(self) -> None:
+        """SRS-231: --enable-skills generates only skill artifacts (Codex only); prompt/agent dirs absent."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--enable-claude",
+                    "--enable-codex",
+                    "--enable-skills",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "CLI must succeed with --enable-skills")
+        # Skill artifacts MUST exist (Codex)
+        self.assertTrue(
+            (self.TEST_DIR / ".codex" / "skills" / "req").is_dir(),
+            ".codex/skills/req must be created with --enable-skills",
+        )
+        # Prompt artifacts MUST NOT exist
+        self.assertFalse(
+            (self.TEST_DIR / ".codex" / "prompts").exists(),
+            ".codex/prompts must NOT be created without --enable-prompts",
+        )
+        # Agent artifacts MUST NOT exist
+        self.assertFalse(
+            (self.TEST_DIR / ".claude" / "agents").exists(),
+            ".claude/agents must NOT be created without --enable-agents",
+        )
+
+    def test_all_artifact_type_flags_enable_all_artifacts(self) -> None:
+        """SRS-231: All three flags together enable generation of all artifact categories."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--enable-claude",
+                    "--enable-codex",
+                    "--enable-prompts",
+                    "--enable-agents",
+                    "--enable-skills",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "CLI must succeed with all artifact-type flags")
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "commands").is_dir(),
+            ".claude/commands must exist",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "agents").is_dir(),
+            ".claude/agents must exist",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".codex" / "prompts").is_dir(),
+            ".codex/prompts must exist",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".codex" / "skills" / "req").is_dir(),
+            ".codex/skills/req must exist",
         )
