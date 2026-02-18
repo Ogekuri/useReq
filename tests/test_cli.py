@@ -803,30 +803,52 @@ class TestCLI(unittest.TestCase):
                 f"The file SKILL.md must exist in .opencode/skill/req/{skill}",
             )
 
-    def test_skill_description_is_purpose_scope_usage(self) -> None:
-        """SRS-232, SRS-095: Skill description MUST be single-line concatenation of Purpose, Scope, Usage."""
-        import re as _re
-        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
-        self.assertTrue(codex_skill.exists(), "Codex analyze SKILL.md must exist")
-        content = codex_skill.read_text(encoding="utf-8")
-        desc_match = _re.search(r'^description:\s*"(.*)"', content, _re.M)
-        self.assertIsNotNone(desc_match, "SKILL.md must have a quoted description field")
-        desc_value = desc_match.group(1)
-        # Must not be empty and must not contain embedded newlines.
-        self.assertGreater(len(desc_value), 0, "Skill description must not be empty")
-        self.assertNotIn("\\n", desc_value, "Skill description must not contain newlines")
-        # All skill providers MUST have the same description for the same prompt.
-        claude_skill = self.TEST_DIR / ".claude" / "skills" / "req" / "analyze" / "SKILL.md"
-        github_skill = self.TEST_DIR / ".github" / "skills" / "req" / "analyze" / "SKILL.md"
-        for other_skill in (claude_skill, github_skill):
-            other_content = other_skill.read_text(encoding="utf-8")
-            other_match = _re.search(r'^description:\s*"(.*)"', other_content, _re.M)
-            self.assertIsNotNone(other_match, f"{other_skill.name} must have description")
+    def test_skill_description_is_prompt_frontmatter_usage(self) -> None:
+        """
+        @brief Validates SKILL.md `description` derivation from prompt YAML front matter `usage`.
+        @details Confirms that the generated SKILL.md YAML `description` equals the single-line
+        normalized value of the source prompt YAML front matter `usage` for `analyze.md`, and that
+        all skill providers emit the same `description` for the same prompt name.
+        @return None
+        @see cli.extract_skill_description
+        @see cli.extract_frontmatter
+        """
+        import yaml as _yaml
+
+        prompt_path = cli.RESOURCE_ROOT / "prompts" / "analyze.md"
+        prompt_text = prompt_path.read_text(encoding="utf-8")
+        prompt_frontmatter, _prompt_body = cli.extract_frontmatter(prompt_text)
+        prompt_yaml = _yaml.safe_load(prompt_frontmatter)
+        self.assertIsInstance(prompt_yaml, dict, "Prompt front matter MUST parse as a YAML mapping")
+        expected_usage = " ".join(str(prompt_yaml.get("usage", "")).split())
+        self.assertGreater(len(expected_usage), 0, "Prompt front matter MUST contain non-empty usage")
+
+        skill_paths = [
+            self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md",
+            self.TEST_DIR / ".claude" / "skills" / "req" / "analyze" / "SKILL.md",
+            self.TEST_DIR / ".github" / "skills" / "req" / "analyze" / "SKILL.md",
+        ]
+        observed_descriptions: list[str] = []
+        for skill_path in skill_paths:
+            self.assertTrue(skill_path.exists(), f"{skill_path} must exist")
+            skill_text = skill_path.read_text(encoding="utf-8")
+            skill_frontmatter, _skill_body = cli.extract_frontmatter(skill_text)
+            skill_yaml = _yaml.safe_load(skill_frontmatter)
+            self.assertIsInstance(skill_yaml, dict, f"{skill_path} front matter MUST be a YAML mapping")
+            self.assertIn("description", skill_yaml, f"{skill_path} MUST include YAML field description")
+            observed_descriptions.append(str(skill_yaml.get("description", "")))
+
+        for observed in observed_descriptions:
             self.assertEqual(
-                desc_value,
-                other_match.group(1),
-                f"All skill providers must have the same description for the same prompt: {other_skill}",
+                expected_usage,
+                observed,
+                "SKILL.md description MUST equal normalized prompt front matter usage",
             )
+        self.assertEqual(
+            1,
+            len(set(observed_descriptions)),
+            "All skill providers MUST have identical description for the same prompt",
+        )
 
     def test_skill_front_matter_has_name_field(self) -> None:
         """SRS-095: Each SKILL.md must have a name field with prefix 'req-'."""

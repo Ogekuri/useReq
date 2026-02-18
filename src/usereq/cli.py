@@ -42,7 +42,6 @@ class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
     @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
     """
-
     def __init__(self, message: str, code: int = 1) -> None:
         """! @brief Initialize an expected CLI failure payload.
         @param message Human-readable error message.

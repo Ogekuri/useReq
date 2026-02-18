@@ -1,305 +1,138 @@
 # WORKFLOW
 
-- Feature: Doxygen source documentation generation
-  - Module: `doxygen.sh`
-    - `main()`: orchestrate Doxygen documentation generation pipeline [`doxygen.sh`]
-      - description: entrypoint sequence that installs EXIT cleanup trap for temporary config, validates runtime prerequisites and source path, resets output directories, emits dynamic Doxygen config with feature detection, executes doxygen, applies XML-to-Markdown fallback when native Markdown backend is unavailable, compiles LaTeX into PDF artifact, and prints deterministic generated-path summary.
-      - `check_prerequisites()`: validate required binaries and discover markdown backend support [`doxygen.sh`]
-        - description: verifies presence of `doxygen`, validates `src/` existence, probes `doxygen -x` for `GENERATE_MARKDOWN` support flag used by later config generation branch.
-      - `prepare_output_dirs()`: recreate output layout [`doxygen.sh`]
-        - description: removes stale `doxygen/html`, `doxygen/markdown`, `doxygen/pdf`, `doxygen/latex`, `doxygen/xml` and recreates root and PDF destination to ensure deterministic run artifacts.
-      - `write_doxyfile()`: materialize temporary Doxygen configuration [`doxygen.sh`]
-        - description: writes temporary config targeting `src/` with recursive traversal and full extraction options (`EXTRACT_ALL`, `EXTRACT_PRIVATE`, `EXTRACT_STATIC`, local classes, anonymous namespaces), enables HTML/LaTeX/XML outputs, and conditionally appends native Markdown directives when supported by runtime Doxygen version.
-      - `generate_markdown_fallback()`: synthesize markdown output from Doxygen XML index [`doxygen.sh`]
-        - description: creates `doxygen/markdown/index.md` by parsing `doxygen/xml/index.xml`, extracting compound kind/name/refid tuples, sorting deterministically, and emitting machine-parsable markdown list when native markdown output is unsupported.
-      - `build_pdf_output()`: compile and publish PDF artifact [`doxygen.sh`]
-        - description: validates LaTeX Makefile and required build tools (`make`, `pdflatex`), executes LaTeX build in `doxygen/latex`, verifies `refman.pdf` existence, and copies final artifact to `doxygen/pdf/refman.pdf`.
+## Execution Units Index
+- `PROC:main`: Process; `req` CLI runtime.
+  - Entrypoints: `__main__()` [`src/usereq/__main__.py`], `main(argv=None)` [`src/usereq/cli.py`]
+  - Primary role: Project initialization + artifact generation; file-scope utilities; project-scope utilities.
+- `THR:PROC:main#main`: Thread; Python main thread (single-threaded control flow).
+  - Parent: `PROC:main`
+  - Entrypoints: `__main__()` [`src/usereq/__main__.py`], `main(argv=None)` [`src/usereq/cli.py`]
+- `PROC:gha:release-uvx`: Process; GitHub Actions runner job `build-release` (tag push `v*`).
+  - Entrypoints: `workflow_release_uvx.build_release()` [`.github/workflows/release-uvx.yml`]
+- `THR:PROC:gha:release-uvx#main`: Thread; GitHub Actions runner main thread.
+  - Parent: `PROC:gha:release-uvx`
+  - Entrypoints: `workflow_release_uvx.build_release()` [`.github/workflows/release-uvx.yml`]
 
-- Feature: Documentation maintenance and comment conformance
-  - Module: `src/usereq/*.py`
-    - `module/class/function docstrings`: structured Doxygen normalization for parser-safe metadata extraction [`src/usereq/*.py`]
-      - description: each Python module/class/function docstring is normalized to include `@brief` blocks to maintain machine-interpretable documentation consistency without altering runtime behavior or call order.
+## Execution Units
 
-- Feature: Test suite discovery scoping
-  - Module: `pyproject.toml`
-    - `tool.pytest.ini_options.testpaths`: constrain default test discovery to canonical unit suite [`pyproject.toml`]
-      - description: configures `testpaths = ["tests"]` to prevent default collection of `import/tests`, avoiding `ImportPathMismatchError` caused by duplicate `tests.conftest` module names while preserving deterministic execution of the repository-owned suite.
+### PROC:main
+- Entrypoints
+  - `__main__()`: module execution boundary [`src/usereq/__main__.py`]
+  - `main(argv=None)`: CLI entrypoint; returns process exit code [`src/usereq/cli.py`]
+- Lifecycle/Trigger
+  - Trigger: OS invokes console script `req` OR `python -m usereq`.
+  - Termination: `sys.exit(exit_code)` [`src/usereq/__main__.py`].
+- Internal Call-Trace Tree
+  - `__main__()`: delegate to CLI main [`src/usereq/__main__.py`]
+    - `main(argv=None)`: argv-based dispatcher [`src/usereq/cli.py`]
+      - `build_parser()`: construct argparse schema [`src/usereq/cli.py`]
+      - `maybe_print_version(argv)`: version flag early-exit [`src/usereq/cli.py`]
+      - `parse_args(argv=None)`: parse argv into `Namespace` [`src/usereq/cli.py`]
+      - `_is_standalone_command(args)`: select file-scope commands [`src/usereq/cli.py`]
+        - External boundary: CLI parsing determines which branch executes.
+        - `run_files_tokens(paths)`: token report for explicit file list [`src/usereq/cli.py`]
+          - External boundary: filesystem reads of `paths`.
+          - `run_files_tokens(...)`: delegates token counting to `count_tokens_in_text(...)` [`src/usereq/token_counter.py`]
+        - `run_files_references(paths)`: references report for explicit file list [`src/usereq/cli.py`]
+          - `generate_markdown(...)`: render structured markdown with symbol index [`src/usereq/generate_markdown.py`]
+            - `SourceAnalyzer.analyze(...)`: extract source constructs [`src/usereq/source_analyzer.py`]
+            - `SourceAnalyzer.enrich(...)`: add names/signatures/Doxygen fields [`src/usereq/source_analyzer.py`]
+              - `parse_doxygen_comment(...)`: parse Doxygen tag payloads [`src/usereq/doxygen_parser.py`]
+            - `format_markdown(...)`: emit compact markdown payload [`src/usereq/source_analyzer.py`]
+        - `run_files_compress(paths)`: compression for explicit file list [`src/usereq/cli.py`]
+          - `compress_files(...)`: compact multi-file markdown emission [`src/usereq/compress_files.py`]
+            - External boundary: filesystem reads of `paths`.
+        - `run_files_find(args)`: construct extraction for explicit file list [`src/usereq/cli.py`]
+          - `find_constructs_in_files(...)`: extract tagged constructs [`src/usereq/find_constructs.py`]
+            - `SourceAnalyzer.analyze(...)`: extract source constructs [`src/usereq/source_analyzer.py`]
+            - `SourceAnalyzer.enrich(...)`: add names/signatures/Doxygen fields [`src/usereq/source_analyzer.py`]
+      - `_is_project_scan_command(args)`: select project-scope commands [`src/usereq/cli.py`]
+        - External boundary: `.req/config.json` presence when `--here` is used.
+        - `run_references(args)`: repo-wide references report [`src/usereq/cli.py`]
+          - `generate_markdown(...)`: render structured markdown with file tree + symbol index [`src/usereq/generate_markdown.py`]
+        - `run_compress_cmd(args)`: repo-wide compression [`src/usereq/cli.py`]
+          - `compress_files(...)`: compact multi-file markdown emission [`src/usereq/compress_files.py`]
+        - `run_tokens(args)`: docs token report [`src/usereq/cli.py`]
+          - `run_files_tokens(paths)`: token report for discovered docs files [`src/usereq/cli.py`]
+        - `run_find(args)`: repo-wide construct extraction [`src/usereq/cli.py`]
+          - `find_constructs_in_files(...)`: extract tagged constructs [`src/usereq/find_constructs.py`]
+      - `run(args)`: project initialization + provider artifact generation [`src/usereq/cli.py`]
+        - External boundary: filesystem writes under `project_base`.
+        - `ensure_doc_directory(...)`: validate docs directory constraints [`src/usereq/cli.py`]
+        - `ensure_test_directory(...)`: validate tests directory constraints [`src/usereq/cli.py`]
+        - `ensure_src_directory(...)`: validate source directory constraints [`src/usereq/cli.py`]
+        - `maybe_notify_newer_version(...)`: optional network version check [`src/usereq/cli.py`]
+        - `save_config(...)`: persist `.req/config.json` [`src/usereq/cli.py`]
+        - `list_docs_templates()`: discover packaged doc templates [`src/usereq/cli.py`]
+        - `find_requirements_template(...)`: select requirements template [`src/usereq/cli.py`]
+        - `generate_guidelines_file_list(...)`: compute `%%GUIDELINES_FILES%%` payload [`src/usereq/cli.py`]
+        - Provider artifact generation loop (per prompt file) [`src/usereq/cli.py`]
+          - `extract_frontmatter(content)`: split YAML front matter vs body [`src/usereq/cli.py`]
+          - `extract_description(frontmatter)`: prompt description for provider prompt/agent artifacts [`src/usereq/cli.py`]
+          - `extract_argument_hint(frontmatter)`: optional prompt argument hint [`src/usereq/cli.py`]
+          - `apply_replacements(text, replacements)`: token substitution in prompt payloads [`src/usereq/cli.py`]
+          - `extract_skill_description(frontmatter)`: derive skill `description` from prompt YAML `usage` [`src/usereq/cli.py`]
+            - External boundary: `yaml.safe_load(...)`.
+          - `yaml_double_quote_escape(value)`: YAML double-quote escaping [`src/usereq/cli.py`]
+          - `write_text_file(dst, text)`: filesystem write wrapper [`src/usereq/cli.py`]
+        - External boundary: provider-specific `models.json` parsing and optional model/tools emission.
+- External Boundaries
+  - Filesystem: directory creation; file read/write/copy; path resolution.
+  - Network: optional `maybe_notify_newer_version(...)`.
+  - YAML: `yaml.safe_load(...)` parsing prompt front matter.
+  - JSON: configuration/model loading via `json` module.
+  - GitHub Actions: not invoked by this process; separate execution unit.
 
-- Feature: Doxygen comment parsing and field extraction
-  - Module: `src/usereq/doxygen_parser.py`
-    - `parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]`: extract structured Doxygen tag fields from documentation comments [`src/usereq/doxygen_parser.py`]
-      - description: parses both @tag and \\tag syntax across 16 supported tags (@brief, @details, @param, @param[in], @param[out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @pre, @post), returns dictionary mapping normalized tag names to content lists, strips comment delimiters, normalizes whitespace.
-      - `_strip_comment_delimiters(text: str) -> str`: remove language-specific comment syntax [`src/usereq/doxygen_parser.py`]
-        - description: strips /**, */, //, #, triple quotes and intermediate column markers while preserving content.
-      - `_normalize_whitespace(text: str) -> str`: collapse and clean whitespace [`src/usereq/doxygen_parser.py`]
-        - description: collapses multiple spaces, strips trailing whitespace per line, removes consecutive blank lines.
-    - `format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]`: format extracted fields as Markdown bulleted list [`src/usereq/doxygen_parser.py`]
-      - description: emits fields in fixed tag order (DOXYGEN_TAGS), capitalizes tag labels, omits @ prefix, appends colon, skips absent tags.
+### THR:PROC:main#main
+- Entrypoints
+  - `__main__()`: module execution boundary [`src/usereq/__main__.py`]
+  - `main(argv=None)`: CLI entrypoint [`src/usereq/cli.py`]
+- Lifecycle/Trigger
+  - Trigger: created by OS process start; executes Python interpreter main thread.
+  - Termination: thread exit on `sys.exit(...)` / main return.
+- Internal Call-Trace Tree
+  - `main(argv=None)`: single-threaded call graph identical to `PROC:main` [`src/usereq/cli.py`]
+- External Boundaries
+  - None beyond `PROC:main` boundaries (thread is the execution locus for those boundaries).
 
-- Feature: Doxygen integration into source analysis pipeline
-  - Module: `src/usereq/source_analyzer.py`
-    - `SourceElement.doxygen_fields`: field storing parsed Doxygen tag dictionary [`src/usereq/source_analyzer.py`]
-      - description: dictionary populated by _extract_doxygen_fields() during enrichment phase, maps tag names to content lists.
-    - `SourceAnalyzer._extract_doxygen_fields(elements: list)`: extract Doxygen fields from associated comments [`src/usereq/source_analyzer.py`]
-      - description: for each non-comment element, resolves associated documentation comments with ordered adjacency rules (same-line postfix inline comment, nearest preceding non-inline comment within 2 lines, nearest following postfix non-inline comment within 2 lines), invokes parse_doxygen_comment(), stores results in element.doxygen_fields.
-      - `_is_postfix_doxygen_comment(comment_text: str) -> bool`: detect postfix association markers [`src/usereq/source_analyzer.py`]
-        - description: matches postfix markers (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to bind comment payload to the preceding construct when language syntax encodes trailing documentation.
-      - called by: `SourceAnalyzer.enrich()` after body annotation extraction when filepath is provided.
-    - `format_markdown()`: enhanced to render aggregated Doxygen fields as Markdown list with optional legacy annotation suppression [`src/usereq/source_analyzer.py`]
-      - description: before rendering each definition, computes aggregate Doxygen fields from both associated comments and in-body comments, emits ordered Markdown bullet fields via `format_doxygen_fields_as_markdown()`, and when `include_legacy_annotations=False` suppresses raw `L<n>>` comment/exit traces and standalone comment sections so output contains construct references plus Doxygen bullets only (DOX-009, MKD-007).
-      - `_collect_element_doxygen_fields()`: aggregate Doxygen tags for one definition [`src/usereq/source_analyzer.py`]
-        - description: merges `element.doxygen_fields` with parsed tags extracted from every tuple in `element.body_comments` using `parse_doxygen_comment()`.
-      - `_merge_doxygen_fields()`: deterministic dictionary merge helper for per-tag value lists [`src/usereq/source_analyzer.py`]
-        - description: appends per-tag value arrays preserving insertion order used by downstream markdown formatter.
-    - `find_constructs.format_construct()`: enhanced to include Doxygen fields after line range [`src/usereq/find_constructs.py`]
-      - description: aggregates Doxygen tags from both `element.doxygen_fields` (associated comments) and `element.body_comments` (comments within construct body), formats ordered Markdown bullets, and inserts them after "- Lines: ..." and before code block, preserving fallback without Doxygen lines when no tag is extracted (DOX-010, DOX-011).
-      - `_extract_construct_doxygen_fields()`: aggregate construct-scoped Doxygen tags [`src/usereq/find_constructs.py`]
-        - description: merges parser output from enriched associated comments plus per-body-comment parse results for each construct.
-      - `_merge_doxygen_fields()`: deterministic tag-list concatenation helper [`src/usereq/find_constructs.py`]
-        - description: appends values per tag key while preserving per-tag insertion order for deterministic Markdown output.
+### PROC:gha:release-uvx
+- Entrypoints
+  - `workflow_release_uvx.build_release()`: GitHub Actions job dispatcher [`.github/workflows/release-uvx.yml`]
+- Lifecycle/Trigger
+  - Trigger: GitHub event `push` with tag matching `v*` [`.github/workflows/release-uvx.yml`].
+  - Termination: job completion (success/failure) on runner.
+- Internal Call-Trace Tree
+  - `workflow_release_uvx.build_release()`: orchestrate release pipeline [`.github/workflows/release-uvx.yml`]
+    - `step.checkout()`: obtain repository content [`.github/workflows/release-uvx.yml`]
+      - External boundary: `actions/checkout@v4`.
+    - `step.setup_python()`: install Python runtime [`.github/workflows/release-uvx.yml`]
+      - External boundary: `actions/setup-python@v5`.
+    - `step.setup_uv()`: install `uv` toolchain [`.github/workflows/release-uvx.yml`]
+      - External boundary: `astral-sh/setup-uv@v3`.
+    - `step.install_build_dependencies()`: install build deps via `uv pip` [`.github/workflows/release-uvx.yml`]
+      - External boundary: package index + network + system site-packages.
+    - `step.build_distributions()`: build sdist/wheel via `python -m build` [`.github/workflows/release-uvx.yml`]
+      - External boundary: Python build backend + filesystem writes under `dist/`.
+    - `step.attest_build_provenance()`: provenance attestation [`.github/workflows/release-uvx.yml`]
+      - External boundary: `actions/attest-build-provenance@v1`.
+    - `step.create_release_and_upload_assets()`: publish release assets [`.github/workflows/release-uvx.yml`]
+      - External boundary: `softprops/action-gh-release@v2` + GitHub API.
+- External Boundaries
+  - GitHub-hosted runner environment + GitHub API.
+  - Third-party GitHub Actions.
+  - Package index/network.
 
-- Feature: CLI bootstrap and command dispatch
-  - Module: `src/usereq/__main__.py`
-    - `main()`: module execution entrypoint forwarding process exit code [`src/usereq/__main__.py:L1-L7`]
-      - description: imports `cli.main`, invokes it when executed as module, and returns its integer status through `sys.exit`.
-      - `main()`: centralized command router for all operational modes [`src/usereq/cli.py:L2141-L2192`]
-        - description: parses argv, dispatches precedence chain (`--uninstall` -> `--upgrade` -> `--version` -> standalone file commands -> project scan commands -> initialization), maps domain errors to stable non-zero exit codes via `ReqError`.
-        - `run_uninstall()`: delegates package removal to uv [`src/usereq/cli.py:L260-L277`]
-          - description: executes `uv tool uninstall usereq` using subprocess; raises `ReqError` for missing executable or non-zero return.
-        - `run_upgrade()`: delegates package upgrade to uv git source [`src/usereq/cli.py:L238-L257`]
-          - description: executes `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git`; propagates failures as `ReqError`.
-        - `maybe_print_version()`: handles explicit version query [`src/usereq/cli.py:L230-L235`]
-          - description: checks `--ver`/`--version`, prints value from `load_package_version()`, short-circuits command flow.
-        - `parse_args()`: builds namespace from parser spec [`src/usereq/cli.py:L236-L239`]
-          - description: wraps `build_parser().parse_args`, ensuring option set includes initialization, provider generation, artifact-type flags (`--enable-prompts`, `--enable-agents`, `--enable-skills`), update/remove, standalone file analysis/compression/token counting, and `--enable-line-numbers` routing for compression and construct extraction commands.
-        - `_is_standalone_command()`: identifies file-list execution mode [`src/usereq/cli.py:L2032-L2038`]
-          - description: returns true if any of `--files-tokens`, `--files-references`, `--files-compress`, `--files-find` is set.
-        - `_is_project_scan_command()`: identifies project source scan mode [`src/usereq/cli.py:L2041-L2046`]
-          - description: returns true if `--references`, `--compress`, `--tokens`, or `--find` is set.
+### THR:PROC:gha:release-uvx#main
+- Entrypoints
+  - `workflow_release_uvx.build_release()`: job dispatcher [`.github/workflows/release-uvx.yml`]
+- Lifecycle/Trigger
+  - Trigger: runner starts job execution.
+  - Termination: runner completes steps.
+- Internal Call-Trace Tree
+  - `workflow_release_uvx.build_release()`: single-threaded step execution [`.github/workflows/release-uvx.yml`]
+- External Boundaries
+  - None beyond `PROC:gha:release-uvx` boundaries (thread is the execution locus for those boundaries).
 
-- Feature: Project initialization/update and provider resource generation
-  - Module: `src/usereq/cli.py`
-    - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py`]
-      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), enforces at least one provider flag (exit code 4) and at least one artifact-type flag from `--enable-prompts`, `--enable-agents`, `--enable-skills` (exit code 4), performs version check and then writes project resources (`.req`, provider prompts/agents/skills selected by compound provider+artifact-type conditions — skills for Claude at `.claude/skills/req`, Gemini at `.gemini/skills/req`, Codex at `.codex/skills/req`, GitHub at `.github/skills/req`, Kiro at `.kiro/skills/req`, OpenCode at `.opencode/skill/req` — docs, VS Code settings), finally emits installation report. Skill SKILL.md front matter `description` is populated by `extract_skill_description(prompt_body)` (concatenation of Purpose, Scope, Usage sections) for all providers, distinct from agent/prompt `description` which comes from frontmatter `description:` field.
-      - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py`]
-        - description: validates incompatible flags, verifies `.req/config.json`, ignores explicit path flags in `--here` mode, executes online version notice check, removes generated resources (including skill directories `.claude/skills/req`, `.gemini/skills/req`, `.codex/skills/req`, `.github/skills/req`, `.kiro/skills/req`, `.opencode/skill/req`) and prunes empty provider directories.
-        - `remove_generated_resources(project_base)`: deletes all tool-managed directories and files [`src/usereq/cli.py`]
-          - description: unconditionally removes skill trees for all six providers and `.gemini/commands/req`, `.claude/commands/req`, `.req/docs`; removes `req.*` files from `.codex/prompts`, `.github/agents`, `.github/prompts`, `.kiro/agents`, `.kiro/prompts`, `.claude/agents`, `.claude/commands`, `.opencode/agent`, `.opencode/command`; deletes `.req/config.json` and entire `.req` root.
-      - `load_config()`: reads persisted initialization parameters [`src/usereq/cli.py:L502-L536`]
-        - description: loads `.req/config.json`, validates schema (`guidelines-dir`, `docs-dir`, `tests-dir`, `src-dir` list), supports legacy key aliases.
-      - `ensure_doc_directory()`: validates docs directory constraints [`src/usereq/cli.py:L366-L380`]
-        - description: normalizes candidate path and rejects non-directory/nonexistent/out-of-project values.
-      - `ensure_test_directory()`: validates tests directory constraints [`src/usereq/cli.py:L382-L396`]
-        - description: applies same guardrail policy as docs directory for tests path.
-      - `ensure_src_directory()`: validates each source directory constraint [`src/usereq/cli.py:L398-L412`]
-        - description: enforces existence, directory type, and containment under project base per source root.
-      - `make_relative_if_contains_project()`: canonicalizes incoming path forms [`src/usereq/cli.py:L414-L447`]
-        - description: converts absolute/project-prefixed paths to project-relative tokens while preserving fallback behavior for non-relativizable inputs.
-      - `save_config()`: persists normalized config in `.req/config.json` [`src/usereq/cli.py:L481-L500`]
-        - description: serializes effective directories (including repeated `src-dir`) after path normalization and validation.
-      - `maybe_notify_newer_version()`: performs remote version probe [`src/usereq/cli.py:L324-L363`]
-        - description: sends HTTP GET to GitHub releases API, parses JSON `tag_name`, compares with local version using `normalize_release_tag()`, `parse_version_tuple()`, and `is_newer_version()`, prints upgrade hint when newer release exists.
-      - `upgrade_guidelines_templates()`: optionally copies packaged guideline templates [`src/usereq/cli.py:L658-L689`]
-        - description: copies non-hidden files from `resources/guidelines` to user guidelines directory, honoring overwrite behavior for `--upgrade-guidelines` vs `--add-guidelines`; when source directory is empty, returns zero copied files without error.
-      - `generate_guidelines_file_list()`: computes token replacement for guideline inventory [`src/usereq/cli.py:L539-L564`]
-        - description: scans non-hidden files at guideline root, emits inline-code relative paths, falls back to directory token when empty.
-      - `list_docs_templates()`: resolves runtime docs template inventory [`src/usereq/cli.py:L914-L927`]
-        - description: enumerates non-hidden files in `resources/docs`, enforcing non-empty availability for downstream copy and generation flows.
-      - `find_requirements_template()`: resolves requirements template location [`src/usereq/cli.py:L930-L942`]
-        - description: selects `Requirements_Template.md` from runtime docs template inventory and fails fast when absent.
-      - `load_kiro_template()`: resolves Kiro agent template from centralized models config [`src/usereq/cli.py:L854-L885`]
-        - description: loads `models.json` or `models-legacy.json`, extracts `kiro.agent_template` string/object payload, errors on missing template.
-      - `load_centralized_models()`: loads provider model/tool metadata [`src/usereq/cli.py:L919-L967`]
-        - description: chooses source config by precedence (`.req/models.json` preserve path > legacy file > default file), parses JSON/JSONC via `load_settings()`, returns CLI-specific configuration map.
-      - `extract_frontmatter()`: splits prompt metadata/body [`src/usereq/cli.py`]
-        - description: enforces leading YAML frontmatter block for every prompt template.
-      - `extract_description()`: extracts prompt description field [`src/usereq/cli.py`]
-        - description: parses `description:` from frontmatter and normalizes escaping.
-      - `extract_argument_hint()`: extracts optional argument metadata [`src/usereq/cli.py`]
-        - description: returns normalized `argument-hint` value used by prompt command frontmatter.
-      - `_extract_section_text(body, section_name)`: collapses a named ## section to a single line [`src/usereq/cli.py`]
-        - description: scans body lines for `## <section_name>` heading (case-insensitive), collects non-empty lines until the next `##`-level heading, strips and collapses whitespace per line, joins with single space; returns empty string if section absent.
-      - `extract_skill_description(body)`: builds skill description from Purpose, Scope, Usage sections [`src/usereq/cli.py`]
-        - description: invokes `_extract_section_text` for Purpose, Scope, Usage in fixed order; joins non-empty section texts with single space; returns single-line YAML-safe string with no embedded newlines; used by all skill SKILL.md generators instead of frontmatter `description:` field.
-      - `apply_replacements()`: applies path token substitutions [`src/usereq/cli.py:L656-L660`]
-        - description: replaces `%%GUIDELINES_FILES%%`, `%%GUIDELINES_PATH%%`, `%%DOC_PATH%%`, `%%TEST_PATH%%`, and `%%SRC_PATHS%%` placeholders in prompt content.
-      - `md_to_toml()`: converts markdown prompt into Gemini TOML [`src/usereq/cli.py:L688-L713`]
-        - description: parses frontmatter/body, writes TOML with description and multiline prompt block, then provider-specific token replacement occurs via `replace_tokens()`.
-      - `render_kiro_agent()`: materializes Kiro JSON agent [`src/usereq/cli.py:L788-L827`]
-        - description: injects escaped template fields (`name`, `description`, `prompt`, `resources`) and conditionally includes `model` and tool lists; returns parsed JSON pretty format.
-      - `write_text_file()`: common file emission helper [`src/usereq/cli.py:L663-L667`]
-        - description: ensures parent directories and writes UTF-8 text, used by multiple provider emitters.
-      - `deep_merge_dict()`: merges VS Code settings recursively [`src/usereq/cli.py:L1035-L1042`]
-        - description: deep-merges template settings into existing settings with incoming precedence; used before writing `.vscode/settings.json`.
-      - `build_prompt_recommendations()`: computes prompt recommendation map [`src/usereq/cli.py:L1053-L1060`]
-        - description: builds `chat.promptFilesRecommendations` entries from prompt template filenames.
-
-- Feature: Standalone and project source-file command workflows
-  - Module: `src/usereq/cli.py`
-    - `run_files_tokens()`: token metrics for explicit file lists [`src/usereq/cli.py:L2049-L2065`]
-      - description: filters existing files, computes metrics through `count_files_metrics()`, formats report via `format_pack_summary()`, errors when no valid files remain.
-      - `count_files_metrics()`: computes per-file token/char metrics [`src/usereq/token_counter.py:L45-L70`]
-        - description: reads each file, counts tokens through shared encoder instance, captures read/parse errors as structured metric rows.
-      - `format_pack_summary()`: emits aggregate text summary [`src/usereq/token_counter.py:L73-L104`]
-        - description: accumulates totals and per-file status lines (ok/error) for stdout reporting.
-    - `run_files_references()`: markdown references for explicit file lists [`src/usereq/cli.py:L2197-L2203`]
-      - description: delegates to `generate_markdown()` passing `verbose=VERBOSE` and prints concatenated analysis output.
-      - `generate_markdown()`: file-wise analysis and markdown concatenation [`src/usereq/generate_markdown.py:L46-L95`]
-        - description: validates file existence and supported extension via `detect_language()`, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, computes total line count, emits markdown via `format_markdown(include_legacy_annotations=False)` to remove legacy `L<n>>` comment/exit traces, joins outputs with `---` separator, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
-    - `run_files_compress()`: compressed output for explicit file lists [`src/usereq/cli.py:L2206-L2219`]
-      - description: delegates to `compress_files()` and prints concatenated compressed payload; maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` and keeps line numbers disabled by default.
-      - `compress_files()`: compresses and concatenates file blocks [`src/usereq/compress_files.py:L30-L80`]
-        - description: validates each path/language, applies `compress_file()`, derives line interval from preserved `<n>:` markers via `_extract_line_range()`, emits each file block as `@@@ <path> | <lang>` + `- Lines: <start>-<end>` + triple-backtick fenced code payload, tracks ok/fail counters, errors if no valid file processed, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
-        - `compress_file()`: reads single file and delegates normalization/compression [`src/usereq/compress.py:L320-L343`]
-          - description: auto-detects language when not provided, reads source text, invokes `compress_source()`.
-          - `compress_source()`: comment-aware source minimization pipeline [`src/usereq/compress.py:L148-L317`]
-            - description: removes full-line and inline comments while preserving string literals, handles multiline comments/docstrings statefully, preserves indentation for indentation-sensitive languages, strips blank/trailing whitespace, and formats optional line-number prefixes.
-    - `run_files_find()`: construct extraction for explicit file lists [`src/usereq/cli.py:L2222-L2243`]
-      - description: validates minimum argument count (TAG, PATTERN, FILE), imports `format_available_tags()` to include available TAG listing in error messages when insufficient arguments provided, parses TAG and PATTERN from arguments, delegates to `find_constructs_in_files()` with remaining file paths, maps CLI flag `--enable-line-numbers` to `include_line_numbers=True` while keeping default output without line prefixes, forwards `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing.
-      - `_get_available_tags_help()`: generates TAG listing for CLI help text [`src/usereq/cli.py:L65-L75`]
-        - description: attempts to import `format_available_tags()` from `find_constructs` module to generate dynamic TAG listing for argument parser help display, returns fallback message if import fails.
-      - `find_constructs_in_files()`: filters and extracts matching constructs [`src/usereq/find_constructs.py:L219-L302`]
-        - description: parses pipe-separated tags via `parse_tag_filter()`, validates tag set is non-empty and raises `ValueError` with `format_available_tags()` output when empty, validates language-tag compatibility via `language_supports_tags()`, analyzes each file with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, filters elements via `construct_matches()` for tag and regex pattern, formats output with `format_construct()` (including aggregated Doxygen fields from associated + body comments and comment-stripped code payload), prefixes each file with `@@@ <path> | <lang>`, tracks match/skip/fail counters, errors with `format_available_tags()` output if no constructs found, and emits SKIP/OK/FAIL and summary status on stderr only when `verbose=True`.
-        - `format_available_tags()`: generates formatted TAG listing per language [`src/usereq/find_constructs.py:L40-L51`]
-          - description: iterates `LANGUAGE_TAGS` dictionary in sorted key order, sorts each language's tag set alphabetically, capitalizes language name, formats each entry as `- Language: TAG1, TAG2, ...` with comma-space separation, returns multi-line string for error messages and help text display.
-        - `parse_tag_filter()`: parses pipe-separated TAG string into normalized set [`src/usereq/find_constructs.py:L54-L59`]
-          - description: splits on `|`, strips whitespace, uppercases identifiers.
-        - `language_supports_tags()`: validates language-tag compatibility [`src/usereq/find_constructs.py`]
-          - description: checks intersection of requested tags with language-specific supported tags from `LANGUAGE_TAGS` map.
-        - `construct_matches()`: filters element by type and name pattern [`src/usereq/find_constructs.py`]
-          - description: tests if element type is in tag set and element name matches regex via `re.search()`.
-        - `format_construct()`: formats matched construct as markdown block [`src/usereq/find_constructs.py:L177-L217`]
-          - description: receives SourceElement instance and complete source file lines list, computes merged Doxygen field dictionary via `_extract_construct_doxygen_fields()`, emits ordered Markdown Doxygen bullets between `- Lines:` and fenced code block, and renders comment-stripped construct code from element.line_start/line_end via `_strip_construct_comments()` with optional `<n>:` prefixes.
-          - `_strip_construct_comments()`: removes comments and remaps optional line numbers [`src/usereq/find_constructs.py:L137-L175`]
-            - description: delegates language-aware stripping of inline/single-line/multi-line comments to `compress_source()`, keeps string literals intact, and remaps local compressed line indices to absolute source line numbers when `--enable-line-numbers` is active.
-          - `_extract_construct_doxygen_fields()`: aggregate parser results for one construct [`src/usereq/find_constructs.py:L114-L134`]
-            - description: merges `element.doxygen_fields` with parser results from each `element.body_comments` entry.
-          - `_merge_doxygen_fields()`: merge utility for Doxygen dictionaries [`src/usereq/find_constructs.py:L97-L111`]
-            - description: appends values for repeated tags to preserve deterministic output sequencing per tag.
-    - `run_references()`: project-wide markdown references [`src/usereq/cli.py:L2247-L2258`]
-      - description: resolves project source roots with `_resolve_project_src_dirs()`, recursively enumerates source files through `_collect_source_files()`, builds `# Files Structure` fenced tree through `_format_files_structure_markdown()`, then appends markdown from `generate_markdown(verbose=VERBOSE)`.
-      - `_format_files_structure_markdown()`: renders markdown wrapper for scanned source tree [`src/usereq/cli.py`]
-        - description: normalizes absolute scanned files to project-relative paths and emits a deterministic code-fenced tree section headed by `# Files Structure`.
-        - `_build_ascii_tree()`: deterministic ASCII tree renderer for relative paths [`src/usereq/cli.py`]
-          - description: materializes a nested path trie and renders `.`-rooted branch connectors (`├──`, `└──`) in lexical order for parser-stable output.
-    - `run_compress_cmd()`: project-wide compression [`src/usereq/cli.py:L2261-L2275`]
-      - description: shares `_resolve_project_src_dirs()` + `_collect_source_files()` path and invokes `compress_files()` with `include_line_numbers` derived from `--enable-line-numbers` and `verbose=VERBOSE`.
-    - `run_find()`: project-wide construct extraction [`src/usereq/cli.py:L2278-L2302`]
-      - description: resolves project source roots and files via `_resolve_project_src_dirs()` + `_collect_source_files()`, extracts TAG and PATTERN from `args.find`, delegates to `find_constructs_in_files()` with `include_line_numbers` derived from `--enable-line-numbers` and `verbose=VERBOSE`, catches `ValueError` exceptions and re-raises as `ReqError` with full error message including available TAG listing from `format_available_tags()`.
-    - `run_tokens()`: project docs token metrics [`src/usereq/cli.py:L2112-L2129`]
-      - description: resolves project base through `_resolve_project_base()`, uses `docs-dir` from `.req/config.json` when `--here` is active (ignoring explicit `--docs-dir`) otherwise validates explicit `--docs-dir` through `ensure_doc_directory()`, enumerates regular files directly under docs path, and delegates token report emission to `run_files_tokens()`.
-    - `_resolve_project_base()`: resolves execution base for project-scope commands [`src/usereq/cli.py:L2132-L2150`]
-      - description: enforces `--base` or `--here`, resolves absolute root path, and validates path existence for `--references`, `--compress`, and `--tokens`.
-    - `_resolve_project_src_dirs()`: derives source roots from args or config [`src/usereq/cli.py:L2153-L2172`]
-      - description: reuses `_resolve_project_base()`, loads configured `src-dir` from `.req/config.json` when `--here` is active (ignoring explicit `--src-dir`) and otherwise uses explicit `--src-dir` with config fallback, validates non-empty source root set.
-    - `_collect_source_files()`: recursive source discovery with exclusion filters [`src/usereq/cli.py:L2010-L2029`]
-      - description: walks each source root, prunes `EXCLUDED_DIRS`, keeps files with `SUPPORTED_EXTENSIONS`, and returns deterministic sorted path list.
-
-- Feature: Source analysis and markdown rendering engine
-  - Module: `src/usereq/source_analyzer.py`
-    - `SourceAnalyzer.analyze()`: lexical-pattern extraction of code elements [`src/usereq/source_analyzer.py:L690-L836`]
-      - description: normalizes language key, loads file lines, tracks multiline/single comments while avoiding string literal false-positives, matches per-language regex patterns from `LanguageSpec.patterns`, computes block ranges via `_find_block_end()`, and returns `SourceElement` entries.
-      - `build_language_specs()`: language-specific regex precedence matrix [`src/usereq/source_analyzer.py:L109-L650`]
-        - description: defines per-language ordered match precedence; Perl evaluates `CONSTANT` before `IMPORT` to keep `use constant` classified as constants, Zig evaluates `IMPORT` before generic `CONSTANT` to classify `@import` bindings correctly, Elixir `STRUCT` captures the full `defstruct` payload to preserve distinct struct identifiers across fixtures.
-      - `_find_comment()`: locates effective single-line comment start [`src/usereq/source_analyzer.py:L867-L900`]
-        - description: scans line while maintaining string delimiter state to avoid comment delimiters inside literals.
-      - `_find_block_end()`: language-family block boundary detection [`src/usereq/source_analyzer.py:L901-L975`]
-        - description: applies indentation strategy for Python/Haskell, brace matching for brace languages, and `end`-keyword strategy for Ruby/Elixir/Lua.
-    - `SourceAnalyzer.enrich()`: metadata enrichment pass [`src/usereq/source_analyzer.py:L979-L996`]
-      - description: sequentially enriches extracted elements with clean names, signatures, hierarchy depth, visibility, inheritance, and optional body comments/exit points.
-      - `_extract_body_annotations()`: scans definition bodies for comment and exit semantics [`src/usereq/source_analyzer.py:L1181-L1310`]
-        - description: re-reads full file and stores normalized body comment spans plus control-flow exits (`return`, `raise`, `throw`, `panic!`, process exits) per definition.
-    - `format_markdown()`: compact LLM-optimized markdown formatter [`src/usereq/source_analyzer.py:L1601-L1902`]
-      - description: emits header/imports/definitions/symbol-index sections with ordered Doxygen bullets for each construct; optional flag `include_legacy_annotations` gates legacy body comment/exit trace emission (`L<n>>`) and standalone comments section, enabling references-mode output without legacy traces.
-      - `_build_comment_maps()`: associates comments with nearest definitions [`src/usereq/source_analyzer.py:L1520-L1583`]
-        - description: builds adjacency map for preceding comments, standalone comments, and file-level description signal.
-      - `_render_body_annotations()`: emits ordered body comment/exit annotations [`src/usereq/source_analyzer.py:L1586-L1640`]
-        - description: merges comment and exit signals by line, excludes child ranges for parent containers, and outputs normalized line markers.
-
-- Feature: CI/CD release automation
-  - Module: `.github/workflows/release-uvx.yml`
-    - `build-release` job: tag-triggered build and release pipeline [`.github/workflows/release-uvx.yml:L1-L48`]
-      - description: on `push` tags `v*`, workflow checks out repository, sets Python+uv, installs build dependencies from `requirements.txt`, builds distributions (`python -m build`), attests provenance for `dist/*`, and creates GitHub release uploading built artifacts.
-
-- Cross-cutting common logic and side-effect map
-  - Module: Shared utility functions in `src/usereq/cli.py`
-    - `load_settings()`: JSON+JSONC loader [`src/usereq/cli.py:L908-L917`]
-      - description: parses strict JSON first, then retries after `strip_json_comments()` cleanup for JSONC-like files.
-    - `ensure_wrapped()`: deletion safety boundary check [`src/usereq/cli.py:L1063-L1070`]
-      - description: guards destructive operations by requiring target path to remain within resolved project root.
-    - `prune_empty_dirs()`: provider directory cleanup [`src/usereq/cli.py:L1092-L1103`]
-      - description: post-order traversal removing empty folders after removal workflow.
-
-- I/O boundary inventory
-  - Filesystem read operations
-    - `Path.read_text()` / `open(..., 'r')` in config/template/prompt/model/settings/source loading across `cli.py`, `generate_markdown.py`, `compress.py`, `token_counter.py`, `source_analyzer.py`.
-  - Filesystem write operations
-    - `Path.write_text()`, `shutil.copyfile()`, `shutil.copytree()`, `mkdir()`, `unlink()`, `rmtree()` in initialization/update/remove flows (`src/usereq/cli.py:L481-L500`, `L1105-L1143`, `L1311-L1928`), plus generated output writers in `compress_files.py` and markdown/compress CLIs (stdout).
-  - External API callss
-    - GitHub Releases API HTTP GET: `https://api.github.com/repos/Ogekuri/useReq/releases/latest` via `urllib.request.urlopen` in `maybe_notify_newer_version()` (`src/usereq/cli.py:L331-L363`).
-  - External process execution
-    - `subprocess.run()` for `uv tool install/uninstall` (`src/usereq/cli.py:L306-L348`).
-  - External database access
-    - No database client usage or DB connection logic detected in analyzed modules.
-
-- Feature: Comprehensive construct extraction testing
-  - Module: `tests/test_find_constructs_comprehensive.py`
-    - `TestFindConstructsComprehensive`: comprehensive test suite validating construct extraction across all languages [`tests/test_find_constructs_comprehensive.py:L319-L737`]
-      - description: validates find_constructs_in_files() for all language-construct combinations defined in FND-002, using fixture files to ensure correct extraction of constructs by tag filter and regex pattern.
-      - `test_language_tags_coverage()`: verifies EXPECTED_CONSTRUCTS covers all 20 supported languages [`tests/test_find_constructs_comprehensive.py:L358-L364`]
-        - description: ensures test coverage completeness by comparing required languages from LANGUAGE_TAGS against covered languages in EXPECTED_CONSTRUCTS dictionary.
-      - `test_fixture_exists()`: parametrized test verifying fixture file existence for each language [`tests/test_find_constructs_comprehensive.py:L366-L372`]
-        - description: ensures all 20 language fixtures exist in tests/fixtures/ directory using get_fixture_path() resolution.
-      - `test_fixture_has_minimum_five_constructs_per_tag()`: validates quantitative fixture density per TAG [`tests/test_find_constructs_comprehensive.py`]
-        - description: analyzes each fixture with `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, groups extracted names by `ElementType`, and asserts at least five distinct constructs for every tag required by `LANGUAGE_TAGS[language]` (FND-014).
-      - `test_extracts_five_distinct_construct_versions_per_tag()`: validates five extraction executions per language/tag [`tests/test_find_constructs_comprehensive.py`]
-        - description: for each `(language, tag)` pair in `LANGUAGE_TAGS`, computes distinct construct names from fixture analysis, enforces minimum cardinality `>=5`, then executes `find_constructs_in_files()` five times using anchored regex (`^<escaped_name>$`) and verifies tagged construct presence in each extraction output (REQ-100).
-      - `test_python_class_extraction()`: validates CLASS construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L376-L382`]
-        - description: extracts all CLASS constructs from Python fixture and verifies presence of expected classes defined in EXPECTED_CONSTRUCTS mapping.
-      - `test_python_function_extraction()`: validates FUNCTION construct extraction from Python fixture [`tests/test_find_constructs_comprehensive.py:L384-L392`]
-        - description: extracts FUNCTION constructs and verifies subset of key functions including async_function and generator_function.
-      - `test_c_struct_extraction()`: validates STRUCT construct extraction from C fixture [`tests/test_find_constructs_comprehensive.py:L410-L416`]
-        - description: extracts all STRUCT constructs and verifies presence of expected struct definitions.
-      - `test_rust_trait_extraction()`: validates TRAIT construct extraction from Rust fixture [`tests/test_find_constructs_comprehensive.py:L439-L445`]
-        - description: extracts TRAIT constructs and verifies presence of MyTrait and Parser trait definitions.
-      - `test_pattern_matching_case_sensitive()`: validates case-sensitive regex pattern matching [`tests/test_find_constructs_comprehensive.py:L512-L518`]
-        - description: tests anchored regex patterns to ensure exact matching without false positives from partial name matches.
-      - `test_multiple_tags_extraction()`: validates extraction with pipe-separated multiple tag filter [`tests/test_find_constructs_comprehensive.py:L528-L533`]
-        - description: extracts constructs matching multiple types (CLASS|FUNCTION) with pattern filter to verify tag union semantics.
-
-- Feature: Fixture-driven Doxygen association testing
-  - Module: `tests/test_doxygen_parser.py`
-    - `TestFixtureDoxygenFieldExtraction.test_extracts_expected_fields_for_each_construct_in_fixture()`: validates Doxygen extraction for all constructs in each fixture [`tests/test_doxygen_parser.py`]
-      - description: iterates all `tests/fixtures/fixture_*.*`, resolves language by extension, executes `SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()`, and asserts per-construct `doxygen_fields` against deterministic expected fields computed from explicit comment association precedence.
-      - `_expected_doxygen_fields_for_construct()`: deterministic comment-to-construct oracle [`tests/test_doxygen_parser.py`]
-        - description: selects associated comment using same-line postfix inline markers, nearest preceding non-inline comments, and nearest following postfix non-inline comments, then parses expected fields with `parse_doxygen_comment()`.
-      - `_is_postfix_comment_text()`: postfix marker classifier for fixture expectations [`tests/test_doxygen_parser.py`]
-        - description: classifies trailing Doxygen syntaxes (`#!<`, `//!<`, `///<`, `/*!<`, `/**<`) to validate languages where documentation is placed after the construct.
-
-- Feature: Command-level references Doxygen verification
-  - Module: `tests/test_files_commands.py`
-    - `test_files_references_extracts_doxygen_fields_for_each_fixture()`: validates `--files-references` across all fixtures [`tests/test_files_commands.py`]
-      - description: parametrizes all `tests/fixtures/fixture_*.*`, derives deterministic expected per-construct Doxygen payload from static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + `_collect_reference_rendered_elements()` + `_aggregate_reference_doxygen_fields()`), enforces source/output label-count parity, asserts ordered semantic Doxygen line sequences, verifies absence of legacy `L<n>>` traces, and validates tag ordering.
-    - `test_files_references_cli_log_emits_brief_and_param()`: validates semantic extraction on repository CLI source [`tests/test_files_commands.py`]
-      - description: executes `--files-references` on `src/usereq/cli.py`, extracts block `def log(msg: str) -> None`, asserts exact lines `- Brief: Prints an informational message.` and `- Param: msg The message string to print.`.
-    - `test_files_references_without_doxygen_outputs_only_construct_reference()`: validates no-Doxygen fallback behavior [`tests/test_files_commands.py`]
-      - description: executes `--files-references` on a synthetic undecorated function and asserts construct reference presence without any Doxygen bullet tags, plus absence of legacy `L<n>>` traces.
-    - `test_references_extracts_doxygen_fields_from_fixture_project()`: validates project-scan `--references` Doxygen output [`tests/test_files_commands.py`]
-      - description: builds temporary project config (`.req/config.json` with `src-dir`), executes `--references` in `--here` mode, checks `# Files Structure` preamble, enforces source/output label-count parity, verifies deterministic semantic Doxygen sequences and ordering, and enforces absence of legacy `L<n>>` traces.
-    - `test_references_cli_log_emits_brief_and_param()`: validates semantic extraction on project-scan flow [`tests/test_files_commands.py`]
-      - description: creates temp project with copied `cli.py`, executes `--here --references`, extracts block `def log(msg: str) -> None`, asserts exact lines `- Brief: Prints an informational message.` and `- Param: msg The message string to print.`.
-    - `TestFindCommandsDoxygen.test_files_find_extracts_doxygen_fields_for_each_fixture()`: validates `--files-find` Doxygen extraction on all fixtures [`tests/test_files_commands.py`]
-      - description: parametrizes all fixture files, builds language-specific TAG filters from `LANGUAGE_TAGS`, derives deterministic expected Doxygen bullets per construct via static analysis (`SourceAnalyzer.analyze()` + `SourceAnalyzer.enrich()` + body-comment parsing), and asserts output block-by-block using `type/name/line-range` identity.
-    - `TestFindCommandsDoxygen.test_find_extracts_doxygen_fields_for_each_fixture()`: validates `--find` Doxygen extraction on fixture-backed project scans [`tests/test_files_commands.py`]
-      - description: creates temporary project with `.req/config.json` and copied fixture under configured `src-dir`, executes `--here --find`, verifies deterministic Doxygen bullets/order for each extracted construct block.
-    - `TestFindCommandsDoxygen.test_files_find_without_doxygen_outputs_only_construct_reference()` + `TestFindCommandsDoxygen.test_find_without_doxygen_outputs_only_construct_reference()`: validates fallback without Doxygen bullets [`tests/test_files_commands.py`]
-      - description: executes both command paths on synthetic undecorated function, asserts construct metadata is present and Doxygen bullet labels are absent between `- Lines:` and code fence.
-
-- Requirements alignment evidence (`docs/REQUIREMENTS.md`)
-  - CLI routing and options align with REQ-001..REQ-015 and CMD-001..CMD-014 (`docs/REQUIREMENTS.md:L232-L434`; `src/usereq/cli.py:L57-L217`, `L2032-L2175`).
-  - Version check flow aligns with REQ-016..REQ-017 (`docs/REQUIREMENTS.md:L259-L263`; `src/usereq/cli.py:L324-L363`).
-  - Initialization/config/resource generation aligns with REQ-018..REQ-074, REQ-082..REQ-096, SRS-231 (`docs/REQUIREMENTS.md:L264-L350`; `src/usereq/cli.py:L1186-L1989`). Artifact-type flag enforcement (`--enable-prompts`, `--enable-agents`, `--enable-skills`) aligns with SRS-034, SRS-035, SRS-089..SRS-111, SRS-231 (`src/usereq/cli.py:L196-L211`, `L1523-L1548`, `L1629-L2024`).
-  - Source analyzer, token, markdown, compression capabilities align with SRC-001..SRC-014, TOK-001..TOK-006, MKD-001..MKD-007, CMP-001..CMP-012 (`docs/REQUIREMENTS.md:L365-L415`; `src/usereq/source_analyzer.py`, `token_counter.py`, `generate_markdown.py`, `compress.py`, `compress_files.py`).
-  - Construct extraction and comprehensive testing align with FND-001..FND-014, CMD-018..CMD-028, REQ-100 (`docs/REQUIREMENTS.md:L456-L487`; `src/usereq/find_constructs.py`, `tests/test_find_constructs_comprehensive.py`).
-  - Documentation standards align with DOC-001..DOC-003 (`docs/REQUIREMENTS.md`; `src/usereq/*.py` Doxygen headers and docstrings).
-  - CI workflow aligns with REQ-078..REQ-081 (`docs/REQUIREMENTS.md:L358-L363`; `.github/workflows/release-uvx.yml:L1-L48`).
+## Communication Edges
+- None observed between internal execution units under `src/` and `.github/workflows/`.
+  - Evidence: `src/usereq/` contains no thread spawning, IPC, sockets, or multiprocessing primitives; `.github/workflows/release-uvx.yml` defines a single job without matrix/fan-out.
