@@ -897,6 +897,51 @@ def extract_purpose_first_bullet(body: str) -> str:
     raise ReqError("Error: no bullet found under the '## Purpose' section.", 7)
 
 
+def _extract_section_text(body: str, section_name: str) -> str:
+    """! @brief Extracts and collapses the text content of a named ## section.
+    @details Scans `body` line by line for a heading matching `## <section_name>`
+    (case-insensitive). Collects all subsequent non-empty lines until the next
+    `##`-level heading (or end of string). Strips each line, joins with a single
+    space, and returns the collapsed single-line result.
+    @param[in] body str -- Full prompt body text (after front matter removal).
+    @param[in] section_name str -- Target section name without `##` prefix (case-insensitive match).
+    @return str -- Single-line collapsed text of the section; empty string if section absent or empty.
+    """
+    lines = body.splitlines()
+    start_idx = None
+    for idx, line in enumerate(lines):
+        if line.strip().lower() == f"## {section_name.lower()}":
+            start_idx = idx + 1
+            break
+    if start_idx is None:
+        return ""
+    parts: list[str] = []
+    for line in lines[start_idx:]:
+        stripped = line.strip()
+        if stripped.startswith("##"):
+            break
+        if stripped:
+            parts.append(" ".join(stripped.split()))
+    return " ".join(parts)
+
+
+def extract_skill_description(body: str) -> str:
+    """! @brief Concatenates Purpose, Scope, and Usage section texts into a single YAML-safe line.
+    @details Invokes `_extract_section_text` for each of the three canonical sections in fixed
+    order: Purpose, Scope, Usage. Non-empty section texts are joined with a single space.
+    Absent sections are omitted. Result contains no newlines and no leading/trailing whitespace.
+    @param[in] body str -- Full prompt body text (after front matter removal).
+    @return str -- Single-line concatenation of Purpose, Scope, and Usage section texts.
+    @see _extract_section_text
+    """
+    parts: list[str] = []
+    for section in ("purpose", "scope", "usage"):
+        text = _extract_section_text(body, section)
+        if text:
+            parts.append(text)
+    return " ".join(parts)
+
+
 def json_escape(value: str) -> str:
     """! @brief Escapes a string for JSON without external delimiters.
     """
@@ -1274,8 +1319,13 @@ def remove_generated_resources(project_base: Path) -> None:
     """
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
+        project_base / ".gemini" / "skills" / "req",
         project_base / ".claude" / "commands" / "req",
+        project_base / ".claude" / "skills" / "req",
         project_base / ".codex" / "skills" / "req",
+        project_base / ".github" / "skills" / "req",
+        project_base / ".kiro" / "skills" / "req",
+        project_base / ".opencode" / "skill" / "req",
         project_base / ".req" / "docs",
     ]
     remove_globs = [
@@ -1625,6 +1675,11 @@ def run(args: Namespace) -> None:
     dlog(f"TOKEN_GUIDELINES_DIR={token_guidelines_dir}")
 
     codex_skills_root = None
+    claude_skills_root = None
+    gemini_skills_root = None
+    opencode_skills_root = None
+    github_skills_root = None
+    kiro_skills_root = None
     target_folders: list[Path] = []
     if enable_codex and enable_prompts:
         target_folders.append(project_base / ".codex" / "prompts")
@@ -1635,6 +1690,9 @@ def run(args: Namespace) -> None:
         target_folders.append(project_base / ".github" / "agents")
     if enable_github and enable_prompts:
         target_folders.append(project_base / ".github" / "prompts")
+    if enable_github and enable_skills:
+        github_skills_root = project_base / ".github" / "skills" / "req"
+        target_folders.append(github_skills_root)
     if enable_gemini and enable_prompts:
         target_folders.extend(
             [
@@ -1642,10 +1700,16 @@ def run(args: Namespace) -> None:
                 project_base / ".gemini" / "commands" / "req",
             ]
         )
+    if enable_gemini and enable_skills:
+        gemini_skills_root = project_base / ".gemini" / "skills" / "req"
+        target_folders.append(gemini_skills_root)
     if enable_kiro and enable_agents:
         target_folders.append(project_base / ".kiro" / "agents")
     if enable_kiro and enable_prompts:
         target_folders.append(project_base / ".kiro" / "prompts")
+    if enable_kiro and enable_skills:
+        kiro_skills_root = project_base / ".kiro" / "skills" / "req"
+        target_folders.append(kiro_skills_root)
     if enable_claude and enable_agents:
         target_folders.append(project_base / ".claude" / "agents")
     if enable_claude and enable_prompts:
@@ -1655,10 +1719,16 @@ def run(args: Namespace) -> None:
                 project_base / ".claude" / "commands" / "req",
             ]
         )
+    if enable_claude and enable_skills:
+        claude_skills_root = project_base / ".claude" / "skills" / "req"
+        target_folders.append(claude_skills_root)
     if enable_opencode and enable_agents:
         target_folders.append(project_base / ".opencode" / "agent")
     if enable_opencode and enable_prompts:
         target_folders.append(project_base / ".opencode" / "command")
+    if enable_opencode and enable_skills:
+        opencode_skills_root = project_base / ".opencode" / "skill" / "req"
+        target_folders.append(opencode_skills_root)
     for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -1734,6 +1804,7 @@ def run(args: Namespace) -> None:
 
         # Precompute description and Claude metadata so provider blocks can reuse them safely.
         desc_yaml = yaml_double_quote_escape(description)
+        skill_desc_yaml = yaml_double_quote_escape(extract_skill_description(prompt_body))
         claude_model = None
         claude_tools = None
         if configs:
@@ -1764,7 +1835,7 @@ def run(args: Namespace) -> None:
             codex_header_lines = [
                 "---",
                 f"name: req-{PROMPT}",
-                f'description: "{desc_yaml}"',
+                f'description: "{skill_desc_yaml}"',
             ]
             if include_models and codex_model:
                 codex_header_lines.append(f"model: {codex_model}")
@@ -2063,6 +2134,148 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("commands")
+
+        if enable_claude and enable_skills and claude_skills_root is not None:
+            # .claude/skills/req/<prompt>/SKILL.md
+            claude_skill_dir = claude_skills_root / PROMPT
+            claude_skill_dir.mkdir(parents=True, exist_ok=True)
+            claude_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and claude_model:
+                claude_skill_header_lines.append(f"model: {claude_model}")
+            if include_tools and claude_tools:
+                claude_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(claude_tools)}"
+                )
+            claude_skill_text = (
+                "\n".join(claude_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not claude_skill_text.endswith("\n"):
+                claude_skill_text += "\n"
+            write_text_file(claude_skill_dir / "SKILL.md", claude_skill_text)
+            modules_installed["claude"].add("skills")
+
+        if enable_gemini and enable_skills and gemini_skills_root is not None:
+            # .gemini/skills/req/<prompt>/SKILL.md
+            gemini_skill_dir = gemini_skills_root / PROMPT
+            gemini_skill_dir.mkdir(parents=True, exist_ok=True)
+            gemini_skill_model = None
+            gemini_skill_tools = None
+            if configs:
+                gemini_skill_model, gemini_skill_tools = get_model_tools_for_prompt(
+                    configs.get("gemini"), PROMPT, "gemini"
+                )
+            gemini_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and gemini_skill_model:
+                gemini_skill_header_lines.append(f"model: {gemini_skill_model}")
+            if include_tools and gemini_skill_tools:
+                gemini_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(gemini_skill_tools)}"
+                )
+            gemini_skill_text = (
+                "\n".join(gemini_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not gemini_skill_text.endswith("\n"):
+                gemini_skill_text += "\n"
+            write_text_file(gemini_skill_dir / "SKILL.md", gemini_skill_text)
+            modules_installed["gemini"].add("skills")
+
+        if enable_github and enable_skills and github_skills_root is not None:
+            # .github/skills/req/<prompt>/SKILL.md
+            github_skill_dir = github_skills_root / PROMPT
+            github_skill_dir.mkdir(parents=True, exist_ok=True)
+            github_skill_model = None
+            github_skill_tools = None
+            if configs:
+                github_skill_model, github_skill_tools = get_model_tools_for_prompt(
+                    configs.get("copilot"), PROMPT, "copilot"
+                )
+            github_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and github_skill_model:
+                github_skill_header_lines.append(f"model: {github_skill_model}")
+            if include_tools and github_skill_tools:
+                github_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(github_skill_tools)}"
+                )
+            github_skill_text = (
+                "\n".join(github_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not github_skill_text.endswith("\n"):
+                github_skill_text += "\n"
+            write_text_file(github_skill_dir / "SKILL.md", github_skill_text)
+            modules_installed["github"].add("skills")
+
+        if enable_kiro and enable_skills and kiro_skills_root is not None:
+            # .kiro/skills/req/<prompt>/SKILL.md
+            kiro_skill_dir = kiro_skills_root / PROMPT
+            kiro_skill_dir.mkdir(parents=True, exist_ok=True)
+            kiro_skill_model, kiro_skill_tools = get_model_tools_for_prompt(
+                kiro_config, PROMPT, "kiro"
+            )
+            kiro_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and kiro_skill_model:
+                kiro_skill_header_lines.append(f"model: {kiro_skill_model}")
+            if include_tools and isinstance(kiro_skill_tools, list) and kiro_skill_tools:
+                kiro_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(kiro_skill_tools)}"
+                )
+            kiro_skill_text = (
+                "\n".join(kiro_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not kiro_skill_text.endswith("\n"):
+                kiro_skill_text += "\n"
+            write_text_file(kiro_skill_dir / "SKILL.md", kiro_skill_text)
+            modules_installed["kiro"].add("skills")
+
+        if enable_opencode and enable_skills and opencode_skills_root is not None:
+            # .opencode/skill/req/<prompt>/SKILL.md
+            opencode_skill_dir = opencode_skills_root / PROMPT
+            opencode_skill_dir.mkdir(parents=True, exist_ok=True)
+            opencode_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if configs:
+                oc_skill_model, _ = get_model_tools_for_prompt(
+                    configs.get("opencode"), PROMPT, "opencode"
+                )
+                oc_skill_tools_raw = get_raw_tools_for_prompt(
+                    configs.get("opencode"), PROMPT
+                )
+                if include_models and oc_skill_model:
+                    opencode_skill_header_lines.append(f"model: {oc_skill_model}")
+                if include_tools and oc_skill_tools_raw is not None:
+                    if isinstance(oc_skill_tools_raw, list):
+                        opencode_skill_header_lines.append(
+                            f"tools: {format_tools_inline_list(oc_skill_tools_raw)}"
+                        )
+                    elif isinstance(oc_skill_tools_raw, str):
+                        opencode_skill_header_lines.append(
+                            f'tools: "{yaml_double_quote_escape(oc_skill_tools_raw)}"'
+                        )
+            opencode_skill_text = (
+                "\n".join(opencode_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not opencode_skill_text.endswith("\n"):
+                opencode_skill_text += "\n"
+            write_text_file(opencode_skill_dir / "SKILL.md", opencode_skill_text)
+            modules_installed["opencode"].add("skills")
 
     templates_target = req_root / "docs"
     if templates_target.exists():

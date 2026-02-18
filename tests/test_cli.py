@@ -243,17 +243,31 @@ class TestCLI(unittest.TestCase):
                 f"The file SKILL.md must exist in .codex/skills/req/{skill}",
             )
 
-    def test_codex_skill_contents_match_github_agent(self) -> None:
-        """REQ-096: Verifies Codex SKILL.md matches GitHub agent rendering."""
+    def test_codex_skill_front_matter_structure(self) -> None:
+        """SRS-095: Verifies Codex SKILL.md front matter has correct name and skill description."""
         codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
         github_agent = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
         self.assertTrue(codex_skill.exists(), "The Codex SKILL.md must exist")
         self.assertTrue(github_agent.exists(), "The GitHub agent must exist")
-        self.assertEqual(
-            codex_skill.read_text(encoding="utf-8"),
-            github_agent.read_text(encoding="utf-8"),
-            "Codex SKILL.md must match the GitHub agent content",
+        codex_content = codex_skill.read_text(encoding="utf-8")
+        agent_content = github_agent.read_text(encoding="utf-8")
+        self.assertIn("name: req-analyze", codex_content, "SKILL.md must have name field")
+        self.assertIn("description:", codex_content, "SKILL.md must have description field")
+        # Extract description values from each file's front matter.
+        import re as _re
+        codex_desc_match = _re.search(r'^description:\s*"(.*)"', codex_content, _re.M)
+        agent_desc_match = _re.search(r'^description:\s*"(.*)"', agent_content, _re.M)
+        self.assertIsNotNone(codex_desc_match, "SKILL.md must have quoted description")
+        self.assertIsNotNone(agent_desc_match, "GitHub agent must have quoted description")
+        # Skill description MUST differ from agent description (different source: sections vs front matter).
+        self.assertNotEqual(
+            codex_desc_match.group(1),
+            agent_desc_match.group(1),
+            "Skill description must be built from Purpose/Scope/Usage sections, not front matter",
         )
+        # Skill description must be a non-empty single-line string (no embedded newlines).
+        self.assertGreater(len(codex_desc_match.group(1)), 0, "Skill description must not be empty")
+        self.assertNotIn("\\n", codex_desc_match.group(1), "Skill description must be single-line")
 
     def test_github_agent_files_created(self) -> None:
         """REQ-003, REQ-053: Verifies copy of files into .github/agents with front matter name."""
@@ -683,6 +697,154 @@ class TestCLI(unittest.TestCase):
             first_resource,
             "The first resource must be the prompt .kiro/prompts/req.analyze.md",
         )
+
+    def test_claude_skills_directory_created(self) -> None:
+        """SRS-233: Verifies the creation of the .claude/skills/req directory."""
+        claude_skills = self.TEST_DIR / ".claude" / "skills" / "req"
+        self.assertTrue(
+            claude_skills.is_dir(), "The directory .claude/skills/req must exist"
+        )
+
+    def test_claude_skill_files_created(self) -> None:
+        """SRS-233: Verifies creation of SKILL.md for each Claude skill."""
+        claude_skills = self.TEST_DIR / ".claude" / "skills" / "req"
+        expected_skills = [
+            "analyze", "change", "check", "cover", "fix",
+            "new", "refactor", "recreate", "write",
+        ]
+        for skill in expected_skills:
+            skill_path = claude_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .claude/skills/req/{skill}",
+            )
+
+    def test_gemini_skills_directory_created(self) -> None:
+        """SRS-234: Verifies the creation of the .gemini/skills/req directory."""
+        gemini_skills = self.TEST_DIR / ".gemini" / "skills" / "req"
+        self.assertTrue(
+            gemini_skills.is_dir(), "The directory .gemini/skills/req must exist"
+        )
+
+    def test_gemini_skill_files_created(self) -> None:
+        """SRS-234: Verifies creation of SKILL.md for each Gemini skill."""
+        gemini_skills = self.TEST_DIR / ".gemini" / "skills" / "req"
+        expected_skills = [
+            "analyze", "change", "check", "cover", "fix",
+            "new", "refactor", "recreate", "write",
+        ]
+        for skill in expected_skills:
+            skill_path = gemini_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .gemini/skills/req/{skill}",
+            )
+
+    def test_github_skills_directory_created(self) -> None:
+        """SRS-236: Verifies the creation of the .github/skills/req directory."""
+        github_skills = self.TEST_DIR / ".github" / "skills" / "req"
+        self.assertTrue(
+            github_skills.is_dir(), "The directory .github/skills/req must exist"
+        )
+
+    def test_github_skill_files_created(self) -> None:
+        """SRS-236: Verifies creation of SKILL.md for each GitHub/Copilot skill."""
+        github_skills = self.TEST_DIR / ".github" / "skills" / "req"
+        expected_skills = [
+            "analyze", "change", "check", "cover", "fix",
+            "new", "refactor", "recreate", "write",
+        ]
+        for skill in expected_skills:
+            skill_path = github_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .github/skills/req/{skill}",
+            )
+
+    def test_kiro_skills_directory_created(self) -> None:
+        """SRS-237: Verifies the creation of the .kiro/skills/req directory."""
+        kiro_skills = self.TEST_DIR / ".kiro" / "skills" / "req"
+        self.assertTrue(
+            kiro_skills.is_dir(), "The directory .kiro/skills/req must exist"
+        )
+
+    def test_kiro_skill_files_created(self) -> None:
+        """SRS-237: Verifies creation of SKILL.md for each Kiro skill."""
+        kiro_skills = self.TEST_DIR / ".kiro" / "skills" / "req"
+        expected_skills = [
+            "analyze", "change", "check", "cover", "fix",
+            "new", "refactor", "recreate", "write",
+        ]
+        for skill in expected_skills:
+            skill_path = kiro_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .kiro/skills/req/{skill}",
+            )
+
+    def test_opencode_skills_directory_created(self) -> None:
+        """SRS-235: Verifies the creation of the .opencode/skill/req directory."""
+        opencode_skills = self.TEST_DIR / ".opencode" / "skill" / "req"
+        self.assertTrue(
+            opencode_skills.is_dir(), "The directory .opencode/skill/req must exist"
+        )
+
+    def test_opencode_skill_files_created(self) -> None:
+        """SRS-235: Verifies creation of SKILL.md for each OpenCode skill."""
+        opencode_skills = self.TEST_DIR / ".opencode" / "skill" / "req"
+        expected_skills = [
+            "analyze", "change", "check", "cover", "fix",
+            "new", "refactor", "recreate", "write",
+        ]
+        for skill in expected_skills:
+            skill_path = opencode_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .opencode/skill/req/{skill}",
+            )
+
+    def test_skill_description_is_purpose_scope_usage(self) -> None:
+        """SRS-232, SRS-095: Skill description MUST be single-line concatenation of Purpose, Scope, Usage."""
+        import re as _re
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        self.assertTrue(codex_skill.exists(), "Codex analyze SKILL.md must exist")
+        content = codex_skill.read_text(encoding="utf-8")
+        desc_match = _re.search(r'^description:\s*"(.*)"', content, _re.M)
+        self.assertIsNotNone(desc_match, "SKILL.md must have a quoted description field")
+        desc_value = desc_match.group(1)
+        # Must not be empty and must not contain embedded newlines.
+        self.assertGreater(len(desc_value), 0, "Skill description must not be empty")
+        self.assertNotIn("\\n", desc_value, "Skill description must not contain newlines")
+        # All skill providers MUST have the same description for the same prompt.
+        claude_skill = self.TEST_DIR / ".claude" / "skills" / "req" / "analyze" / "SKILL.md"
+        github_skill = self.TEST_DIR / ".github" / "skills" / "req" / "analyze" / "SKILL.md"
+        for other_skill in (claude_skill, github_skill):
+            other_content = other_skill.read_text(encoding="utf-8")
+            other_match = _re.search(r'^description:\s*"(.*)"', other_content, _re.M)
+            self.assertIsNotNone(other_match, f"{other_skill.name} must have description")
+            self.assertEqual(
+                desc_value,
+                other_match.group(1),
+                f"All skill providers must have the same description for the same prompt: {other_skill}",
+            )
+
+    def test_skill_front_matter_has_name_field(self) -> None:
+        """SRS-095: Each SKILL.md must have a name field with prefix 'req-'."""
+        skills_to_check = [
+            self.TEST_DIR / ".codex" / "skills" / "req" / "change" / "SKILL.md",
+            self.TEST_DIR / ".claude" / "skills" / "req" / "change" / "SKILL.md",
+            self.TEST_DIR / ".github" / "skills" / "req" / "change" / "SKILL.md",
+            self.TEST_DIR / ".gemini" / "skills" / "req" / "change" / "SKILL.md",
+            self.TEST_DIR / ".kiro" / "skills" / "req" / "change" / "SKILL.md",
+            self.TEST_DIR / ".opencode" / "skill" / "req" / "change" / "SKILL.md",
+        ]
+        for skill_path in skills_to_check:
+            content = skill_path.read_text(encoding="utf-8")
+            self.assertIn(
+                "name: req-change",
+                content,
+                f"{skill_path} must contain 'name: req-change'",
+            )
 
 
 class TestGuidelinesPathReplacement(unittest.TestCase):
@@ -2186,7 +2348,7 @@ class TestArtifactTypeFlags(unittest.TestCase):
         )
 
     def test_enable_skills_only_generates_skill_artifacts(self) -> None:
-        """SRS-231: --enable-skills generates only skill artifacts (Codex only); prompt/agent dirs absent."""
+        """SRS-231, SRS-094: --enable-skills generates skill artifacts for each enabled provider; prompt/agent dirs absent."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
@@ -2197,10 +2359,14 @@ class TestArtifactTypeFlags(unittest.TestCase):
                 ]
             )
         self.assertEqual(exit_code, 0, "CLI must succeed with --enable-skills")
-        # Skill artifacts MUST exist (Codex)
+        # Skill artifacts MUST exist for each enabled provider
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "skills" / "req").is_dir(),
             ".codex/skills/req must be created with --enable-skills",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "skills" / "req").is_dir(),
+            ".claude/skills/req must be created with --enable-skills",
         )
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
@@ -2234,6 +2400,10 @@ class TestArtifactTypeFlags(unittest.TestCase):
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "agents").is_dir(),
             ".claude/agents must exist",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "skills" / "req").is_dir(),
+            ".claude/skills/req must exist",
         )
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "prompts").is_dir(),

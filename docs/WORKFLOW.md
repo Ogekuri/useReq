@@ -79,10 +79,12 @@
 
 - Feature: Project initialization/update and provider resource generation
   - Module: `src/usereq/cli.py`
-    - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py:L1186-L1989`]
-      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), enforces at least one provider flag (exit code 4) and at least one artifact-type flag from `--enable-prompts`, `--enable-agents`, `--enable-skills` (exit code 4), performs version check and then writes project resources (`.req`, provider prompts/agents selected by compound provider+artifact-type conditions, docs, VS Code settings), finally emits installation report.
-      - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py:L1145-L1184`]
-        - description: validates incompatible flags, verifies `.req/config.json`, ignores explicit path flags in `--here` mode, executes online version notice check, removes generated resources and prunes empty provider directories.
+    - `run()`: orchestrates validation, config normalization, token substitution, and artifact emission [`src/usereq/cli.py`]
+      - description: validates mutually exclusive flags and required directories, normalizes/guards project-relative paths, loads persisted configuration for `--update` and for `--here` (with explicit path flags ignored in `--here` mode), enforces at least one provider flag (exit code 4) and at least one artifact-type flag from `--enable-prompts`, `--enable-agents`, `--enable-skills` (exit code 4), performs version check and then writes project resources (`.req`, provider prompts/agents/skills selected by compound provider+artifact-type conditions — skills for Claude at `.claude/skills/req`, Gemini at `.gemini/skills/req`, Codex at `.codex/skills/req`, GitHub at `.github/skills/req`, Kiro at `.kiro/skills/req`, OpenCode at `.opencode/skill/req` — docs, VS Code settings), finally emits installation report. Skill SKILL.md front matter `description` is populated by `extract_skill_description(prompt_body)` (concatenation of Purpose, Scope, Usage sections) for all providers, distinct from agent/prompt `description` which comes from frontmatter `description:` field.
+      - `run_remove()`: alternate flow when `--remove` is active [`src/usereq/cli.py`]
+        - description: validates incompatible flags, verifies `.req/config.json`, ignores explicit path flags in `--here` mode, executes online version notice check, removes generated resources (including skill directories `.claude/skills/req`, `.gemini/skills/req`, `.codex/skills/req`, `.github/skills/req`, `.kiro/skills/req`, `.opencode/skill/req`) and prunes empty provider directories.
+        - `remove_generated_resources(project_base)`: deletes all tool-managed directories and files [`src/usereq/cli.py`]
+          - description: unconditionally removes skill trees for all six providers and `.gemini/commands/req`, `.claude/commands/req`, `.req/docs`; removes `req.*` files from `.codex/prompts`, `.github/agents`, `.github/prompts`, `.kiro/agents`, `.kiro/prompts`, `.claude/agents`, `.claude/commands`, `.opencode/agent`, `.opencode/command`; deletes `.req/config.json` and entire `.req` root.
       - `load_config()`: reads persisted initialization parameters [`src/usereq/cli.py:L502-L536`]
         - description: loads `.req/config.json`, validates schema (`guidelines-dir`, `docs-dir`, `tests-dir`, `src-dir` list), supports legacy key aliases.
       - `ensure_doc_directory()`: validates docs directory constraints [`src/usereq/cli.py:L366-L380`]
@@ -109,12 +111,16 @@
         - description: loads `models.json` or `models-legacy.json`, extracts `kiro.agent_template` string/object payload, errors on missing template.
       - `load_centralized_models()`: loads provider model/tool metadata [`src/usereq/cli.py:L919-L967`]
         - description: chooses source config by precedence (`.req/models.json` preserve path > legacy file > default file), parses JSON/JSONC via `load_settings()`, returns CLI-specific configuration map.
-      - `extract_frontmatter()`: splits prompt metadata/body [`src/usereq/cli.py:L716-L723`]
+      - `extract_frontmatter()`: splits prompt metadata/body [`src/usereq/cli.py`]
         - description: enforces leading YAML frontmatter block for every prompt template.
-      - `extract_description()`: extracts prompt description field [`src/usereq/cli.py:L725-L730`]
+      - `extract_description()`: extracts prompt description field [`src/usereq/cli.py`]
         - description: parses `description:` from frontmatter and normalizes escaping.
-      - `extract_argument_hint()`: extracts optional argument metadata [`src/usereq/cli.py:L733-L738`]
+      - `extract_argument_hint()`: extracts optional argument metadata [`src/usereq/cli.py`]
         - description: returns normalized `argument-hint` value used by prompt command frontmatter.
+      - `_extract_section_text(body, section_name)`: collapses a named ## section to a single line [`src/usereq/cli.py`]
+        - description: scans body lines for `## <section_name>` heading (case-insensitive), collects non-empty lines until the next `##`-level heading, strips and collapses whitespace per line, joins with single space; returns empty string if section absent.
+      - `extract_skill_description(body)`: builds skill description from Purpose, Scope, Usage sections [`src/usereq/cli.py`]
+        - description: invokes `_extract_section_text` for Purpose, Scope, Usage in fixed order; joins non-empty section texts with single space; returns single-line YAML-safe string with no embedded newlines; used by all skill SKILL.md generators instead of frontmatter `description:` field.
       - `apply_replacements()`: applies path token substitutions [`src/usereq/cli.py:L656-L660`]
         - description: replaces `%%GUIDELINES_FILES%%`, `%%GUIDELINES_PATH%%`, `%%DOC_PATH%%`, `%%TEST_PATH%%`, and `%%SRC_PATHS%%` placeholders in prompt content.
       - `md_to_toml()`: converts markdown prompt into Gemini TOML [`src/usereq/cli.py:L688-L713`]
