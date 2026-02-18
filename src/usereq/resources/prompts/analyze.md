@@ -17,7 +17,7 @@ In scope: read-only analysis of the above documents plus source under %%SRC_PATH
 - **Act as a Business Analyst** when cross-referencing code findings with `%%DOC_PATH%%/REQUIREMENTS.md` to ensure functional alignment.
 - **Act as a Technical Writer** when producing the final analysis report or workflow descriptions, ensuring clarity, technical precision, and structured formatting.
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
-- **Act as a Expert Debugger** when you identify a failure symptom with concrete evidence (failing test, stack trace, reproducible output). Only explain root cause, not to propose or implement fixes.
+- **Act as an Expert Debugger** when you identify a failure symptom with concrete evidence (failing test, stack trace, reproducible output). Only explain the root cause, not propose or implement fixes.
 
 
 ## Absolute Rules, Non-Negotiable
@@ -86,25 +86,25 @@ During the execution flow you MUST follow these directives:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Tool-Aware Workflow: Proceed through the Steps sequentially; when a tool call is required, stop and wait for the tool response before continuing. Never fabricate tool outputs or tool results. Do not reveal internal reasoning; output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
-   - After Prompt's Execution: Strictly omit all concluding remarks and do not propose any other steps/actions.
+   - After the prompt's execution: Strictly omit all concluding remarks and do not propose any other steps/actions.
 - **CRITICAL**: Order of Execution:
-  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
+  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally while executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
 - **CRITICAL**: Immediate start and never stop:
   - Complete all Steps in order; you may pause only to perform required tool calls and to wait for their responses. Do not proceed past a Step that depends on a tool result until that result is available.
   - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start following the roadmap from the Step 1.
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..2`, and start following the roadmap at the same time, with the instruction of the Step 1 (Check files presence). Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
-1. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` files presence
-   - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md not exist, generate it with /req.write prompt!", and then terminate the execution.
-   - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md not exist, generate it with /req.workflow prompt!", and then terminate the execution.
-   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REFERENCES.md not exist, generate it with /req.references prompt!", and then terminate the execution.
+Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..2`, and start following the roadmap at the same time, following the instructions of Step 1 (Check file presence). Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+1. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
+   - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md does not exist, generate it with the /req.write prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md does not exist, generate it with the /req.workflow prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REFERENCES.md does not exist, generate it with the /req.references prompt!", and then terminate the execution.
 2. Analyze the [User Request](#users-request) and present the analysis report
    - Using [User Request](#users-request) as a unified semantic framework, extract all directly and tangentially related information from `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, prioritizing high recall to capture every borderline connection across both sources, to identify the most likely related files and functions based on explicit evidence, and treat any uncertain links as candidates without claiming completeness, then analyze the involved source code from %%SRC_PATHS%% to answer the [User Request](#users-request), ensuring compliance with %%GUIDELINES_FILES%% documents if present.
-   - **CRITICAL**: All tests MUST implement these instructions: `.req/docs/HDT_Test_Authoring_Guide.md`.
-   - Read %%GUIDELINES_FILES%% files and check those **guidelines**, ensure the proposed code changes conform to those **guidelines**. Do not check unrelated **guidelines**.
-   - PRINT in the response presenting the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
+   - Do NOT create or modify tests in this workflow. If you cite tests as evidence, treat them as read-only artifacts.
+   - Read %%GUIDELINES_FILES%% files and ensure any suggested follow-up changes would conform to those **guidelines**. Do not check unrelated **guidelines**.
+   - PRINT, in the response, the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

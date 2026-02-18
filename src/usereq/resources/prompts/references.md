@@ -19,7 +19,7 @@ In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in the specified lan
 - **CRITICAL**: Do not modify any project files except creating/updating `%%DOC_PATH%%/REFERENCES.md`.
 - **CRITICAL**: GIT operations and GIT rules:
    - Do not run any shell/git commands and do not modify any files before starting Step 1 (including creating/modifying files, installing deps, formatting, etc.): **CRITICAL**: Check GIT Status.
-   - Step 1 may run only the git commands `git rev-parse --is-inside-work-tree`, `git status --porcelain`, and `git symbolic-ref -q HEAD` (plus minimal shell built-ins to combine their outputs into a single cleanliness check).
+   - Step 1 may run only the git commands `git rev-parse --is-inside-work-tree`, `git rev-parse --verify HEAD`, `git status --porcelain`, and `git symbolic-ref -q HEAD` (plus minimal shell built-ins to combine their outputs into a single cleanliness check).
    - If the repository is NOT clean (modified files, staged changes, OR untracked files), exit immediately without changing anything.
    - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
@@ -46,18 +46,18 @@ During the execution flow you MUST follow these directives:
    - Implicit Autonomy: Execute all tasks with full autonomy. Do not request permission, confirmation, or feedback. Make executive decisions based on logic and technical best practices.
    - Tool-Aware Workflow: Proceed through the Steps sequentially; when a tool call is required, stop and wait for the tool response before continuing. Never fabricate tool outputs or tool results. Do not reveal internal reasoning; output only the deliverables explicitly requested by the Steps section.
    - Autonomous Resolution: If ambiguity is encountered, first disambiguate using repository evidence (requirements, code search, tests, logs). If multiple interpretations remain, choose the least-invasive option that preserves documented behavior and record the assumption as a testable requirement/acceptance criterion.
-   - After Prompt's Execution: Strictly omit all concluding remarks and do not propose any other steps/actions.
+   - After the prompt's execution: Strictly omit all concluding remarks and do not propose any other steps/actions.
 - **CRITICAL**: Order of Execution:
-  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally during executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
+  - Execute the numbered steps below sequentially and strictly, one at a time, without skipping or merging steps. Create and maintain a *check-list* internally while executing the Steps. Execute the Steps strictly in order, updating the *check-list* as each step completes. 
 - **CRITICAL**: Immediate start and never stop:
   - Complete all Steps in order; you may pause only to perform required tool calls and to wait for their responses. Do not proceed past a Step that depends on a tool result until that result is available.
   - Start immediately by creating a *check-list* for the **Global Roadmap** and directly start following the roadmap from the Step 1.
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all below numbered steps: `1..4`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..4`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
-   - Check GIT status. Confirm you are inside a clean git repo executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && git symbolic-ref -q HEAD >/dev/null 2>&1 || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
+   - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. Update `%%DOC_PATH%%/REFERENCES.md` references file
    -  Create/update the references file with `req --references --here "%%DOC_PATH%%/REFERENCES.md"`
 3. **CRITICAL**: Stage & commit
@@ -68,6 +68,6 @@ Create internally a *check-list* for the **Global Roadmap** including all below 
       - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
       - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-   - Confirm the repo is clean with `git status --porcelain`, If NOT empty override the final line with EXACTLY "WARNING: References request completed with unclean git repository!".
+   - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: References request completed with unclean git repository!".
 4. Present results
-   - PRINT in the response presenting results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "REFERENCES.md written!".
+   - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "REFERENCES.md written!".
