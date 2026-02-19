@@ -9,6 +9,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 from .source_analyzer import SourceAnalyzer, format_markdown
 
@@ -50,10 +51,27 @@ def detect_language(filepath: str) -> str | None:
     return EXT_LANG_MAP.get(ext.lower())
 
 
-def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
+def _format_output_path(filepath: str, output_base: Path | None) -> str:
+    """! @brief Build the markdown-visible path for one source file.
+    @param filepath Absolute or relative source file path.
+    @param output_base Project-home base used to relativize output paths.
+    @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+    """
+    if output_base is None:
+        return filepath
+    absolute_path = Path(filepath).resolve()
+    return Path(os.path.relpath(absolute_path, output_base)).as_posix()
+
+
+def generate_markdown(
+    filepaths: list[str],
+    verbose: bool = False,
+    output_base: Path | None = None,
+) -> str:
     """! @brief Analyze source files and return concatenated markdown.
     @param filepaths List of source file paths to analyze.
     @param verbose If True, emits progress status messages on stderr.
+    @param output_base Project-home base used to render file paths in markdown as relative paths.
     @return Concatenated markdown string with all file analyses.
     @throws ValueError If no valid source files are found.
     @details Iterates through files, detecting language, analyzing constructs, and formatting output. Disables legacy comment/exit annotation traces in rendered markdown, emitting only construct references plus Doxygen field bullets when available.
@@ -62,6 +80,7 @@ def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
     md_parts = []
     ok_count = 0
     fail_count = 0
+    resolved_output_base = output_base.resolve() if output_base is not None else None
 
     for fpath in filepaths:
         if not os.path.isfile(fpath):
@@ -86,7 +105,7 @@ def generate_markdown(filepaths: list[str], verbose: bool = False) -> str:
 
             md_output = format_markdown(
                 elements,
-                fpath,
+                _format_output_path(fpath, resolved_output_base),
                 lang_key,
                 spec.name,
                 total_lines,

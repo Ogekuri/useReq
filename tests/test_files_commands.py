@@ -649,7 +649,12 @@ class TestFilesReferencesCommand:
             rc = main(["--files-references", path])
             assert rc == 0
             captured = capsys.readouterr()
+            expected_path = Path(
+                os.path.relpath(Path(path).resolve(), Path.cwd().resolve())
+            ).as_posix()
             assert len(captured.out) > 0
+            assert f"> Path: `{expected_path}`" in captured.out
+            assert f"> Path: `{path}`" not in captured.out
             assert captured.err == ""
         finally:
             os.unlink(path)
@@ -766,7 +771,12 @@ class TestFilesCompressCommand:
             rc = main(["--files-compress", path])
             assert rc == 0
             captured = capsys.readouterr()
+            expected_path = Path(
+                os.path.relpath(Path(path).resolve(), Path.cwd().resolve())
+            ).as_posix()
             assert "@@@" in captured.out
+            assert f"@@@ {expected_path} | python" in captured.out
+            assert f"@@@ {path} | python" not in captured.out
             assert captured.err == ""
         finally:
             os.unlink(path)
@@ -896,6 +906,7 @@ class TestReferencesCommand:
         captured = capsys.readouterr()
         assert len(captured.out) > 0
         assert "cfg_lib/main.py" in captured.out
+        assert str(tmp_path) not in captured.out
 
     def test_references_prepends_files_structure(self, capsys, tmp_path, monkeypatch):
         """CMD-015: Must prepend a fenced markdown tree of scanned source files."""
@@ -1064,6 +1075,7 @@ class TestCompressCommand:
         captured = capsys.readouterr()
         assert "@@@" in captured.out
         assert "cfg_mylib/main.py" in captured.out
+        assert str(tmp_path) not in captured.out
         assert "- Lines: 2-4" in captured.out
         assert "```" in captured.out
 

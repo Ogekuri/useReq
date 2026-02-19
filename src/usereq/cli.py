@@ -2553,7 +2553,11 @@ def run_files_references(files: list[str]) -> None:
     """
     from .generate_markdown import generate_markdown
 
-    md = generate_markdown(files, verbose=VERBOSE)
+    md = generate_markdown(
+        files,
+        verbose=VERBOSE,
+        output_base=Path.cwd().resolve(),
+    )
     print(md)
 
 
@@ -2561,6 +2565,7 @@ def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> N
     """! @brief Execute --files-compress: compress arbitrary files.
     @param files List of source file paths to compress.
     @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
+    @details Renders output header paths relative to current working directory.
     """
     from .compress_files import compress_files
 
@@ -2568,6 +2573,7 @@ def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> N
         files,
         include_line_numbers=enable_line_numbers,
         verbose=VERBOSE,
+        output_base=Path.cwd().resolve(),
     )
     print(output)
 
@@ -2607,7 +2613,7 @@ def run_references(args: Namespace) -> None:
     files = _collect_source_files(src_dirs, project_base)
     if not files:
         raise ReqError("Error: no source files found in configured directories.", 1)
-    md = generate_markdown(files, verbose=VERBOSE)
+    md = generate_markdown(files, verbose=VERBOSE, output_base=project_base)
     files_structure = _format_files_structure_markdown(files, project_base)
     print(f"{files_structure}\n\n{md}")
 
@@ -2626,6 +2632,7 @@ def run_compress_cmd(args: Namespace) -> None:
         files,
         include_line_numbers=getattr(args, "enable_line_numbers", False),
         verbose=VERBOSE,
+        output_base=project_base,
     )
     print(output)
 

@@ -9,6 +9,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 from .compress import compress_file, detect_language
 
@@ -31,13 +32,27 @@ def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]:
     return line_numbers[0], line_numbers[-1]
 
 
+def _format_output_path(filepath: str, output_base: Path | None) -> str:
+    """! @brief Build the header-visible path for one compressed source file.
+    @param filepath Absolute or relative source file path.
+    @param output_base Project-home base used to relativize output paths.
+    @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+    """
+    if output_base is None:
+        return filepath
+    absolute_path = Path(filepath).resolve()
+    return Path(os.path.relpath(absolute_path, output_base)).as_posix()
+
+
 def compress_files(filepaths: list[str],
                    include_line_numbers: bool = True,
-                   verbose: bool = False) -> str:
+                   verbose: bool = False,
+                   output_base: Path | None = None) -> str:
     """! @brief Compress multiple source files and concatenate with identifying headers.
     @param filepaths List of source file paths.
     @param include_line_numbers If True (default), keep <n>: prefixes in code block lines.
     @param verbose If True, emits progress status messages on stderr.
+    @param output_base Project-home base used to render header paths as relative paths.
     @return Concatenated compressed output string.
     @throws ValueError If no files could be processed.
     @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line.
@@ -45,6 +60,7 @@ def compress_files(filepaths: list[str],
     parts = []
     ok_count = 0
     fail_count = 0
+    resolved_output_base = output_base.resolve() if output_base is not None else None
 
     for fpath in filepaths:
         if not os.path.isfile(fpath):
@@ -66,7 +82,8 @@ def compress_files(filepaths: list[str],
                 if include_line_numbers
                 else compress_file(fpath, lang, False)
             )
-            header = f"@@@ {fpath} | {lang}"
+            output_path = _format_output_path(fpath, resolved_output_base)
+            header = f"@@@ {output_path} | {lang}"
             parts.append(
                 f"{header}\n- Lines: {line_start}-{line_end}\n```\n{compressed}\n```"
             )

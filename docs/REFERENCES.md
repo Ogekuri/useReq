@@ -16,7 +16,7 @@
 ```
 
 # __init__.py | Python | 26L | 0 symbols | 8 imports | 3 comments
-> Path: `/home/ogekuri/useReq/src/usereq/__init__.py`
+> Path: `src/usereq/__init__.py`
 
 ## Imports
 ```
@@ -34,7 +34,7 @@ from .cli import main  # re-export of CLI entry point
 ---
 
 # __main__.py | Python | 17L | 0 symbols | 2 imports | 2 comments
-> Path: `/home/ogekuri/useReq/src/usereq/__main__.py`
+> Path: `src/usereq/__main__.py`
 
 ## Imports
 ```
@@ -45,8 +45,8 @@ import sys
 
 ---
 
-# cli.py | Python | 2796L | 96 symbols | 24 imports | 156 comments
-> Path: `/home/ogekuri/useReq/src/usereq/cli.py`
+# cli.py | Python | 2803L | 96 symbols | 24 imports | 156 comments
+> Path: `src/usereq/cli.py`
 
 ## Imports
 ```
@@ -369,49 +369,50 @@ import traceback
 ### fn `def run_files_tokens(files: list[str]) -> None` (L2532-2550)
 - Brief: Execute --files-tokens: count tokens for arbitrary files.
 
-### fn `def run_files_references(files: list[str]) -> None` (L2551-2559)
+### fn `def run_files_references(files: list[str]) -> None` (L2551-2563)
 - Brief: Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2560-2574)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2564-2580)
 - Brief: Execute --files-compress: compress arbitrary files.
+- Details: Renders output header paths relative to current working directory.
 - Param: files List of source file paths to compress. enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2575-2600)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2581-2606)
 - Brief: Execute --files-find: find constructs in arbitrary files.
 - Param: args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. enable_line_numbers If True, emits <n>: prefixes in output.
 
-### fn `def run_references(args: Namespace) -> None` (L2601-2614)
+### fn `def run_references(args: Namespace) -> None` (L2607-2620)
 - Brief: Execute --references: generate markdown for project source files.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2615-2632)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L2621-2639)
 - Brief: Execute --compress: compress project source files.
 - Param: args Parsed CLI arguments namespace.
 
-### fn `def run_find(args: Namespace) -> None` (L2633-2659)
+### fn `def run_find(args: Namespace) -> None` (L2640-2666)
 - Brief: Execute --find: find constructs in project source files.
 - Param: args Parsed CLI arguments namespace.
 - Throws: ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L2660-2682)
+### fn `def run_tokens(args: Namespace) -> None` (L2667-2689)
 - Brief: Execute --tokens: count tokens for files directly in --docs-dir.
 - Details: Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
 - Param: args Parsed CLI arguments namespace.
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2683-2703)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2690-2710)
 - Brief: Resolve project base path for project-level commands.
 - Param: args Parsed CLI arguments namespace.
 - Return: Absolute path of project base.
 - Throws: ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2704-2730)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2711-2737)
 - Brief: Resolve project base and src-dirs for --references/--compress.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2731-2796)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L2738-2803)
 - Brief: CLI entry point for console_scripts and `-m` execution.
 - Details: Returns an exit code (0 success, non-zero on error).
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L2750)
-- var `DEBUG = getattr(args, "debug", False)` (L2751)
+- var `VERBOSE = getattr(args, "verbose", False)` (L2757)
+- var `DEBUG = getattr(args, "debug", False)` (L2758)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -499,24 +500,24 @@ import traceback
 |`_is_standalone_command`|fn|priv|2510-2520|def _is_standalone_command(args: Namespace) -> bool|
 |`_is_project_scan_command`|fn|priv|2521-2531|def _is_project_scan_command(args: Namespace) -> bool|
 |`run_files_tokens`|fn|pub|2532-2550|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|2551-2559|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2560-2574|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|2575-2600|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|2601-2614|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2615-2632|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|2633-2659|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2660-2682|def run_tokens(args: Namespace) -> None|
-|`_resolve_project_base`|fn|priv|2683-2703|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|2704-2730|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2731-2796|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|2750||
-|`DEBUG`|var|pub|2751||
+|`run_files_references`|fn|pub|2551-2563|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|2564-2580|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|2581-2606|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|2607-2620|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|2621-2639|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|2640-2666|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|2667-2689|def run_tokens(args: Namespace) -> None|
+|`_resolve_project_base`|fn|priv|2690-2710|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|2711-2737|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|2738-2803|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|2757||
+|`DEBUG`|var|pub|2758||
 
 
 ---
 
 # compress.py | Python | 386L | 11 symbols | 5 imports | 41 comments
-> Path: `/home/ogekuri/useReq/src/usereq/compress.py`
+> Path: `src/usereq/compress.py`
 
 ## Imports
 ```
@@ -599,48 +600,55 @@ import argparse
 
 ---
 
-# compress_files.py | Python | 113L | 3 symbols | 4 imports | 5 comments
-> Path: `/home/ogekuri/useReq/src/usereq/compress_files.py`
+# compress_files.py | Python | 130L | 4 symbols | 5 imports | 6 comments
+> Path: `src/usereq/compress_files.py`
 
 ## Imports
 ```
 import os
 import sys
+from pathlib import Path
 from .compress import compress_file, detect_language
 import argparse
 ```
 
 ## Definitions
 
-### fn `def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]` `priv` (L16-33)
+### fn `def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]` `priv` (L17-34)
 - Brief: Extract source line interval from compressed output with <n>: prefixes.
 - Details: Parses the first token of each line as an integer line number.
 - Param: compressed_with_line_numbers Compressed payload generated with include_line_numbers=True.
 - Return: Tuple (line_start, line_end) derived from preserved <n>: prefixes; returns (0, 0) when no prefixed lines exist.
 
-### fn `def compress_files(filepaths: list[str],` (L34-90)
+### fn `def _format_output_path(filepath: str, output_base: Path | None) -> str` `priv` (L35-46)
+- Brief: Build the header-visible path for one compressed source file.
+- Param: filepath Absolute or relative source file path. output_base Project-home base used to relativize output paths.
+- Return: Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+
+### fn `def compress_files(filepaths: list[str],` (L47-107)
 - Brief: Compress multiple source files and concatenate with identifying headers.
 - Details: Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line.
-- Param: filepaths List of source file paths. include_line_numbers If True (default), keep <n>: prefixes in code block lines. verbose If True, emits progress status messages on stderr.
+- Param: filepaths List of source file paths. include_line_numbers If True (default), keep <n>: prefixes in code block lines. verbose If True, emits progress status messages on stderr. output_base Project-home base used to render header paths as relative paths.
 - Return: Concatenated compressed output string.
 - Throws: ValueError If no files could be processed.
 
-### fn `def main()` (L91-111)
+### fn `def main()` (L108-128)
 - Brief: Execute the multi-file compression CLI command.
 - Details: Parses command-line arguments, calls `compress_files`, and prints output or errors.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`_extract_line_range`|fn|priv|16-33|def _extract_line_range(compressed_with_line_numbers: str...|
-|`compress_files`|fn|pub|34-90|def compress_files(filepaths: list[str],|
-|`main`|fn|pub|91-111|def main()|
+|`_extract_line_range`|fn|priv|17-34|def _extract_line_range(compressed_with_line_numbers: str...|
+|`_format_output_path`|fn|priv|35-46|def _format_output_path(filepath: str, output_base: Path ...|
+|`compress_files`|fn|pub|47-107|def compress_files(filepaths: list[str],|
+|`main`|fn|pub|108-128|def main()|
 
 
 ---
 
 # doxygen_parser.py | Python | 163L | 5 symbols | 2 imports | 19 comments
-> Path: `/home/ogekuri/useReq/src/usereq/doxygen_parser.py`
+> Path: `src/usereq/doxygen_parser.py`
 
 ## Imports
 ```
@@ -691,7 +699,7 @@ from typing import Dict, List
 ---
 
 # find_constructs.py | Python | 357L | 11 symbols | 8 imports | 18 comments
-> Path: `/home/ogekuri/useReq/src/usereq/find_constructs.py`
+> Path: `src/usereq/find_constructs.py`
 
 ## Imports
 ```
@@ -767,49 +775,51 @@ import argparse
 
 ---
 
-# generate_markdown.py | Python | 134L | 4 symbols | 3 imports | 7 comments
-> Path: `/home/ogekuri/useReq/src/usereq/generate_markdown.py`
+# generate_markdown.py | Python | 153L | 5 symbols | 4 imports | 8 comments
+> Path: `src/usereq/generate_markdown.py`
 
 ## Imports
 ```
 import os
 import sys
+from pathlib import Path
 from .source_analyzer import SourceAnalyzer, format_markdown
 ```
 
 ## Definitions
 
-- var `EXT_LANG_MAP = {` (L16)
-### fn `def detect_language(filepath: str) -> str | None` (L43-52)
+- var `EXT_LANG_MAP = {` (L17)
+### fn `def detect_language(filepath: str) -> str | None` (L44-53)
 - Brief: Detect language from file extension.
 - Details: Uses EXT_LANG_MAP for extension lookup (case-insensitive).
 - Param: filepath Path to the source file.
 - Return: Language identifier string or None if unknown.
 
-### fn `def generate_markdown(filepaths: list[str], verbose: bool = False) -> str` (L53-115)
-- Brief: Analyze source files and return concatenated markdown.
-- Details: Iterates through files, detecting language, analyzing constructs, and formatting output. Disables legacy comment/exit annotation traces in rendered markdown, emitting only construct references plus Doxygen field bullets when available.
-- Param: filepaths List of source file paths to analyze. verbose If True, emits progress status messages on stderr.
-- Return: Concatenated markdown string with all file analyses.
-- Throws: ValueError If no valid source files are found.
+### fn `def _format_output_path(filepath: str, output_base: Path | None) -> str` `priv` (L54-65)
+- Brief: Build the markdown-visible path for one source file.
+- Param: filepath Absolute or relative source file path. output_base Project-home base used to relativize output paths.
+- Return: Original filepath when output_base is None; otherwise POSIX relative path from output_base.
 
-### fn `def main()` (L116-132)
+### fn `def generate_markdown(` (L66-69)
+
+### fn `def main()` (L135-151)
 - Brief: Execute the standalone markdown generation CLI command.
 - Details: Expects file paths as command-line arguments. Prints generated markdown to stdout.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`EXT_LANG_MAP`|var|pub|16||
-|`detect_language`|fn|pub|43-52|def detect_language(filepath: str) -> str | None|
-|`generate_markdown`|fn|pub|53-115|def generate_markdown(filepaths: list[str], verbose: bool...|
-|`main`|fn|pub|116-132|def main()|
+|`EXT_LANG_MAP`|var|pub|17||
+|`detect_language`|fn|pub|44-53|def detect_language(filepath: str) -> str | None|
+|`_format_output_path`|fn|priv|54-65|def _format_output_path(filepath: str, output_base: Path ...|
+|`generate_markdown`|fn|pub|66-69|def generate_markdown(|
+|`main`|fn|pub|135-151|def main()|
 
 
 ---
 
 # source_analyzer.py | Python | 2061L | 59 symbols | 11 imports | 130 comments
-> Path: `/home/ogekuri/useReq/src/usereq/source_analyzer.py`
+> Path: `src/usereq/source_analyzer.py`
 
 ## Imports
 ```
@@ -1057,7 +1067,7 @@ from doxygen_parser import format_doxygen_fields_as_markdown
 ---
 
 # token_counter.py | Python | 116L | 7 symbols | 2 imports | 8 comments
-> Path: `/home/ogekuri/useReq/src/usereq/token_counter.py`
+> Path: `src/usereq/token_counter.py`
 
 ## Imports
 ```
