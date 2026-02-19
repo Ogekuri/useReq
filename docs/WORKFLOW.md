@@ -78,6 +78,9 @@
           - `write_text_file(dst, text)`: filesystem write wrapper [`src/usereq/cli.py`]
           - External boundary: skill artifacts written under `{provider}/skills/req-<prompt_name>/SKILL.md` (or `.opencode/skill/req-<prompt_name>/SKILL.md`).
         - External boundary: provider-specific `models.json` parsing and optional model/tools emission.
+        - `generate_guidelines_file_items(guidelines_dir, project_base)`: compute printed substitutions path list [`src/usereq/cli.py`]
+        - `_format_install_table(installed_map, prompts_map)`: format installation summary ASCII table [`src/usereq/cli.py`]
+          - Invariant: `prompts_map[cli]` includes prompt identifiers installed as prompts/commands, agents, or skills.
 - External Boundaries
   - Filesystem: directory creation; file read/write/copy; path resolution.
   - Network: optional `maybe_notify_newer_version(...)`.

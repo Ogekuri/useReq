@@ -1853,6 +1853,7 @@ def run(args: Namespace) -> None:
             if not codex_skill_text.endswith("\n"):
                 codex_skill_text += "\n"
             write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
+            prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("skills")
 
         if enable_gemini and enable_prompts:
@@ -1927,6 +1928,7 @@ def run(args: Namespace) -> None:
             dst_claude_agent.write_text(claude_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
+            prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("agents")
 
         if enable_github and enable_agents:
@@ -1955,6 +1957,7 @@ def run(args: Namespace) -> None:
             dst_gh_agent.write_text(gh_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
+            prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("agents")
 
         if enable_github and enable_prompts:
@@ -2017,6 +2020,7 @@ def run(args: Namespace) -> None:
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
+            prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("agents")
 
         if enable_opencode and enable_agents:
@@ -2049,6 +2053,7 @@ def run(args: Namespace) -> None:
             dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
+            prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("agent")
 
         if enable_opencode and enable_prompts:
@@ -2160,6 +2165,7 @@ def run(args: Namespace) -> None:
             if not claude_skill_text.endswith("\n"):
                 claude_skill_text += "\n"
             write_text_file(claude_skill_dir / "SKILL.md", claude_skill_text)
+            prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("skills")
 
         if enable_gemini and enable_skills and gemini_skills_root is not None:
@@ -2189,6 +2195,7 @@ def run(args: Namespace) -> None:
             if not gemini_skill_text.endswith("\n"):
                 gemini_skill_text += "\n"
             write_text_file(gemini_skill_dir / "SKILL.md", gemini_skill_text)
+            prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("skills")
 
         if enable_github and enable_skills and github_skills_root is not None:
@@ -2218,6 +2225,7 @@ def run(args: Namespace) -> None:
             if not github_skill_text.endswith("\n"):
                 github_skill_text += "\n"
             write_text_file(github_skill_dir / "SKILL.md", github_skill_text)
+            prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("skills")
 
         if enable_kiro and enable_skills and kiro_skills_root is not None:
@@ -2244,6 +2252,7 @@ def run(args: Namespace) -> None:
             if not kiro_skill_text.endswith("\n"):
                 kiro_skill_text += "\n"
             write_text_file(kiro_skill_dir / "SKILL.md", kiro_skill_text)
+            prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("skills")
 
         if enable_opencode and enable_skills and opencode_skills_root is not None:
@@ -2279,6 +2288,7 @@ def run(args: Namespace) -> None:
             if not opencode_skill_text.endswith("\n"):
                 opencode_skill_text += "\n"
             write_text_file(opencode_skill_dir / "SKILL.md", opencode_skill_text)
+            prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("skills")
 
     templates_target = req_root / "docs"
@@ -2361,7 +2371,17 @@ def run(args: Namespace) -> None:
         installed_map: dict[str, set[str]],
         prompts_map: dict[str, set[str]],
     ) -> tuple[str, str, list[str]]:
-        """! @brief Format the installation summary table aligning header, prompts, and rows.
+        """!
+        @brief Format the ASCII installation summary table.
+        @details Builds a deterministic fixed-column table with columns: CLI, Prompts Installed, Modules Installed.
+        Prompts Installed is the sorted set of prompt identifiers installed for a CLI during the current
+        invocation, independent of artifact type (prompts/commands, agents, or skills). Modules Installed is the
+        sorted set of artifact category labels installed for a CLI during the current invocation.
+        @note Complexity: O(C * (P log P + M log M)) where C is CLI count, P is prompts per CLI, M is modules per CLI.
+        @note Side effects: None (pure formatting).
+        @param installed_map {dict[str, set[str]]} Mapping: CLI name -> installed module category labels.
+        @param prompts_map {dict[str, set[str]]} Mapping: CLI name -> installed prompt identifiers (union across artifact types).
+        @return {tuple[str, str, list[str]]} (header_line, separator_line, row_lines).
         """
 
         columns = ("CLI", "Prompts Installed", "Modules Installed")
