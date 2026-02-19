@@ -131,7 +131,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Do NOT add per-section "Scope/Grouping" requirements.
    - Ensure every requirement remains atomic and testable after reorganization; split compound statements rather than adding meta-requirements.
    - Keep document-authoring rules only in the dedicated section (no duplication).
-   - Analyze the project's main existing source code, ignoring unit test source code, documentation automation source code, and any companion scripts (e.g., launching scripts, environment management scripts, example scripts, ...), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
+   - Read `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, then analyze the project's main existing source code in %%SRC_PATHS%% directories, ignoring unit test source code, documentation automation source code, and any companion scripts (e.g., launching scripts, environment management scripts, example scripts, ...), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
       - Add missing requirements to the reorganized draft and place them into the appropriate section/subsection (respecting the max 3-level hierarchy).
       - Requirements for the output:
         - Scan the codebase for high-importance functionalities, critical behaviors, or logic that are NOT currently documented in the reorganized requirements.
