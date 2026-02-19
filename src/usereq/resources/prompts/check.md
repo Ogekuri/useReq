@@ -13,8 +13,6 @@ Provide an evidence-backed compliance audit by running tests and mapping every r
 ## Scope
 In scope: read `%%DOC_PATH%%/REQUIREMENTS.md` (and related docs), run the test suite as evidence, mark ALL requirements as OK/FAIL with proof, and (only when FAILs exist) produce an implementation-only, patch-oriented technical report. Out of scope: any file modification (requirements/code/tests/docs) or applying fixes.
 
-## Usage
-Use this prompt when you need a complete, requirement-by-requirement compliance verdict against the current SRS (OK/FAIL for every requirement ID), without modifying the repository. Use it after writing/updating requirements or after implementing changes to confirm coverage; if FAILs exist, use its technical report to drive `/req.cover` (targeted gaps) or `/req.implement` (large missing surface).
 
 ## Professional Personas
 - **Act as a Senior System Engineer** when analyzing source code and directory structures to understand the system's architecture and logic.

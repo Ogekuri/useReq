@@ -13,8 +13,6 @@ Maintain an LLM-oriented runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`) der
 ## Scope
 In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite only `%%DOC_PATH%%/WORKFLOW.md` in English only, following the mandated schema, then commit that doc change. Out of scope: changes to requirements, references, source code, or tests.
 
-## Usage
-Use this prompt when `%%DOC_PATH%%/WORKFLOW.md` is missing or out of date and you need to regenerate the runtime model from repository evidence, without touching requirements or implementation. Run it as a docs-maintenance step (especially when `/req.check` reports the file missing) or after implementation changes to refresh execution-unit/call-trace documentation.
 
 ## Canonical Terminology (MUST use these exact terms)
 - **Process**: an OS process execution unit (MUST include the main process).
@@ -25,7 +23,7 @@ Use this prompt when `%%DOC_PATH%%/WORKFLOW.md` is missing or out of date and yo
 - **Communication Edge**: an explicit runtime interaction between two execution units (direction + mechanism + endpoint/channel + payload/data-shape reference).
 
 ## WORKFLOW.md Output Contract (MUST preserve this schema)
-- The generated `%%DOC_PATH%%/WORKFLOW.md` MUST be optimized for downstream LLM Agents (high semantic density, machine-interpretable Markdown, no filler).
+- The generated %%DOC_PATH%%/WORKFLOW.md MUST be parser-stable and token-efficient: fixed section order, atomic bullets, deterministic key names, and zero narrative filler.
 - The document MUST be structured as:
   - `## Execution Units Index`
   - `## Execution Units` (one subsection per execution unit ID)
@@ -52,10 +50,10 @@ Use this prompt when `%%DOC_PATH%%/WORKFLOW.md` is missing or out of date and yo
    - Do not run any shell/git commands and do not modify any files before starting Step 1 (including creating/modifying files, installing deps, formatting, etc.): **CRITICAL**: Check GIT Status.
    - Step 1 may run only the git commands `git rev-parse --is-inside-work-tree`, `git rev-parse --verify HEAD`, `git status --porcelain`, and `git symbolic-ref -q HEAD` (plus minimal shell built-ins to combine their outputs into a single cleanliness check).
    - If the repository is NOT clean (modified files, staged changes, OR untracked files), exit immediately without changing anything.
-   - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
+   - At the end you MUST commit only the intended changes with a unique identifier and change description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
-- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable Markdown format with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
 - Write `%%DOC_PATH%%/WORKFLOW.md` document in English language.
@@ -128,10 +126,11 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. Static analysis: build the runtime model from %%SRC_PATHS%%
-   - Ignore unit test source code, documentation automation source code, and any companion scripts (e.g., launching scripts, environment management scripts, example scripts, ...).
+   - Analyze only files under %%SRC_PATHS%%; treat all files outside %%SRC_PATHS%% as out of scope and never document them.
    - Identify ALL execution units used at runtime:
       - OS processes (MUST include the main process).
       - OS threads (per process), including their entry functions/methods.
+      - If no explicit thread creation is present, record "no explicit threads detected" for that process.
    - For EACH execution unit, derive entrypoint(s) and build a complete internal call-trace tree:
       - Include ONLY internal functions as call-trace nodes (defined under %%SRC_PATHS%%).
       - Do NOT include external boundaries (system/library/framework calls) as nodes; annotate them only as external boundaries where relevant.
@@ -140,7 +139,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Direction (source -> destination), mechanism (IPC/thread communication), endpoint/channel (queue/topic/path/socket/etc.), and payload/data-shape references.
 3. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
    - Read any existing `%%DOC_PATH%%/WORKFLOW.md` to preserve stable IDs and minimize unnecessary churn, then update it to strictly conform to the Output Contract above.
-   - Create/overwrite `%%DOC_PATH%%/WORKFLOW.md` in English only, using machine-interpretable Markdown and the required schema:
+   - Generate %%DOC_PATH%%/WORKFLOW.md in English only using deterministic, machine-interpretable Markdown with the required schema and stable field order.
       - `## Execution Units Index` (stable IDs)
          - Use stable IDs: `PROC:main`, `PROC:<name>` for processes; `THR:<proc_id>#<name>` for threads.
          - For each execution unit: ID, type (process/thread), parent process (for threads), role, entrypoint symbol(s), and defining file(s).
@@ -166,4 +165,4 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
    - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: Workflow request completed with unclean git repository!".
 5. Present results
-   - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "WORKFLOW.md written!".
+   - PRINT, in the response, the results in fixed sections in this exact order: "Workflow Coverage", "Execution Units Delta", "Communication Edges Delta", "Call-Trace Evidence", with concise evidence pointers (path + symbol + line range). The final line of the output must be EXACTLY "WORKFLOW.md written!".

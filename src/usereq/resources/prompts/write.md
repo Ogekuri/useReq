@@ -13,9 +13,6 @@ Capture the user's intent as an SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) suitable fo
 ## Scope
 In scope: author/update only `%%DOC_PATH%%/REQUIREMENTS.md` from [User Request](#users-request) in English, using explicit Assumptions for missing details and the canonical template structure. Out of scope: using repository source code as evidence, changing any other project file, generating workflow/references docs, or committing code changes.
 
-## Usage
-Use this prompt at project kickoff (or when no authoritative code exists) to derive an initial SRS solely from the [User Request](#users-request), before any design/implementation work starts. Do not use it to document an existing codebase’s real behavior (use `/req.create` or `/req.recreate` instead).
-
 
 ## Professional Personas
 - **Act as a Senior Technical Requirements Engineer** when drafting software requirements: ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) and never use "shall".

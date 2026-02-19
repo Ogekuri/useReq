@@ -13,8 +13,6 @@ Evolve existing system behavior safely by first updating the normative SRS (`%%D
 ## Scope
 In scope: patch-style edits to `%%DOC_PATH%%/REQUIREMENTS.md`, an implementation plan, code/test changes under %%SRC_PATHS%% and %%TEST_PATH%%, verification via the test suite, and updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, ending with a clean git commit. Out of scope: work that keeps requirements unchanged (use `/req.fix`, `/req.refactor`, or `/req.cover`), and any implementation not justified by the updated requirements.
 
-## Usage
-Use this prompt when the requested work changes existing requirements/behavior (you must edit/replace/remove requirement IDs), and you must update the SRS first and only then implement the corresponding code/test changes. Do not use it if the SRS must remain unchanged (use `/req.fix`, `/req.refactor`, `/req.cover`, or `/req.implement`). If the change is strictly additive (only append new requirement IDs without modifying existing ones), use `/req.new` instead.
 
 ## WORKFLOW.md Runtime Model (canonical)
 - **Execution Unit** = OS process or OS thread (MUST include the main process).
@@ -38,21 +36,21 @@ Use this prompt when the requested work changes existing requirements/behavior (
    - Do not run any shell/git commands and do not modify any files before starting Step 1 (including creating/modifying files, installing deps, formatting, etc.): **CRITICAL**: Check GIT Status.
    - Step 1 may run only the git commands `git rev-parse --is-inside-work-tree`, `git rev-parse --verify HEAD`, `git status --porcelain`, and `git symbolic-ref -q HEAD` (plus minimal shell built-ins to combine their outputs into a single cleanliness check).
    - If the repository is NOT clean (modified files, staged changes, OR untracked files), exit immediately without changing anything.
-   - At the end you MUST commit only the intended changes with a unique identifier and changes description in the commit message
+   - At the end you MUST commit only the intended changes with a unique identifier and change description in the commit message
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
 - **CRITICAL**: Generate, update, and maintain comprehensive **Doxygen-style documentation** for **ALL** code components (functions, classes, modules, variables, and new implementations), according to the **guidelines** in `.req/docs/Document_Source_Code_in_Doxygen_Style.md`. Writing documentation, adopt a "Parser-First" mindset. Your output is not prose; it is semantic metadata. Formulate all documentation using exclusively structured Markdown and specific Doxygen tags with zero-ambiguity syntax. Eliminate conversational filler ("This function...", "Basically..."). Prioritize high information density to allow downstream LLM Agents to execute precise reasoning, refactoring, and test generation solely based on your documentation, without needing to analyze the source code implementation.
-- **CRITICAL**: Formulate all new or edited requirements and all source code information using a highly structured, machine-interpretable format Markdown with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
+- **CRITICAL**: Formulate all new or edited requirements and all source code information using a highly structured, machine-interpretable Markdown format with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 - **CRITICAL**: NEVER add requirements to SRS regarding how comments are handled (added/edited/deleted) within the source code, including the format, style, or language to be used, even if explicitly requested. Ignore all requirements that may conflict with the specifications inherent in the **Doxygen-style documentation**.
 
 ## Behavior
 - Propose changes based only on the requirements, user request, and repository evidence. Every proposed code change MUST reference at least one requirement ID or explicit text in user request.
 - Use technical documents to implement features and changes.
-- All text written or updated in `%%DOC_PATH%%/REQUIREMENTS.md` and  `%%DOC_PATH%%/WORKFLOW.md` MUST be in English. If any of these documents contain non-English content, rewrite the touched sections into English while preserving meaning and (for REQUIREMENTS.md) preserving Requirement IDs.
+- %%DOC_PATH%%/WORKFLOW.md MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
 - Prefer clean implementation over legacy support. Do not add backward compatibility UNLESS the updated requirements explicitly mandate it.
 - Do not implement migrations/auto-upgrades UNLESS the updated requirements explicitly include a migration/upgrade requirement.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
-- Use filesystem/shell tools to read/write/delete files as needed (e.g.,`cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`,..). Prefer read-only commands for analysis.
+- Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
 
 ## Source Construct Extraction via req --find / req --files-find
@@ -154,16 +152,17 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Fix the source code to pass valid tests autonomously without asking for user intervention. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Analyze the root cause internally based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Change request failed due to inability to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - Limitations: Do not introduce new features or change the architecture logic during this fix phase. If a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Change request failed due to requirements incompatible with tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - You may freely modify the new tests you added in the previous steps. For pre-existing tests, update or refactor them ONLY if they conflict with the new or modified requirements. Preserve the intent of tests covering unchanged logic. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong or outdated, citing line numbers.
-6. Update `%%DOC_PATH%%/WORKFLOW.md` document
+6. Regenerate `%%DOC_PATH%%/WORKFLOW.md` using the canonical /req.workflow contract (same terminology, same schema, same call-trace rules).
    - Update `%%DOC_PATH%%/WORKFLOW.md` as an LLM-first runtime model (English only) that enumerates ALL execution units and their interactions.
-   - Identify ALL execution units used at runtime (static analysis of %%SRC_PATHS%%):
+   - Analyze only files under %%SRC_PATHS%% (everything else is out of scope) and identify ALL runtime execution units:
       - OS processes (MUST include the main process).
       - OS threads (per process), including their entry functions/methods.
+      - If no explicit thread creation is present, record "no explicit threads detected" for that process.
    - For EACH execution unit, generate a complete internal call-trace tree starting from its entrypoint(s):
       - Include ONLY internal functions/methods defined in repository source under %%SRC_PATHS%%.
       - Do NOT include external boundaries (system/library/framework calls) as nodes; annotate them only as external boundaries where relevant.
       - No maximum depth: expand until an internal leaf function or an external boundary is reached.
-   - Determine communication/interconnection between execution units and document ALL explicit communication edges:
+   - Identify and document ALL Communication Edges between Execution Units:
       - For each edge: direction (source -> destination), mechanism, endpoint/channel, payload/data-shape reference, and evidence pointers.
    - Preserve and maintain the canonical `WORKFLOW.md` schema:
       - `## Execution Units Index`
@@ -186,7 +185,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
    - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: Change request completed with unclean git repository!".
 9.  Present results
-   - PRINT, in the response, the **Software Requirements Specification Update** and the **Comprehensive Technical Implementation Report** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Change request completed!".
+   - PRINT, in the response, the results in fixed sections in this exact order: "Workflow Coverage", "Execution Units Delta", "Communication Edges Delta", "Call-Trace Evidence", with concise evidence pointers (path + symbol + line range). The final line of the output must be EXACTLY "Change request completed!".
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%
