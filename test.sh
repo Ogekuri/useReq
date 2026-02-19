@@ -20,6 +20,6 @@ else
     touch "${FOLDER_PATH}/docs/.place-holder"
     touch "${FOLDER_PATH}/guidelines/.place-holder"
 
-    echo req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir "${FOLDER_PATH}/.github/workflows" --upgrade-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
-    req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir "${FOLDER_PATH}/.github/workflows" --upgrade-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    echo req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir "${FOLDER_PATH}/.github/workflows" --enable-skills --upgrade-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
+    req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests" --src-dir "${FOLDER_PATH}/src" --src-dir "${FOLDER_PATH}/.github/workflows" --enable-skills --upgrade-guidelines --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools --legacy
 fi
