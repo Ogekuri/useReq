@@ -81,7 +81,7 @@ Add --enable-line-numbers so code lines are prefixed as <n>::
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap** (*check-list*): 
-   - You MUST maintain a *check-list* internally with `3` Steps (one item per Step).
+   - You MUST maintain a *check-list* internally with `6` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
    - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
@@ -102,8 +102,14 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..3`, and start following the roadmap at the same time, following the instructions of Step 1 (Generate the Software Requirements Specification). Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
-1. Generate the **Software Requirements Specification**
+Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..6`, and start following the roadmap at the same time, following the instructions of Step 1 (Generate the Software Requirements Specification). Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+1. **CRITICAL**: Check GIT Status
+   - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
+2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
+   - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md does not exist, generate it with the /req.write prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md does not exist, generate it with the /req.workflow prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REFERENCES.md does not exist, generate it with the /req.references prompt!", and then terminate the execution.
+3. Generate the **Software Requirements Specification**
    - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft.
    - Read the **Software Requirements Specification** document `%%DOC_PATH%%/REQUIREMENTS.md` and extract a complete, explicit list of atomic requirements.
       - Preserve every requirement’s original intent; do not delete any requirement.
@@ -142,7 +148,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - If evidence is weak or ambiguous (e.g., based solely on naming conventions or commented-out code), strictly exclude the requirement to avoid documenting non-existent features.
       - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
    - Update or edit every requirement that specifies the document’s writing language, replacing it consistently with the **English language**, without changing any other constraints or the requirement’s intended meaning.
-   - Create or overwrite the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.   
+   - Overwrite the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.   
       - Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
         * A comprehensive, clear functional description.
         * The precise expected behavior (include acceptance criteria with testable conditions where possible).
@@ -162,10 +168,19 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
         - The program MUST only read and write `%%DOC_PATH%%/REQUIREMENTS.md` and MUST NOT write anywhere else.
         - The program MUST produce (in print output) the mapping from old requirement IDs to new requirement IDs.
         - The program MUST keep the file a properly formatted Markdown document.
-2. Validate the **Software Requirements Specification**
+4. Validate the **Software Requirements Specification**
    - Review `%%DOC_PATH%%/REQUIREMENTS.md`. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code.
       - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).
       - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
       - Report `OK` if the draft accurately describes the code (even if the code is buggy). Report `FAIL` only if the draft makes assertions that are not present or contradicted by the source code.
-3. Present results
+5. **CRITICAL**: Stage & commit
+   - Show a summary of changes with `git diff` and `git diff --stat`.
+   - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
+   - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
+   - Commit a structured commit message with: `git commit -m "docs(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
+      - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
+      - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
+      - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
+   - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: Recreate request completed with unclean git repository!".
+6. Present results
    - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
