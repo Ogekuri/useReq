@@ -14,13 +14,6 @@ Introduce a new, backwards-compatible capability by first extending the normativ
 In scope: patch-style updates to `%%DOC_PATH%%/REQUIREMENTS.md` that add the new feature requirements, an implementation plan, code/test changes under %%SRC_PATHS%% and %%TEST_PATH%%, verification via the test suite, updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and a clean git commit. Out of scope: breaking changes, migrations/compatibility conversions, or any feature work not captured as explicit requirements (report conflicts and terminate per prompt rules).
 
 
-## WORKFLOW.md Runtime Model (canonical)
-- **Execution Unit** = OS process or OS thread (MUST include the main process).
-- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
-- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
-- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
-
-
 ## Professional Personas
 - **Act as a Business Analyst** when generating **Requirement Delta** and during requirements analysis and update: your priority is requirement integrity, atomic description of changes, and ensuring no logical conflicts in `%%DOC_PATH%%/REQUIREMENTS.md`.
 - **Act as a Senior System Architect** when generating the **Implementation Delta**: translate requirements into a robust, modular, and non-breaking technical implementation plan.
@@ -46,12 +39,18 @@ In scope: patch-style updates to `%%DOC_PATH%%/REQUIREMENTS.md` that add the new
 ## Behavior
 - Propose changes based only on the requirements, user request, and repository evidence. Every proposed code change MUST reference at least one requirement ID or explicit text in user request.
 - Use technical documents to implement features and changes.
-- %%DOC_PATH%%/WORKFLOW.md MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
+- `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features.
 - If maintaining compatibility would require migrations/auto-upgrades conversion logic, report the conflict instead of implementing, and then terminate the execution.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
+
+## WORKFLOW.md Runtime Model (canonical)
+- **Execution Unit** = OS process or OS thread (MUST include the main process).
+- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
+- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
+- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
 
 ## Source Construct Extraction via req --find / req --files-find
 When you need hard evidence from source code (APIs, entrypoints, data types, imports, constants, decorators/annotations, modules/namespaces), use req to extract language constructs as structured markdown (with signatures + line ranges, and optional line-numbered code).

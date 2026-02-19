@@ -14,13 +14,6 @@ Close coverage gaps by implementing the missing behaviors for uncovered requirem
 In scope: identify uncovered requirement IDs, implement minimal code changes under %%SRC_PATHS%%, add/adjust tests under %%TEST_PATH%% as needed, run verification, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing `%%DOC_PATH%%/REQUIREMENTS.md`, introducing new requirements/features, or performing large-scale rewrites (use `/req.implement` for “from scratch” rebuilds).
 
 
-## WORKFLOW.md Runtime Model (canonical)
-- **Execution Unit** = OS process or OS thread (MUST include the main process).
-- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
-- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
-- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
-
-
 ## Professional Personas
 - **Act as a QA Automation Engineer** when identifying uncovered requirements: you must prove the lack of coverage through code analysis or failing test scenarios.
 - **Act as a Business Analyst** when mapping requirement IDs from `%%DOC_PATH%%/REQUIREMENTS.md` to observable behaviors.
@@ -47,11 +40,17 @@ In scope: identify uncovered requirement IDs, implement minimal code changes und
 - Do not modify files that contain requirements.
 - Always strictly respect requirements.
 - Use technical documents to implement features and changes.
-- %%DOC_PATH%%/WORKFLOW.md MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
+- `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features. If maintaining compatibility would require migrations/auto-upgrades conversion logic, report the conflict instead of implementing, and then terminate the execution.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
+
+## WORKFLOW.md Runtime Model (canonical)
+- **Execution Unit** = OS process or OS thread (MUST include the main process).
+- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
+- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
+- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
 
 ## Source Construct Extraction via req --find / req --files-find
 When you need hard evidence from source code (APIs, entrypoints, data types, imports, constants, decorators/annotations, modules/namespaces), use req to extract language constructs as structured markdown (with signatures + line ranges, and optional line-numbered code).

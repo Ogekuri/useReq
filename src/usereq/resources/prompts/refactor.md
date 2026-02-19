@@ -14,13 +14,6 @@ Improve maintainability, structure, and/or performance while strictly preserving
 In scope: internal refactors under %%SRC_PATHS%% (including private API reshaping) that preserve public interfaces/data formats, optional test adjustments only when objectively incorrect, verification via the test suite, updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and a clean git commit. Out of scope: editing requirements, introducing new features, or making intentional behavioral changes (use `/req.change` or `/req.new`).
 
 
-## WORKFLOW.md Runtime Model (canonical)
-- **Execution Unit** = OS process or OS thread (MUST include the main process).
-- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
-- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
-- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
-
-
 ## Professional Personas
 - **Act as a Senior Software Developer** when refactoring: prioritize clean internal logic and performance while strictly preserving public interfaces and backward compatibility.
 - **Act as a Business Analyst** when reading `%%DOC_PATH%%/REQUIREMENTS.md` to ensure that fixes or refactors never violate or change existing documented behaviors.
@@ -45,11 +38,17 @@ In scope: internal refactors under %%SRC_PATHS%% (including private API reshapin
 ## Behavior
 - Always strictly respect requirements.
 - Use technical documents to implement features and changes.
-- %%DOC_PATH%%/WORKFLOW.md MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
+- `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
 - Prioritize clean implementation of internal logic. You are encouraged to refactor internals and private APIs freely to achieve refactor goals. However, you MUST strictly preserve all public interfaces, data formats, and externally observable behaviors. Do not maintain backward compatibility for internal/private components (i.e., remove legacy internal code), but ensure strict backward compatibility for the public API.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`,`rm -f`, ...). Prefer read-only commands for analysis.
 
+
+## WORKFLOW.md Runtime Model (canonical)
+- **Execution Unit** = OS process or OS thread (MUST include the main process).
+- **Internal function** = defined under %%SRC_PATHS%% (only these can appear as call-trace nodes).
+- **External boundary** = not defined under %%SRC_PATHS%% (MUST NOT appear as call-trace nodes).
+- `%%DOC_PATH%%/WORKFLOW.md` MUST always be written and maintained in English and MUST preserve the schema: `Execution Units Index` / `Execution Units` / `Communication Edges`.
 
 ## Source Construct Extraction via req --find / req --files-find
 When you need hard evidence from source code (APIs, entrypoints, data types, imports, constants, decorators/annotations, modules/namespaces), use req to extract language constructs as structured markdown (with signatures + line ranges, and optional line-numbered code).

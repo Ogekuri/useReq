@@ -14,26 +14,6 @@ Maintain an LLM-oriented runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`) der
 In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite only `%%DOC_PATH%%/WORKFLOW.md` in English only, following the mandated schema, then commit that doc change. Out of scope: changes to requirements, references, source code, or tests.
 
 
-## Canonical Terminology (MUST use these exact terms)
-- **Process**: an OS process execution unit (MUST include the main process).
-- **Thread**: an OS thread execution unit within a process.
-- **Execution Unit**: a Process or a Thread.
-- **Internal function**: a function/method defined in repository source under %%SRC_PATHS%% (only these can appear as call-trace nodes).
-- **External boundary**: any call/interaction whose target implementation is not defined under %%SRC_PATHS%% (libraries/frameworks/OS/network/DB/etc.). External boundaries MUST NOT appear as call-trace nodes.
-- **Communication Edge**: an explicit runtime interaction between two execution units (direction + mechanism + endpoint/channel + payload/data-shape reference).
-
-## WORKFLOW.md Output Contract (MUST preserve this schema)
-- The generated %%DOC_PATH%%/WORKFLOW.md MUST be parser-stable and token-efficient: fixed section order, atomic bullets, deterministic key names, and zero narrative filler.
-- The document MUST be structured as:
-  - `## Execution Units Index`
-  - `## Execution Units` (one subsection per execution unit ID)
-  - `## Communication Edges`
-- The model MUST cover:
-  - ALL processes and threads used at runtime (static analysis), including the main process.
-  - For EACH execution unit: a complete internal call-trace tree from entrypoint(s) down to internal leaf functions (internal functions only).
-  - ALL explicit communication/interconnection paths between execution units.
-
-
 ## Professional Personas
 - **Act as a Senior System Engineer** when analyzing source code; your primary goal is to trace the execution flow (call stack) across files and modules, identifying exactly how data and control move from one function to another.
 - **Act as a Business Analyst** when cross-referencing code findings with `%%DOC_PATH%%/REQUIREMENTS.md` to ensure functional alignment.
@@ -61,6 +41,26 @@ In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite on
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
+
+## Canonical Terminology (MUST use these exact terms)
+- **Process**: an OS process execution unit (MUST include the main process).
+- **Thread**: an OS thread execution unit within a process.
+- **Execution Unit**: a Process or a Thread.
+- **Internal function**: a function/method defined in repository source under %%SRC_PATHS%% (only these can appear as call-trace nodes).
+- **External boundary**: any call/interaction whose target implementation is not defined under %%SRC_PATHS%% (libraries/frameworks/OS/network/DB/etc.). External boundaries MUST NOT appear as call-trace nodes.
+- **Communication Edge**: an explicit runtime interaction between two execution units (direction + mechanism + endpoint/channel + payload/data-shape reference).
+
+
+## WORKFLOW.md Output Contract (MUST preserve this schema)
+- The generated %%DOC_PATH%%/WORKFLOW.md MUST be parser-stable and token-efficient: fixed section order, atomic bullets, deterministic key names, and zero narrative filler.
+- The document MUST be structured as:
+  - `## Execution Units Index`
+  - `## Execution Units` (one subsection per execution unit ID)
+  - `## Communication Edges`
+- The model MUST cover:
+  - ALL processes and threads used at runtime (static analysis), including the main process.
+  - For EACH execution unit: a complete internal call-trace tree from entrypoint(s) down to internal leaf functions (internal functions only).
+  - ALL explicit communication/interconnection paths between execution units.
 
 ## Source Construct Extraction via req --find / req --files-find
 When you need hard evidence from source code (APIs, entrypoints, data types, imports, constants, decorators/annotations, modules/namespaces), use req to extract language constructs as structured markdown (with signatures + line ranges, and optional line-numbered code).
