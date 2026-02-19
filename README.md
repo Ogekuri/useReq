@@ -195,8 +195,8 @@ uv tool uninstall usereq
 
 
 ### useReq/req Support
-
-- ✅ OpenAI Codex (set environment variable **CODEX_HOME** to project's home)
+- ✅ OpenAI Codex
+  - set environment variable **CODEX_HOME** to project's home before run codex CLI
 - ✅ Claude Code
 - ✅ GitHub Copilot
 - ✅ OpenCode
@@ -205,46 +205,57 @@ uv tool uninstall usereq
 
 | ✅ supported | ✔️ partially supported | ❌ issues | ⛔ not supported |
 
+#### Skills Details
+- ✅ OpenAI Codex: [`$req-create`]
+- ✅ Claude Code: [`/req-create`]
+- ✅ GitHub Copilot: [`/req-create`]
+- ✅ OpenCode: [`/req-create`]
+- ✅ Gemini: [`$req-create`]
+- ❌ Kiro: Does not work as expected
 
-### useReq/req Support Details
-
-#### OpenAI Codex
-- ✅ OpenAI Codex CLI Prompt [`/prompts:req.create italian`]
-  * set environment variable **CODEX_HOME** to project's home before run codex CLI
-- ✅ OpenAI Codex Extension for Visual Studio Code [`/prompts:req.create italian`]
-  * set environment variable **CODEX_HOME** to project's home before run VS Code
-
-#### Claude Code
-- ✅ Claude Code CLI Prompt [`/req:create italian`]
-- ✅ Claude Code CLI Agent [`@agent-req-create italian`]
-- ✅ Claude Extension for Visual Studio Code [`@agent-req-create italian`] (does not **highlight** agent commands like the CLI)
-
-#### GitHub Copilot
-- ✅ GitHub Copilot CLI Prompt [`/agent ➡️ req-create ➡️ italian ↩️`]
-  * Use `--legacy` to not add `model:` on agents.
-  * Slash command not supported 
-  * Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
-  * Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
-- ✔️ GitHub Copilot Agent Chat in Visual Studio Code [`gui; select agent ➡️ req.create; italian ↩️`]
-  * **Starts a new chat** for every prompt.
-
-#### OpenCode
-- ✅ OpenCode CLI Prompt [`/req.create italian`]
-- ✔️ OpenCode CLI Agent [`<TAB> ➡️ Req.Create ➡️ italian ↩️`]
-  * **Starts a new session** (`/new`) for every prompt.
-
-#### Gemini Code Assist
-- ✅ Gemini CLI [`/req:create italian`]
-- ⛔ Gemini Code Assist Extension for Visual Studio Code [`???`]
-  * Prompts/Agents not supported by the VS Code extension
-
-#### Kiro
-- ❌ Kiro CLI Prompt [`'@req.create italian'`] (does not work as expected)
+#### CLI Prompt Details
+- ✅ OpenAI Codex: [`/prompts:req.create`]
+- ✅ Claude Code: [`/req:create`]
+- ✅ GitHub Copilot: [`/agent ➡️ req-create ↩️`]
+  - Use `--legacy` to not add `model:` on agents.
+  - Slash command not supported 
+  - Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
+  - Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
+- ✅ OpenCode: [`/req.create`]
+- ✅ Gemini: [`/req:create`]
+- ❌ Kiro: [`'@req.create'`]
+  - Does not work as expected
   - Prompt parameters (`$ARGUMENTS`) are not evaluated by the Kiro CLI.
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
-- ✔️ Kiro CLI Agent [`/agent swap; select agent ➡️ req.create; italian ↩️`] (does not work as expected)
-  * **Clears the context** (`/clear`) for every prompt.
+
+#### CLI Agents Details
+- ❌ OpenAI Codex
+- ✅ Claude Code: [`@agent-req-create`]
+- ❌ GitHub Copilot
+- ✔️ OpenCode: [`<TAB> ➡️ Req.Create ↩️`]
+  - **Starts a new session** (`/new`) for every prompt.
+- ✔️ Kiro: [`/agent swap; select agent ➡️ req.create; ↩️`]
+  - Does not work as expected
+  - **Clears the context** (`/clear`) for every prompt.
+
+#### Visual Studio Code Extension Details
+- ✅ OpenAI Codex Extension for Visual Studio Code
+  - Skills: [`/ ➡️ Req.Create ↩️`]
+  - Prompts: [`/prompts:req.create`]
+  - set environment variable **CODEX_HOME** to project's home before run VS Code
+- ✅ Claude Extension for Visual Studio Code
+  - Skills: [`/req-create`]
+  - Prompts: [`@agent-req-create`] (does not **highlight** agent like the CLI)
+- ✔️ GitHub Copilot Agent Chat in Visual Studio Code
+  - Agents: [`gui; select agent ➡️ req.create; ↩️`]
+  - **Starts a new chat** for every prompt.
+- ✔️ OpenCode in Visual Studio Code
+  - Supported with a windowed CLI
+- ✔️ Gemini Code Assist Extension for Visual Studio Code
+  - Skills: [`$req-create`] (does not **highlight** skills like the CLI)
+  - Prompts/Agents not supported by the VS Code extension
+- ❌ Kiro in VS Code is not supported
 
 
 ## Known Issues
