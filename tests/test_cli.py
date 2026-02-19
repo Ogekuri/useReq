@@ -55,9 +55,8 @@ PROVIDER_FLAGS = [
 ARTIFACT_TYPE_FLAGS = [
     "--enable-prompts",
     "--enable-agents",
-    "--enable-skills",
 ]
-"""Artifact-type CLI flags that control which artifact categories are generated."""
+"""Artifact-type CLI flags that explicitly enable prompts/agents; skills are enabled by default."""
 
 
 class TestCLI(unittest.TestCase):
@@ -2281,7 +2280,7 @@ class TestPreserveModels(unittest.TestCase):
 
 
 class TestArtifactTypeFlags(unittest.TestCase):
-    """Verifies enforcement and behavior of --enable-prompts, --enable-agents, --enable-skills (SRS-231, SRS-035)."""
+    """Verifies enforcement and behavior of --enable-prompts, --enable-agents, --disable-skills (SRS-231, SRS-035)."""
 
     TEST_DIR = (
         Path(__file__).resolve().parents[1]
@@ -2320,11 +2319,11 @@ class TestArtifactTypeFlags(unittest.TestCase):
         ]
 
     def test_requires_at_least_one_artifact_type_flag(self) -> None:
-        """SRS-035, SRS-231: CLI MUST exit with code 4 when no artifact-type flag is provided."""
+        """SRS-035, SRS-231: CLI MUST exit with code 4 when all artifact types are inactive."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stderr") as fake_stderr:
                 exit_code = cli.main(
-                    self._base_args() + ["--enable-claude"]
+                    self._base_args() + ["--enable-claude", "--disable-skills"]
                 )
 
         self.assertEqual(
@@ -2334,13 +2333,27 @@ class TestArtifactTypeFlags(unittest.TestCase):
         )
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(
-            "--enable-prompts",
+            "--disable-skills",
             written,
-            "Error message must mention --enable-prompts",
+            "Error message must mention --disable-skills",
+        )
+
+    def test_enable_skills_flag_is_rejected(self) -> None:
+        """SRS-034, SRS-231: --enable-skills is removed and MUST be rejected by parser."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                with self.assertRaises(SystemExit) as cm:
+                    cli.main(self._base_args() + ["--enable-claude", "--enable-skills"])
+        self.assertEqual(cm.exception.code, 2, "Removed --enable-skills flag must be rejected")
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "unrecognized arguments: --enable-skills",
+            written,
+            "Parser error must mention removed --enable-skills flag",
         )
 
     def test_enable_prompts_only_generates_prompt_artifacts(self) -> None:
-        """SRS-231: --enable-prompts generates only prompt/command artifacts; agent/skill dirs absent."""
+        """SRS-231: --enable-prompts with --disable-skills generates only prompt/command artifacts; agent/skill dirs absent."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
@@ -2348,6 +2361,7 @@ class TestArtifactTypeFlags(unittest.TestCase):
                     "--enable-claude",
                     "--enable-codex",
                     "--enable-prompts",
+                    "--disable-skills",
                 ]
             )
         self.assertEqual(exit_code, 0, "CLI must succeed with --enable-prompts")
@@ -2365,14 +2379,14 @@ class TestArtifactTypeFlags(unittest.TestCase):
             (self.TEST_DIR / ".claude" / "agents").exists(),
             ".claude/agents must NOT be created without --enable-agents",
         )
-        # Skill artifacts MUST NOT exist (--enable-skills not set)
+        # Skill artifacts MUST NOT exist (--disable-skills set)
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "skills").exists(),
-            ".codex/skills must NOT be created without --enable-skills",
+            ".codex/skills must NOT be created with --disable-skills",
         )
 
     def test_enable_agents_only_generates_agent_artifacts(self) -> None:
-        """SRS-231: --enable-agents generates only agent artifacts; prompt/skill dirs absent."""
+        """SRS-231: --enable-agents with --disable-skills generates only agent artifacts; prompt/skill dirs absent."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
@@ -2380,6 +2394,7 @@ class TestArtifactTypeFlags(unittest.TestCase):
                     "--enable-claude",
                     "--enable-codex",
                     "--enable-agents",
+                    "--disable-skills",
                 ]
             )
         self.assertEqual(exit_code, 0, "CLI must succeed with --enable-agents")
@@ -2401,29 +2416,28 @@ class TestArtifactTypeFlags(unittest.TestCase):
         # Skill artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "skills").exists(),
-            ".codex/skills must NOT be created without --enable-skills",
+            ".codex/skills must NOT be created with --disable-skills",
         )
 
-    def test_enable_skills_only_generates_skill_artifacts(self) -> None:
-        """SRS-231, SRS-094: --enable-skills generates skill artifacts for each enabled provider; prompt/agent dirs absent."""
+    def test_skills_are_enabled_by_default(self) -> None:
+        """SRS-231, SRS-094: skills are generated by default for each enabled provider; prompt/agent dirs absent without explicit flags."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
                 + [
                     "--enable-claude",
                     "--enable-codex",
-                    "--enable-skills",
                 ]
             )
-        self.assertEqual(exit_code, 0, "CLI must succeed with --enable-skills")
+        self.assertEqual(exit_code, 0, "CLI must succeed with default-enabled skills")
         # Skill artifacts MUST exist for each enabled provider
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "skills").is_dir(),
-            ".codex/skills must be created with --enable-skills",
+            ".codex/skills must be created by default",
         )
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "skills").is_dir(),
-            ".claude/skills must be created with --enable-skills",
+            ".claude/skills must be created by default",
         )
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
@@ -2437,7 +2451,7 @@ class TestArtifactTypeFlags(unittest.TestCase):
         )
 
     def test_all_artifact_type_flags_enable_all_artifacts(self) -> None:
-        """SRS-231: All three flags together enable generation of all artifact categories."""
+        """SRS-231: prompts/agents flags plus default skills enable all artifact categories."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
@@ -2446,7 +2460,6 @@ class TestArtifactTypeFlags(unittest.TestCase):
                     "--enable-codex",
                     "--enable-prompts",
                     "--enable-agents",
-                    "--enable-skills",
                 ]
             )
         self.assertEqual(exit_code, 0, "CLI must succeed with all artifact-type flags")

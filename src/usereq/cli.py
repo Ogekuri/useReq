@@ -90,7 +90,7 @@ def _get_available_tags_help() -> str:
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
     @return Configured ArgumentParser instance.
-    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --enable-skills).
+    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --disable-skills).
     """
     version = load_package_version()
     usage = (
@@ -98,7 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
-        "[--enable-prompts] [--enable-agents] [--enable-skills] "
+        "[--enable-prompts] [--enable-agents] [--disable-skills] "
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
@@ -203,9 +203,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable generation of agent artifact files for each enabled provider.",
     )
     parser.add_argument(
-        "--enable-skills",
-        action="store_true",
-        help="Enable generation of skill artifact files for each enabled provider.",
+        "--disable-skills",
+        dest="enable_skills",
+        action="store_false",
+        default=True,
+        help="Disable generation of skill artifact files for each enabled provider.",
     )
     parser.add_argument(
         "--prompts-use-agents",
@@ -1411,8 +1413,8 @@ def run_remove(args: Namespace) -> None:
 
 def run(args: Namespace) -> None:
     """! @brief Handles the main initialization flow.
-    @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one of --enable-prompts, --enable-agents, --enable-skills.
-    @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type flags (enable_prompts, enable_agents, enable_skills).
+    @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
+    @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
     """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
@@ -1595,7 +1597,7 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one of --enable-prompts, --enable-agents, --enable-skills is required",
+            "Error: at least one active artifact type is required (--enable-prompts, --enable-agents, or omit --disable-skills)",
             4,
         )
 
