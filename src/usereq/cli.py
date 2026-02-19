@@ -1747,7 +1747,6 @@ def run(args: Namespace) -> None:
             f"Error: prompts directory not found at {prompts_dir} (RESOURCE_ROOT/prompts required)",
             9,
         )
-    skills_dir = RESOURCE_ROOT / "skills"
     kiro_template, kiro_config = load_kiro_template()
     # Load CLI configs only if requested to include model/tools
     configs: dict[str, dict[str, Any] | None] = {}
@@ -1785,10 +1784,6 @@ def run(args: Namespace) -> None:
     }
     prompt_sources: list[tuple[str, Path]] = [
         *[("prompts", path) for path in sorted(prompts_dir.glob("*.md"))],
-        *[
-            ("skills", path)
-            for path in (sorted(skills_dir.glob("*.md")) if skills_dir.is_dir() else [])
-        ],
     ]
     for source_kind, prompt_path in prompt_sources:
         is_prompt_source = source_kind == "prompts"

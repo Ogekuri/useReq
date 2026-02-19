@@ -45,7 +45,7 @@ import sys
 
 ---
 
-# cli.py | Python | 2812L | 96 symbols | 24 imports | 156 comments
+# cli.py | Python | 2807L | 96 symbols | 24 imports | 156 comments
 > Path: `src/usereq/cli.py`
 
 ## Imports
@@ -337,82 +337,82 @@ import traceback
 - Details: Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
 - Param: args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
 - var `DEBUG = args.debug` (L1421)
-- var `PROMPT = prompt_path.stem` (L1795)
-### fn `def _format_install_table(` `priv` (L2379-2381)
+- var `PROMPT = prompt_path.stem` (L1790)
+### fn `def _format_install_table(` `priv` (L2374-2376)
 
-### fn `def fmt(row: tuple[str, ...]) -> str` (L2412-2414)
+### fn `def fmt(row: tuple[str, ...]) -> str` (L2407-2409)
 
-- var `EXCLUDED_DIRS = frozenset({` (L2432)
-- var `SUPPORTED_EXTENSIONS = frozenset({` (L2441)
-### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2449-2469)
+- var `EXCLUDED_DIRS = frozenset({` (L2427)
+- var `SUPPORTED_EXTENSIONS = frozenset({` (L2436)
+### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2444-2464)
 - Brief: Recursively collect source files from the given directories.
 - Details: Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
 
-### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2470-2507)
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2465-2502)
 - Brief: Build a deterministic tree string from project-relative paths.
 - Param: paths Project-relative file paths.
 - Return: Rendered tree rooted at '.'.
 
-### fn `def _emit(` `priv` (L2492-2494)
+### fn `def _emit(` `priv` (L2487-2489)
 
-### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2508-2518)
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2503-2513)
 - Brief: Format markdown section containing the scanned files tree.
 - Param: files Absolute file paths selected for --references processing. project_base Project root used to normalize relative paths.
 - Return: Markdown section with heading and fenced tree.
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2519-2529)
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2514-2524)
 - Brief: Check if the parsed args contain a standalone file command.
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2530-2540)
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2525-2535)
 - Brief: Check if the parsed args contain a project scan command.
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L2541-2559)
+### fn `def run_files_tokens(files: list[str]) -> None` (L2536-2554)
 - Brief: Execute --files-tokens: count tokens for arbitrary files.
 
-### fn `def run_files_references(files: list[str]) -> None` (L2560-2572)
+### fn `def run_files_references(files: list[str]) -> None` (L2555-2567)
 - Brief: Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2573-2589)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2568-2584)
 - Brief: Execute --files-compress: compress arbitrary files.
 - Details: Renders output header paths relative to current working directory.
 - Param: files List of source file paths to compress. enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2590-2615)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2585-2610)
 - Brief: Execute --files-find: find constructs in arbitrary files.
 - Param: args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...]. enable_line_numbers If True, emits <n>: prefixes in output.
 
-### fn `def run_references(args: Namespace) -> None` (L2616-2629)
+### fn `def run_references(args: Namespace) -> None` (L2611-2624)
 - Brief: Execute --references: generate markdown for project source files.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2630-2648)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L2625-2643)
 - Brief: Execute --compress: compress project source files.
 - Param: args Parsed CLI arguments namespace.
 
-### fn `def run_find(args: Namespace) -> None` (L2649-2675)
+### fn `def run_find(args: Namespace) -> None` (L2644-2670)
 - Brief: Execute --find: find constructs in project source files.
 - Param: args Parsed CLI arguments namespace.
 - Throws: ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L2676-2698)
+### fn `def run_tokens(args: Namespace) -> None` (L2671-2693)
 - Brief: Execute --tokens: count tokens for files directly in --docs-dir.
 - Details: Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
 - Param: args Parsed CLI arguments namespace.
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2699-2719)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2694-2714)
 - Brief: Resolve project base path for project-level commands.
 - Param: args Parsed CLI arguments namespace.
 - Return: Absolute path of project base.
 - Throws: ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2720-2746)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2715-2741)
 - Brief: Resolve project base and src-dirs for --references/--compress.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2747-2812)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L2742-2807)
 - Brief: CLI entry point for console_scripts and `-m` execution.
 - Details: Returns an exit code (0 success, non-zero on error).
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L2766)
-- var `DEBUG = getattr(args, "debug", False)` (L2767)
+- var `VERBOSE = getattr(args, "verbose", False)` (L2761)
+- var `DEBUG = getattr(args, "debug", False)` (L2762)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -488,30 +488,30 @@ import traceback
 |`run`|fn|pub|1414-1613|def run(args: Namespace) -> None|
 |`VERBOSE`|var|pub|1420||
 |`DEBUG`|var|pub|1421||
-|`PROMPT`|var|pub|1795||
-|`_format_install_table`|fn|priv|2379-2381|def _format_install_table(|
-|`fmt`|fn|pub|2412-2414|def fmt(row: tuple[str, ...]) -> str|
-|`EXCLUDED_DIRS`|var|pub|2432||
-|`SUPPORTED_EXTENSIONS`|var|pub|2441||
-|`_collect_source_files`|fn|priv|2449-2469|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_build_ascii_tree`|fn|priv|2470-2507|def _build_ascii_tree(paths: list[str]) -> str|
-|`_emit`|fn|priv|2492-2494|def _emit(|
-|`_format_files_structure_markdown`|fn|priv|2508-2518|def _format_files_structure_markdown(files: list[str], pr...|
-|`_is_standalone_command`|fn|priv|2519-2529|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|2530-2540|def _is_project_scan_command(args: Namespace) -> bool|
-|`run_files_tokens`|fn|pub|2541-2559|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|2560-2572|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2573-2589|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|2590-2615|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|2616-2629|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2630-2648|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|2649-2675|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2676-2698|def run_tokens(args: Namespace) -> None|
-|`_resolve_project_base`|fn|priv|2699-2719|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|2720-2746|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2747-2812|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|2766||
-|`DEBUG`|var|pub|2767||
+|`PROMPT`|var|pub|1790||
+|`_format_install_table`|fn|priv|2374-2376|def _format_install_table(|
+|`fmt`|fn|pub|2407-2409|def fmt(row: tuple[str, ...]) -> str|
+|`EXCLUDED_DIRS`|var|pub|2427||
+|`SUPPORTED_EXTENSIONS`|var|pub|2436||
+|`_collect_source_files`|fn|priv|2444-2464|def _collect_source_files(src_dirs: list[str], project_ba...|
+|`_build_ascii_tree`|fn|priv|2465-2502|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|2487-2489|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|2503-2513|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|2514-2524|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|2525-2535|def _is_project_scan_command(args: Namespace) -> bool|
+|`run_files_tokens`|fn|pub|2536-2554|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|2555-2567|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|2568-2584|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|2585-2610|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|2611-2624|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|2625-2643|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|2644-2670|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|2671-2693|def run_tokens(args: Namespace) -> None|
+|`_resolve_project_base`|fn|priv|2694-2714|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|2715-2741|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|2742-2807|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|2761||
+|`DEBUG`|var|pub|2762||
 
 
 ---
