@@ -12,10 +12,9 @@ flowchart TD
     START((**Start**))
     NP@{ shape: hex, label: "***New*** *Project*"}
     EP@{ shape: hex, label: "***Existing*** *Project*"}
-    CMDNP@{ shape: subproc, label: "**req** --base project/ --req-dir project/docs/ --guidelines-dir project/guidelines/" }
-    CMDEP@{ shape: subproc, label: "**req** --here --req-dir docs/ --guidelines-dir guidelines/" }
+    CMDNP@{ shape: subproc, label: "**req** --base project/ --docs-dir docs/ --src-dir src/.." }
+    CMDEP@{ shape: subproc, label: "**req** --here --docs-dir docs/ --src-dir src/.." }
     CMDUPDATE@{ shape: subproc, label: "**req** --update --here" }
-    EDIT@{ shape: doc, label: "**edit** requirements.md" }
     REQ[(Requiremets)]
     CHANGE@{ shape: lean-r, label: "Req.**Change**"}
     CHECK@{ shape: lean-r, label: "Req.**Check**"}
@@ -25,25 +24,24 @@ flowchart TD
     REFACTOR@{ shape: lean-r, label: "Req.**Refactor**"}
     WRITE@{ shape: lean-r, label: "Req.**Write**"}
     CREATE@{ shape: lean-r, label: "Req.**Create**"}
-    RENAME@{ shape: subproc, label: "**mv** requirements_DRAFT.md requirements.md" }
     REQ_CHANGE[[Change Requirement]]
     REQ_READ[/**Read Requirement**/]
     REQ_CHECK[/Check Requirement/]
+    UPDATE_DOCS[/Update Source-Code Docs/]
     CODE_CHANGE@{ shape: procs, label: "**Change Source Code**"}
-    REPORT@{ shape: docs, label: "Report"}
+    DOCS@{ shape: docs, label: "Source-Code Docs"}
+    REPORT@{ shape: paper-tape, label: "Report"}
 
     %% New Project
     NP --> CMDNP
     CMDNP --> WRITE
-    WRITE -- **input** project's description --> RENAME
+    WRITE -- **input** project's description --> CMDUPDATE
 
     %% Existing Project
     EP --> CMDEP
     CMDEP --> CREATE
-    CREATE--> RENAME
-    RENAME --> CMDUPDATE
-    CMDUPDATE --> EDIT
-    EDIT --> START
+    CREATE--> CMDUPDATE
+    CMDUPDATE --> START
 
     %% Requirements
     REQ e1@-.-> REQ_READ
@@ -52,8 +50,6 @@ flowchart TD
     e2@{ animate: true }
     WRITE e3@-.-> REQ
     e3@{ animate: true }
-    EDIT e4@-.-> REQ
-    e4@{ animate: true }
     REQ_CHANGE e5@-.-> REQ
     e5@{ animate: true }
     CREATE e6@-.-> REQ
@@ -65,7 +61,8 @@ flowchart TD
     REQ_CHANGE --> REQ_READ
     REQ_READ ==> CODE_CHANGE
     CODE_CHANGE ==> REQ_CHECK
-    REQ_CHECK ==> REPORT
+    REQ_CHECK ==> UPDATE_DOCS
+    UPDATE_DOCS ==> REPORT
     %% REPORT --> START
 
     %% Check
@@ -87,4 +84,10 @@ flowchart TD
     %% New
     START --> NEW
     NEW -- **input** a new requirements--> REQ_CHANGE 
+
+    %% Source-Code Docs
+    UPDATE_DOCS e7@-.-> DOCS
+    e7@{ animate: true }
+    DOCS e8@-.-> CODE_CHANGE
+    e8@{ animate: true }
 ```

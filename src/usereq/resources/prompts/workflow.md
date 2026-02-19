@@ -36,7 +36,7 @@ In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite on
 - **CRITICAL**: Formulate all source code information using a highly structured, machine-interpretable Markdown format with unambiguous, atomic syntax to ensure maximum reliability for downstream LLM agentic reasoning, avoiding any conversational filler or subjective adjectives; the **target audience** is other **LLM Agents** and Automated Parsers, NOT humans, use high semantic density, optimized to contextually enable an LLM to perform future refactoring or extension.
 
 ## Behavior
-- Write `%%DOC_PATH%%/WORKFLOW.md` document in English language.
+- Write the `%%DOC_PATH%%/WORKFLOW.md` document in English.
 - Do not perform unrelated edits.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
