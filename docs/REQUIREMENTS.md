@@ -2,7 +2,7 @@
 title: "useReq Requirements"
 description: "Software Requirements Specification"
 date: "2026-02-19"
-version: 1.01
+version: 1.02
 author: "Ogekuri"
 scope:
   paths:
@@ -21,8 +21,8 @@ useReq is a text-based CLI that initializes and updates repository resources for
 ### 1.1 Document Rules
 - This document MUST be written and maintained in English.
 - RFC 2119 keywords MUST be used exclusively: MUST, MUST NOT, SHOULD, SHOULD NOT, MAY.
-- Requirement bullets MUST start with a unique ID and maintain deterministic document-order numbering for this recreated revision.
-- Requirement IDs in this revision were deterministically renumbered in document order.
+- Requirement bullets in requirements sections MUST start with a unique, stable requirement ID and MUST preserve all pre-existing ID values.
+- Pre-existing requirement IDs MUST NOT be renumbered, renamed, or reused; newly created requirement IDs MUST be appended beyond the current highest ID.
 - This document MUST NOT introduce requirements about source-code comment authoring style beyond already preserved requirements.
 
 ### 1.2 Project Scope
@@ -115,7 +115,7 @@ No explicit performance optimizations identified.
 - **SRS-028**: The CLI with no arguments MUST print parser help and exit with code 0, and the current implementation does not append a standalone version line in this path.
 - **SRS-029**: The implementation MUST preserve this behavior exactly: Quando il comando `req` è invocato con l'opzione `--ver` o `--version`, l'output deve contenere solo il numero versione.
 - **SRS-030**: The implementation MUST preserve this behavior exactly: The help usage string MUST include command `req`, version, and all available options including `--legacy`, `--add-guidelines`, `--upgrade-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--references`, `--compress`, `--find`, `--enable-line-numbers`, `--tokens`, `--enable-prompts`, `--enable-agents`, and `--disable-skills` in `usage: req -c ...` format. When `req` is invoked without parameters, the `--files-find` help text MUST include the dynamic list of available TAGs by language generated from `LANGUAGE_TAGS`. The `--find` help text MUST explicitly reference the list shown in `--files-find` to avoid duplication.
-- **SRS-031**: The implementation MUST preserve this behavior exactly: Tutti gli output di utilizzo, aiuto, informazione, verbose o debug dello script devono essere in Inglese.
+- **SRS-031**: The implementation MUST preserve this behavior exactly: All usage, help, information, verbose, and debug outputs emitted by the script MUST be in English.
 - **SRS-032**: The implementation MUST preserve this behavior exactly: Il comando deve richiedere i parametri `--docs-dir`, `--tests-dir`, e `--src-dir` e verificare che indichino directory esistenti quando è usato `--base`; quando è usato `--here` deve caricare tali percorsi da `.req/config.json` e ignorare eventuali valori passati con i parametri espliciti.
 - **SRS-033**: The implementation MUST preserve this behavior exactly: Il parametro `--src-dir` deve poter essere fornito più volte; ogni directory passata deve essere normalizzata come gli altri percorsi e deve esistere, altrimenti il comando deve terminare con errore.
 - **SRS-034**: The CLI MUST accept boolean flags `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--enable-prompts`, `--enable-agents`, `--disable-skills`, `--legacy`, and `--preserve-models`. Default state MUST be: `--enable-prompts=false`, `--enable-agents=false`, `--disable-skills=false`. When a provider `--enable-<provider>` flag is omitted, the CLI MUST skip all resource creation for that provider. When `--enable-prompts` is active, prompt/command artifact files MUST be generated for each enabled provider that produces them. When `--enable-agents` is active, agent artifact files MUST be generated for each enabled provider that produces them. When `--disable-skills` is not active, skill artifact files MUST be generated for each enabled provider that produces them. When `--legacy` is active, the CLI MUST activate legacy mode for configuration loading. When `--preserve-models` is active in combination with `--update`, the CLI MUST preserve the existing `.req/models.json` file and the `--legacy` flag has no effect.
@@ -131,12 +131,12 @@ No explicit performance optimizations identified.
 - **SRS-044**: The implementation MUST preserve this behavior exactly: La stringa di aiuto deve includere `--upgrade` come opzione disponibile.
 - **SRS-045**: The implementation MUST preserve this behavior exactly: L'opzione `--uninstall` deve eseguire `uv tool uninstall usereq` e terminare con errore se fallisce.
 - **SRS-046**: The implementation MUST preserve this behavior exactly: La stringa di aiuto deve includere `--uninstall` come opzione disponibile.
-- **SRS-047**: The implementation MUST preserve this behavior exactly: Dopo il completamento con successo di un'installazione o aggiornamento, la CLI deve stampare una singola riga in Inglese informando l'utente del successo includendo il percorso root risolto.
+- **SRS-047**: The implementation MUST preserve this behavior exactly: After successful installation or update, the CLI MUST print a single English line reporting success and including the resolved project root path.
 - **SRS-048**: The implementation MUST preserve this behavior exactly: Immediatamente dopo il messaggio di successo, la CLI deve stampare una lista delle directory scoperte per la sostituzione del token `%%GUIDELINES_FILES%%`, prefissate da `- `.
 - **SRS-049**: The implementation MUST preserve this behavior exactly: Immediatamente dopo la lista file, la CLI deve stampare una tabella leggibile ASCII descrivendo quali prompt e moduli sono stati installati per ogni target CLI.
 - **SRS-050**: The implementation MUST preserve this behavior exactly: Il comando, dopo validazione input e prima di modifiche filesystem, deve verificare disponibilità online di nuova versione tramite chiamata HTTP GET a GitHub API con timeout 1 secondo.
 - **SRS-051**: The online release-check path MUST be fail-open: network errors, HTTP errors, timeout errors, JSON parse errors, and invalid payload values are swallowed and MUST NOT abort command execution.
-- **SRS-052**: The implementation MUST preserve this behavior exactly: Se la chiamata ha successo e la versione remota è maggiore di `__version__`, il comando deve stampare un messaggio in Inglese indicando versione corrente, disponibile e comando per aggiornare.
+- **SRS-052**: The implementation MUST preserve this behavior exactly: If the release-check call succeeds and the remote version is greater than `__version__`, the command MUST print an English message showing current version, latest version, and upgrade command.
 - **SRS-053**: The implementation MUST preserve this behavior exactly: Se la directory indicata da `--docs-dir` è vuota, il comando deve generare un file `requirements.md` usando il template `Requirements_Template.md` dalla cartella `resources/docs`.
 - **SRS-054**: The implementation MUST preserve this behavior exactly: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
 - **SRS-055**: The implementation MUST preserve this behavior exactly: Lo script `req.sh` deve essere eseguibile da qualsiasi percorso, risolvere la propria directory, verificare `.venv` e crearlo se assente.
