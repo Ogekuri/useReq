@@ -1747,6 +1747,7 @@ def run(args: Namespace) -> None:
             f"Error: prompts directory not found at {prompts_dir} (RESOURCE_ROOT/prompts required)",
             9,
         )
+    skills_dir = RESOURCE_ROOT / "skills"
     kiro_template, kiro_config = load_kiro_template()
     # Load CLI configs only if requested to include model/tools
     configs: dict[str, dict[str, Any] | None] = {}
@@ -1782,7 +1783,15 @@ def run(args: Namespace) -> None:
     modules_installed: dict[str, set[str]] = {
         key: set() for key in prompts_installed.keys()
     }
-    for prompt_path in sorted(prompts_dir.glob("*.md")):
+    prompt_sources: list[tuple[str, Path]] = [
+        *[("prompts", path) for path in sorted(prompts_dir.glob("*.md"))],
+        *[
+            ("skills", path)
+            for path in (sorted(skills_dir.glob("*.md")) if skills_dir.is_dir() else [])
+        ],
+    ]
+    for source_kind, prompt_path in prompt_sources:
+        is_prompt_source = source_kind == "prompts"
         PROMPT = prompt_path.stem
         content = prompt_path.read_text(encoding="utf-8")
         frontmatter, prompt_body = extract_frontmatter(content)
@@ -1816,7 +1825,7 @@ def run(args: Namespace) -> None:
                 configs.get("claude"), PROMPT, "claude"
             )
 
-        if enable_codex and enable_prompts:
+        if is_prompt_source and enable_codex and enable_prompts:
             # .codex/prompts
             dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_codex_prompt.exists()
@@ -1856,7 +1865,7 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("skills")
 
-        if enable_gemini and enable_prompts:
+        if is_prompt_source and enable_gemini and enable_prompts:
             # Gemini TOML
             dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
             existed = dst_toml.exists()
@@ -1894,7 +1903,7 @@ def run(args: Namespace) -> None:
             prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("commands")
 
-        if enable_kiro and enable_prompts:
+        if is_prompt_source and enable_kiro and enable_prompts:
             # .kiro/prompts
             dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
@@ -1904,7 +1913,7 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("prompts")
 
-        if enable_claude and enable_agents:
+        if is_prompt_source and enable_claude and enable_agents:
             # .claude/agents
             dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
             existed = dst_claude_agent.exists()
@@ -1931,7 +1940,7 @@ def run(args: Namespace) -> None:
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("agents")
 
-        if enable_github and enable_agents:
+        if is_prompt_source and enable_github and enable_agents:
             # .github/agents
             dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
             existed = dst_gh_agent.exists()
@@ -1960,7 +1969,7 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("agents")
 
-        if enable_github and enable_prompts:
+        if is_prompt_source and enable_github and enable_prompts:
             # .github/prompts
             dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
             existed = dst_gh_prompt.exists()
@@ -1992,7 +2001,7 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("prompts")
 
-        if enable_kiro and enable_agents:
+        if is_prompt_source and enable_kiro and enable_agents:
             # .kiro/agents
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()
@@ -2023,7 +2032,7 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("agents")
 
-        if enable_opencode and enable_agents:
+        if is_prompt_source and enable_opencode and enable_agents:
             # .opencode/agent
             dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
             existed = dst_opencode_agent.exists()
@@ -2056,7 +2065,7 @@ def run(args: Namespace) -> None:
             prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("agent")
 
-        if enable_opencode and enable_prompts:
+        if is_prompt_source and enable_opencode and enable_prompts:
             # .opencode/command
             dst_opencode_command = (
                 project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
@@ -2101,7 +2110,7 @@ def run(args: Namespace) -> None:
             prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("command")
 
-        if enable_claude and enable_prompts:
+        if is_prompt_source and enable_claude and enable_prompts:
             # .claude/commands/req
             dst_claude_command = (
                 project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
