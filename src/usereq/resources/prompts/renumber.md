@@ -1,17 +1,17 @@
 ---
-description: "Reorganize and update the Software Requirements Specification based on source code analysis (preserve requirement IDs)"
+description: "Deterministically renumber requirement IDs in the Software Requirements Specification without changing requirement text or order"
 argument-hint: "No arguments utilized by the prompt logic (English only)"
 usage: >
-  Select this prompt when %%DOC_PATH%%/REQUIREMENTS.md already exists but must be rebuilt into a clean structure based on evidence from code under %%SRC_PATHS%%, while preserving all existing requirement IDs (no renumbering). Requirements may be reorganized, moved, grouped, and clarified, and new requirements may be added only with NEW non-colliding IDs appended beyond the existing ID space. Output is only the rewritten SRS (English); source code, tests, %%DOC_PATH%%/WORKFLOW.md, and %%DOC_PATH%%/REFERENCES.md must not change. Do NOT select for incremental requirement edits or behavior changes (use /req.change or /req.new), for drafting SRS from user request only (use /req.write), or for implementation/fixing/refactoring work (use /req.fix, /req.refactor, /req.cover, /req.implement).
+  Select this prompt when %%DOC_PATH%%/REQUIREMENTS.md already exists and you must enforce a clean, progressive, deterministic requirement ID sequence in document order, WITHOUT changing any requirement text, headings, or ordering. Only IDs and internal requirement-ID cross-references may change; all requirement content after the ID MUST remain byte-identical. Output is only the updated SRS; source code, tests, %%DOC_PATH%%/WORKFLOW.md, and %%DOC_PATH%%/REFERENCES.md must not change.
 ---
 
-# Reorganize and update the Software Requirements Specification draft based on source code analysis
+# Deterministically renumber requirement IDs in the Software Requirements Specification
 
 ## Purpose
-Rebuild and reorganize the SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) from repository evidence while preserving all existing requirement IDs so downstream LLM Agents can rely on a clean structure and stable traceability when driving subsequent design/implementation work.
+Deterministically renumber requirement IDs in `%%DOC_PATH%%/REQUIREMENTS.md` to produce a clean, progressive numbering scheme while preserving the exact requirement text and document order so downstream LLM Agents can rely on stable, sequential identifiers.
 
 ## Scope
-In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only as evidence when needed) to rewrite `%%DOC_PATH%%/REQUIREMENTS.md` in English, allowing reorganization and additions, but forbidding any renumbering/renaming of existing requirement IDs. Out of scope: any changes to source code, tests, `%%DOC_PATH%%/WORKFLOW.md`, or `%%DOC_PATH%%/REFERENCES.md`.
+In scope: renumbering requirement identifiers in `%%DOC_PATH%%/REQUIREMENTS.md` in document order and updating internal cross-references to those identifiers, without modifying any requirement text, headings, or ordering. Out of scope: any changes to source code, tests, `%%DOC_PATH%%/WORKFLOW.md`, or `%%DOC_PATH%%/REFERENCES.md`.
 
 
 ## Professional Personas
@@ -32,6 +32,7 @@ In scope: static analysis of source under %%SRC_PATHS%% (and targeted tests only
 ## Behavior
 - Write the document in English.
 - Do not perform unrelated edits.
+- Do NOT change any requirement content or document structure; only change requirement IDs and requirement-ID cross-references.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update `%%DOC_PATH%%/REQUIREMENTS.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
@@ -102,77 +103,31 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..6`, and start following the roadmap at the same time, following the instructions of Step 1 (Generate the Software Requirements Specification). Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..6`, and start following the roadmap at the same time, following the instructions of Step 1. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
    - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md does not exist, generate it with the /req.write prompt!", and then terminate the execution.
    - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md does not exist, generate it with the /req.workflow prompt!", and then terminate the execution.
    - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REFERENCES.md does not exist, generate it with the /req.references prompt!", and then terminate the execution.
-3. Generate the **Software Requirements Specification**
-   - Read the template at `.req/docs/Requirements_Template.md` and apply its guidelines to the requirement draft.
-   - Read the **Software Requirements Specification** document `%%DOC_PATH%%/REQUIREMENTS.md` and extract a complete, explicit list of atomic requirements.
-      - Preserve every requirement’s original intent; do not delete any requirement.
-      - **ID preservation**: If a requirement already has an ID, you MUST keep that exact ID unchanged.
-      - **No renumbering**: You MUST NOT renumber, rename, or otherwise change any pre-existing requirement ID, even if requirements are moved between sections or rewritten for clarity.
-      - **ID assignment for missing IDs**: If any requirement does not have an ID, you MUST assign a NEW non-colliding ID that follows the document’s existing ID scheme (prefix + numeric width) and is appended beyond the existing ID space.
-   - Reorganize the extracted requirements into a hierarchical structure with a maximum depth of 3 levels.
-      - You MUST explicitly determine the most effective grouping strategy considering: **Typology**, **Functionality**, **Abstraction Level** (high-level vs. low-level), and **Context**.
-      - Constraints:
-        - Maximum hierarchy depth: 3 levels total (e.g., Level 1 section → Level 2 subsection → Level 3 requirements list).
-        - Do not introduce a 4th level (no deeper headings or nested sub-subsections beyond the 3rd level).
-      - Integrate the hierarchy into the document’s structure:
-        - Keep the document’s top-level sections in the same order.
-        - Within the most appropriate document’s section(s), create subsections/sub-subsections (still respecting the max depth) to represent the chosen groupings.
-   - Verify full coverage of the input requirements after reorganization.
-      - Perform a strict one-to-one coverage check: every requirement ID present in the input `%%DOC_PATH%%/REQUIREMENTS.md` MUST appear exactly once in the saved output document.
-      - You MUST NOT merge multiple input requirement IDs into a single output requirement line; each input ID must remain its own requirement line.
-      - If any requirement was rewritten for clarity, you MUST ensure the rewrite is meaning-preserving and the requirement ID remains unchanged.
-      - If any compound requirement is split into multiple atomic requirements, the original requirement ID MUST remain attached to exactly one of the split requirements, and all additional split requirements MUST receive NEW non-colliding IDs appended beyond the existing ID space.
-      - If any requirement is missing or duplicated, you MUST fix the structure before proceeding.
-   - Follow the template’s section schema; use headings to encode grouping.
-   - Do NOT add per-section "Scope/Grouping" requirements.
-   - Ensure every requirement remains atomic and testable after reorganization; split compound statements rather than adding meta-requirements.
-   - Keep document-authoring rules only in the dedicated section (no duplication).
-   - Read `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, then analyze the project's main existing source code in %%SRC_PATHS%% directories, ignoring unit test source code, documentation automation source code, and any companion scripts (e.g., launching scripts, environment management scripts, example scripts, ...), to identify very important functionalities, critical behaviors, or logic that are implemented but NOT currently documented in the input requirements.
-      - Add missing requirements to the reorganized draft and place them into the appropriate section/subsection (respecting the max 3-level hierarchy).
-      - All added requirements MUST receive NEW non-colliding IDs appended beyond the existing ID space; new IDs MUST NOT collide with any existing ID in the document.
-      - Requirements for the output:
-        - Scan the codebase for high-importance functionalities, critical behaviors, or logic that are NOT currently documented in the reorganized requirements.
-        - Describe any text-based UI and/or GUI functionality implemented.
-        - Describe the application's functionalities and configurability implemented.
-        - Describe any critical behaviors or important logic.
-        - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for %%SRC_PATHS%% directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
-        - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
-      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
-      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
-      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
-      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-      - Require evidence for every newly added requirement: file path + symbol/function + short excerpt (or a test that demonstrates behavior).
-      - If evidence is weak or ambiguous (e.g., based solely on naming conventions or commented-out code), strictly exclude the requirement to avoid documenting non-existent features.
-      - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
-   - Update or edit every requirement that specifies the document’s writing language, replacing it consistently with the **English language**, without changing any other constraints or the requirement’s intended meaning.
-   - Overwrite the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.   
-      - Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
-        * A comprehensive, clear functional description.
-        * The precise expected behavior (include acceptance criteria with testable conditions where possible).
-        * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code.
-      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
-      - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
-      - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
-      - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
-      - Write requirements, section titles, tables, and other content in **English language**.
-      - Follow `.req/docs/Requirements_Template.md`.
-      - Output the entire response in clean, properly formatted Markdown.
-   - Preserve requirement identifiers and cross-references.
-      - You MUST ensure all requirement IDs in the saved document are unique (no collisions).
-      - If the input document contains duplicate IDs, preserve the first occurrence and assign NEW non-colliding IDs to subsequent duplicates (treating them as appended IDs), and update any now-ambiguous internal references as needed.
-      - You MUST preserve internal cross-references to requirement IDs; update references only when you created NEW IDs (due to splits/collisions) or when you introduce references to newly added requirements.
+3. **CRITICAL**: Renumber requirement IDs in the **Software Requirements Specification**
+   - Read the **Software Requirements Specification** document `%%DOC_PATH%%/REQUIREMENTS.md`.
+   - Determine the existing requirement ID scheme, if any (prefix + numeric width). If multiple schemes exist, select the most common one as the canonical output scheme; if no clear scheme exists, use `REQ-001`, `REQ-002`, ... as the output scheme.
+   - Renumber requirements in strict document order (top-to-bottom, as they appear in the file) to a progressive sequence starting at 1.
+      - You MUST NOT modify any requirement text after `:`, any headings, any ordering, or any non-ID content.
+      - You MUST NOT add, delete, split, merge, or reorganize requirements.
+      - You MUST ensure the final set of requirement IDs is unique and strictly progressive (no gaps) in the chosen scheme.
+   - Update every internal cross-reference to requirement identifiers so that references still point to the correct renumbered requirement.
+      - Cross-references MUST be updated wherever requirement IDs are referenced in `%%DOC_PATH%%/REQUIREMENTS.md`.
+      - If an internal reference points to a non-existent requirement (before or after renumbering), treat this as an error and report it.
+   - Produce and include in the final report an explicit old-ID → new-ID mapping in document order.
+   - Save changes by overwriting `%%DOC_PATH%%/REQUIREMENTS.md` with only the ID and cross-reference updates applied.
 4. Validate the **Software Requirements Specification**
-   - Review `%%DOC_PATH%%/REQUIREMENTS.md`. If previously read and present in context, use that content; otherwise read the file and cross-reference with the source code.
-      - Verify that the drafted requirements **accurately reflect the actual code behavior** (True State).
-      - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
-      - Report `OK` if the draft accurately describes the code (even if the code is buggy). Report `FAIL` only if the draft makes assertions that are not present or contradicted by the source code.
+   - Review `%%DOC_PATH%%/REQUIREMENTS.md` and validate the renumbering invariants:
+      - Only requirement IDs and requirement-ID cross-references changed; all other text is identical.
+      - Requirement IDs are unique and strictly progressive in document order.
+      - All internal cross-references point to an existing renumbered requirement ID.
+      - Report `OK` if the invariants hold. Report `FAIL` if any invariant is violated.
 5. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
@@ -181,6 +136,6 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
       - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
-   - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: Recreate request completed with unclean git repository!".
+   - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: Renumber request completed with unclean git repository!".
 6. Present results
    - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
