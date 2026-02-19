@@ -74,7 +74,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
            - Describe the application's functionalities and configurability requested.
            - Describe any requested unit tests.
            - Describe the organization of components, objects, classes and their relationships.
-           - Propose a logical file/folder structure as an ASCII tree view with a strict depth limit (max depth 3, or 4 for `src/`), and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
+           - Propose a logical file/folder structure as an ASCII tree view with a strict depth limit (max depth 3, or 4 for %%SRC_PATHS%%), and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
            - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
          - Format the requirements as a bulleted list.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
