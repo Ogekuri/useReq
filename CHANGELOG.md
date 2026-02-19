@@ -1,5 +1,71 @@
 # Changelog
 
+## [0.0.71](https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71) - 2026-02-19
+### ⛰️  Features
+- *(cli)* extend skill generation to resources/skills [2026-02-19 17:30:26]
+- *(core)* add fallback.
+- *(core)* remove legacy form scripts.
+- *(core)* update models.
+- *(core)* add renumber command.
+- *(core)* recreate use git to commit new requirements file.
+- *(core)* optimize requirements for LLM Agents.
+- *(core)* add usage on prompts.
+- *(core)* add Usage on prompts.
+- *(core)* update for new WORKFLOW.md.
+- *(core)* add Source Construct Extraction.
+- *(core)* add project_examples_doxygen_occurrence_parity_two_phase_flow test.
+
+### 🐛  Bug Fixes
+- *(core)* docs/REQUIREMENTS.md
+- *(core)* fix scripts.
+- *(core)* minor fix to recreate.md.
+- *(core)* fix REFERENCES.md.
+- *(core)* minor fixes.
+- *(core)* minor fixes to workflow.md.
+- *(core)* minor fixes.
+- *(cli)* include skills/agents in prompts summary [2026-02-19 09:52:36]
+- *(core)* test.sh script.
+- *(core)* fix scripts.
+- *(core)* fix recreate.md.
+- *(core)* minor prompts fixes.
+- *(core)* minor prompts fixes.
+- *(core)* minor fix.
+- *(core)* minor fixes.
+- *(core)* minor fixes.
+- *(test_files_commands)* align DOX-018 baselines with command semantics [2026-02-17 14:01:58]
+- *(pytest)* scope collection to tests to avoid conftest mismatch [2026-02-17 12:28:53]
+- *(core)* minor fix on prompts
+
+### 🚜  Changes
+- *(cli)* remove resources/skills from skill generation [2026-02-19 17:40:54]
+- *(cli)* use project-relative paths in references/compress output [2026-02-19 12:23:34]
+- *(cli)* default-enable skills with --disable-skills [2026-02-19 09:23:09]
+- *(skills)* generate skills as req-<prompt> dirs [2026-02-19 08:13:27]
+- *(skills)* derive SKILL.md description from prompt usage [2026-02-18 16:50:50]
+- *(cli)* add SKILL.md generation for all CLI providers with skill description from sections [2026-02-18 16:10:07]
+- *(cli)* add --enable-prompts, --enable-agents, --enable-skills artifact-type flags [2026-02-18 15:51:06]
+- *(doxygen)* add root doxygen generator and docs updates [2026-02-17 15:22:33]
+- *(core)* remove remaining legacy doc references [2026-02-17 15:05:28]
+- *(core)* remove legacy doc generator and align docs [2026-02-17 15:04:49]
+- *(find_constructs)* strip comments in --find and --files-find output [2026-02-17 14:37:01]
+- *(source_analyzer)* enforce semantic doxygen fields in references [2026-02-17 14:20:31]
+- *(find-commands)* enforce fixture Doxygen parity in find tests [2026-02-17 12:14:10]
+- *(test_files_commands)* align doxygen reference count tests with fixtures [2026-02-17 12:00:27]
+- *(find_constructs)* aggregate doxygen fields and extend find tests [2026-02-17 11:51:06]
+- *(references)* enforce ordered Doxygen output and update tests/spec [2026-02-17 11:40:52]
+- *(source_analyzer)* validate doxygen fixture extraction [2026-02-17 11:25:26]
+- *(doxygen-parser)* expand parser test matrix and specs [2026-02-17 11:13:49]
+- *(tests)* enhance fixtures with comprehensive Doxygen documentation [2026-02-17 10:57:00]
+- *(core)* add Doxygen parser module with integration into source analyzer and output commands [2026-02-17 10:36:12]
+- *(core)* update source_analyzer output format to Markdown tables and fix tests [2026-02-17 09:43:41]
+
+### 📚  Documentation
+- *(core)* recreate SRS ID stability rules [2026-02-19 15:17:54]
+- *(requirements)* recreate and renumber SRS [2026-02-19 14:36:33]
+- *(core)* update README.md.
+- *(core)* Update all documentation.
+- *(core)* Update requirements.
+
 ## [0.0.70](https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70) - 2026-02-16
 ### ⛰️  Features
 - *(core)* move HDT and Doxygen templaste into docs dir.
@@ -33,7 +99,7 @@
 ## [0.0.69](https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69) - 2026-02-15
 ### ⛰️  Features
 - *(core)* add REFERENCES.md as source of true.
-- *(core)* set **English language** for WORKFLOW.md.
+- *(core)* set English language for WORKFLOW.md.
 - *(core)* add REFERENCES.md management and /req.references prompt.
 
 ### 🐛  Bug Fixes
@@ -501,6 +567,7 @@
 - \[0.0.68\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.68
 - \[0.0.69\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.69
 - \[0.0.70\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.70
+- \[0.0.71\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.71
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -572,3 +639,4 @@
 [0.0.68]: https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68
 [0.0.69]: https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69
 [0.0.70]: https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70
+[0.0.71]: https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71

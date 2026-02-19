@@ -6,7 +6,7 @@
 @version 0.0.70
 """
 
-__version__ = "0.0.70"
+__version__ = "0.0.71"
 """! @brief Semantic version string of the package."""
 
 from . import cli  # usereq.cli submodule
