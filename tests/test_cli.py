@@ -150,10 +150,10 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_codex_skills_directory_created(self) -> None:
-        """REQ-095: Verifies the creation of the .codex/skills/req directory."""
-        codex_skills = self.TEST_DIR / ".codex" / "skills" / "req"
+        """REQ-095: Verifies the creation of the .codex/skills directory."""
+        codex_skills = self.TEST_DIR / ".codex" / "skills"
         self.assertTrue(
-            codex_skills.is_dir(), "The directory .codex/skills/req must exist"
+            codex_skills.is_dir(), "The directory .codex/skills must exist"
         )
 
     def test_github_directories_created(self) -> None:
@@ -224,28 +224,28 @@ class TestCLI(unittest.TestCase):
 
     def test_codex_skill_files_created(self) -> None:
         """REQ-095: Verifies creation of SKILL.md for each Codex prompt."""
-        codex_skills = self.TEST_DIR / ".codex" / "skills" / "req"
+        codex_skills = self.TEST_DIR / ".codex" / "skills"
         expected_skills = [
-            "analyze",
-            "change",
-            "check",
-            "cover",
-            "fix",
-            "new",
-            "refactor",
-            "recreate",
-            "write",
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
         ]
         for skill in expected_skills:
             skill_path = codex_skills / skill / "SKILL.md"
             self.assertTrue(
                 skill_path.exists(),
-                f"The file SKILL.md must exist in .codex/skills/req/{skill}",
+                f"The file SKILL.md must exist in .codex/skills/{skill}",
             )
 
     def test_codex_skill_front_matter_structure(self) -> None:
         """SRS-095: Verifies Codex SKILL.md front matter has correct name and skill description."""
-        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md"
         github_agent = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
         self.assertTrue(codex_skill.exists(), "The Codex SKILL.md must exist")
         self.assertTrue(github_agent.exists(), "The GitHub agent must exist")
@@ -263,7 +263,7 @@ class TestCLI(unittest.TestCase):
         self.assertNotEqual(
             codex_desc_match.group(1),
             agent_desc_match.group(1),
-            "Skill description must be built from Purpose/Scope/Usage sections, not front matter",
+            "Skill description must be derived from prompt YAML front matter usage (not agent sections)",
         )
         # Skill description must be a non-empty single-line string (no embedded newlines).
         self.assertGreater(len(codex_desc_match.group(1)), 0, "Skill description must not be empty")
@@ -699,108 +699,143 @@ class TestCLI(unittest.TestCase):
         )
 
     def test_claude_skills_directory_created(self) -> None:
-        """SRS-233: Verifies the creation of the .claude/skills/req directory."""
-        claude_skills = self.TEST_DIR / ".claude" / "skills" / "req"
+        """SRS-233: Verifies the creation of the .claude/skills directory."""
+        claude_skills = self.TEST_DIR / ".claude" / "skills"
         self.assertTrue(
-            claude_skills.is_dir(), "The directory .claude/skills/req must exist"
+            claude_skills.is_dir(), "The directory .claude/skills must exist"
         )
 
     def test_claude_skill_files_created(self) -> None:
         """SRS-233: Verifies creation of SKILL.md for each Claude skill."""
-        claude_skills = self.TEST_DIR / ".claude" / "skills" / "req"
+        claude_skills = self.TEST_DIR / ".claude" / "skills"
         expected_skills = [
-            "analyze", "change", "check", "cover", "fix",
-            "new", "refactor", "recreate", "write",
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
         ]
         for skill in expected_skills:
             skill_path = claude_skills / skill / "SKILL.md"
             self.assertTrue(
                 skill_path.exists(),
-                f"The file SKILL.md must exist in .claude/skills/req/{skill}",
+                f"The file SKILL.md must exist in .claude/skills/{skill}",
             )
 
     def test_gemini_skills_directory_created(self) -> None:
-        """SRS-234: Verifies the creation of the .gemini/skills/req directory."""
-        gemini_skills = self.TEST_DIR / ".gemini" / "skills" / "req"
+        """SRS-234: Verifies the creation of the .gemini/skills directory."""
+        gemini_skills = self.TEST_DIR / ".gemini" / "skills"
         self.assertTrue(
-            gemini_skills.is_dir(), "The directory .gemini/skills/req must exist"
+            gemini_skills.is_dir(), "The directory .gemini/skills must exist"
         )
 
     def test_gemini_skill_files_created(self) -> None:
         """SRS-234: Verifies creation of SKILL.md for each Gemini skill."""
-        gemini_skills = self.TEST_DIR / ".gemini" / "skills" / "req"
+        gemini_skills = self.TEST_DIR / ".gemini" / "skills"
         expected_skills = [
-            "analyze", "change", "check", "cover", "fix",
-            "new", "refactor", "recreate", "write",
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
         ]
         for skill in expected_skills:
             skill_path = gemini_skills / skill / "SKILL.md"
             self.assertTrue(
                 skill_path.exists(),
-                f"The file SKILL.md must exist in .gemini/skills/req/{skill}",
+                f"The file SKILL.md must exist in .gemini/skills/{skill}",
             )
 
     def test_github_skills_directory_created(self) -> None:
-        """SRS-236: Verifies the creation of the .github/skills/req directory."""
-        github_skills = self.TEST_DIR / ".github" / "skills" / "req"
+        """SRS-236: Verifies the creation of the .github/skills directory."""
+        github_skills = self.TEST_DIR / ".github" / "skills"
         self.assertTrue(
-            github_skills.is_dir(), "The directory .github/skills/req must exist"
+            github_skills.is_dir(), "The directory .github/skills must exist"
         )
 
     def test_github_skill_files_created(self) -> None:
         """SRS-236: Verifies creation of SKILL.md for each GitHub/Copilot skill."""
-        github_skills = self.TEST_DIR / ".github" / "skills" / "req"
+        github_skills = self.TEST_DIR / ".github" / "skills"
         expected_skills = [
-            "analyze", "change", "check", "cover", "fix",
-            "new", "refactor", "recreate", "write",
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
         ]
         for skill in expected_skills:
             skill_path = github_skills / skill / "SKILL.md"
             self.assertTrue(
                 skill_path.exists(),
-                f"The file SKILL.md must exist in .github/skills/req/{skill}",
+                f"The file SKILL.md must exist in .github/skills/{skill}",
             )
 
     def test_kiro_skills_directory_created(self) -> None:
-        """SRS-237: Verifies the creation of the .kiro/skills/req directory."""
-        kiro_skills = self.TEST_DIR / ".kiro" / "skills" / "req"
+        """SRS-237: Verifies the creation of the .kiro/skills directory."""
+        kiro_skills = self.TEST_DIR / ".kiro" / "skills"
         self.assertTrue(
-            kiro_skills.is_dir(), "The directory .kiro/skills/req must exist"
+            kiro_skills.is_dir(), "The directory .kiro/skills must exist"
         )
 
     def test_kiro_skill_files_created(self) -> None:
         """SRS-237: Verifies creation of SKILL.md for each Kiro skill."""
-        kiro_skills = self.TEST_DIR / ".kiro" / "skills" / "req"
+        kiro_skills = self.TEST_DIR / ".kiro" / "skills"
         expected_skills = [
-            "analyze", "change", "check", "cover", "fix",
-            "new", "refactor", "recreate", "write",
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
         ]
         for skill in expected_skills:
             skill_path = kiro_skills / skill / "SKILL.md"
             self.assertTrue(
                 skill_path.exists(),
-                f"The file SKILL.md must exist in .kiro/skills/req/{skill}",
+                f"The file SKILL.md must exist in .kiro/skills/{skill}",
             )
 
     def test_opencode_skills_directory_created(self) -> None:
-        """SRS-235: Verifies the creation of the .opencode/skill/req directory."""
-        opencode_skills = self.TEST_DIR / ".opencode" / "skill" / "req"
+        """SRS-235: Verifies the creation of the .opencode/skill directory."""
+        opencode_skills = self.TEST_DIR / ".opencode" / "skill"
         self.assertTrue(
-            opencode_skills.is_dir(), "The directory .opencode/skill/req must exist"
+            opencode_skills.is_dir(), "The directory .opencode/skill must exist"
         )
 
     def test_opencode_skill_files_created(self) -> None:
         """SRS-235: Verifies creation of SKILL.md for each OpenCode skill."""
-        opencode_skills = self.TEST_DIR / ".opencode" / "skill" / "req"
+        opencode_skills = self.TEST_DIR / ".opencode" / "skill"
         expected_skills = [
-            "analyze", "change", "check", "cover", "fix",
-            "new", "refactor", "recreate", "write",
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
         ]
         for skill in expected_skills:
             skill_path = opencode_skills / skill / "SKILL.md"
             self.assertTrue(
                 skill_path.exists(),
-                f"The file SKILL.md must exist in .opencode/skill/req/{skill}",
+                f"The file SKILL.md must exist in .opencode/skill/{skill}",
             )
 
     def test_skill_description_is_prompt_frontmatter_usage(self) -> None:
@@ -824,9 +859,9 @@ class TestCLI(unittest.TestCase):
         self.assertGreater(len(expected_usage), 0, "Prompt front matter MUST contain non-empty usage")
 
         skill_paths = [
-            self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md",
-            self.TEST_DIR / ".claude" / "skills" / "req" / "analyze" / "SKILL.md",
-            self.TEST_DIR / ".github" / "skills" / "req" / "analyze" / "SKILL.md",
+            self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md",
+            self.TEST_DIR / ".claude" / "skills" / "req-analyze" / "SKILL.md",
+            self.TEST_DIR / ".github" / "skills" / "req-analyze" / "SKILL.md",
         ]
         observed_descriptions: list[str] = []
         for skill_path in skill_paths:
@@ -853,12 +888,12 @@ class TestCLI(unittest.TestCase):
     def test_skill_front_matter_has_name_field(self) -> None:
         """SRS-095: Each SKILL.md must have a name field with prefix 'req-'."""
         skills_to_check = [
-            self.TEST_DIR / ".codex" / "skills" / "req" / "change" / "SKILL.md",
-            self.TEST_DIR / ".claude" / "skills" / "req" / "change" / "SKILL.md",
-            self.TEST_DIR / ".github" / "skills" / "req" / "change" / "SKILL.md",
-            self.TEST_DIR / ".gemini" / "skills" / "req" / "change" / "SKILL.md",
-            self.TEST_DIR / ".kiro" / "skills" / "req" / "change" / "SKILL.md",
-            self.TEST_DIR / ".opencode" / "skill" / "req" / "change" / "SKILL.md",
+            self.TEST_DIR / ".codex" / "skills" / "req-change" / "SKILL.md",
+            self.TEST_DIR / ".claude" / "skills" / "req-change" / "SKILL.md",
+            self.TEST_DIR / ".github" / "skills" / "req-change" / "SKILL.md",
+            self.TEST_DIR / ".gemini" / "skills" / "req-change" / "SKILL.md",
+            self.TEST_DIR / ".kiro" / "skills" / "req-change" / "SKILL.md",
+            self.TEST_DIR / ".opencode" / "skill" / "req-change" / "SKILL.md",
         ]
         for skill_path in skills_to_check:
             content = skill_path.read_text(encoding="utf-8")
@@ -1138,7 +1173,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn("tools:", ghp_content)
         self.assertIn("argument-hint:", ghp_content)
 
-        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md"
         self.assertTrue(codex_skill.exists(), "Codex SKILL.md should exist")
         codex_content = codex_skill.read_text(encoding="utf-8")
         self.assertIn("model:", codex_content)
@@ -1200,7 +1235,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertNotIn("tools:", content)
         self.assertNotIn("model:", content)
 
-        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md"
         codex_content = codex_skill.read_text(encoding="utf-8")
         self.assertNotIn("tools:", codex_content)
         self.assertNotIn("model:", codex_content)
@@ -1235,7 +1270,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn("tools:", content)
         self.assertNotIn("model:", content)
 
-        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req" / "analyze" / "SKILL.md"
+        codex_skill = self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md"
         codex_content = codex_skill.read_text(encoding="utf-8")
         self.assertIn("tools:", codex_content)
         self.assertNotIn("model:", codex_content)
@@ -2383,12 +2418,12 @@ class TestArtifactTypeFlags(unittest.TestCase):
         self.assertEqual(exit_code, 0, "CLI must succeed with --enable-skills")
         # Skill artifacts MUST exist for each enabled provider
         self.assertTrue(
-            (self.TEST_DIR / ".codex" / "skills" / "req").is_dir(),
-            ".codex/skills/req must be created with --enable-skills",
+            (self.TEST_DIR / ".codex" / "skills").is_dir(),
+            ".codex/skills must be created with --enable-skills",
         )
         self.assertTrue(
-            (self.TEST_DIR / ".claude" / "skills" / "req").is_dir(),
-            ".claude/skills/req must be created with --enable-skills",
+            (self.TEST_DIR / ".claude" / "skills").is_dir(),
+            ".claude/skills must be created with --enable-skills",
         )
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
@@ -2424,14 +2459,14 @@ class TestArtifactTypeFlags(unittest.TestCase):
             ".claude/agents must exist",
         )
         self.assertTrue(
-            (self.TEST_DIR / ".claude" / "skills" / "req").is_dir(),
-            ".claude/skills/req must exist",
+            (self.TEST_DIR / ".claude" / "skills").is_dir(),
+            ".claude/skills must exist",
         )
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "prompts").is_dir(),
             ".codex/prompts must exist",
         )
         self.assertTrue(
-            (self.TEST_DIR / ".codex" / "skills" / "req").is_dir(),
-            ".codex/skills/req must exist",
+            (self.TEST_DIR / ".codex" / "skills").is_dir(),
+            ".codex/skills must exist",
         )

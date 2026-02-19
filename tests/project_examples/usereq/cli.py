@@ -1600,7 +1600,7 @@ def run(args: Namespace) -> None:
     target_folders: list[Path] = []
     if enable_codex:
         target_folders.append(project_base / ".codex" / "prompts")
-        codex_skills_root = project_base / ".codex" / "skills" / "req"
+        codex_skills_root = project_base / ".codex" / "skills"
         target_folders.append(codex_skills_root)
     if enable_github:
         target_folders.extend(
@@ -1730,9 +1730,9 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("prompts")
 
-            # .codex/skills/req/<prompt>/SKILL.md
+            # .codex/skills/req-<prompt>/SKILL.md
             if codex_skills_root is not None:
-                codex_skill_dir = codex_skills_root / PROMPT
+                codex_skill_dir = codex_skills_root / f"req-{PROMPT}"
                 codex_skill_dir.mkdir(parents=True, exist_ok=True)
                 codex_model = None
                 codex_tools = None

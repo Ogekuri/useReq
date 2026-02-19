@@ -75,6 +75,7 @@
             - External boundary: `yaml.safe_load(...)`.
           - `yaml_double_quote_escape(value)`: YAML double-quote escaping [`src/usereq/cli.py`]
           - `write_text_file(dst, text)`: filesystem write wrapper [`src/usereq/cli.py`]
+          - External boundary: skill artifacts written under `{provider}/skills/req-<prompt_name>/SKILL.md` (or `.opencode/skill/req-<prompt_name>/SKILL.md`).
         - External boundary: provider-specific `models.json` parsing and optional model/tools emission.
 - External Boundaries
   - Filesystem: directory creation; file read/write/copy; path resolution.

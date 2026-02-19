@@ -1321,13 +1321,13 @@ def remove_generated_resources(project_base: Path) -> None:
     """
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
-        project_base / ".gemini" / "skills" / "req",
+        project_base / ".gemini" / "skills",
         project_base / ".claude" / "commands" / "req",
-        project_base / ".claude" / "skills" / "req",
-        project_base / ".codex" / "skills" / "req",
-        project_base / ".github" / "skills" / "req",
-        project_base / ".kiro" / "skills" / "req",
-        project_base / ".opencode" / "skill" / "req",
+        project_base / ".claude" / "skills",
+        project_base / ".codex" / "skills",
+        project_base / ".github" / "skills",
+        project_base / ".kiro" / "skills",
+        project_base / ".opencode" / "skill",
         project_base / ".req" / "docs",
     ]
     remove_globs = [
@@ -1686,14 +1686,14 @@ def run(args: Namespace) -> None:
     if enable_codex and enable_prompts:
         target_folders.append(project_base / ".codex" / "prompts")
     if enable_codex and enable_skills:
-        codex_skills_root = project_base / ".codex" / "skills" / "req"
+        codex_skills_root = project_base / ".codex" / "skills"
         target_folders.append(codex_skills_root)
     if enable_github and enable_agents:
         target_folders.append(project_base / ".github" / "agents")
     if enable_github and enable_prompts:
         target_folders.append(project_base / ".github" / "prompts")
     if enable_github and enable_skills:
-        github_skills_root = project_base / ".github" / "skills" / "req"
+        github_skills_root = project_base / ".github" / "skills"
         target_folders.append(github_skills_root)
     if enable_gemini and enable_prompts:
         target_folders.extend(
@@ -1703,14 +1703,14 @@ def run(args: Namespace) -> None:
             ]
         )
     if enable_gemini and enable_skills:
-        gemini_skills_root = project_base / ".gemini" / "skills" / "req"
+        gemini_skills_root = project_base / ".gemini" / "skills"
         target_folders.append(gemini_skills_root)
     if enable_kiro and enable_agents:
         target_folders.append(project_base / ".kiro" / "agents")
     if enable_kiro and enable_prompts:
         target_folders.append(project_base / ".kiro" / "prompts")
     if enable_kiro and enable_skills:
-        kiro_skills_root = project_base / ".kiro" / "skills" / "req"
+        kiro_skills_root = project_base / ".kiro" / "skills"
         target_folders.append(kiro_skills_root)
     if enable_claude and enable_agents:
         target_folders.append(project_base / ".claude" / "agents")
@@ -1722,14 +1722,14 @@ def run(args: Namespace) -> None:
             ]
         )
     if enable_claude and enable_skills:
-        claude_skills_root = project_base / ".claude" / "skills" / "req"
+        claude_skills_root = project_base / ".claude" / "skills"
         target_folders.append(claude_skills_root)
     if enable_opencode and enable_agents:
         target_folders.append(project_base / ".opencode" / "agent")
     if enable_opencode and enable_prompts:
         target_folders.append(project_base / ".opencode" / "command")
     if enable_opencode and enable_skills:
-        opencode_skills_root = project_base / ".opencode" / "skill" / "req"
+        opencode_skills_root = project_base / ".opencode" / "skill"
         target_folders.append(opencode_skills_root)
     for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
@@ -1825,8 +1825,8 @@ def run(args: Namespace) -> None:
             modules_installed["codex"].add("prompts")
 
         if enable_codex and enable_skills and codex_skills_root is not None:
-            # .codex/skills/req/<prompt>/SKILL.md
-            codex_skill_dir = codex_skills_root / PROMPT
+            # .codex/skills/req-<prompt>/SKILL.md
+            codex_skill_dir = codex_skills_root / f"req-{PROMPT}"
             codex_skill_dir.mkdir(parents=True, exist_ok=True)
             codex_model = None
             codex_tools = None
@@ -2138,8 +2138,8 @@ def run(args: Namespace) -> None:
             modules_installed["claude"].add("commands")
 
         if enable_claude and enable_skills and claude_skills_root is not None:
-            # .claude/skills/req/<prompt>/SKILL.md
-            claude_skill_dir = claude_skills_root / PROMPT
+            # .claude/skills/req-<prompt>/SKILL.md
+            claude_skill_dir = claude_skills_root / f"req-{PROMPT}"
             claude_skill_dir.mkdir(parents=True, exist_ok=True)
             claude_skill_header_lines = [
                 "---",
@@ -2161,8 +2161,8 @@ def run(args: Namespace) -> None:
             modules_installed["claude"].add("skills")
 
         if enable_gemini and enable_skills and gemini_skills_root is not None:
-            # .gemini/skills/req/<prompt>/SKILL.md
-            gemini_skill_dir = gemini_skills_root / PROMPT
+            # .gemini/skills/req-<prompt>/SKILL.md
+            gemini_skill_dir = gemini_skills_root / f"req-{PROMPT}"
             gemini_skill_dir.mkdir(parents=True, exist_ok=True)
             gemini_skill_model = None
             gemini_skill_tools = None
@@ -2190,8 +2190,8 @@ def run(args: Namespace) -> None:
             modules_installed["gemini"].add("skills")
 
         if enable_github and enable_skills and github_skills_root is not None:
-            # .github/skills/req/<prompt>/SKILL.md
-            github_skill_dir = github_skills_root / PROMPT
+            # .github/skills/req-<prompt>/SKILL.md
+            github_skill_dir = github_skills_root / f"req-{PROMPT}"
             github_skill_dir.mkdir(parents=True, exist_ok=True)
             github_skill_model = None
             github_skill_tools = None
@@ -2219,8 +2219,8 @@ def run(args: Namespace) -> None:
             modules_installed["github"].add("skills")
 
         if enable_kiro and enable_skills and kiro_skills_root is not None:
-            # .kiro/skills/req/<prompt>/SKILL.md
-            kiro_skill_dir = kiro_skills_root / PROMPT
+            # .kiro/skills/req-<prompt>/SKILL.md
+            kiro_skill_dir = kiro_skills_root / f"req-{PROMPT}"
             kiro_skill_dir.mkdir(parents=True, exist_ok=True)
             kiro_skill_model, kiro_skill_tools = get_model_tools_for_prompt(
                 kiro_config, PROMPT, "kiro"
@@ -2245,8 +2245,8 @@ def run(args: Namespace) -> None:
             modules_installed["kiro"].add("skills")
 
         if enable_opencode and enable_skills and opencode_skills_root is not None:
-            # .opencode/skill/req/<prompt>/SKILL.md
-            opencode_skill_dir = opencode_skills_root / PROMPT
+            # .opencode/skill/req-<prompt>/SKILL.md
+            opencode_skill_dir = opencode_skills_root / f"req-{PROMPT}"
             opencode_skill_dir.mkdir(parents=True, exist_ok=True)
             opencode_skill_header_lines = [
                 "---",
