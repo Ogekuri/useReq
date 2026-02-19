@@ -128,7 +128,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Perform a strict one-to-one coverage check: every requirement ID present in the input `%%DOC_PATH%%/REQUIREMENTS.md` MUST appear exactly once in the saved output document.
       - You MUST NOT merge multiple input requirement IDs into a single output requirement line; each input ID must remain its own requirement line.
       - If any requirement was rewritten for clarity, you MUST ensure the rewrite is meaning-preserving and the requirement ID remains unchanged.
-      - If any compound requirement is split into multiple atomic requirements, the original requirement ID MUST remain attached to exactly one of the split requirements, and all additional split requirements MUST receive NEW non-colliding IDs appended beyond the existing ID space.
+      - Target <= 35 words per requirement; split any compound behavior into separate IDs. If any compound requirement is split into multiple atomic requirements, the original requirement ID MUST remain attached to exactly one of the split requirements, and all additional split requirements MUST receive NEW non-colliding IDs appended beyond the existing ID space.
       - If any requirement is missing or duplicated, you MUST fix the structure before proceeding.
    - Follow the template’s section schema; use headings to encode grouping.
    - Do NOT add per-section "Scope/Grouping" requirements.
