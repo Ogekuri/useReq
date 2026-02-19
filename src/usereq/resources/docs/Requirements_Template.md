@@ -32,7 +32,7 @@ This document MUST follow these authoring rules (LLM-first, normative SRS):
 - In requirements sections, every bullet MUST be a requirement and MUST start with a unique, stable Requirement ID (e.g., **REQ-001**).
 - Requirement IDs MUST be stable: never renumber, reuse, or repurpose an ID. Only the dedicated reorganization workflow may renumber and it MUST emit an old→new ID mapping.
 - Requirement ID prefixes MUST be consistent; if additional prefixes are needed beyond PRJ/CTN/DES/REQ/TST, they MUST be defined once in this section before first use.
-- Each requirement MUST be atomic (one behavior/constraint) and testable; if a requirement becomes long or compound, split it into multiple requirements.
+- Each requirement MUST be atomic, single-sentence, and testable; target <= 35 words per requirement; split any compound behavior into separate IDs.
 - Write for other LLM Agents and automated parsers (high semantic density; no filler).
 - On every change to this document:
   - Update `date` and `version` in the YAML front matter only (avoid duplicating metadata in the body).
@@ -66,16 +66,13 @@ This document MUST follow these authoring rules (LLM-first, normative SRS):
 <!-- add here other design constraint requirements -->
 ### 3.2 Functions
 <!-- Externally observable behaviors organized by feature or use case -->
-- **REQ-001**: Requirement description of function 1
+- **REQ-001**: MUST <single observable behavior with explicit trigger and expected outcome>.
 - **REQ-002**: Requirement description of function 2
 <!-- add here other function requirements -->
 
 ## 4. Test Requirements
 <!-- Define the test requirements linked to functional/non-functional requirements (or to a verification context) and specify a clear, reproducible test procedure with explicit pass/fail criteria.  -->
 
-| Test Requirement ID | Linked Requirement / Context | Test Procedure (clear + reproducible) |
-|---------------------|------------------------------|---------------------------------------|
-| **TST-001**         | Code execution               | Execute the code with the defined input(s). Verify the expected output(s) match the specification and that no runtime errors occur. |
-| **TST-002**         | **REQ-002**                  | Run the unit test suite covering REQ-002. Assert all expected behaviors and defined edge cases pass. |
+- **TST-001**: MUST verify <requirement-id> using <reproducible procedure> with explicit pass/fail criteria.
 
 <!-- Do not add a revision history section here; use git history / CHANGELOG.md instead. -->

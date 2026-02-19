@@ -106,7 +106,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Using [User Request](#users-request) as a unified semantic framework, extract all directly and tangentially related information from `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, prioritizing high recall to capture every borderline connection across both sources, to identify the most likely related files and functions based on explicit evidence, and treat any uncertain links as candidates without claiming completeness, then analyze the involved source code from %%SRC_PATHS%% to answer the [User Request](#users-request), ensuring compliance with %%GUIDELINES_FILES%% documents if present.
    - Do NOT create or modify tests in this workflow. If you cite tests as evidence, treat them as read-only artifacts.
    - Read %%GUIDELINES_FILES%% files and ensure any suggested follow-up changes would conform to those **guidelines**. Do not check unrelated **guidelines**.
-   - PRINT, in the response, the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Analysis completed!".
+   - PRINT, in the response, the final analysis report in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%

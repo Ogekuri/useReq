@@ -70,7 +70,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - Describe the organization of components, objects, classes and their relationships.
          - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for %%SRC_PATHS%% directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
          - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
-      - Format the requirements as a bulleted list.
+      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
@@ -88,7 +88,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
         * A comprehensive, clear functional description.
         * The precise expected behavior (include acceptance criteria with testable conditions where possible).
         * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code.
-      - Format the requirements as a bulleted list.
+      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
@@ -101,4 +101,4 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - If the code contains obvious bugs or partial implementations, ensure the requirement draft explicitly notes these limitations.
       - Report `OK` if the draft accurately describes the code (even if the code is buggy). Report `FAIL` only if the draft makes assertions that are not present or contradicted by the source code.
 3. Present results
-   - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). The final line of the output must be EXACTLY "Requirements written!".
+   - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.

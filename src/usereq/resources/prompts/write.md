@@ -73,7 +73,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
            - Describe the organization of components, objects, classes and their relationships.
            - Propose a logical file/folder structure as an ASCII tree view with a strict depth limit (max depth 3, or 4 for %%SRC_PATHS%%), and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
            - Identify any performance constraints or efficiency goals explicitly mentioned in the User Request.
-         - Format the requirements as a bulleted list.
+         - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
@@ -87,11 +87,11 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Write requirements, section titles, tables, and other content in **English language**.
       - Follow `.req/docs/Requirements_Template.md`.
       - Describe every project requirement clearly, succinctly, and unambiguously.
-      - Format the requirements as a bulleted list.
+      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).
       - Output the entire response in clean, properly formatted Markdown.
 2. Present results
-   - PRINT a structured summary (outline + key requirements + assumptions) in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user. The final line of the output must be EXACTLY "Requirements written!".
+   - PRINT a structured summary (outline + key requirements + assumptions) in a clear, structured format. Since this workflow is based only on the User Request (no source code), do NOT claim code-level evidence (no file paths/line numbers) unless explicitly provided by the user. Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
 
 <h2 id="users-request">User's Request</h2>
 %%ARGS%%
