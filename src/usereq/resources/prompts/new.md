@@ -172,7 +172,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - `<optional: brief invariants/external boundaries>`
          - `<child internal calls as nested bullet list, in call order>`
 7. Update `%%DOC_PATH%%/REFERENCES.md` references file
-   -  Create/update the references file with `req --references --here "%%DOC_PATH%%/REFERENCES.md"`
+   -  Create/update the references file with `req --references --here >"%%DOC_PATH%%/REFERENCES.md"`
 8. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test, `%%DOC_PATH%%/REQUIREMENTS.md` and WORKFLOW.md only if it was modified/created).

@@ -41,7 +41,7 @@ In scope: internal refactors under %%SRC_PATHS%% (including private API reshapin
 - `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` MUST be entirely in English; if any non-English text exists anywhere in the document, rewrite the affected content to English before completion.
 - Prioritize clean implementation of internal logic. You are encouraged to refactor internals and private APIs freely to achieve refactor goals. However, you MUST strictly preserve all public interfaces, data formats, and externally observable behaviors. Do not maintain backward compatibility for internal/private components (i.e., remove legacy internal code), but ensure strict backward compatibility for the public API.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
-- Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`,`rm -f`, ...). Prefer read-only commands for analysis.
+- Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
 
 ## WORKFLOW.md Runtime Model (canonical)
@@ -159,7 +159,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - `<optional: brief invariants/external boundaries>`
          - `<child internal calls as nested bullet list, in call order>`
 6. Update `%%DOC_PATH%%/REFERENCES.md` references file
-   -  Create/update the references file with `req --references --here "%%DOC_PATH%%/REFERENCES.md"`
+   -  Create/update the references file with `req --references --here >"%%DOC_PATH%%/REFERENCES.md"`
 7. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).

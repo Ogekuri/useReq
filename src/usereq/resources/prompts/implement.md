@@ -1,11 +1,11 @@
 ---
-description: "Implement source code from scratch from requirements"
+description: "Implement source code from requirements from scratch"
 argument-hint: "No arguments utilized by the prompt logic"
 usage: >
   Select this prompt when %%DOC_PATH%%/REQUIREMENTS.md is already authoritative and stable, but the codebase under %%SRC_PATHS%% is missing large parts of the required functionality (greenfield or major gaps) and you must build an end-to-end implementation (including creating new modules/files and tests under %%TEST_PATH%%) WITHOUT changing requirements. Do NOT select if only a small/known set of requirement IDs is uncovered in an otherwise working codebase (use /req.cover), if you need to modify or add requirements (use /req.change or /req.new), or if the task is a narrow defect fix or refactor (use /req.fix or /req.refactor). Do NOT select for auditing/triage (use /req.check or /req.analyze).
 ---
 
-# Implement source code from scratch from requirements
+# Implement source code from requirements from scratch
 
 ## Purpose
 Produce a working implementation from the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) by building missing functionality end-to-end (including “from scratch” where needed), so the codebase becomes fully compliant with the documented requirement IDs without changing those requirements.
@@ -114,7 +114,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - `<optional: brief invariants/external boundaries>`
          - `<child internal calls as nested bullet list, in call order>`
 5. Update `%%DOC_PATH%%/REFERENCES.md` references file
-   -  Create/update the references file with `req --references --here "%%DOC_PATH%%/REFERENCES.md"`
+   -  Create/update the references file with `req --references --here >"%%DOC_PATH%%/REFERENCES.md"`
 6. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
