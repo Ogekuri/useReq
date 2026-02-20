@@ -306,14 +306,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Configure a static-check tool for a language during install/update. "
-            "SPEC format: LANG=MODULE[#CMD[#PARAM...]]. "
+            "SPEC format: LANG=MODULE[,CMD[,PARAM...]]. "
             "MODULE: Dummy, Pylance, Ruff, Command (case-insensitive). "
             "LANG: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, "
             "PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir (case-insensitive). "
-            "For Command, CMD is the binary and subsequent tokens are params saved in config.json. "
+            "For Command, CMD is the binary and subsequent tokens are params saved in config.json; "
+            "tokens containing commas must be wrapped in double quotes. "
             "Repeatable: one flag per language. "
             "Example: --enable-static-check Python=Pylance "
-            "--enable-static-check C=Command#/usr/bin/cppcheck#--check-library"
+            "--enable-static-check C=Command,/usr/bin/cppcheck,--check-library"
         ),
     )
     parser.add_argument(

@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import glob
+import csv
 import shutil
 import subprocess
 import sys
@@ -111,27 +112,27 @@ _CANONICAL_MODULES: dict[str, str] = {
 def parse_enable_static_check(spec: str) -> tuple[str, dict]:
     """!
     @brief Parse a single `--enable-static-check` SPEC string into a (lang, config_dict) pair.
-    @param spec Raw SPEC string in the format `LANG=MODULE[#CMD[#PARAM...]]`.
+    @param spec Raw SPEC string in the format `LANG=MODULE[,CMD[,PARAM...]]`.
     @return Tuple `(canonical_lang, config_dict)` where `config_dict` contains `"module"` and
       optionally `"cmd"` (Command only) and `"params"` (non-empty list only).
     @throws ReqError If `=` separator is absent, language is unknown, or module is unknown.
     @details
       Parse steps:
-      1. Split on the first `=`; left side is LANG token, right side is `MODULE[#...]`.
+      1. Split on the first `=`; left side is LANG token, right side is `MODULE[,...]`.
       2. Normalize LANG via `STATIC_CHECK_LANG_CANONICAL` (case-insensitive).
-      3. Split right side on `#`; first token is MODULE (case-insensitive, validated against
-         `_CANONICAL_MODULES`).
+      3. Parse right side as comma-separated tokens; first token is MODULE
+         (case-insensitive, validated against `_CANONICAL_MODULES`).
       4. For Command: next token is `cmd` (mandatory); all subsequent tokens are `params`.
       5. For all other modules: all tokens after MODULE are `params`.
       6. `params` key is omitted when the list is empty.
       7. `cmd` key is omitted for non-Command modules.
-      Note: `#` separator allows PARAM values to contain `,` and `;`
-        (e.g. `--enable=warning,style`).
+      8. Surrounding `"` characters on parsed tokens are stripped by CSV-token parsing.
+      Note: PARAM values that contain `,` must be wrapped with `"` in SPEC.
     @see SRS-260, SRS-248, SRS-249, SRS-250
     """
     if "=" not in spec:
         raise ReqError(
-            "Error: --enable-static-check requires format LANG=MODULE[#CMD[#PARAM...]]; "
+            "Error: --enable-static-check requires format LANG=MODULE[,CMD[,PARAM...]]; "
             "missing '=' separator.",
             1,
         )
@@ -146,7 +147,7 @@ def parse_enable_static_check(spec: str) -> tuple[str, dict]:
         )
     canonical_lang = STATIC_CHECK_LANG_CANONICAL[lang_key]
 
-    parts = rest.split("#")
+    parts = [tok.strip() for tok in next(csv.reader([rest], skipinitialspace=True))]
     if not parts or not parts[0].strip():
         raise ReqError(
             "Error: --enable-static-check requires MODULE after '='. "
@@ -170,7 +171,7 @@ def parse_enable_static_check(spec: str) -> tuple[str, dict]:
         if not remaining or not remaining[0]:
             raise ReqError(
                 "Error: Command module requires a cmd argument in --enable-static-check. "
-                "Format: LANG=Command#CMD[#PARAM...]",
+                "Format: LANG=Command,CMD[,PARAM...]",
                 1,
             )
         config["cmd"] = remaining[0]
