@@ -27,6 +27,9 @@ else
 --tests-dir "${FOLDER_PATH}/tests" \
 --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
+--enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
---enable-static-check Python=Pylance
+--enable-static-check C++=Command,clang-format,--dry-run,--Werror \
+--enable-static-check Python=Pylance \
+--enable-static-check Python=Ruff
 fi
