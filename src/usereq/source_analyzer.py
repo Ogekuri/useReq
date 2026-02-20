@@ -18,7 +18,7 @@ from typing import Optional
 try:
     from .doxygen_parser import parse_doxygen_comment
 except ImportError:
-    from doxygen_parser import parse_doxygen_comment
+    from usereq.doxygen_parser import parse_doxygen_comment
 
 
 class ElementType(Enum):
@@ -864,7 +864,7 @@ class SourceAnalyzer:
                 if ch == "\\" and i + 1 < len(line):
                     i += 2
                     continue
-                if line[i:].startswith(current_delim):
+                if current_delim and line[i:].startswith(current_delim):
                     in_string = False
                     i += len(current_delim)
                     continue
@@ -900,7 +900,7 @@ class SourceAnalyzer:
                 if ch == "\\" and i + 1 < len(line):
                     i += 2
                     continue
-                if line[i:].startswith(current_delim):
+                if current_delim and line[i:].startswith(current_delim):
                     in_string = False
                     i += len(current_delim)
                     continue
@@ -1002,7 +1002,7 @@ class SourceAnalyzer:
     # ── Enrichment methods for LLM-optimized output ───────────────────
 
     def enrich(self, elements: list, language: str,
-               filepath: str = None) -> list:
+               filepath: Optional[str] = None) -> list:
         """! @brief Enrich elements with signatures, hierarchy, visibility, inheritance.
         @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
         """
@@ -1024,7 +1024,6 @@ class SourceAnalyzer:
         for elem in elements:
             if not elem.name:
                 continue
-            name = elem.name.strip()
             # Try to re-extract the name from the element's extract line
             # using the original pattern (which has group 2 as the identifier)
             spec = self.specs.get(language)
@@ -1547,7 +1546,7 @@ def _build_comment_maps(elements: list) -> tuple:
 
 
 def _render_body_annotations(out: list, elem, indent: str = "",
-                             exclude_ranges: list = None):
+                             exclude_ranges: Optional[list] = None):
     """! @brief Render body comments and exit points for a definition element.
     @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
     """
@@ -1671,7 +1670,7 @@ def format_markdown(
     try:
         from .doxygen_parser import format_doxygen_fields_as_markdown
     except ImportError:
-        from doxygen_parser import format_doxygen_fields_as_markdown
+        from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 
     # ── Header ────────────────────────────────────────────────────────
     n_comments = sum(1 for e in elements

@@ -10,7 +10,6 @@
 import os
 import re
 import sys
-from pathlib import Path
 
 from .doxygen_parser import format_doxygen_fields_as_markdown, parse_doxygen_comment
 from .source_analyzer import SourceAnalyzer

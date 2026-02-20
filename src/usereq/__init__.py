@@ -6,9 +6,6 @@
 @version 0.0.70
 """
 
-__version__ = "0.0.71"
-"""! @brief Semantic version string of the package."""
-
 from . import cli  # usereq.cli submodule
 from . import source_analyzer  # usereq.source_analyzer submodule
 from . import token_counter  # usereq.token_counter submodule
@@ -17,6 +14,9 @@ from . import compress  # usereq.compress submodule
 from . import compress_files  # usereq.compress_files submodule
 from . import find_constructs  # usereq.find_constructs submodule
 from .cli import main  # re-export of CLI entry point
+
+__version__ = "0.0.71"
+"""! @brief Semantic version string of the package."""
 
 __all__ = [
     "__version__", "main", "cli",

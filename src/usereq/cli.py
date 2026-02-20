@@ -2967,17 +2967,37 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
     """
     project_base = _resolve_project_base(args)
 
+    src_dirs: list[str]
     if getattr(args, "here", False):
         config = load_config(project_base)
-        src_dirs = config.get("src-dir", [])
+        raw_src_dirs = config.get("src-dir", [])
+        if (
+            not isinstance(raw_src_dirs, list)
+            or not all(isinstance(item, str) for item in raw_src_dirs)
+        ):
+            raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+        src_dirs = raw_src_dirs
     else:
         # Source dirs can come from args or from config
-        src_dirs = getattr(args, "src_dir", None)
-        if not src_dirs:
+        src_dirs_arg = getattr(args, "src_dir", None)
+        if src_dirs_arg:
+            if (
+                not isinstance(src_dirs_arg, list)
+                or not all(isinstance(item, str) for item in src_dirs_arg)
+            ):
+                raise ReqError("Error: invalid --src-dir value.", 1)
+            src_dirs = src_dirs_arg
+        else:
             config_path = project_base / ".req" / "config.json"
             if config_path.is_file():
                 config = load_config(project_base)
-                src_dirs = config.get("src-dir", [])
+                raw_src_dirs = config.get("src-dir", [])
+                if (
+                    not isinstance(raw_src_dirs, list)
+                    or not all(isinstance(item, str) for item in raw_src_dirs)
+                ):
+                    raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+                src_dirs = raw_src_dirs
             else:
                 raise ReqError(
                     "Error: --src-dir is required or .req/config.json must exist.", 1

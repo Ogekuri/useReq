@@ -46,7 +46,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3067L | 99 symbols | 28 imports | 163 comments
+# cli.py | Python | 3087L | 99 symbols | 28 imports | 163 comments
 > Path: `src/usereq/cli.py`
 
 ## Imports
@@ -437,15 +437,15 @@ import traceback
 - Return: Absolute path of project base.
 - Throws: ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2965-2991)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2965-3011)
 - Brief: Resolve project base and src-dirs for --references/--compress.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2992-3067)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L3012-3087)
 - Brief: CLI entry point for console_scripts and `-m` execution.
 - Details: Returns an exit code (0 success, non-zero on error).
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L3011)
-- var `DEBUG = getattr(args, "debug", False)` (L3012)
+- var `VERBOSE = getattr(args, "verbose", False)` (L3031)
+- var `DEBUG = getattr(args, "debug", False)` (L3032)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -544,21 +544,20 @@ import traceback
 |`run_files_static_check_cmd`|fn|pub|2831-2897|def run_files_static_check_cmd(files: list[str], args: Na...|
 |`run_project_static_check_cmd`|fn|pub|2898-2943|def run_project_static_check_cmd(args: Namespace) -> int|
 |`_resolve_project_base`|fn|priv|2944-2964|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|2965-2991|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2992-3067|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|3011||
-|`DEBUG`|var|pub|3012||
+|`_resolve_project_src_dirs`|fn|priv|2965-3011|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|3012-3087|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|3031||
+|`DEBUG`|var|pub|3032||
 
 
 ---
 
-# compress.py | Python | 386L | 11 symbols | 5 imports | 41 comments
+# compress.py | Python | 385L | 11 symbols | 4 imports | 41 comments
 > Path: `src/usereq/compress.py`
 
 ## Imports
 ```
 import os
-import re
 import sys
 from .source_analyzer import build_language_specs
 import argparse
@@ -566,72 +565,72 @@ import argparse
 
 ## Definitions
 
-- var `EXT_LANG_MAP = {` (L17)
-- var `INDENT_SIGNIFICANT = {"python", "haskell", "elixir"}` (L29)
-### fn `def _get_specs()` `priv` (L36-46)
+- var `EXT_LANG_MAP = {` (L16)
+- var `INDENT_SIGNIFICANT = {"python", "haskell", "elixir"}` (L28)
+### fn `def _get_specs()` `priv` (L35-45)
 - Brief: Return cached language specifications, initializing once.
 - Details: If cache is empty, calls `build_language_specs()` to populate it.
 - Return: Dictionary mapping normalized language keys to language specs.
 
-### fn `def detect_language(filepath: str) -> str | None` (L47-56)
+### fn `def detect_language(filepath: str) -> str | None` (L46-55)
 - Brief: Detect language key from file extension.
 - Details: Uses `EXT_LANG_MAP` for lookup. Case-insensitive extension matching.
 - Param: filepath Source file path.
 - Return: Normalized language key, or None when extension is unsupported.
 
-### fn `def _is_in_string(line: str, pos: int, string_delimiters: tuple) -> bool` `priv` (L57-98)
+### fn `def _is_in_string(line: str, pos: int, string_delimiters: tuple) -> bool` `priv` (L56-97)
 - Brief: Check if position `pos` in `line` is inside a string literal.
 - Details: iterates through the line handling escaped delimiters.
 - Param: line The code line string. pos The character index to check. string_delimiters Tuple of string delimiter characters/sequences.
 - Return: True if `pos` is inside a string, False otherwise.
 
-### fn `def _remove_inline_comment(line: str, single_comment: str,` `priv` (L99-142)
+### fn `def _remove_inline_comment(line: str, single_comment: str,` `priv` (L98-141)
 - Brief: Remove trailing single-line comment from a code line.
 - Details: Respects string literals; does not remove comments inside strings.
 - Param: line The code line string. single_comment The single-line comment marker (e.g., "//", "#"). string_delimiters Tuple of string delimiters to respect.
 - Return: The line content before the comment starts.
 
-### fn `def _is_python_docstring_line(line: str) -> bool` `priv` (L143-154)
+### fn `def _is_python_docstring_line(line: str) -> bool` `priv` (L142-153)
 - Brief: Check if a line is a standalone Python docstring (triple-quote only).
 - Param: line The code line string.
 - Return: True if the line appears to be a standalone triple-quoted string.
 
-### fn `def _format_result(entries: list[tuple[int, str]],` `priv` (L155-166)
+### fn `def _format_result(entries: list[tuple[int, str]],` `priv` (L154-165)
 - Brief: Format compressed entries, optionally prefixing original line numbers.
 - Param: entries List of tuples (line_number, text). include_line_numbers Boolean flag to enable line prefixes.
 - Return: Formatted string.
 
-### fn `def compress_source(source: str, language: str,` (L167-334)
+### fn `def compress_source(source: str, language: str,` (L166-333)
 - Brief: Compress source code by removing comments, blank lines, and extra whitespace.
 - Details: Preserves indentation for indent-significant languages (Python, Haskell, Elixir).
 - Param: source The source code string. language Language identifier (e.g. "python", "javascript"). include_line_numbers If True (default), prefix each line with <n>: format.
 - Return: Compressed source code string.
 - Throws: ValueError If language is unsupported.
 
-### fn `def compress_file(filepath: str, language: str | None = None,` (L335-356)
+### fn `def compress_file(filepath: str, language: str | None = None,` (L334-355)
 - Brief: Compress a source file by removing comments and extra whitespace.
 - Param: filepath Path to the source file. language Optional language override. Auto-detected if None. include_line_numbers If True (default), prefix each line with <n>: format.
 - Return: Compressed source code string.
 - Throws: ValueError If language cannot be detected.
 
-### fn `def main()` (L357-384)
+### fn `def main()` (L356-383)
 - Brief: Execute the standalone compression CLI.
 - Details: Parses command-line arguments and invokes `compress_file`, printing the result to stdout or errors to stderr.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`EXT_LANG_MAP`|var|pub|17||
-|`INDENT_SIGNIFICANT`|var|pub|29||
-|`_get_specs`|fn|priv|36-46|def _get_specs()|
-|`detect_language`|fn|pub|47-56|def detect_language(filepath: str) -> str | None|
-|`_is_in_string`|fn|priv|57-98|def _is_in_string(line: str, pos: int, string_delimiters:...|
-|`_remove_inline_comment`|fn|priv|99-142|def _remove_inline_comment(line: str, single_comment: str,|
-|`_is_python_docstring_line`|fn|priv|143-154|def _is_python_docstring_line(line: str) -> bool|
-|`_format_result`|fn|priv|155-166|def _format_result(entries: list[tuple[int, str]],|
-|`compress_source`|fn|pub|167-334|def compress_source(source: str, language: str,|
-|`compress_file`|fn|pub|335-356|def compress_file(filepath: str, language: str | None = N...|
-|`main`|fn|pub|357-384|def main()|
+|`EXT_LANG_MAP`|var|pub|16||
+|`INDENT_SIGNIFICANT`|var|pub|28||
+|`_get_specs`|fn|priv|35-45|def _get_specs()|
+|`detect_language`|fn|pub|46-55|def detect_language(filepath: str) -> str | None|
+|`_is_in_string`|fn|priv|56-97|def _is_in_string(line: str, pos: int, string_delimiters:...|
+|`_remove_inline_comment`|fn|priv|98-141|def _remove_inline_comment(line: str, single_comment: str,|
+|`_is_python_docstring_line`|fn|priv|142-153|def _is_python_docstring_line(line: str) -> bool|
+|`_format_result`|fn|priv|154-165|def _format_result(entries: list[tuple[int, str]],|
+|`compress_source`|fn|pub|166-333|def compress_source(source: str, language: str,|
+|`compress_file`|fn|pub|334-355|def compress_file(filepath: str, language: str | None = N...|
+|`main`|fn|pub|356-383|def main()|
 
 
 ---
@@ -734,7 +733,7 @@ from typing import Dict, List
 
 ---
 
-# find_constructs.py | Python | 357L | 11 symbols | 8 imports | 18 comments
+# find_constructs.py | Python | 356L | 11 symbols | 7 imports | 18 comments
 > Path: `src/usereq/find_constructs.py`
 
 ## Imports
@@ -742,7 +741,6 @@ from typing import Dict, List
 import os
 import re
 import sys
-from pathlib import Path
 from .doxygen_parser import format_doxygen_fields_as_markdown, parse_doxygen_comment
 from .source_analyzer import SourceAnalyzer
 from .compress import compress_source, detect_language
@@ -751,62 +749,62 @@ import argparse
 
 ## Definitions
 
-- var `LANGUAGE_TAGS = {` (L21)
-### fn `def format_available_tags() -> str` (L45-58)
+- var `LANGUAGE_TAGS = {` (L20)
+### fn `def format_available_tags() -> str` (L44-57)
 - Brief: Generate formatted list of available TAGs per language.
 - Details: Iterates LANGUAGE_TAGS dictionary, formats each entry as "- Language: TAG1, TAG2, ..." with language capitalized and tags alphabetically sorted and comma-separated.
 - Return: Multi-line string listing each language with its supported TAGs.
 
-### fn `def parse_tag_filter(tag_string: str) -> set[str]` (L59-67)
+### fn `def parse_tag_filter(tag_string: str) -> set[str]` (L58-66)
 - Brief: Parse pipe-separated tag filter into a normalized set.
 - Details: Splits the input string by pipe character `|` and strips whitespace from each component.
 - Param: tag_string Raw tag filter string (e.g., "CLASS|FUNCTION").
 - Return: Set of uppercase tag identifiers.
 
-### fn `def language_supports_tags(lang: str, tag_set: set[str]) -> bool` (L68-78)
+### fn `def language_supports_tags(lang: str, tag_set: set[str]) -> bool` (L67-77)
 - Brief: Check if the language supports at least one of the requested tags.
 - Details: Lookups the language in `LANGUAGE_TAGS` and checks if any of `tag_set` exists in the supported tags.
 - Param: lang Normalized language identifier. tag_set Set of requested TAG identifiers.
 - Return: True if intersection is non-empty, False otherwise.
 
-### fn `def construct_matches(element, tag_set: set[str], pattern: str) -> bool` (L79-96)
+### fn `def construct_matches(element, tag_set: set[str], pattern: str) -> bool` (L78-95)
 - Brief: Check if a source element matches tag filter and regex pattern.
 - Details: Validates the element type and then applies the regex search on the element name.
 - Param: element SourceElement instance from analyzer. tag_set Set of requested TAG identifiers. pattern Regex pattern string to test against element name.
 - Return: True if element type is in tag_set and name matches pattern.
 
-### fn `def _merge_doxygen_fields(` `priv` (L97-99)
+### fn `def _merge_doxygen_fields(` `priv` (L96-98)
 
-### fn `def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]` `priv` (L114-136)
+### fn `def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]` `priv` (L113-135)
 - Brief: Build aggregate Doxygen fields for one construct.
 - Details: Aggregates fields from two sources: pre-associated element.doxygen_fields and all comment snippets extracted from element.body_comments. Each comment snippet is parsed with parse_doxygen_comment() and merged in discovery order.
 - Param: element SourceElement instance potentially enriched with doxygen_fields and body_comments.
 - Return: Dictionary tag->list preserving tag content insertion order.
 
-### fn `def _strip_construct_comments(` `priv` (L137-141)
+### fn `def _strip_construct_comments(` `priv` (L136-140)
 
-### fn `def format_construct(` (L177-181)
+### fn `def format_construct(` (L176-180)
 
-### fn `def find_constructs_in_files(` (L219-224)
+### fn `def find_constructs_in_files(` (L218-223)
 
-### fn `def main()` (L320-355)
+### fn `def main()` (L319-354)
 - Brief: Execute the construct finding CLI command.
 - Details: Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`LANGUAGE_TAGS`|var|pub|21||
-|`format_available_tags`|fn|pub|45-58|def format_available_tags() -> str|
-|`parse_tag_filter`|fn|pub|59-67|def parse_tag_filter(tag_string: str) -> set[str]|
-|`language_supports_tags`|fn|pub|68-78|def language_supports_tags(lang: str, tag_set: set[str]) ...|
-|`construct_matches`|fn|pub|79-96|def construct_matches(element, tag_set: set[str], pattern...|
-|`_merge_doxygen_fields`|fn|priv|97-99|def _merge_doxygen_fields(|
-|`_extract_construct_doxygen_fields`|fn|priv|114-136|def _extract_construct_doxygen_fields(element) -> dict[st...|
-|`_strip_construct_comments`|fn|priv|137-141|def _strip_construct_comments(|
-|`format_construct`|fn|pub|177-181|def format_construct(|
-|`find_constructs_in_files`|fn|pub|219-224|def find_constructs_in_files(|
-|`main`|fn|pub|320-355|def main()|
+|`LANGUAGE_TAGS`|var|pub|20||
+|`format_available_tags`|fn|pub|44-57|def format_available_tags() -> str|
+|`parse_tag_filter`|fn|pub|58-66|def parse_tag_filter(tag_string: str) -> set[str]|
+|`language_supports_tags`|fn|pub|67-77|def language_supports_tags(lang: str, tag_set: set[str]) ...|
+|`construct_matches`|fn|pub|78-95|def construct_matches(element, tag_set: set[str], pattern...|
+|`_merge_doxygen_fields`|fn|priv|96-98|def _merge_doxygen_fields(|
+|`_extract_construct_doxygen_fields`|fn|priv|113-135|def _extract_construct_doxygen_fields(element) -> dict[st...|
+|`_strip_construct_comments`|fn|priv|136-140|def _strip_construct_comments(|
+|`format_construct`|fn|pub|176-180|def format_construct(|
+|`find_constructs_in_files`|fn|pub|218-223|def find_constructs_in_files(|
+|`main`|fn|pub|319-354|def main()|
 
 
 ---
@@ -854,7 +852,7 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 
 ---
 
-# source_analyzer.py | Python | 2061L | 59 symbols | 11 imports | 130 comments
+# source_analyzer.py | Python | 2060L | 59 symbols | 11 imports | 130 comments
 > Path: `src/usereq/source_analyzer.py`
 
 ## Imports
@@ -867,9 +865,9 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Optional
 from .doxygen_parser import parse_doxygen_comment
-from doxygen_parser import parse_doxygen_comment
+from usereq.doxygen_parser import parse_doxygen_comment
 from .doxygen_parser import format_doxygen_fields_as_markdown
-from doxygen_parser import format_doxygen_fields_as_markdown
+from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 ```
 
 ## Definitions
@@ -962,78 +960,78 @@ from doxygen_parser import format_doxygen_fields_as_markdown
 - Brief: Enrich elements with signatures, hierarchy, visibility, inheritance.
 - Details: Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
 
-### fn `def _clean_names(self, elements: list, language: str)` `priv` (L1020-1045)
+### fn `def _clean_names(self, elements: list, language: str)` `priv` (L1020-1044)
 - Brief: Extract clean identifiers from name fields.
 - Details: Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
 
-### fn `def _extract_signatures(self, elements: list, language: str)` `priv` (L1046-1061)
+### fn `def _extract_signatures(self, elements: list, language: str)` `priv` (L1045-1060)
 - Brief: Extract clean signatures from element extracts.
 
-### fn `def _detect_hierarchy(self, elements: list)` `priv` (L1062-1095)
+### fn `def _detect_hierarchy(self, elements: list)` `priv` (L1061-1094)
 - Brief: Detect parent-child relationships between elements.
 - Details: Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
 
-### fn `def _extract_visibility(self, elements: list, language: str)` `priv` (L1096-1108)
+### fn `def _extract_visibility(self, elements: list, language: str)` `priv` (L1095-1107)
 - Brief: Extract visibility/access modifiers from elements.
 
-### fn `def _parse_visibility(self, sig: str, name: Optional[str],` `priv` (L1109-1154)
+### fn `def _parse_visibility(self, sig: str, name: Optional[str],` `priv` (L1108-1153)
 - Brief: Parse visibility modifier from a signature line.
 
-### fn `def _extract_inheritance(self, elements: list, language: str)` `priv` (L1155-1166)
+### fn `def _extract_inheritance(self, elements: list, language: str)` `priv` (L1154-1165)
 - Brief: Extract inheritance/implementation info from class-like elements.
 
-### fn `def _parse_inheritance(self, first_line: str,` `priv` (L1167-1196)
+### fn `def _parse_inheritance(self, first_line: str,` `priv` (L1166-1195)
 - Brief: Parse inheritance info from a class/struct declaration line.
 
-### fn `def _extract_body_annotations(self, elements: list,` `priv` (L1204-1327)
+### fn `def _extract_body_annotations(self, elements: list,` `priv` (L1203-1326)
 - Brief: Extract comments and exit points from within function/class bodies.
 - Details: Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
 
-### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1328-1387)
+### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1327-1386)
 - Brief: Extract Doxygen tag fields from associated documentation comments.
 - Details: For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. Parses the resolved comment via parse_doxygen_comment() and stores the extracted fields in element.doxygen_fields.
 
-### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1389-1398)
+### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1388-1397)
 - Brief: Detect whether a comment uses postfix Doxygen association markers.
 - Details: Returns True for comment prefixes that explicitly bind documentation to a preceding construct, including variants like `#!<`, `//!<`, `///<`, `/*!<`, and `/**<`.
 - Param: comment_text Raw extracted comment text.
 - Return: True when the comment text starts with a supported postfix marker; otherwise False.
 
-### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1400-1411)
+### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1399-1410)
 - Brief: Strip comment markers from a single line of comment text.
 
-### fn `def _md_loc(elem) -> str` `priv` (L1412-1419)
+### fn `def _md_loc(elem) -> str` `priv` (L1411-1418)
 - Brief: Format element location compactly for markdown.
 
-### fn `def _md_kind(elem) -> str` `priv` (L1420-1447)
+### fn `def _md_kind(elem) -> str` `priv` (L1419-1446)
 - Brief: Short kind label for markdown output.
 
-### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1448-1470)
+### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1447-1469)
 - Brief: Extract clean text content from a comment element.
 - Details: Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
 
-### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1471-1487)
+### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1470-1486)
 - Brief: Extract clean text lines from a multi-line comment (preserving structure).
 
-### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1488-1548)
+### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1487-1547)
 - Brief: Build maps that associate comments with their adjacent definitions.
 - Details: Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
 
-### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1549-1600)
+### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1548-1599)
 - Brief: Render body comments and exit points for a definition element.
 - Details: Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
 
-### fn `def _merge_doxygen_fields(` `priv` (L1601-1603)
+### fn `def _merge_doxygen_fields(` `priv` (L1600-1602)
 
-### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1617-1638)
+### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1616-1637)
 - Brief: Aggregate construct Doxygen fields from associated and body comments.
 - Details: Parses each body-comment tuple with parse_doxygen_comment() and merges results after pre-associated fields so references output can represent both association styles.
 - Param: elem SourceElement containing optional `doxygen_fields` and `body_comments`.
 - Return: Dictionary of normalized Doxygen tags to ordered value lists.
 
-### fn `def format_markdown(` (L1639-1645)
+### fn `def format_markdown(` (L1638-1644)
 
-### fn `def main()` (L1936-2059)
+### fn `def main()` (L1935-2058)
 - Brief: Execute the standalone source analyzer CLI command.
 
 ## Symbol Index
@@ -1077,27 +1075,27 @@ from doxygen_parser import format_doxygen_fields_as_markdown
 |`_find_comment`|fn|priv|885-922|def _find_comment(self, line: str, spec: LanguageSpec) ->...|
 |`_find_block_end`|fn|priv|923-1001|def _find_block_end(self, lines: list, start_idx: int,|
 |`enrich`|fn|pub|1004-1019|def enrich(self, elements: list, language: str,|
-|`_clean_names`|fn|priv|1020-1045|def _clean_names(self, elements: list, language: str)|
-|`_extract_signatures`|fn|priv|1046-1061|def _extract_signatures(self, elements: list, language: str)|
-|`_detect_hierarchy`|fn|priv|1062-1095|def _detect_hierarchy(self, elements: list)|
-|`_extract_visibility`|fn|priv|1096-1108|def _extract_visibility(self, elements: list, language: str)|
-|`_parse_visibility`|fn|priv|1109-1154|def _parse_visibility(self, sig: str, name: Optional[str],|
-|`_extract_inheritance`|fn|priv|1155-1166|def _extract_inheritance(self, elements: list, language: ...|
-|`_parse_inheritance`|fn|priv|1167-1196|def _parse_inheritance(self, first_line: str,|
-|`_extract_body_annotations`|fn|priv|1204-1327|def _extract_body_annotations(self, elements: list,|
-|`_extract_doxygen_fields`|fn|priv|1328-1387|def _extract_doxygen_fields(self, elements: list)|
-|`_is_postfix_doxygen_comment`|fn|priv|1389-1398|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
-|`_clean_comment_line`|fn|priv|1400-1411|def _clean_comment_line(text: str, spec) -> str|
-|`_md_loc`|fn|priv|1412-1419|def _md_loc(elem) -> str|
-|`_md_kind`|fn|priv|1420-1447|def _md_kind(elem) -> str|
-|`_extract_comment_text`|fn|priv|1448-1470|def _extract_comment_text(comment_elem, max_length: int =...|
-|`_extract_comment_lines`|fn|priv|1471-1487|def _extract_comment_lines(comment_elem) -> list|
-|`_build_comment_maps`|fn|priv|1488-1548|def _build_comment_maps(elements: list) -> tuple|
-|`_render_body_annotations`|fn|priv|1549-1600|def _render_body_annotations(out: list, elem, indent: str...|
-|`_merge_doxygen_fields`|fn|priv|1601-1603|def _merge_doxygen_fields(|
-|`_collect_element_doxygen_fields`|fn|priv|1617-1638|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
-|`format_markdown`|fn|pub|1639-1645|def format_markdown(|
-|`main`|fn|pub|1936-2059|def main()|
+|`_clean_names`|fn|priv|1020-1044|def _clean_names(self, elements: list, language: str)|
+|`_extract_signatures`|fn|priv|1045-1060|def _extract_signatures(self, elements: list, language: str)|
+|`_detect_hierarchy`|fn|priv|1061-1094|def _detect_hierarchy(self, elements: list)|
+|`_extract_visibility`|fn|priv|1095-1107|def _extract_visibility(self, elements: list, language: str)|
+|`_parse_visibility`|fn|priv|1108-1153|def _parse_visibility(self, sig: str, name: Optional[str],|
+|`_extract_inheritance`|fn|priv|1154-1165|def _extract_inheritance(self, elements: list, language: ...|
+|`_parse_inheritance`|fn|priv|1166-1195|def _parse_inheritance(self, first_line: str,|
+|`_extract_body_annotations`|fn|priv|1203-1326|def _extract_body_annotations(self, elements: list,|
+|`_extract_doxygen_fields`|fn|priv|1327-1386|def _extract_doxygen_fields(self, elements: list)|
+|`_is_postfix_doxygen_comment`|fn|priv|1388-1397|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
+|`_clean_comment_line`|fn|priv|1399-1410|def _clean_comment_line(text: str, spec) -> str|
+|`_md_loc`|fn|priv|1411-1418|def _md_loc(elem) -> str|
+|`_md_kind`|fn|priv|1419-1446|def _md_kind(elem) -> str|
+|`_extract_comment_text`|fn|priv|1447-1469|def _extract_comment_text(comment_elem, max_length: int =...|
+|`_extract_comment_lines`|fn|priv|1470-1486|def _extract_comment_lines(comment_elem) -> list|
+|`_build_comment_maps`|fn|priv|1487-1547|def _build_comment_maps(elements: list) -> tuple|
+|`_render_body_annotations`|fn|priv|1548-1599|def _render_body_annotations(out: list, elem, indent: str...|
+|`_merge_doxygen_fields`|fn|priv|1600-1602|def _merge_doxygen_fields(|
+|`_collect_element_doxygen_fields`|fn|priv|1616-1637|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
+|`format_markdown`|fn|pub|1638-1644|def format_markdown(|
+|`main`|fn|pub|1935-2058|def main()|
 
 
 ---

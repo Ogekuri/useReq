@@ -8,7 +8,6 @@
 """
 
 import os
-import re
 import sys
 
 from .source_analyzer import build_language_specs
@@ -214,8 +213,8 @@ def compress_source(source: str, language: str,
 
         # --- Python docstrings (""" / ''') used as standalone comments ---
         if is_python and in_python_docstring:
-            if python_docstring_delim in line:
-                end_pos = line.index(python_docstring_delim) + 3
+            if python_docstring_delim and python_docstring_delim in line:
+                end_pos = line.index(python_docstring_delim) + len(python_docstring_delim)
                 remainder = line[end_pos:]
                 in_python_docstring = False
                 python_docstring_delim = None
