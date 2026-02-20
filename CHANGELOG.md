@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.0.72](https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72) - 2026-02-20
+### ⛰️  Features
+- *(core)* add static code check.
+- *(core)* add static-check on req-init.sh.
+- *(static_check)* add --enable-static-check, --files-static-check, --static-check commands [2026-02-20 09:55:00]
+- *(core)* max 35 words for requirement.
+- *(static_check)* add --test-static-check with Dummy/Pylance/Ruff/Command classes [2026-02-20 00:00:00]
+- *(core)* add pyright.sh, ruff.sh scripts.
+- *(core)* add ruff e pyright.
+
+### 🐛  Bug Fixes
+- *(core)* fix WORKFLOW.md update.
+- *(core)* resolve static-check typing and lint defects [2026-02-20 14:08:07]
+- *(core)* minor fixes.
+- *(core)* minor fixes.
+
+### 🚜  Changes
+- *(static_check)* add markdown blank separator lines [2026-02-20 13:44:45]
+- *(static_check)* remove markdown trailing blank lines [2026-02-20 13:33:42]
+- *(static-check)* support multi-module arrays in config [2026-02-20 13:17:36]
+- *(static-check)* support quoted comma params in enable parser [2026-02-20 11:54:56]
+- *(static-check)* update comma-separated spec parsing [2026-02-20 11:41:19]
+- *(static_check)* use '#' as SPEC separator in --enable-static-check to avoid bash ';' conflict [2026-02-20 11:30:51]
+- *(static_check)* use ';' as SPEC separator in --enable-static-check to allow comma-containing params [2026-02-20 11:13:47]
+- *(static_check)* remove --recursive flag; use ** glob for recursive resolution [2026-02-20 09:47:53]
+
 ## [0.0.71](https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71) - 2026-02-19
 ### ⛰️  Features
 - *(cli)* extend skill generation to resources/skills [2026-02-19 17:30:26]
@@ -568,6 +594,7 @@
 - \[0.0.69\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.69
 - \[0.0.70\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.70
 - \[0.0.71\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.71
+- \[0.0.72\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.72
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -640,3 +667,4 @@
 [0.0.69]: https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69
 [0.0.70]: https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70
 [0.0.71]: https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71
+[0.0.72]: https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72
