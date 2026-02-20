@@ -49,7 +49,7 @@ In scope: read `%%DOC_PATH%%/REQUIREMENTS.md`, implement/introduce source under 
 ## Execution Protocol (Global vs Local)
 You must manage the execution flow using two distinct methods:
 -  **Global Roadmap** (*check-list*): 
-   - You MUST maintain a *check-list* internally with `7` Steps (one item per Step).
+   - You MUST maintain a *check-list* internally with `8` Steps (one item per Step).
    - **Do NOT** use the *task-list tool* for this high-level roadmap.
 -  **Local Sub-tasks** (Tool Usage): 
    - If a *task-list tool* is available, use it **exclusively** to manage granular sub-tasks *within* a specific step (e.g., in Step X: "1. Edit file A", "2. Edit file B"; or in Step Y: "1. Fix test K", "2. Fix test L").
@@ -70,7 +70,7 @@ During the execution flow you MUST follow these directives:
 
 
 ## Steps
-Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..7`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
+Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..8`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. Read requirements, generate **Design Delta** and implement the **Implementation Delta** to cover all requirements
@@ -95,30 +95,39 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Fix the source code to pass valid tests autonomously without asking for user intervention. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Analyze the root cause internally based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Implement request failed due to inability to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Implement request failed due to requirements incompatible with tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
-4. Regenerate `%%DOC_PATH%%/WORKFLOW.md` using the canonical /req.workflow contract (same terminology, same schema, same call-trace rules).
-   - Create/update `%%DOC_PATH%%/WORKFLOW.md` as an LLM-first runtime model (English only) that enumerates ALL execution units and their interactions.
-   - Analyze only files under %%SRC_PATHS%% (everything else is out of scope) and identify ALL runtime execution units:
+4. Static analysis: build the runtime model from %%SRC_PATHS%%
+   - Analyze only files under %%SRC_PATHS%%; treat all files outside %%SRC_PATHS%% as out of scope and never document them.
+   - Identify ALL execution units used at runtime:
       - OS processes (MUST include the main process).
       - OS threads (per process), including their entry functions/methods.
       - If no explicit thread creation is present, record "no explicit threads detected" for that process.
-   - For EACH execution unit, generate a complete internal call-trace tree starting from its entrypoint(s):
-      - Include ONLY internal functions/methods defined in repository source under %%SRC_PATHS%%.
+   - For EACH execution unit, derive entrypoint(s) and build a complete internal call-trace tree:
+      - Include ONLY internal functions as call-trace nodes (defined under %%SRC_PATHS%%).
       - Do NOT include external boundaries (system/library/framework calls) as nodes; annotate them only as external boundaries where relevant.
       - No maximum depth: expand until an internal leaf function or an external boundary is reached.
-   - Identify and document ALL Communication Edges between Execution Units:
-      - For each edge: direction (source -> destination), mechanism, endpoint/channel, payload/data-shape reference, and evidence pointers.
-   - Preserve and maintain the canonical `WORKFLOW.md` schema:
-      - `## Execution Units Index`
+   - Identify ALL explicit communication edges between execution units and record for each edge:
+      - Direction (source -> destination), mechanism (IPC/thread communication), endpoint/channel (queue/topic/path/socket/etc.), and payload/data-shape references.
+5. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
+   - Read any existing `%%DOC_PATH%%/WORKFLOW.md` to preserve stable IDs and minimize unnecessary churn, then update it to strictly conform to the Output Contract above.
+   - Generate %%DOC_PATH%%/WORKFLOW.md in English only using deterministic, machine-interpretable Markdown with the required schema and stable field order.
+      - `## Execution Units Index` (stable IDs)
+         - Use stable IDs: `PROC:main`, `PROC:<name>` for processes; `THR:<proc_id>#<name>` for threads.
+         - For each execution unit: ID, type (process/thread), parent process (for threads), role, entrypoint symbol(s), and defining file(s).
       - `## Execution Units`
+         - One subsection per execution unit ID including:
+           - Entrypoint(s)
+           - Lifecycle/trigger (how it starts, stops, and loops/blocks)
+           - Internal Call-Trace Tree (internal functions only; no maximum depth)
+           - External Boundaries (file I/O, network, DB, external APIs, OS interaction)
       - `## Communication Edges`
-   - Use stable execution unit IDs: `PROC:main`, `PROC:<name>` for processes; `THR:<proc_id>#<name>` for threads.
+         - List ALL `Communication Edge` items with direction + mechanism + endpoint/channel + payload/data-shape reference + evidence pointers.
    - Call-trace node format (MUST be consistent):
       - `symbol_name(...)`: `<single-line role>` [`<defining filepath>`]
          - `<optional: brief invariants/external boundaries>`
          - `<child internal calls as nested bullet list, in call order>`
-5. Update `%%DOC_PATH%%/REFERENCES.md` references file
+6. Update `%%DOC_PATH%%/REFERENCES.md` references file
    -  Create/update the references file with `req --here --references >"%%DOC_PATH%%/REFERENCES.md"`
-6. **CRITICAL**: Stage & commit
+7. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
@@ -127,5 +136,5 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
       - Set `<DATE>` to the current local timestamp formatted exactly as: YYYY-MM-DD HH:MM:SS and obtained by executing: `date +"%Y-%m-%d %H:%M:%S"`.
    - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: Implement request completed with unclean git repository!".
-7. Present results
+8. Present results
    - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
