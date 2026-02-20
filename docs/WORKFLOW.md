@@ -59,6 +59,12 @@
           - `StaticCheckCommand.run()`: Command checker; verifies cmd on PATH via `shutil.which`, invokes `<cmd> <file>` and emits OK/FAIL+Evidence [`src/usereq/static_check.py`]
             - External boundary: `shutil.which(cmd)`; `subprocess.run([cmd, ...])`.
           - External boundary: stdout for per-file check output; stderr for warnings (empty file list).
+        - `run_files_static_check_cmd(files, args)`: static analysis for `--files-static-check` on explicit file list [`src/usereq/cli.py`]
+          - `load_static_check_from_config(project_base)`: read `"static-check"` section from `.req/config.json` [`src/usereq/cli.py`]
+            - External boundary: `.req/config.json` filesystem read; returns `{}` on missing/invalid.
+          - `dispatch_static_check_for_file(filepath, lang_config)`: per-file module dispatch based on `lang_config["module"]` [`src/usereq/static_check.py`]
+            - `StaticCheckBase.run()`, `StaticCheckPylance.run()`, `StaticCheckRuff.run()`, or `StaticCheckCommand.run()` depending on module.
+          - External boundary: `STATIC_CHECK_EXT_TO_LANG` for extension-to-language lookup; stderr for warnings.
       - `_is_project_scan_command(args)`: select project-scope commands [`src/usereq/cli.py`]
         - External boundary: `.req/config.json` presence when `--here` is used.
         - `run_references(args)`: repo-wide references report [`src/usereq/cli.py`]
@@ -71,6 +77,13 @@
           - `run_files_tokens(paths)`: token report for discovered docs files [`src/usereq/cli.py`]
         - `run_find(args)`: repo-wide construct extraction [`src/usereq/cli.py`]
           - `find_constructs_in_files(...)`: extract tagged constructs [`src/usereq/find_constructs.py`]
+        - `run_project_static_check_cmd(args)`: repo-wide static analysis for `--static-check` [`src/usereq/cli.py`]
+          - `_resolve_project_src_dirs(args)`: resolve project base and src-dirs [`src/usereq/cli.py`]
+          - `load_static_check_from_config(project_base)`: read `"static-check"` section from `.req/config.json` [`src/usereq/cli.py`]
+          - `_collect_source_files(src_dirs, project_base)`: collect files with SUPPORTED_EXTENSIONS, excluding EXCLUDED_DIRS [`src/usereq/cli.py`]
+          - `dispatch_static_check_for_file(filepath, lang_config)`: per-file module dispatch [`src/usereq/static_check.py`]
+            - `StaticCheckBase.run()`, `StaticCheckPylance.run()`, `StaticCheckRuff.run()`, or `StaticCheckCommand.run()` depending on module.
+          - External boundary: `STATIC_CHECK_EXT_TO_LANG` for extension-to-language lookup.
       - `run(args)`: project initialization + provider artifact generation [`src/usereq/cli.py`]
         - External boundary: filesystem writes under `project_base`.
         - `ensure_doc_directory(...)`: validate docs directory constraints [`src/usereq/cli.py`]

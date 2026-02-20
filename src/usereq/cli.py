@@ -298,6 +298,47 @@ def build_parser() -> argparse.ArgumentParser:
             "[FILES] may be files, directories, or glob patterns including ** (standalone, no --base/--here required)."
         ),
     )
+    parser.add_argument(
+        "--enable-static-check",
+        action="append",
+        metavar="SPEC",
+        dest="enable_static_check",
+        default=None,
+        help=(
+            "Configure a static-check tool for a language during install/update. "
+            "SPEC format: LANG=MODULE[,CMD[,PARAM...]]. "
+            "MODULE: Dummy, Pylance, Ruff, Command (case-insensitive). "
+            "LANG: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, "
+            "PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir (case-insensitive). "
+            "For Command, CMD is the binary and subsequent tokens are params saved in config.json. "
+            "Repeatable: one flag per language. "
+            "Example: --enable-static-check Python=Pylance "
+            "--enable-static-check C=Command,/usr/bin/cppcheck,--check-library"
+        ),
+    )
+    parser.add_argument(
+        "--files-static-check",
+        nargs="+",
+        metavar="FILE",
+        dest="files_static_check",
+        help=(
+            "Run static analysis on explicit files using tools configured in .req/config.json. "
+            "Detects language from file extension; skips files with no configured tool. "
+            "Standalone (no --base/--here required; uses --here/--base if provided, else CWD). "
+            "Example: --files-static-check src/main.c src/utils.py"
+        ),
+    )
+    parser.add_argument(
+        "--static-check",
+        action="store_true",
+        default=False,
+        dest="static_check",
+        help=(
+            "Run static analysis on all source files in configured --src-dir directories "
+            "(requires --base or --here). Uses the same file-collection logic as --references "
+            "and --compress. Tools are loaded from the 'static-check' section of .req/config.json."
+        ),
+    )
     return parser
 
 
@@ -623,6 +664,7 @@ def save_config(
     doc_dir_value: str,
     test_dir_value: str,
     src_dir_values: list[str],
+    static_check_config: Optional[dict] = None,
 ) -> None:
     """! @brief Saves normalized parameters to .req/config.json.
     @param project_base The project root path.
@@ -630,15 +672,21 @@ def save_config(
     @param doc_dir_value Relative path to docs directory.
     @param test_dir_value Relative path to tests directory.
     @param src_dir_values List of relative paths to source directories.
+    @param static_check_config Optional dict of static-check config to persist under key
+      `"static-check"`; omitted from JSON when None or empty.
+    @details Writes full config payload to `.req/config.json`. When `static_check_config`
+      is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
     """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
+    payload: dict = {
         "guidelines-dir": guidelines_dir_value,
         "docs-dir": doc_dir_value,
         "tests-dir": test_dir_value,
         "src-dir": src_dir_values,
     }
+    if static_check_config:
+        payload["static-check"] = static_check_config
     config_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -683,6 +731,29 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
         "tests-dir": test_dir_value,
         "src-dir": src_dir_value,
     }
+
+
+def load_static_check_from_config(project_base: Path) -> dict:
+    """!
+    @brief Load the `"static-check"` section from `.req/config.json` without validation errors.
+    @param project_base The project root path.
+    @return Dict of static-check config (canonical-lang -> config-dict); empty dict if absent or
+      if config.json is missing/invalid.
+    @details Reads config.json silently; returns `{}` on any read or parse error.
+      Does NOT raise `ReqError`; caller decides whether absence is an error.
+    @see SRS-252, SRS-253, SRS-256
+    """
+    config_path = project_base / ".req" / "config.json"
+    if not config_path.is_file():
+        return {}
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    sc = payload.get("static-check")
+    if not isinstance(sc, dict):
+        return {}
+    return sc
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
@@ -1616,6 +1687,22 @@ def run(args: Namespace) -> None:
     # After validation and before any operation that modifies the filesystem, check for a new version.
     maybe_notify_newer_version(timeout_seconds=1.0)
 
+    # Parse --enable-static-check specs and compute merged static-check config (SRS-248..SRS-252).
+    new_static_check: dict = {}
+    enable_static_check_specs = getattr(args, "enable_static_check", None) or []
+    if enable_static_check_specs:
+        from .static_check import parse_enable_static_check as _parse_sc
+        for spec in enable_static_check_specs:
+            canonical_lang, lang_cfg = _parse_sc(spec)
+            new_static_check[canonical_lang] = lang_cfg  # last occurrence wins (SRS-251)
+
+    # Compute merged static-check: existing config + new entries (SRS-252).
+    if use_here_config or args.update:
+        existing_sc = load_static_check_from_config(project_base)
+        merged_static_check: dict = {**existing_sc, **new_static_check}
+    else:
+        merged_static_check = new_static_check
+
     if not args.update:
         save_config(
             project_base,
@@ -1623,6 +1710,18 @@ def run(args: Namespace) -> None:
             config_doc,
             config_test,
             config_src_dirs,
+            static_check_config=merged_static_check if merged_static_check else None,
+        )
+    elif merged_static_check:
+        # --update path: re-save config.json with merged static-check entries (SRS-252).
+        existing_full_config = load_config(project_base)
+        save_config(
+            project_base,
+            str(existing_full_config["guidelines-dir"]),
+            str(existing_full_config["docs-dir"]),
+            str(existing_full_config["tests-dir"]),
+            list(existing_full_config["src-dir"]),  # type: ignore[arg-type]
+            static_check_config=merged_static_check,
         )
 
     sub_guidelines_dir = compute_sub_path(normalized_guidelines, abs_guidelines, project_base)
@@ -2524,10 +2623,13 @@ def _format_files_structure_markdown(files: list[str], project_base: Path) -> st
 
 
 def _is_standalone_command(args: Namespace) -> bool:
-    """! @brief Check if the parsed args contain a standalone file command.
-    @details Returns True when any file-scope standalone flag is present, including
-      --files-tokens, --files-references, --files-compress, --files-find, and
-      --test-static-check.
+    """!
+    @brief Check if the parsed args contain a standalone file command.
+    @param args Parsed CLI namespace.
+    @return True when any file-scope standalone flag is present.
+    @details Standalone commands require no `--base`/`--here`: `--files-tokens`,
+      `--files-references`, `--files-compress`, `--files-find`, `--test-static-check`,
+      and `--files-static-check`. SRS-253 adds `--files-static-check` to this group.
     """
     return bool(
         getattr(args, "files_tokens", None)
@@ -2535,17 +2637,24 @@ def _is_standalone_command(args: Namespace) -> bool:
         or getattr(args, "files_compress", None)
         or getattr(args, "files_find", None)
         or (getattr(args, "test_static_check", None) is not None)
+        or getattr(args, "files_static_check", None)
     )
 
 
 def _is_project_scan_command(args: Namespace) -> bool:
-    """! @brief Check if the parsed args contain a project scan command.
+    """!
+    @brief Check if the parsed args contain a project-scan command.
+    @param args Parsed CLI namespace.
+    @return True when any project-scan flag is present (requires `--base`/`--here`).
+    @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`,
+      and `--static-check`. SRS-257 adds `--static-check` to this group.
     """
     return bool(
         getattr(args, "references", False)
         or getattr(args, "compress", False)
         or getattr(args, "tokens", False)
         or getattr(args, "find", None)
+        or getattr(args, "static_check", False)
     )
 
 
@@ -2707,6 +2816,115 @@ def run_tokens(args: Namespace) -> None:
     run_files_tokens(files)
 
 
+def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
+    """!
+    @brief Execute `--files-static-check`: run static analysis on an explicit file list.
+    @param files List of raw file paths supplied by the user.
+    @param args Parsed CLI namespace; `--here`/`--base` are used to locate config.json.
+    @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
+    @details
+      Project-base resolution order:
+      1. `--base PATH` -> use PATH.
+      2. `--here` -> use CWD.
+      3. Fallback -> use CWD.
+      If `.req/config.json` is not found at the resolved project base, emits a warning to
+      stderr and returns 0 (SRS-254).
+      For each file:
+      - Resolves absolute path; skips with warning if not a regular file.
+      - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension.
+      - Looks up language in the `"static-check"` config section; skips silently if absent.
+      - Dispatches via `dispatch_static_check_for_file(filepath, lang_config)`.
+      Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
+    @see SRS-253, SRS-254, SRS-255
+    """
+    from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
+
+    # Resolve project base for config.json lookup
+    base_arg = getattr(args, "base", None)
+    here_arg = getattr(args, "here", False)
+    if base_arg:
+        project_base: Path = Path(base_arg).resolve()
+    elif here_arg:
+        project_base = Path.cwd().resolve()
+    else:
+        project_base = Path.cwd().resolve()
+
+    sc_config = load_static_check_from_config(project_base)
+    if not sc_config:
+        config_path = project_base / ".req" / "config.json"
+        if not config_path.is_file():
+            print(
+                "  Warning: .req/config.json not found; no static-check tools configured.",
+                file=sys.stderr,
+            )
+            return 0
+
+    overall = 0
+    for raw_path in files:
+        p = Path(raw_path)
+        if not p.is_file():
+            print(f"  Warning: skipping (not found or not a file): {raw_path}", file=sys.stderr)
+            continue
+        filepath = str(p.resolve())
+        ext = p.suffix.lower()
+        lang = STATIC_CHECK_EXT_TO_LANG.get(ext)
+        if not lang:
+            vlog(f"Skipping {raw_path}: no language mapping for extension '{ext}'")
+            continue
+        lang_config = sc_config.get(lang)
+        if not lang_config:
+            vlog(f"Skipping {raw_path}: no static-check config for language '{lang}'")
+            continue
+        rc = dispatch_static_check_for_file(filepath, lang_config)
+        if rc != 0:
+            overall = 1
+    return overall
+
+
+def run_project_static_check_cmd(args: Namespace) -> int:
+    """!
+    @brief Execute `--static-check`: run static analysis on all project source files.
+    @param args Parsed CLI namespace; `--base`/`--here` required.
+    @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
+    @details
+      Uses the same file-collection logic as `--references` and `--compress` (SRS-177,
+      SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories,
+      applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching.
+      For each collected file:
+      - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension.
+      - Looks up language in the `"static-check"` section of `.req/config.json`.
+      - Skips silently when no tool is configured for the file's language.
+      - Dispatches via `dispatch_static_check_for_file(filepath, lang_config)`.
+      Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
+    @throws ReqError If `--base`/`--here` is missing or no source files are found.
+    @see SRS-256, SRS-257
+    """
+    from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
+
+    project_base, src_dirs = _resolve_project_src_dirs(args)
+    sc_config = load_static_check_from_config(project_base)
+
+    files = _collect_source_files(src_dirs, project_base)
+    if not files:
+        raise ReqError("Error: no source files found in configured directories.", 1)
+
+    overall = 0
+    for filepath in files:
+        ext = Path(filepath).suffix.lower()
+        lang = STATIC_CHECK_EXT_TO_LANG.get(ext)
+        if not lang:
+            vlog(f"Skipping {filepath}: no language mapping for extension '{ext}'")
+            continue
+        lang_config = sc_config.get(lang)
+        if not lang_config:
+            vlog(f"Skipping {filepath}: no static-check config for language '{lang}'")
+            continue
+        rc = dispatch_static_check_for_file(filepath, lang_config)
+        if rc != 0:
+            overall = 1
+    return overall
+
+
 def _resolve_project_base(args: Namespace) -> Path:
     """! @brief Resolve project base path for project-level commands.
     @param args Parsed CLI arguments namespace.
@@ -2796,6 +3014,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                 from .static_check import run_static_check
                 rc = run_static_check(args.test_static_check)
                 return rc
+            elif getattr(args, "files_static_check", None):
+                rc = run_files_static_check_cmd(args.files_static_check, args)
+                return rc
             return 0
         # Project scan commands (require --base/--here)
         if _is_project_scan_command(args):
@@ -2807,6 +3028,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                 run_tokens(args)
             elif getattr(args, "find", None):
                 run_find(args)
+            elif getattr(args, "static_check", False):
+                rc = run_project_static_check_cmd(args)
+                return rc
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):
