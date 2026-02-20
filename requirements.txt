@@ -5,3 +5,5 @@ wheel
 pytest
 tiktoken
 pyyaml
+ruff
+pyright
