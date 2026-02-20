@@ -26,7 +26,7 @@ else
 --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \
 --tests-dir "${FOLDER_PATH}/tests" \
 --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode --enable-models --enable-tools \
---enable-static-check C=Command,cppcheck,--error-exitcode=1,'--enable=warning,style,performance,portability',--std=c11 \
---enable-static-check C++=Command,cppcheck,--error-exitcode=1,'--enable=warning,style,performance,portability',--std=c++20 \
+--enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
+--enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
 --enable-static-check Python=Pylance
 fi
