@@ -46,7 +46,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3065L | 99 symbols | 28 imports | 163 comments
+# cli.py | Python | 3067L | 99 symbols | 28 imports | 163 comments
 > Path: `src/usereq/cli.py`
 
 ## Imports
@@ -416,36 +416,36 @@ import traceback
 - Details: Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
 - Param: args Parsed CLI arguments namespace.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L2831-2896)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L2831-2897)
 - Brief: Execute `--files-static-check`: run static analysis on an explicit file list.
-- Details: Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Dispatches via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
+- Details: Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - Param: files List of raw file paths supplied by the user. args Parsed CLI namespace; `--here`/`--base` are used to locate config.json.
 - Return: Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - See: SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L2897-2941)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L2898-2943)
 - Brief: Execute `--static-check`: run static analysis on all project source files.
-- Details: Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Dispatches via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
+- Details: Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - Param: args Parsed CLI namespace; `--base`/`--here` required.
 - Return: Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - Throws: ReqError If `--base`/`--here` is missing or no source files are found.
 - See: SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2942-2962)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L2944-2964)
 - Brief: Resolve project base path for project-level commands.
 - Param: args Parsed CLI arguments namespace.
 - Return: Absolute path of project base.
 - Throws: ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2963-2989)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L2965-2991)
 - Brief: Resolve project base and src-dirs for --references/--compress.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L2990-3065)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L2992-3067)
 - Brief: CLI entry point for console_scripts and `-m` execution.
 - Details: Returns an exit code (0 success, non-zero on error).
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L3009)
-- var `DEBUG = getattr(args, "debug", False)` (L3010)
+- var `VERBOSE = getattr(args, "verbose", False)` (L3011)
+- var `DEBUG = getattr(args, "debug", False)` (L3012)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -541,13 +541,13 @@ import traceback
 |`run_compress_cmd`|fn|pub|2762-2780|def run_compress_cmd(args: Namespace) -> None|
 |`run_find`|fn|pub|2781-2807|def run_find(args: Namespace) -> None|
 |`run_tokens`|fn|pub|2808-2830|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|2831-2896|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|2897-2941|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|2942-2962|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|2963-2989|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|2990-3065|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|3009||
-|`DEBUG`|var|pub|3010||
+|`run_files_static_check_cmd`|fn|pub|2831-2897|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|2898-2943|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|2944-2964|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|2965-2991|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|2992-3067|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|3011||
+|`DEBUG`|var|pub|3012||
 
 
 ---
@@ -1102,7 +1102,7 @@ from doxygen_parser import format_doxygen_fields_as_markdown
 
 ---
 
-# static_check.py | Python | 654L | 19 symbols | 8 imports | 57 comments
+# static_check.py | Python | 667L | 20 symbols | 8 imports | 58 comments
 > Path: `src/usereq/static_check.py`
 
 ## Imports
@@ -1148,84 +1148,88 @@ from .cli import ReqError
 - Param: inputs Sequence of raw path strings (file, directory, or glob pattern).
 - Return: Sorted deduplicated list of resolved absolute file paths (regular files only).
 
-### class `class StaticCheckBase` (L324-405)
-- Brief: Dummy static-check class; base of the static analysis class hierarchy. Initialize the static checker with resolved inputs and options. Execute the static check for all resolved files. Build the per-file header line for output. Perform the static analysis for a single file.
-- Details: Iterates over resolved input files and emits a per-file header line plus `Result: OK`. Subclasses override `_check_file` to provide tool-specific logic. File resolution is delegated to `_resolve_files`. Resolves `inputs` immediately into `self._files` via `_resolve_files`. Recursive traversal is expressed via `**` glob patterns in `inputs` (e.g., `src/**/*.py`); no separate recursive flag exists (SRS-240, SRS-245). If the resolved file list is empty a warning is printed to stderr and 0 is returned. For each file `_check_file` is called; the overall return code is the maximum of all per-file return codes (0 = all OK, 1 = at least one FAIL). Format: `# Static-Check(<LABEL>): <filepath> [<extra_args>]`. When `extra_args` is empty the bracket section is omitted. Base implementation (Dummy): always prints the header and `Result: OK`. Subclasses override this method to invoke external tools.
-- Param: inputs Raw path/pattern/directory entries from CLI. extra_args Additional CLI arguments forwarded to the external tool (may be None). filepath Absolute path of the file being checked. filepath Absolute path of the file to check.
+### class `class StaticCheckBase` (L324-418)
+- Brief: Dummy static-check class; base of the static analysis class hierarchy. Initialize the static checker with resolved inputs and options. Execute the static check for all resolved files. Build the per-file header line for output. Perform the static analysis for a single file. Emit one markdown output line without appending trailing blank lines.
+- Details: Iterates over resolved input files and emits a per-file header line plus `Result: OK`. Subclasses override `_check_file` to provide tool-specific logic. File resolution is delegated to `_resolve_files`. Resolves `inputs` immediately into `self._files` via `_resolve_files`. Recursive traversal is expressed via `**` glob patterns in `inputs` (e.g., `src/**/*.py`); no separate recursive flag exists (SRS-240, SRS-245). If the resolved file list is empty a warning is printed to stderr and 0 is returned. For each file `_check_file` is called; the overall return code is the maximum of all per-file return codes (0 = all OK, 1 = at least one FAIL). Format: `# Static-Check(<LABEL>): <filepath> [<extra_args>]`. When `extra_args` is empty the bracket section is omitted. Base implementation (Dummy): always prints the header and `Result: OK`. Subclasses override this method to invoke external tools. Adds a single newline separator only between emitted lines and omits a trailing blank line at stream end.
+- Param: inputs Raw path/pattern/directory entries from CLI. extra_args Additional CLI arguments forwarded to the external tool (may be None). filepath Absolute path of the file being checked. filepath Absolute path of the file to check. line Line content to emit on stdout.
 - Return: Exit code: 0 if all files pass (or file list is empty), 1 if any file fails. Formatted header string including label, filename, and extra args. 0 on pass, non-zero on failure.
 - fn `def __init__(` `priv` (L335-338)
-- fn `def run(self) -> int` (L355-377)
+- fn `def run(self) -> int` (L356-378)
   - Brief: Execute the static check for all resolved files.
   - Details: If the resolved file list is empty a warning is printed to stderr and 0 is returned. For each file `_check_file` is called; the overall return code is the maximum of all per-file return codes (0 = all OK, 1 = at least one FAIL).
   - Return: Exit code: 0 if all files pass (or file list is empty), 1 if any file fails.
-- fn `def _header_line(self, filepath: str) -> str` `priv` (L382-392)
+- fn `def _header_line(self, filepath: str) -> str` `priv` (L383-393)
   - Brief: Build the per-file header line for output.
   - Details: Format: `# Static-Check(<LABEL>): <filepath> [<extra_args>]`. When `extra_args` is empty the bracket section is omitted.
   - Param: filepath Absolute path of the file being checked.
   - Return: Formatted header string including label, filename, and extra args.
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L393-405)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L394-405)
   - Brief: Perform the static analysis for a single file.
   - Details: Base implementation (Dummy): always prints the header and `Result: OK`. Subclasses override this method to invoke external tools.
   - Param: filepath Absolute path of the file to check.
   - Return: 0 on pass, non-zero on failure.
+- fn `def _emit_line(self, line: str) -> None` `priv` (L406-418)
+  - Brief: Emit one markdown output line without appending trailing blank lines.
+  - Details: Adds a single newline separator only between emitted lines and omits a trailing blank line at stream end.
+  - Param: line Line content to emit on stdout.
 
-### class `class StaticCheckPylance(StaticCheckBase)` : StaticCheckBase (L410-458)
+### class `class StaticCheckPylance(StaticCheckBase)` : StaticCheckBase (L423-471)
 - Brief: Pylance static-check class; runs pyright on each resolved file. Run pyright on `filepath` and emit OK or FAIL with evidence.
 - Details: Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright` as a subprocess and parse its exit code. Header label: `Pylance`. Evidence block is emitted on failure by concatenating stdout and stderr from pyright. Invokes `pyright <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
 - Param: filepath Absolute path of the file to analyse with pyright.
 - Return: 0 when pyright exits 0, 1 otherwise.
 - Exception: ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 - See: StaticCheckBase
-- var `LABEL = "Pylance"` (L420)
+- var `LABEL = "Pylance"` (L433)
   - Brief: Pylance static-check class; runs pyright on each resolved file.
   - Details: Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright`
 as a subprocess and parse its exit code.
 ...
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L422-458)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L435-471)
   - Brief: Run pyright on `filepath` and emit OK or FAIL with evidence.
   - Details: Invokes `pyright <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
   - Param: filepath Absolute path of the file to analyse with pyright.
   - Return: 0 when pyright exits 0, 1 otherwise.
   - Exception: ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 
-### class `class StaticCheckRuff(StaticCheckBase)` : StaticCheckBase (L463-511)
+### class `class StaticCheckRuff(StaticCheckBase)` : StaticCheckBase (L476-524)
 - Brief: Ruff static-check class; runs `ruff check` on each resolved file. Run `ruff check` on `filepath` and emit OK or FAIL with evidence.
 - Details: Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check` as a subprocess and parse its exit code. Header label: `Ruff`. Evidence block is emitted on failure by concatenating stdout and stderr from ruff. Invokes `ruff check <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
 - Param: filepath Absolute path of the file to analyse with ruff.
 - Return: 0 when ruff exits 0, 1 otherwise.
 - Exception: ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 - See: StaticCheckBase
-- var `LABEL = "Ruff"` (L473)
+- var `LABEL = "Ruff"` (L486)
   - Brief: Ruff static-check class; runs `ruff check` on each resolved file.
   - Details: Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check`
 as a subprocess and parse its exit code.
 ...
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L475-511)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L488-524)
   - Brief: Run `ruff check` on `filepath` and emit OK or FAIL with evidence.
   - Details: Invokes `ruff check <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
   - Param: filepath Absolute path of the file to analyse with ruff.
   - Return: 0 when ruff exits 0, 1 otherwise.
   - Exception: ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 
-### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L516-585)
+### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L529-598)
 - Brief: Command static-check class; runs an arbitrary external command on each resolved file. Initialize the command checker and verify tool availability. Run the external command on `filepath` and emit OK or FAIL with evidence.
 - Details: Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied `cmd` as a subprocess. Header label: `Command[<cmd>]`. Before processing files the constructor verifies that `cmd` is available on PATH via `shutil.which`; raises `ReqError(code=1)` if the command is not found. Calls `shutil.which(cmd)` before delegating to the parent constructor. Sets `LABEL` dynamically to `Command[<cmd>]`. Invokes `<cmd> <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
 - Param: cmd External command name (must be available on PATH). inputs Raw path/pattern/directory entries from CLI. extra_args Additional CLI arguments forwarded to the external command. filepath Absolute path of the file to analyse.
 - Return: 0 when the command exits 0, 1 otherwise.
 - Throws: ReqError If `cmd` is not found on PATH (exit code 1).
 - See: StaticCheckBase
-- fn `def __init__(` `priv` (L527-531)
+- fn `def __init__(` `priv` (L540-544)
   - Brief: Command static-check class; runs an arbitrary external command on each resolved file.
   - Details: Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied
 `cmd` as a subprocess.
 ...
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L550-585)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L563-598)
   - Brief: Run the external command on `filepath` and emit OK or FAIL with evidence.
   - Details: Invokes `<cmd> <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
   - Param: filepath Absolute path of the file to analyse.
   - Return: 0 when the command exits 0, 1 otherwise.
 
-### fn `def run_static_check(argv: Sequence[str]) -> int` (L590-654)
+### fn `def run_static_check(argv: Sequence[str]) -> int` (L603-667)
 - Brief: Parse `--test-static-check` sub-argv and dispatch to the appropriate checker class.
 - Details: Expected argument format: - `dummy [FILES...]` - `pylance [FILES...]` - `ruff [FILES...]` - `command <cmd> [FILES...]` No custom `--recursive` flag is parsed; recursive traversal is expressed via `**` glob patterns in `[FILES]` (e.g., `src/**/*.py`). For `command`, the first token after `command` is treated as `<cmd>`. All remaining tokens (after subcommand and optional cmd) are treated as FILES. Dispatches to: - `dummy` -> `StaticCheckBase` - `pylance` -> `StaticCheckPylance` - `ruff` -> `StaticCheckRuff` - `command` -> `StaticCheckCommand`
 - Param: argv Remaining argument tokens after `--test-static-check` (i.e. [subcommand, ...]).
@@ -1239,21 +1243,22 @@ as a subprocess and parse its exit code.
 |`parse_enable_static_check`|fn|pub|146-222|def parse_enable_static_check(spec: str) -> tuple[str, dict]|
 |`dispatch_static_check_for_file`|fn|pub|227-272|def dispatch_static_check_for_file(filepath: str, lang_co...|
 |`_resolve_files`|fn|priv|277-319|def _resolve_files(inputs: Sequence[str]) -> List[str]|
-|`StaticCheckBase`|class|pub|324-405|class StaticCheckBase|
+|`StaticCheckBase`|class|pub|324-418|class StaticCheckBase|
 |`StaticCheckBase.__init__`|fn|priv|335-338|def __init__(|
-|`StaticCheckBase.run`|fn|pub|355-377|def run(self) -> int|
-|`StaticCheckBase._header_line`|fn|priv|382-392|def _header_line(self, filepath: str) -> str|
-|`StaticCheckBase._check_file`|fn|priv|393-405|def _check_file(self, filepath: str) -> int|
-|`StaticCheckPylance`|class|pub|410-458|class StaticCheckPylance(StaticCheckBase)|
-|`StaticCheckPylance.LABEL`|var|pub|420||
-|`StaticCheckPylance._check_file`|fn|priv|422-458|def _check_file(self, filepath: str) -> int|
-|`StaticCheckRuff`|class|pub|463-511|class StaticCheckRuff(StaticCheckBase)|
-|`StaticCheckRuff.LABEL`|var|pub|473||
-|`StaticCheckRuff._check_file`|fn|priv|475-511|def _check_file(self, filepath: str) -> int|
-|`StaticCheckCommand`|class|pub|516-585|class StaticCheckCommand(StaticCheckBase)|
-|`StaticCheckCommand.__init__`|fn|priv|527-531|def __init__(|
-|`StaticCheckCommand._check_file`|fn|priv|550-585|def _check_file(self, filepath: str) -> int|
-|`run_static_check`|fn|pub|590-654|def run_static_check(argv: Sequence[str]) -> int|
+|`StaticCheckBase.run`|fn|pub|356-378|def run(self) -> int|
+|`StaticCheckBase._header_line`|fn|priv|383-393|def _header_line(self, filepath: str) -> str|
+|`StaticCheckBase._check_file`|fn|priv|394-405|def _check_file(self, filepath: str) -> int|
+|`StaticCheckBase._emit_line`|fn|priv|406-418|def _emit_line(self, line: str) -> None|
+|`StaticCheckPylance`|class|pub|423-471|class StaticCheckPylance(StaticCheckBase)|
+|`StaticCheckPylance.LABEL`|var|pub|433||
+|`StaticCheckPylance._check_file`|fn|priv|435-471|def _check_file(self, filepath: str) -> int|
+|`StaticCheckRuff`|class|pub|476-524|class StaticCheckRuff(StaticCheckBase)|
+|`StaticCheckRuff.LABEL`|var|pub|486||
+|`StaticCheckRuff._check_file`|fn|priv|488-524|def _check_file(self, filepath: str) -> int|
+|`StaticCheckCommand`|class|pub|529-598|class StaticCheckCommand(StaticCheckBase)|
+|`StaticCheckCommand.__init__`|fn|priv|540-544|def __init__(|
+|`StaticCheckCommand._check_file`|fn|priv|563-598|def _check_file(self, filepath: str) -> int|
+|`run_static_check`|fn|pub|603-667|def run_static_check(argv: Sequence[str]) -> int|
 
 
 ---

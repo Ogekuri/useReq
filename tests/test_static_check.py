@@ -935,6 +935,31 @@ class TestDispatchStaticCheckForFile(unittest.TestCase):
             rc = dispatch_static_check_for_file(str(f), cfg)
         self.assertEqual(rc, 0)
 
+    def test_dispatch_outputs_do_not_append_trailing_blank_lines(self) -> None:
+        """Dummy/Pylance/Ruff/Command outputs stay compact without trailing blank lines."""
+        py_file = _make_temp_file(self.tmp, "compact.py")
+        c_file = _make_temp_file(self.tmp, "compact.c", "int main(){return 0;}\n")
+
+        def _capture(cfg: dict, file_path: Path) -> tuple[int, str]:
+            out = StringIO()
+            with patch("subprocess.run", return_value=self._make_proc_result(0)):
+                with patch("shutil.which", return_value="/usr/bin/cppcheck"):
+                    with patch("sys.stdout", out):
+                        rc_local = dispatch_static_check_for_file(str(file_path), cfg)
+            return rc_local, out.getvalue()
+
+        checks = [
+            ({"module": "Dummy"}, py_file),
+            ({"module": "Pylance"}, py_file),
+            ({"module": "Ruff"}, py_file),
+            ({"module": "Command", "cmd": "cppcheck"}, c_file),
+        ]
+        for cfg, file_path in checks:
+            rc, output = _capture(cfg, file_path)
+            self.assertEqual(rc, 0)
+            self.assertNotIn("\n\n# Static-Check(", output)
+            self.assertFalse(output.endswith("\n\n"))
+
 
 # ---------------------------------------------------------------------------
 # --files-static-check CLI dispatch tests (SRS-253, SRS-254, SRS-255, SRS-262)

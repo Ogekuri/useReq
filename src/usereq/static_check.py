@@ -347,6 +347,7 @@ class StaticCheckBase:
         """
         self._extra_args: List[str] = list(extra_args) if extra_args else []
         self._files = _resolve_files(inputs)
+        self._has_emitted_output = False
 
     # ------------------------------------------------------------------
     # Public interface
@@ -398,9 +399,21 @@ class StaticCheckBase:
         @details Base implementation (Dummy): always prints the header and `Result: OK`.
           Subclasses override this method to invoke external tools.
         """
-        print(self._header_line(filepath))
-        print("Result: OK")
+        self._emit_line(self._header_line(filepath))
+        self._emit_line("Result: OK")
         return 0
+
+    def _emit_line(self, line: str) -> None:
+        """!
+        @brief Emit one markdown output line without appending trailing blank lines.
+        @param line Line content to emit on stdout.
+        @details Adds a single newline separator only between emitted lines and omits a trailing
+          blank line at stream end.
+        """
+        if self._has_emitted_output:
+            print("\n", end="")
+        print(line, end="")
+        self._has_emitted_output = True
 
 
 # ---------------------------------------------------------------------------
@@ -431,7 +444,7 @@ class StaticCheckPylance(StaticCheckBase):
           On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
         """
-        print(self._header_line(filepath))
+        self._emit_line(self._header_line(filepath))
         cmd = ["pyright", filepath] + self._extra_args
         try:
             result = subprocess.run(
@@ -440,19 +453,19 @@ class StaticCheckPylance(StaticCheckBase):
                 text=True,
             )
         except FileNotFoundError:
-            print("Result: FAIL")
-            print("Evidence:")
-            print("  pyright not found on PATH")
+            self._emit_line("Result: FAIL")
+            self._emit_line("Evidence:")
+            self._emit_line("  pyright not found on PATH")
             return 1
 
         if result.returncode == 0:
-            print("Result: OK")
+            self._emit_line("Result: OK")
             return 0
         else:
-            print("Result: FAIL")
-            print("Evidence:")
+            self._emit_line("Result: FAIL")
+            self._emit_line("Evidence:")
             evidence = (result.stdout or "") + (result.stderr or "")
-            print(evidence.rstrip())
+            self._emit_line(evidence.rstrip())
             return 1
 
 
@@ -484,7 +497,7 @@ class StaticCheckRuff(StaticCheckBase):
           On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
         """
-        print(self._header_line(filepath))
+        self._emit_line(self._header_line(filepath))
         cmd = ["ruff", "check", filepath] + self._extra_args
         try:
             result = subprocess.run(
@@ -493,19 +506,19 @@ class StaticCheckRuff(StaticCheckBase):
                 text=True,
             )
         except FileNotFoundError:
-            print("Result: FAIL")
-            print("Evidence:")
-            print("  ruff not found on PATH")
+            self._emit_line("Result: FAIL")
+            self._emit_line("Evidence:")
+            self._emit_line("  ruff not found on PATH")
             return 1
 
         if result.returncode == 0:
-            print("Result: OK")
+            self._emit_line("Result: OK")
             return 0
         else:
-            print("Result: FAIL")
-            print("Evidence:")
+            self._emit_line("Result: FAIL")
+            self._emit_line("Evidence:")
             evidence = (result.stdout or "") + (result.stderr or "")
-            print(evidence.rstrip())
+            self._emit_line(evidence.rstrip())
             return 1
 
 
@@ -558,7 +571,7 @@ class StaticCheckCommand(StaticCheckBase):
           On exit code 0 prints `Result: OK`.
           On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
         """
-        print(self._header_line(filepath))
+        self._emit_line(self._header_line(filepath))
         cmd = [self._cmd, filepath] + self._extra_args
         try:
             result = subprocess.run(
@@ -567,19 +580,19 @@ class StaticCheckCommand(StaticCheckBase):
                 text=True,
             )
         except FileNotFoundError:
-            print("Result: FAIL")
-            print("Evidence:")
-            print(f"  command '{self._cmd}' not found on PATH")
+            self._emit_line("Result: FAIL")
+            self._emit_line("Evidence:")
+            self._emit_line(f"  command '{self._cmd}' not found on PATH")
             return 1
 
         if result.returncode == 0:
-            print("Result: OK")
+            self._emit_line("Result: OK")
             return 0
         else:
-            print("Result: FAIL")
-            print("Evidence:")
+            self._emit_line("Result: FAIL")
+            self._emit_line("Evidence:")
             evidence = (result.stdout or "") + (result.stderr or "")
-            print(evidence.rstrip())
+            self._emit_line(evidence.rstrip())
             return 1
 
 
