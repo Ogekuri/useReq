@@ -102,6 +102,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
+        "[--test-static-check {dummy,pylance,ruff,command} [--recursive] [FILES...]] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -285,6 +286,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--tokens",
         action="store_true",
         help="Count tokens/chars for files directly under --docs-dir (requires --base/--here and --docs-dir).",
+    )
+    parser.add_argument(
+        "--test-static-check",
+        nargs=argparse.REMAINDER,
+        metavar="ARG",
+        dest="test_static_check",
+        help=(
+            "Run static analysis: --test-static-check <subcommand> [--recursive] [FILES...]. "
+            "Subcommands: dummy, pylance, ruff, command <cmd>. "
+            "[FILES] may be files, directories, or glob patterns (standalone, no --base/--here required)."
+        ),
     )
     return parser
 
@@ -2513,12 +2525,16 @@ def _format_files_structure_markdown(files: list[str], project_base: Path) -> st
 
 def _is_standalone_command(args: Namespace) -> bool:
     """! @brief Check if the parsed args contain a standalone file command.
+    @details Returns True when any file-scope standalone flag is present, including
+      --files-tokens, --files-references, --files-compress, --files-find, and
+      --test-static-check.
     """
     return bool(
         getattr(args, "files_tokens", None)
         or getattr(args, "files_references", None)
         or getattr(args, "files_compress", None)
         or getattr(args, "files_find", None)
+        or (getattr(args, "test_static_check", None) is not None)
     )
 
 
@@ -2776,6 +2792,10 @@ def main(argv: Optional[list[str]] = None) -> int:
                     args.files_find,
                     enable_line_numbers=getattr(args, "enable_line_numbers", False),
                 )
+            elif getattr(args, "test_static_check", None) is not None:
+                from .static_check import run_static_check
+                rc = run_static_check(args.test_static_check)
+                return rc
             return 0
         # Project scan commands (require --base/--here)
         if _is_project_scan_command(args):

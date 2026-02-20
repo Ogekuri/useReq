@@ -48,6 +48,17 @@
           - `find_constructs_in_files(...)`: extract tagged constructs [`src/usereq/find_constructs.py`]
             - `SourceAnalyzer.analyze(...)`: extract source constructs [`src/usereq/source_analyzer.py`]
             - `SourceAnalyzer.enrich(...)`: add names/signatures/Doxygen fields [`src/usereq/source_analyzer.py`]
+        - `run_static_check(argv)`: static analysis dispatch for `--test-static-check` [`src/usereq/static_check.py`]
+          - `_resolve_files(inputs, recursive)`: resolve paths/globs/directories to regular file list [`src/usereq/static_check.py`]
+            - External boundary: filesystem glob expansion and directory traversal.
+          - `StaticCheckBase.run()`: Dummy checker; emits `# Static-Check(Dummy): <file>` + `Result: OK` per file [`src/usereq/static_check.py`]
+          - `StaticCheckPylance.run()`: Pylance checker; invokes `pyright <file>` and emits OK/FAIL+Evidence [`src/usereq/static_check.py`]
+            - External boundary: `subprocess.run(["pyright", ...])`.
+          - `StaticCheckRuff.run()`: Ruff checker; invokes `ruff check <file>` and emits OK/FAIL+Evidence [`src/usereq/static_check.py`]
+            - External boundary: `subprocess.run(["ruff", "check", ...])`.
+          - `StaticCheckCommand.run()`: Command checker; verifies cmd on PATH via `shutil.which`, invokes `<cmd> <file>` and emits OK/FAIL+Evidence [`src/usereq/static_check.py`]
+            - External boundary: `shutil.which(cmd)`; `subprocess.run([cmd, ...])`.
+          - External boundary: stdout for per-file check output; stderr for warnings (empty file list).
       - `_is_project_scan_command(args)`: select project-scope commands [`src/usereq/cli.py`]
         - External boundary: `.req/config.json` presence when `--here` is used.
         - `run_references(args)`: repo-wide references report [`src/usereq/cli.py`]
