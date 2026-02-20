@@ -2279,6 +2279,101 @@ class TestPreserveModels(unittest.TestCase):
         )
 
 
+class TestUpdateLoadsPersistedFlags(unittest.TestCase):
+    """Verifies that --update reloads persisted flag states from .req/config.json."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-update-persisted-flags-"))
+        (self.TEST_DIR / "docs").mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_update_reloads_persisted_flags(self) -> None:
+        """SRS-034, SRS-064: --update must restore persisted enable/disable flags from config.json."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            install_exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--enable-models",
+                    "--enable-tools",
+                    "--prompts-use-agents",
+                    "--legacy",
+                    "--disable-skills",
+                ]
+                + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
+            )
+        self.assertEqual(install_exit_code, 0)
+
+        config_payload = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
+        expected_flags = {
+            "enable-models": True,
+            "enable-tools": True,
+            "enable-claude": True,
+            "enable-codex": True,
+            "enable-gemini": True,
+            "enable-github": True,
+            "enable-kiro": True,
+            "enable-opencode": True,
+            "enable-prompts": True,
+            "enable-agents": True,
+            "disable-skills": True,
+            "prompts-use-agents": True,
+            "legacy": True,
+            "preserve-models": False,
+        }
+        for key, expected in expected_flags.items():
+            self.assertIn(key, config_payload, f"{key} must be persisted in .req/config.json")
+            self.assertEqual(config_payload[key], expected, f"{key} must preserve its boolean state")
+
+        shutil.rmtree(self.TEST_DIR / ".github")
+        shutil.rmtree(self.TEST_DIR / ".claude")
+        shutil.rmtree(self.TEST_DIR / ".opencode")
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            update_exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--update",
+                ]
+            )
+        self.assertEqual(update_exit_code, 0, "--update must reuse persisted provider/artifact flags")
+
+        github_prompt = self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md"
+        self.assertTrue(github_prompt.is_file(), "GitHub prompts must be regenerated from persisted flags")
+        self.assertEqual(
+            github_prompt.read_text(encoding="utf-8").strip(),
+            "---\nagent: req-analyze\n---",
+            "Persisted --prompts-use-agents must generate agent-stub prompts",
+        )
+        self.assertFalse(
+            (self.TEST_DIR / ".github" / "skills").exists(),
+            "Persisted --disable-skills must keep skill generation disabled",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "agents").is_dir(),
+            "Persisted --enable-claude and --enable-agents must regenerate Claude agents",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".opencode" / "agent").is_dir(),
+            "Persisted --enable-opencode and --enable-agents must regenerate OpenCode agents",
+        )
+
+
 class TestArtifactTypeFlags(unittest.TestCase):
     """Verifies enforcement and behavior of --enable-prompts, --enable-agents, --disable-skills (SRS-231, SRS-035)."""
 

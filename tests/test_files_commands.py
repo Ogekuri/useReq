@@ -730,7 +730,7 @@ class TestFilesReferencesCommand:
 
         block = _extract_reference_definition_block(
             output=output,
-            header="### fn `def log(msg: str) -> None` (L55-61)",
+            header="### fn `def log(msg: str) -> None` (L73-79)",
         )
         assert "- Brief: Prints an informational message." in block
         assert "- Param: msg The message string to print." in block
@@ -1046,7 +1046,7 @@ class TestReferencesCommand:
 
         block = _extract_reference_definition_block(
             output=output,
-            header="### fn `def log(msg: str) -> None` (L55-61)",
+            header="### fn `def log(msg: str) -> None` (L73-79)",
         )
         assert "- Brief: Prints an informational message." in block
         assert "- Param: msg The message string to print." in block

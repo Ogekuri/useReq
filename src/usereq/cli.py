@@ -37,6 +37,24 @@ DEBUG = False
 REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
 """! @brief Name of the packaged requirements template file."""
 
+PERSISTED_UPDATE_FLAG_KEYS = (
+    "enable-models",
+    "enable-tools",
+    "enable-claude",
+    "enable-codex",
+    "enable-gemini",
+    "enable-github",
+    "enable-kiro",
+    "enable-opencode",
+    "enable-prompts",
+    "enable-agents",
+    "disable-skills",
+    "prompts-use-agents",
+    "legacy",
+    "preserve-models",
+)
+"""! @brief Config keys persisted for install/update boolean flags."""
+
 
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
@@ -666,6 +684,7 @@ def save_config(
     test_dir_value: str,
     src_dir_values: list[str],
     static_check_config: Optional[dict] = None,
+    persisted_flags: Optional[dict[str, bool]] = None,
 ) -> None:
     """! @brief Saves normalized parameters to .req/config.json.
     @param project_base The project root path.
@@ -675,8 +694,9 @@ def save_config(
     @param src_dir_values List of relative paths to source directories.
     @param static_check_config Optional dict of static-check config to persist under key
       `"static-check"`; omitted from JSON when None or empty.
+    @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
     @details Writes full config payload to `.req/config.json`. When `static_check_config`
-      is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
+    is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
     """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -688,6 +708,8 @@ def save_config(
     }
     if static_check_config:
         payload["static-check"] = static_check_config
+    if persisted_flags:
+        payload.update(persisted_flags)
     config_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -764,6 +786,54 @@ def load_static_check_from_config(project_base: Path) -> dict:
         ):
             normalized[lang] = entries
     return normalized
+
+
+def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
+    """! @brief Build persistent update flags from parsed CLI arguments.
+    @param args Parsed CLI namespace.
+    @return Mapping of config key -> boolean value for install/update persistence.
+    """
+    return {
+        "enable-models": bool(args.enable_models),
+        "enable-tools": bool(args.enable_tools),
+        "enable-claude": bool(args.enable_claude),
+        "enable-codex": bool(args.enable_codex),
+        "enable-gemini": bool(args.enable_gemini),
+        "enable-github": bool(args.enable_github),
+        "enable-kiro": bool(args.enable_kiro),
+        "enable-opencode": bool(args.enable_opencode),
+        "enable-prompts": bool(args.enable_prompts),
+        "enable-agents": bool(args.enable_agents),
+        "disable-skills": not bool(args.enable_skills),
+        "prompts-use-agents": bool(args.prompts_use_agents),
+        "legacy": bool(args.legacy),
+        "preserve-models": bool(args.preserve_models),
+    }
+
+
+def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
+    """! @brief Load persisted install/update boolean flags from `.req/config.json`.
+    @param project_base The project root path.
+    @return Mapping of persisted config key -> boolean value.
+    @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
+    """
+    config_path = project_base / ".req" / "config.json"
+    if not config_path.is_file():
+        raise ReqError(
+            "Error: .req/config.json not found in the project root",
+            11,
+        )
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ReqError("Error: .req/config.json is not valid", 11) from exc
+    flags: dict[str, bool] = {}
+    for key in PERSISTED_UPDATE_FLAG_KEYS:
+        value = payload.get(key)
+        if not isinstance(value, bool):
+            raise ReqError(f"Error: missing or invalid '{key}' field in .req/config.json", 11)
+        flags[key] = value
+    return flags
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
@@ -1554,6 +1624,21 @@ def run(args: Namespace) -> None:
         doc_dir_value = config["docs-dir"]
         test_dir_value = config["tests-dir"]
         src_dir_values = config["src-dir"]
+        persisted_flags = load_persisted_update_flags(project_base)
+        args.enable_models = bool(args.enable_models) or persisted_flags["enable-models"]
+        args.enable_tools = bool(args.enable_tools) or persisted_flags["enable-tools"]
+        args.enable_claude = bool(args.enable_claude) or persisted_flags["enable-claude"]
+        args.enable_codex = bool(args.enable_codex) or persisted_flags["enable-codex"]
+        args.enable_gemini = bool(args.enable_gemini) or persisted_flags["enable-gemini"]
+        args.enable_github = bool(args.enable_github) or persisted_flags["enable-github"]
+        args.enable_kiro = bool(args.enable_kiro) or persisted_flags["enable-kiro"]
+        args.enable_opencode = bool(args.enable_opencode) or persisted_flags["enable-opencode"]
+        args.enable_prompts = bool(args.enable_prompts) or persisted_flags["enable-prompts"]
+        args.enable_agents = bool(args.enable_agents) or persisted_flags["enable-agents"]
+        args.enable_skills = not ((not bool(args.enable_skills)) or persisted_flags["disable-skills"])
+        args.prompts_use_agents = bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
+        args.legacy = bool(args.legacy) or persisted_flags["legacy"]
+        args.preserve_models = bool(args.preserve_models) or persisted_flags["preserve-models"]
     else:
         guidelines_dir_value = guidelines_dir
         doc_dir_value = doc_dir
@@ -1723,10 +1808,12 @@ def run(args: Namespace) -> None:
             config_test,
             config_src_dirs,
             static_check_config=merged_static_check if merged_static_check else None,
+            persisted_flags=build_persisted_update_flags(args),
         )
     elif merged_static_check:
         # --update path: re-save config.json with merged static-check entries (SRS-252).
         existing_full_config = load_config(project_base)
+        persisted_flags = load_persisted_update_flags(project_base)
         save_config(
             project_base,
             str(existing_full_config["guidelines-dir"]),
@@ -1734,6 +1821,7 @@ def run(args: Namespace) -> None:
             str(existing_full_config["tests-dir"]),
             list(existing_full_config["src-dir"]),  # type: ignore[arg-type]
             static_check_config=merged_static_check,
+            persisted_flags=persisted_flags,
         )
 
     sub_guidelines_dir = compute_sub_path(normalized_guidelines, abs_guidelines, project_base)
