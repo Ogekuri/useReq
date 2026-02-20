@@ -153,10 +153,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - When describing existing functionality, describe the actual implementation logic, not the implied intent based on function names. If the code implies a feature but implements it partially, describe the partial state.
    - Update or edit every requirement that specifies the document’s writing language, replacing it consistently with the **English language**, without changing any other constraints or the requirement’s intended meaning.
    - Overwrite the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.   
-      - Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
-        * A comprehensive, clear functional description.
-        * The precise expected behavior (include acceptance criteria with testable conditions where possible).
-        * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code.
+	      - Ensure every requirement remains atomic, single-sentence, and testable (target <= 35 words per requirement). If acceptance criteria/procedures are needed, express them as separate requirement IDs (prefer `TST-` test requirements), not as multi-sentence sub-bullets under a single requirement.
       - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.

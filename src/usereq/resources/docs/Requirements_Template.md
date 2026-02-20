@@ -46,13 +46,13 @@ This document MUST follow these authoring rules (LLM-first, normative SRS):
 
 ### 2.1 Project Functions
 <!-- Major functional areas or features of the project -->
-- **PRJ-001**: Requirement description of project function 1
+- **PRJ-001**: MUST <single-sentence project function (<= 35 words)>.
 - **PRJ-002**: Requirement description of project function 2
 <!-- add here other project function requirements -->
 
 ### 2.2 Project Constraints
 <!-- Design and implementation constraints that affect the solution of the project -->
-- **CTN-001**: Requirement description of project constraint 1
+- **CTN-001**: MUST <single-sentence constraint (<= 35 words)>.
 - **CTN-002**: Requirement description of project constraint 2
 <!-- add here other project constraint requirements -->
 
@@ -62,7 +62,7 @@ This document MUST follow these authoring rules (LLM-first, normative SRS):
 ### 3.1 Design and Implementation
 <!-- Constraints and mandates on design, deployment, and maintenance -->
 - **DES-001**: Requirement description of design constraint 1
-- **DES-002**: Requirement description of design constraint 1
+- **DES-002**: MUST <single-sentence design constraint (<= 35 words)>.
 <!-- add here other design constraint requirements -->
 ### 3.2 Functions
 <!-- Externally observable behaviors organized by feature or use case -->

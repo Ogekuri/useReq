@@ -79,7 +79,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
        - Read the template at `.req/docs/Requirements_Template.md` and follow its section schema.
        - Do NOT add per-section "Scope/Grouping" requirements; use headings to encode grouping.
-       - Use a single canonical requirement line schema: `- **<ID>**: <RFC2119 keyword> <single-sentence requirement>.` Keep each requirement short; split compound statements into multiple requirements.
+	       - Use a single canonical requirement line schema: `- **<ID>**: <RFC2119 keyword> <single-sentence requirement>.` Target <= 35 words per requirement; split compound statements into multiple requirements.
        - If document-authoring rules are needed, keep them only under the dedicated "Document Rules" section (do not duplicate them across sections).
      - List requested components and libraries. Integrate mandatory libraries into the requirements.
      - Check [User Request](#users-request) for unit test requirements. If any test requests are found, analyze them and provide a concise summary of the high-level functional requirements and the business logic being tested.

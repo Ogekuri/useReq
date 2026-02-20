@@ -70,7 +70,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - Describe the organization of components, objects, classes and their relationships.
          - Include the project’s file/folder structure (tree view) with a sensible depth limit (max depth 3, or 4 for %%SRC_PATHS%% directories) and exclude large/generated directories (e.g., `node_modules/`, `dist/`, `build/`, `target/`, `.venv/`, `.git/`).
          - Only report performance optimizations if there is explicit evidence (e.g., comments, benchmarks, complexity-relevant changes, profiling notes, or clearly optimized code patterns). Otherwise, state ‘No explicit performance optimizations identified’.
-      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
+	      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. Target <= 35 words per requirement; split compound behavior into separate requirement IDs. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.
@@ -83,12 +83,9 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Keep document-authoring rules only in the dedicated section (no duplication).
    - List used components and libraries ONLY if evidenced by manifest/lock/config files or direct imports; cite the file path(s) used as evidence and do not guess.
    - Locate and read only the unit tests relevant to the inferred features/requirements; summarize test coverage at a high level and deep-dive only into failing or high-risk areas. Analyze them and provide a concise summary of the high-level functional requirements and business logic being tested.
-   - Create the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.
-      - Ensure that every software requirement you generate is atomic, unambiguous, and empirically testable. For each requirement, you must provide:
-        * A comprehensive, clear functional description.
-        * The precise expected behavior (include acceptance criteria with testable conditions where possible).
-        * Provide implementation guidance limited to constraints, invariants, and acceptance criteria, and do not invent detailed algorithms unless they are directly evidenced by the source code.
-      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. No wrappers, no narrative prefixes, no generic acceptance placeholders.
+	   - Create the **Software Requirements Specification** document at `%%DOC_PATH%%/REQUIREMENTS.md`.
+	      - Ensure every requirement remains atomic, single-sentence, and testable (target <= 35 words per requirement). If acceptance criteria/procedures are needed, express them as separate requirement IDs (prefer `TST-` test requirements), not as multi-sentence sub-bullets under a single requirement.
+	      - Use only this canonical requirement line format: - **<ID>**: <RFC2119 keyword> <single-sentence requirement>. Target <= 35 words per requirement; split compound behavior into separate requirement IDs. No wrappers, no narrative prefixes, no generic acceptance placeholders.
       - Ensure every requirement is atomic, unambiguous, and formatted for maximum testability using RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY)
       - Write each requirement for other LLM **Agents** and Automated Parsers, NOT humans.
       - Must be optimized for machine comprehension. Do not write flowery prose. Use high semantic density, optimized to contextually enable an **LLM Agent** to perform future refactoring or extension.

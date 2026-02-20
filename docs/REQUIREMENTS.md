@@ -21,6 +21,7 @@ useReq is a text-based CLI that initializes and updates repository resources for
 ### 1.1 Document Rules
 - This document MUST be written and maintained in English.
 - RFC 2119 keywords MUST be used exclusively: MUST, MUST NOT, SHOULD, SHOULD NOT, MAY.
+- Each requirement MUST be atomic, single-sentence, and testable; target <= 35 words per requirement; split compound behavior into separate requirement IDs.
 - Requirement bullets in requirements sections MUST start with a unique, stable requirement ID and MUST preserve all pre-existing ID values.
 - Pre-existing requirement IDs MUST NOT be renumbered, renamed, or reused; newly created requirement IDs MUST be appended beyond the current highest ID.
 - This document MUST NOT introduce requirements about source-code comment authoring style beyond already preserved requirements.
