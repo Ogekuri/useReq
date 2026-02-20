@@ -1596,6 +1596,37 @@ def run_remove(args: Namespace) -> None:
         prune_empty_dirs(project_base / root_name)
 
 
+def _validate_enable_static_check_command_executables(
+    static_check_config: Mapping[str, list[dict[str, Any]]],
+    *,
+    enforce: bool,
+) -> None:
+    """!
+    @brief Validate Command-module executables in `--enable-static-check` parsed entries.
+    @param static_check_config Parsed static-check entries grouped by canonical language.
+    @param enforce When false, skip validation and return immediately.
+    @throws ReqError If a Command entry references a non-executable `cmd` on this system.
+    @details
+      Validation scope is limited to Command entries coming from CLI specs.
+      Each Command `cmd` is resolved with `shutil.which`; on miss, raises `ReqError(code=1)`
+      before any configuration persistence.
+    @see SRS-250
+    """
+    if not enforce:
+        return
+    for entries in static_check_config.values():
+        for entry in entries:
+            if entry.get("module") != "Command":
+                continue
+            cmd_raw = entry.get("cmd")
+            cmd = cmd_raw.strip() if isinstance(cmd_raw, str) else ""
+            if not cmd or shutil.which(cmd) is None:
+                raise ReqError(
+                    f"Error: --enable-static-check Command cmd '{cmd or '<missing>'}' is not an executable program on this system.",
+                    1,
+                )
+
+
 def run(args: Namespace) -> None:
     """! @brief Handles the main initialization flow.
     @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
@@ -1818,6 +1849,10 @@ def run(args: Namespace) -> None:
         for spec in enable_static_check_specs:
             canonical_lang, lang_cfg = _parse_sc(spec)
             new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
+    _validate_enable_static_check_command_executables(
+        new_static_check,
+        enforce=(not args.update and not use_here_config),
+    )
 
     # Compute merged static-check: existing config + new entries (SRS-252).
     if use_here_config or args.update:

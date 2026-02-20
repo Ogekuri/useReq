@@ -1211,6 +1211,58 @@ class TestStaticCheckProjectScan(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# --enable-static-check Command executable validation tests (SRS-250)
+# ---------------------------------------------------------------------------
+
+class TestEnableStaticCheckExecutableValidation(unittest.TestCase):
+    """!
+    @brief Tests executable validation for Command entries from --enable-static-check.
+    @details Verifies non-update install flow rejects non-executable Command `cmd`
+      before writing `.req/config.json`.
+    """
+
+    def setUp(self) -> None:
+        self.tmp = TEMP_BASE / "enable_sc_exec_validation"
+        if self.tmp.exists():
+            shutil.rmtree(self.tmp)
+        self.tmp.mkdir(parents=True, exist_ok=True)
+        (self.tmp / "guidelines").mkdir(parents=True, exist_ok=True)
+        (self.tmp / "docs").mkdir(parents=True, exist_ok=True)
+        (self.tmp / "tests").mkdir(parents=True, exist_ok=True)
+        (self.tmp / "src").mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.tmp.exists():
+            shutil.rmtree(self.tmp)
+
+    def test_non_update_command_requires_executable_before_config_write(self) -> None:
+        """Non-update init with Command spec fails when cmd is not executable (SRS-250)."""
+        from usereq import cli
+
+        argv = [
+            "--base",
+            str(self.tmp),
+            "--guidelines-dir",
+            "guidelines",
+            "--docs-dir",
+            "docs",
+            "--tests-dir",
+            "tests",
+            "--src-dir",
+            "src",
+            "--enable-claude",
+            "--enable-static-check",
+            "C=Command,nonexistent_tool_xyz_12345",
+        ]
+        with patch("usereq.cli.maybe_notify_newer_version", return_value=None):
+            with patch("sys.stderr", new_callable=StringIO) as mock_err:
+                rc = cli.main(argv)
+        self.assertEqual(rc, 1)
+        self.assertIn("not an executable program", mock_err.getvalue())
+        self.assertFalse((self.tmp / ".req" / "config.json").exists())
+
+
+# ---------------------------------------------------------------------------
 # --enable-static-check config persistence tests (SRS-248, SRS-252, SRS-262)
 # ---------------------------------------------------------------------------
 
