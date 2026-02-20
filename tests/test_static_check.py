@@ -655,16 +655,16 @@ class TestParseEnableStaticCheck(unittest.TestCase):
         self.assertEqual(cfg, {"module": "Dummy"})
 
     def test_command_module_with_cmd_and_params(self) -> None:
-        """C=Command,/usr/bin/cppcheck,--check-library produces cmd and params."""
-        lang, cfg = parse_enable_static_check("C=Command,/usr/bin/cppcheck,--check-library")
+        """C=Command;/usr/bin/cppcheck;--check-library produces cmd and params."""
+        lang, cfg = parse_enable_static_check("C=Command;/usr/bin/cppcheck;--check-library")
         self.assertEqual(lang, "C")
         self.assertEqual(cfg["module"], "Command")
         self.assertEqual(cfg["cmd"], "/usr/bin/cppcheck")
         self.assertEqual(cfg["params"], ["--check-library"])
 
     def test_command_module_with_cmd_only(self) -> None:
-        """c++=Command,cppcheck produces cmd without params key."""
-        lang, cfg = parse_enable_static_check("c++=Command,cppcheck")
+        """c++=Command;cppcheck produces cmd without params key."""
+        lang, cfg = parse_enable_static_check("c++=Command;cppcheck")
         self.assertEqual(lang, "C++")
         self.assertEqual(cfg["module"], "Command")
         self.assertEqual(cfg["cmd"], "cppcheck")
@@ -672,8 +672,18 @@ class TestParseEnableStaticCheck(unittest.TestCase):
 
     def test_command_module_multiple_params(self) -> None:
         """Multiple params after cmd are stored as list."""
-        lang, cfg = parse_enable_static_check("C=Command,cppcheck,--a,--b,--c flag")
+        lang, cfg = parse_enable_static_check("C=Command;cppcheck;--a;--b;--c flag")
         self.assertEqual(cfg["params"], ["--a", "--b", "--c flag"])
+
+    def test_command_module_param_with_comma(self) -> None:
+        """Param containing comma (e.g. --enable=warning,style) is preserved intact (SRS-250)."""
+        lang, cfg = parse_enable_static_check(
+            "Python=Command;ruff;--select=ALL;--enable=warning,style,performance,portability"
+        )
+        self.assertEqual(lang, "Python")
+        self.assertEqual(cfg["module"], "Command")
+        self.assertEqual(cfg["cmd"], "ruff")
+        self.assertEqual(cfg["params"], ["--select=ALL", "--enable=warning,style,performance,portability"])
 
     def test_lang_case_insensitive(self) -> None:
         """Language name matching is case-insensitive (SRS-249)."""
