@@ -347,7 +347,6 @@ class StaticCheckBase:
         """
         self._extra_args: List[str] = list(extra_args) if extra_args else []
         self._files = _resolve_files(inputs)
-        self._has_emitted_output = False
 
     # ------------------------------------------------------------------
     # Public interface
@@ -374,6 +373,7 @@ class StaticCheckBase:
             rc = self._check_file(filepath)
             if rc != 0:
                 overall = 1
+            self._emit_line("")
         return overall
 
     # ------------------------------------------------------------------
@@ -405,15 +405,11 @@ class StaticCheckBase:
 
     def _emit_line(self, line: str) -> None:
         """!
-        @brief Emit one markdown output line without appending trailing blank lines.
+        @brief Emit one markdown output line.
         @param line Line content to emit on stdout.
-        @details Adds a single newline separator only between emitted lines and omits a trailing
-          blank line at stream end.
+        @details Emits `line` followed by a newline.
         """
-        if self._has_emitted_output:
-            print("\n", end="")
-        print(line, end="")
-        self._has_emitted_output = True
+        print(line)
 
 
 # ---------------------------------------------------------------------------

@@ -935,8 +935,8 @@ class TestDispatchStaticCheckForFile(unittest.TestCase):
             rc = dispatch_static_check_for_file(str(f), cfg)
         self.assertEqual(rc, 0)
 
-    def test_dispatch_outputs_do_not_append_trailing_blank_lines(self) -> None:
-        """Dummy/Pylance/Ruff/Command outputs stay compact without trailing blank lines."""
+    def test_dispatch_outputs_append_trailing_blank_separator_line(self) -> None:
+        """Dummy/Pylance/Ruff/Command outputs append one blank separator line per file block."""
         py_file = _make_temp_file(self.tmp, "compact.py")
         c_file = _make_temp_file(self.tmp, "compact.c", "int main(){return 0;}\n")
 
@@ -957,8 +957,8 @@ class TestDispatchStaticCheckForFile(unittest.TestCase):
         for cfg, file_path in checks:
             rc, output = _capture(cfg, file_path)
             self.assertEqual(rc, 0)
-            self.assertNotIn("\n\n# Static-Check(", output)
-            self.assertFalse(output.endswith("\n\n"))
+            self.assertTrue(output.endswith("\n\n"))
+            self.assertEqual(output.count("\n\n"), 1)
 
 
 # ---------------------------------------------------------------------------
