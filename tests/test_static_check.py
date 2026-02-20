@@ -685,6 +685,19 @@ class TestParseEnableStaticCheck(unittest.TestCase):
         self.assertEqual(cfg["cmd"], "ruff")
         self.assertEqual(cfg["params"], ["--select=ALL", "--enable=warning,style,performance,portability"])
 
+    def test_command_module_param_with_comma_single_quotes(self) -> None:
+        """Single-quoted param containing commas is preserved and unquoted (SRS-250)."""
+        lang, cfg = parse_enable_static_check(
+            "C=Command,cppcheck,--error-exitcode=1,'--enable=warning,style,performance,portability',--std=c11"
+        )
+        self.assertEqual(lang, "C")
+        self.assertEqual(cfg["module"], "Command")
+        self.assertEqual(cfg["cmd"], "cppcheck")
+        self.assertEqual(
+            cfg["params"],
+            ["--error-exitcode=1", "--enable=warning,style,performance,portability", "--std=c11"],
+        )
+
     def test_lang_case_insensitive(self) -> None:
         """Language name matching is case-insensitive (SRS-249)."""
         for raw in ("python", "PYTHON", "Python", "PyThOn"):

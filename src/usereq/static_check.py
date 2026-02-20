@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import glob
-import csv
 import shutil
 import subprocess
 import sys
@@ -109,6 +108,41 @@ _CANONICAL_MODULES: dict[str, str] = {
 # Configuration parsing helpers (SRS-260)
 # ---------------------------------------------------------------------------
 
+def _split_csv_like_tokens(spec_rhs: str) -> list[str]:
+    """!
+    @brief Split a comma-separated SPEC right-hand side with quote-aware token boundaries.
+    @param spec_rhs Text after `LANG=` in `--enable-static-check`.
+    @return Token list where commas inside `'...'` or `"..."` do not split tokens.
+    @details
+      - Supported quote delimiters: single quote `'` and double quote `"`.
+      - Commas split tokens only when parser is outside a quoted segment.
+      - Quote delimiters are not included in output tokens.
+      - Leading and trailing whitespace for each token is stripped.
+    @see SRS-260, SRS-250
+    """
+    tokens: list[str] = []
+    current: list[str] = []
+    active_quote: str | None = None
+
+    for ch in spec_rhs:
+        if active_quote is None:
+            if ch in ("'", '"'):
+                active_quote = ch
+            elif ch == ",":
+                tokens.append("".join(current).strip())
+                current = []
+            else:
+                current.append(ch)
+        else:
+            if ch == active_quote:
+                active_quote = None
+            else:
+                current.append(ch)
+
+    tokens.append("".join(current).strip())
+    return tokens
+
+
 def parse_enable_static_check(spec: str) -> tuple[str, dict]:
     """!
     @brief Parse a single `--enable-static-check` SPEC string into a (lang, config_dict) pair.
@@ -126,8 +160,8 @@ def parse_enable_static_check(spec: str) -> tuple[str, dict]:
       5. For all other modules: all tokens after MODULE are `params`.
       6. `params` key is omitted when the list is empty.
       7. `cmd` key is omitted for non-Command modules.
-      8. Surrounding `"` characters on parsed tokens are stripped by CSV-token parsing.
-      Note: PARAM values that contain `,` must be wrapped with `"` in SPEC.
+      8. Surrounding quote delimiters (`'` or `"`) are stripped from parsed tokens.
+      Note: PARAM values containing `,` must be wrapped with `'` or `"` in SPEC.
     @see SRS-260, SRS-248, SRS-249, SRS-250
     """
     if "=" not in spec:
@@ -147,7 +181,7 @@ def parse_enable_static_check(spec: str) -> tuple[str, dict]:
         )
     canonical_lang = STATIC_CHECK_LANG_CANONICAL[lang_key]
 
-    parts = [tok.strip() for tok in next(csv.reader([rest], skipinitialspace=True))]
+    parts = _split_csv_like_tokens(rest)
     if not parts or not parts[0].strip():
         raise ReqError(
             "Error: --enable-static-check requires MODULE after '='. "

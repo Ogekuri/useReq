@@ -86,7 +86,7 @@
           - External boundary: `STATIC_CHECK_EXT_TO_LANG` for extension-to-language lookup.
       - `run(args)`: project initialization + provider artifact generation [`src/usereq/cli.py`]
         - External boundary: filesystem writes under `project_base`.
-        - `parse_enable_static_check(spec)`: parse `--enable-static-check` SPEC using comma-separated CSV tokens with quote-aware parameter handling before config persistence [`src/usereq/static_check.py`]
+        - `parse_enable_static_check(spec)`: parse `--enable-static-check` SPEC using comma-separated tokens where commas inside single/double quotes are preserved before config persistence [`src/usereq/static_check.py`]
         - `ensure_doc_directory(...)`: validate docs directory constraints [`src/usereq/cli.py`]
         - `ensure_test_directory(...)`: validate tests directory constraints [`src/usereq/cli.py`]
         - `ensure_src_directory(...)`: validate source directory constraints [`src/usereq/cli.py`]
