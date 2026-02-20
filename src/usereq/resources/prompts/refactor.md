@@ -131,7 +131,10 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
       - Do not mark a requirement as `OK` without code evidence; for `OK` items provide only a compact pointer (file path + symbol + line range). For each requirement, provide a concise evidence pointer (file path + symbol + line range) excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "MUST NOT ..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
       - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
-   - Perform a regression test by executing ALL tests in the test suite. 
+   - Perform a static analysis check by executing `req --here --static-check`.
+      - Review the produced output and fix every reported issue in source code and tests.
+      - Re-run `req --here --static-check` until it produces no issues. Do not proceed to regression tests until it is clean.
+   - Perform a regression test by executing ALL tests in the test suite.
       - Verify that the implemented changes satisfy the requirements and pass tests.
       - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. Assume the test is correct unless the requirement explicitly contradicts the test expectation. Changes to existing tests require a higher burden of proof and specific explanation.
       - Fix the source code to pass valid tests autonomously without asking for user intervention. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Analyze the root cause internally based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Refactor failed due to inability to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
@@ -159,7 +162,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - `<optional: brief invariants/external boundaries>`
          - `<child internal calls as nested bullet list, in call order>`
 6. Update `%%DOC_PATH%%/REFERENCES.md` references file
-   -  Create/update the references file with `req --references --here >"%%DOC_PATH%%/REFERENCES.md"`
+   -  Create/update the references file with `req --here --references >"%%DOC_PATH%%/REFERENCES.md"`
 7. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
    - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and WORKFLOW.md only if it was modified/created).

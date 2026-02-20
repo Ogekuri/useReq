@@ -143,7 +143,10 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
       - Do not mark a requirement as `OK` without code evidence; for `OK` items provide only a compact pointer (file path + symbol + line range). For each requirement, provide a concise evidence pointer (file path + symbol + line range) excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "MUST NOT ..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
       - For every `FAIL`, provide evidence with a short explanation. Provide file path(s) and line numbers where possible.
-   - Perform a regression test by executing ALL tests in the test suite. 
+   - Perform a static analysis check by executing `req --here --static-check`.
+      - Review the produced output and fix every reported issue in source code and tests.
+      - Re-run `req --here --static-check` until it produces no issues. Do not proceed to regression tests until it is clean.
+   - Perform a regression test by executing ALL tests in the test suite.
       - Verify that the implemented changes satisfy the requirements and pass tests.
       - If a test fails, analyze if the failure is due to a bug in the source code or an incorrect test assumption. You are authorized to update or refactor existing tests ONLY if they cover logic that was explicitly modified by the updated requirements. When a test fails, verify: does the failure align with the new requirement?
         - IF YES (the test expects the old behavior): Update the test to match the new requirement.
@@ -173,7 +176,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - `<optional: brief invariants/external boundaries>`
          - `<child internal calls as nested bullet list, in call order>`
 7. Update `%%DOC_PATH%%/REFERENCES.md` references file
-   -  Create/update the references file with `req --references --here >"%%DOC_PATH%%/REFERENCES.md"`
+   -  Create/update the references file with `req --here --references >"%%DOC_PATH%%/REFERENCES.md"`
 8. **CRITICAL**: Stage & commit
       - Show a summary of changes with `git diff` and `git diff --stat`.
       - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test, `%%DOC_PATH%%/REQUIREMENTS.md` and WORKFLOW.md only if it was modified/created).
