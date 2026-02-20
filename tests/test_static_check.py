@@ -293,7 +293,6 @@ class TestStaticCheckPylance(unittest.TestCase):
                 rc = checker.run()
         self.assertEqual(rc, 1)
 
-
 # ---------------------------------------------------------------------------
 # StaticCheckRuff
 # ---------------------------------------------------------------------------
@@ -976,7 +975,7 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
         """--files-static-check dispatches Dummy for .py file when configured."""
         from usereq import cli
         f = _make_temp_file(self.tmp, "main.py")
-        self._write_config({"Python": {"module": "Dummy"}})
+        self._write_config({"Python": [{"module": "Dummy"}]})
         with patch("builtins.print"):
             rc = cli.main(["--base", str(self.tmp), "--files-static-check", str(f)])
         self.assertEqual(rc, 0)
@@ -984,7 +983,7 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
     def test_files_static_check_unknown_extension_skipped(self) -> None:
         """--files-static-check skips files with unrecognized extension."""
         from usereq import cli
-        self._write_config({"Python": {"module": "Dummy"}})
+        self._write_config({"Python": [{"module": "Dummy"}]})
         f = _make_temp_file(self.tmp, "file.unknown_ext")
         with patch("builtins.print"):
             with patch("sys.stderr", new_callable=StringIO):
@@ -1007,7 +1006,7 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
     def test_files_static_check_lang_not_in_config_skipped(self) -> None:
         """File whose language is not configured in static-check config is skipped."""
         from usereq import cli
-        self._write_config({"Python": {"module": "Dummy"}})
+        self._write_config({"Python": [{"module": "Dummy"}]})
         # .c file, but only Python is configured
         f = _make_temp_file(self.tmp, "prog.c", "int main(){return 0;}\n")
         with patch("builtins.print"):
@@ -1017,7 +1016,7 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
     def test_files_static_check_fail_propagates_exit_code(self) -> None:
         """--files-static-check returns 1 when at least one file fails."""
         from usereq import cli
-        self._write_config({"Python": {"module": "Pylance"}})
+        self._write_config({"Python": [{"module": "Pylance"}]})
         f = _make_temp_file(self.tmp, "bad.py")
         mock_result = MagicMock()
         mock_result.returncode = 1
@@ -1031,7 +1030,7 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
     def test_files_static_check_multiple_files_mixed(self) -> None:
         """Mixed pass/fail across files: overall exit code 1."""
         from usereq import cli
-        self._write_config({"Python": {"module": "Pylance"}})
+        self._write_config({"Python": [{"module": "Pylance"}]})
         f1 = _make_temp_file(self.tmp, "ok.py")
         f2 = _make_temp_file(self.tmp, "fail.py")
         results = [MagicMock(returncode=0, stdout="", stderr=""),
@@ -1040,6 +1039,25 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
             with patch("builtins.print"):
                 rc = cli.main(["--base", str(self.tmp), "--files-static-check", str(f1), str(f2)])
         self.assertEqual(rc, 1)
+
+    def test_files_static_check_runs_all_entries_for_language_in_order(self) -> None:
+        """One file runs all configured entries for language in insertion order."""
+        from usereq import cli
+        f = _make_temp_file(self.tmp, "multi.py")
+        self._write_config(
+            {
+                "Python": [
+                    {"module": "Command", "cmd": "cppcheck"},
+                    {"module": "Command", "cmd": "clang-format", "params": ["--dry-run", "--Werror"]},
+                ]
+            }
+        )
+        with patch("usereq.static_check.dispatch_static_check_for_file", side_effect=[0, 0]) as mock_dispatch:
+            rc = cli.main(["--base", str(self.tmp), "--files-static-check", str(f)])
+        self.assertEqual(rc, 0)
+        self.assertEqual(mock_dispatch.call_count, 2)
+        self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
+        self.assertEqual(mock_dispatch.call_args_list[1].args[1]["cmd"], "clang-format")
 
 
 # ---------------------------------------------------------------------------
@@ -1081,7 +1099,7 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         """--static-check runs Dummy on .py files in src-dir."""
         from usereq import cli
         _make_temp_file(self.tmp / "src", "main.py")
-        self._write_config({"Python": {"module": "Dummy"}})
+        self._write_config({"Python": [{"module": "Dummy"}]})
         with patch("builtins.print"):
             rc = cli.main(["--base", str(self.tmp), "--static-check"])
         self.assertEqual(rc, 0)
@@ -1091,7 +1109,7 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         from usereq import cli
         _make_temp_file(self.tmp / "src", "main.c", "int main(){return 0;}\n")
         # Only Python configured, but file is C
-        self._write_config({"Python": {"module": "Dummy"}})
+        self._write_config({"Python": [{"module": "Dummy"}]})
         with patch("builtins.print") as mock_print:
             rc = cli.main(["--base", str(self.tmp), "--static-check"])
         # rc=0 because no files were actually checked (all skipped)
@@ -1104,7 +1122,7 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         """--static-check returns 1 when at least one file fails."""
         from usereq import cli
         _make_temp_file(self.tmp / "src", "bad.py")
-        self._write_config({"Python": {"module": "Pylance"}})
+        self._write_config({"Python": [{"module": "Pylance"}]})
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stdout = "type error"
@@ -1137,7 +1155,7 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         from usereq import cli
         import os
         _make_temp_file(self.tmp / "src", "ok.py")
-        self._write_config({"Python": {"module": "Dummy"}})
+        self._write_config({"Python": [{"module": "Dummy"}]})
         old_cwd = os.getcwd()
         try:
             os.chdir(str(self.tmp))
@@ -1146,6 +1164,25 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         finally:
             os.chdir(old_cwd)
         self.assertEqual(rc, 0)
+
+    def test_static_check_runs_all_entries_for_language_in_order(self) -> None:
+        """Project scan runs all configured entries for each language file in order."""
+        from usereq import cli
+        _make_temp_file(self.tmp / "src", "multi.py")
+        self._write_config(
+            {
+                "Python": [
+                    {"module": "Command", "cmd": "cppcheck"},
+                    {"module": "Command", "cmd": "clang-format", "params": ["--dry-run", "--Werror"]},
+                ]
+            }
+        )
+        with patch("usereq.static_check.dispatch_static_check_for_file", side_effect=[0, 0]) as mock_dispatch:
+            rc = cli.main(["--base", str(self.tmp), "--static-check"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(mock_dispatch.call_count, 2)
+        self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
+        self.assertEqual(mock_dispatch.call_args_list[1].args[1]["cmd"], "clang-format")
 
 
 # ---------------------------------------------------------------------------
@@ -1156,7 +1193,7 @@ class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
     """!
     @brief Tests for --enable-static-check config persistence (SRS-248, SRS-252, SRS-262).
     @details Verifies that static-check config is correctly written to config.json via
-      `save_config()` and that multiple specs merge correctly (last-wins per language, SRS-251).
+      `save_config()` and that multiple specs merge correctly as ordered arrays (SRS-251).
       Uses direct API calls to `save_config` and `load_static_check_from_config` to avoid
       invoking the full installation flow (which requires provider flags and resource files).
     """
@@ -1175,37 +1212,37 @@ class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
     def test_enable_static_check_saved_to_config_json(self) -> None:
         """save_config with static_check_config persists Pylance config for Python."""
         from usereq.cli import save_config, load_static_check_from_config
-        sc = {"Python": {"module": "Pylance"}}
+        sc = {"Python": [{"module": "Pylance"}]}
         save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=sc)
         result = load_static_check_from_config(self.tmp)
         self.assertIn("Python", result)
-        self.assertEqual(result["Python"]["module"], "Pylance")
+        self.assertEqual(result["Python"][0]["module"], "Pylance")
 
     def test_enable_static_check_command_saves_cmd_and_params(self) -> None:
         """save_config persists Command module with cmd and params for C."""
         from usereq.cli import save_config, load_static_check_from_config
-        sc = {"C": {"module": "Command", "cmd": "cppcheck", "params": ["--check-library"]}}
+        sc = {"C": [{"module": "Command", "cmd": "cppcheck", "params": ["--check-library"]}]}
         save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=sc)
         result = load_static_check_from_config(self.tmp)
         self.assertIn("C", result)
-        self.assertEqual(result["C"]["module"], "Command")
-        self.assertEqual(result["C"]["cmd"], "cppcheck")
-        self.assertEqual(result["C"]["params"], ["--check-library"])
+        self.assertEqual(result["C"][0]["module"], "Command")
+        self.assertEqual(result["C"][0]["cmd"], "cppcheck")
+        self.assertEqual(result["C"][0]["params"], ["--check-library"])
 
     def test_enable_static_check_multiple_langs(self) -> None:
         """save_config with multiple languages persists all entries."""
         from usereq.cli import save_config, load_static_check_from_config
         sc = {
-            "Python": {"module": "Pylance"},
-            "C": {"module": "Dummy"},
+            "Python": [{"module": "Pylance"}],
+            "C": [{"module": "Dummy"}],
         }
         save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=sc)
         result = load_static_check_from_config(self.tmp)
         self.assertIn("Python", result)
         self.assertIn("C", result)
 
-    def test_enable_static_check_last_wins_same_lang(self) -> None:
-        """Collecting multiple specs with same language: last-wins before save (SRS-251)."""
+    def test_enable_static_check_preserves_multiple_entries_same_lang(self) -> None:
+        """Collecting multiple specs with same language preserves insertion order (SRS-251)."""
         from usereq.cli import save_config, load_static_check_from_config
         from usereq.static_check import parse_enable_static_check
         # Simulate collecting multiple --enable-static-check specs for the same language.
@@ -1213,10 +1250,10 @@ class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
         merged: dict = {}
         for spec in specs:
             lang, cfg = parse_enable_static_check(spec)
-            merged[lang] = cfg  # last wins
+            merged.setdefault(lang, []).append(cfg)
         save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=merged)
         result = load_static_check_from_config(self.tmp)
-        self.assertEqual(result["Python"]["module"], "Ruff")
+        self.assertEqual([entry["module"] for entry in result["Python"]], ["Dummy", "Ruff"])
 
     def test_enable_static_check_unknown_lang_raises_req_error(self) -> None:
         """parse_enable_static_check with unknown language raises ReqError (SRS-249)."""

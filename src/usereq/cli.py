@@ -312,7 +312,7 @@ def build_parser() -> argparse.ArgumentParser:
             "PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir (case-insensitive). "
             "For Command, CMD is the binary and subsequent tokens are params saved in config.json; "
             "tokens containing commas must be wrapped in double quotes. "
-            "Repeatable: one flag per language. "
+            "Repeatable: multiple flags per language append multiple entries. "
             "Example: --enable-static-check Python=Pylance "
             "--enable-static-check C=Command,/usr/bin/cppcheck,--check-library"
         ),
@@ -738,7 +738,7 @@ def load_static_check_from_config(project_base: Path) -> dict:
     """!
     @brief Load the `"static-check"` section from `.req/config.json` without validation errors.
     @param project_base The project root path.
-    @return Dict of static-check config (canonical-lang -> config-dict); empty dict if absent or
+    @return Dict of static-check config (canonical-lang -> list[config-dict]); empty dict if absent or
       if config.json is missing/invalid.
     @details Reads config.json silently; returns `{}` on any read or parse error.
       Does NOT raise `ReqError`; caller decides whether absence is an error.
@@ -754,7 +754,16 @@ def load_static_check_from_config(project_base: Path) -> dict:
     sc = payload.get("static-check")
     if not isinstance(sc, dict):
         return {}
-    return sc
+    normalized: dict = {}
+    for lang, entries in sc.items():
+        if (
+            isinstance(lang, str)
+            and isinstance(entries, list)
+            and entries
+            and all(isinstance(item, dict) for item in entries)
+        ):
+            normalized[lang] = entries
+    return normalized
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
@@ -1695,12 +1704,14 @@ def run(args: Namespace) -> None:
         from .static_check import parse_enable_static_check as _parse_sc
         for spec in enable_static_check_specs:
             canonical_lang, lang_cfg = _parse_sc(spec)
-            new_static_check[canonical_lang] = lang_cfg  # last occurrence wins (SRS-251)
+            new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
 
     # Compute merged static-check: existing config + new entries (SRS-252).
     if use_here_config or args.update:
         existing_sc = load_static_check_from_config(project_base)
-        merged_static_check: dict = {**existing_sc, **new_static_check}
+        merged_static_check: dict = {k: list(v) for k, v in existing_sc.items()}
+        for lang, entries in new_static_check.items():
+            merged_static_check.setdefault(lang, []).extend(entries)
     else:
         merged_static_check = new_static_check
 
@@ -2834,7 +2845,8 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
       - Resolves absolute path; skips with warning if not a regular file.
       - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension.
       - Looks up language in the `"static-check"` config section; skips silently if absent.
-      - Dispatches via `dispatch_static_check_for_file(filepath, lang_config)`.
+      - Executes each configured language entry sequentially via
+        `dispatch_static_check_for_file(filepath, lang_config)`.
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
     @see SRS-253, SRS-254, SRS-255
     """
@@ -2872,13 +2884,14 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
         if not lang:
             vlog(f"Skipping {raw_path}: no language mapping for extension '{ext}'")
             continue
-        lang_config = sc_config.get(lang)
-        if not lang_config:
+        lang_configs = sc_config.get(lang)
+        if not lang_configs:
             vlog(f"Skipping {raw_path}: no static-check config for language '{lang}'")
             continue
-        rc = dispatch_static_check_for_file(filepath, lang_config)
-        if rc != 0:
-            overall = 1
+        for lang_config in lang_configs:
+            rc = dispatch_static_check_for_file(filepath, lang_config)
+            if rc != 0:
+                overall = 1
     return overall
 
 
@@ -2895,7 +2908,8 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension.
       - Looks up language in the `"static-check"` section of `.req/config.json`.
       - Skips silently when no tool is configured for the file's language.
-      - Dispatches via `dispatch_static_check_for_file(filepath, lang_config)`.
+      - Executes each configured language entry sequentially via
+        `dispatch_static_check_for_file(filepath, lang_config)`.
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
     @throws ReqError If `--base`/`--here` is missing or no source files are found.
     @see SRS-256, SRS-257
@@ -2916,13 +2930,14 @@ def run_project_static_check_cmd(args: Namespace) -> int:
         if not lang:
             vlog(f"Skipping {filepath}: no language mapping for extension '{ext}'")
             continue
-        lang_config = sc_config.get(lang)
-        if not lang_config:
+        lang_configs = sc_config.get(lang)
+        if not lang_configs:
             vlog(f"Skipping {filepath}: no static-check config for language '{lang}'")
             continue
-        rc = dispatch_static_check_for_file(filepath, lang_config)
-        if rc != 0:
-            overall = 1
+        for lang_config in lang_configs:
+            rc = dispatch_static_check_for_file(filepath, lang_config)
+            if rc != 0:
+                overall = 1
     return overall
 
 
