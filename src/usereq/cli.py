@@ -102,7 +102,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
-        "[--test-static-check {dummy,pylance,ruff,command} [--recursive] [FILES...]] "
+        "[--test-static-check {dummy,pylance,ruff,command} [FILES...]] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -293,9 +293,9 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="ARG",
         dest="test_static_check",
         help=(
-            "Run static analysis: --test-static-check <subcommand> [--recursive] [FILES...]. "
+            "Run static analysis: --test-static-check <subcommand> [FILES...]. "
             "Subcommands: dummy, pylance, ruff, command <cmd>. "
-            "[FILES] may be files, directories, or glob patterns (standalone, no --base/--here required)."
+            "[FILES] may be files, directories, or glob patterns including ** (standalone, no --base/--here required)."
         ),
     )
     return parser

@@ -49,7 +49,7 @@
             - `SourceAnalyzer.analyze(...)`: extract source constructs [`src/usereq/source_analyzer.py`]
             - `SourceAnalyzer.enrich(...)`: add names/signatures/Doxygen fields [`src/usereq/source_analyzer.py`]
         - `run_static_check(argv)`: static analysis dispatch for `--test-static-check` [`src/usereq/static_check.py`]
-          - `_resolve_files(inputs, recursive)`: resolve paths/globs/directories to regular file list [`src/usereq/static_check.py`]
+          - `_resolve_files(inputs)`: resolve paths/globs/directories to regular file list; glob uses `recursive=True` enabling `**` expansion; directories traverse direct children only [`src/usereq/static_check.py`]
             - External boundary: filesystem glob expansion and directory traversal.
           - `StaticCheckBase.run()`: Dummy checker; emits `# Static-Check(Dummy): <file>` + `Result: OK` per file [`src/usereq/static_check.py`]
           - `StaticCheckPylance.run()`: Pylance checker; invokes `pyright <file>` and emits OK/FAIL+Evidence [`src/usereq/static_check.py`]

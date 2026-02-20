@@ -2,9 +2,11 @@
 @file static_check.py
 @brief Static code analysis dispatch module implementing Dummy/Pylance/Ruff/Command check classes.
 @details Provides a class hierarchy for running static analysis tools against resolved file lists.
-  Exposes `run_static_check(subcommand, files, options)` as the primary entry point called from cli.py.
+  Exposes `run_static_check(argv)` as the primary entry point called from cli.py.
   Class hierarchy: StaticCheckBase (Dummy) -> StaticCheckPylance, StaticCheckRuff, StaticCheckCommand.
-  File resolution supports: explicit file paths, glob patterns, and recursive directory traversal.
+  File resolution supports: explicit file paths, glob patterns (with full `**` recursive expansion),
+  and direct-children-only directory traversal. No custom `--recursive` flag; recursive traversal
+  is expressed via `**` glob syntax (e.g., `src/**/*.py`).
 @author useReq
 @version 0.0.71
 """
@@ -25,17 +27,17 @@ from .cli import ReqError
 # File resolution helpers
 # ---------------------------------------------------------------------------
 
-def _resolve_files(inputs: Sequence[str], recursive: bool) -> List[str]:
+def _resolve_files(inputs: Sequence[str]) -> List[str]:
     """!
     @brief Resolve a mixed list of paths, glob patterns, and directories into regular files.
     @param inputs Sequence of raw path strings (file, directory, or glob pattern).
-    @param recursive When True, scan directories recursively.
     @return Sorted deduplicated list of resolved absolute file paths (regular files only).
     @details
       Resolution order per element:
-      1. If the element contains a glob wildcard character (`*`, `?`, `[`) expand via `glob.glob`.
-      2. If the element is an existing directory: when `recursive` is True walk the entire tree
-         with `rglob("*")`; otherwise iterate direct children only.
+      1. If the element contains a glob wildcard character (`*`, `?`, `[`) expand via
+         `glob.glob(entry, recursive=True)`, enabling full `**` recursive expansion
+         (e.g., `src/**/*.py` matches all `.py` files under `src/` at any depth).
+      2. If the element is an existing directory, iterate direct children only (flat traversal).
       3. Otherwise treat as a literal file path; include if it is a regular file.
       Symlinks to regular files are included. Non-existent paths that do not match a glob produce
       a warning on stderr and are skipped.
@@ -44,8 +46,8 @@ def _resolve_files(inputs: Sequence[str], recursive: bool) -> List[str]:
 
     for entry in inputs:
         if any(c in entry for c in ("*", "?", "[")):
-            # Glob pattern
-            matches = glob.glob(entry, recursive=recursive)
+            # Glob pattern; recursive=True enables ** expansion (SRS-245)
+            matches = glob.glob(entry, recursive=True)
             for m in sorted(matches):
                 p = Path(m)
                 if p.is_file():
@@ -53,14 +55,10 @@ def _resolve_files(inputs: Sequence[str], recursive: bool) -> List[str]:
         else:
             p = Path(entry)
             if p.is_dir():
-                if recursive:
-                    for child in sorted(p.rglob("*")):
-                        if child.is_file():
-                            resolved[str(child.resolve())] = None
-                else:
-                    for child in sorted(p.iterdir()):
-                        if child.is_file():
-                            resolved[str(child.resolve())] = None
+                # Direct children only; recursive traversal is expressed via ** glob patterns
+                for child in sorted(p.iterdir()):
+                    if child.is_file():
+                        resolved[str(child.resolve())] = None
             elif p.is_file():
                 resolved[str(p.resolve())] = None
             else:
@@ -90,19 +88,18 @@ class StaticCheckBase:
     def __init__(
         self,
         inputs: Sequence[str],
-        recursive: bool = False,
         extra_args: Optional[Sequence[str]] = None,
     ) -> None:
         """!
         @brief Initialize the static checker with resolved inputs and options.
         @param inputs Raw path/pattern/directory entries from CLI.
-        @param recursive When True, directories are scanned recursively.
         @param extra_args Additional CLI arguments forwarded to the external tool (may be None).
         @details Resolves `inputs` immediately into `self._files` via `_resolve_files`.
+          Recursive traversal is expressed via `**` glob patterns in `inputs` (e.g., `src/**/*.py`);
+          no separate recursive flag exists (SRS-240, SRS-245).
         """
-        self._recursive = recursive
         self._extra_args: List[str] = list(extra_args) if extra_args else []
-        self._files = _resolve_files(inputs, recursive)
+        self._files = _resolve_files(inputs)
 
     # ------------------------------------------------------------------
     # Public interface
@@ -284,14 +281,12 @@ class StaticCheckCommand(StaticCheckBase):
         self,
         cmd: str,
         inputs: Sequence[str],
-        recursive: bool = False,
         extra_args: Optional[Sequence[str]] = None,
     ) -> None:
         """!
         @brief Initialize the command checker and verify tool availability.
         @param cmd External command name (must be available on PATH).
         @param inputs Raw path/pattern/directory entries from CLI.
-        @param recursive When True, directories are scanned recursively.
         @param extra_args Additional CLI arguments forwarded to the external command.
         @throws ReqError If `cmd` is not found on PATH (exit code 1).
         @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
@@ -303,7 +298,7 @@ class StaticCheckCommand(StaticCheckBase):
             )
         self._cmd = cmd
         self.LABEL = f"Command[{cmd}]"
-        super().__init__(inputs=inputs, recursive=recursive, extra_args=extra_args)
+        super().__init__(inputs=inputs, extra_args=extra_args)
 
     def _check_file(self, filepath: str) -> int:
         """!
@@ -353,14 +348,15 @@ def run_static_check(argv: Sequence[str]) -> int:
     @throws ReqError If subcommand is missing, unknown, or `command` subcommand is missing `cmd`.
     @details
       Expected argument format:
-      - `dummy [--recursive] [FILES...]`
-      - `pylance [--recursive] [FILES...]`
-      - `ruff [--recursive] [FILES...]`
-      - `command <cmd> [--recursive] [FILES...]`
+      - `dummy [FILES...]`
+      - `pylance [FILES...]`
+      - `ruff [FILES...]`
+      - `command <cmd> [FILES...]`
 
-      `--recursive` may appear anywhere in the token list after the subcommand.
-      For `command`, the first non-flag token after `command` is treated as `<cmd>`.
-      All remaining tokens (after subcommand, optional cmd, and `--recursive`) are treated as FILES.
+      No custom `--recursive` flag is parsed; recursive traversal is expressed via `**` glob
+      patterns in `[FILES]` (e.g., `src/**/*.py`).
+      For `command`, the first token after `command` is treated as `<cmd>`.
+      All remaining tokens (after subcommand and optional cmd) are treated as FILES.
 
       Dispatches to:
       - `dummy`   -> `StaticCheckBase`
@@ -376,36 +372,30 @@ def run_static_check(argv: Sequence[str]) -> int:
         )
 
     subcommand = tokens.pop(0)
-
-    # Extract --recursive flag anywhere in remaining tokens
-    recursive = "--recursive" in tokens
-    remaining = [t for t in tokens if t != "--recursive"]
+    remaining = tokens
 
     if subcommand == "dummy":
         checker: StaticCheckBase = StaticCheckBase(
             inputs=remaining,
-            recursive=recursive,
         )
     elif subcommand == "pylance":
         checker = StaticCheckPylance(
             inputs=remaining,
-            recursive=recursive,
         )
     elif subcommand == "ruff":
         checker = StaticCheckRuff(
             inputs=remaining,
-            recursive=recursive,
         )
     elif subcommand == "command":
         if not remaining:
             raise ReqError(
                 "Error: --test-static-check command requires a <cmd> argument.", 1
             )
-        cmd = remaining.pop(0)
+        cmd = remaining[0]
+        remaining = remaining[1:]
         checker = StaticCheckCommand(
             cmd=cmd,
             inputs=remaining,
-            recursive=recursive,
         )
     else:
         raise ReqError(

@@ -6,7 +6,8 @@
   - StaticCheckPylance OK/FAIL branches (mocked subprocess)
   - StaticCheckRuff OK/FAIL branches (mocked subprocess)
   - StaticCheckCommand availability check and OK/FAIL branches (mocked subprocess)
-  - Glob and recursive directory resolution (_resolve_files)
+  - Glob pattern resolution including ** recursive expansion (_resolve_files)
+  - Direct-children-only directory resolution (_resolve_files)
   - Empty file-list warning behavior
   - CLI dispatcher (run_static_check)
 @author useReq
@@ -70,7 +71,7 @@ class TestResolveFiles(unittest.TestCase):
     def test_single_file(self) -> None:
         """Explicit file path resolves to a single entry."""
         f = _make_temp_file(self.tmp, "a.py")
-        result = _resolve_files([str(f)], recursive=False)
+        result = _resolve_files([str(f)])
         self.assertEqual(result, [str(f.resolve())])
 
     def test_glob_pattern(self) -> None:
@@ -79,50 +80,51 @@ class TestResolveFiles(unittest.TestCase):
         _make_temp_file(self.tmp, "b2.py")
         _make_temp_file(self.tmp, "c.txt")
         pattern = str(self.tmp / "*.py")
-        result = _resolve_files([pattern], recursive=False)
+        result = _resolve_files([pattern])
         basenames = sorted(Path(p).name for p in result)
         self.assertIn("b1.py", basenames)
         self.assertIn("b2.py", basenames)
         self.assertNotIn("c.txt", basenames)
 
-    def test_directory_non_recursive(self) -> None:
-        """Directory without recursive flag lists only direct children."""
-        subdir = self.tmp / "sub"
+    def test_glob_double_star_recursive(self) -> None:
+        """** glob pattern recursively expands into subdirectories (SRS-245)."""
+        subdir = self.tmp / "pkg"
         subdir.mkdir()
         _make_temp_file(self.tmp, "top.py")
         _make_temp_file(subdir, "nested.py")
-        result = _resolve_files([str(self.tmp)], recursive=False)
-        names = [Path(p).name for p in result]
-        self.assertIn("top.py", names)
-        self.assertNotIn("nested.py", names)
-
-    def test_directory_recursive(self) -> None:
-        """Directory with recursive flag includes nested files."""
-        subdir = self.tmp / "deep"
-        subdir.mkdir()
-        _make_temp_file(self.tmp, "top.py")
-        _make_temp_file(subdir, "nested.py")
-        result = _resolve_files([str(self.tmp)], recursive=True)
+        pattern = str(self.tmp / "**" / "*.py")
+        result = _resolve_files([pattern])
         names = [Path(p).name for p in result]
         self.assertIn("top.py", names)
         self.assertIn("nested.py", names)
 
+    def test_directory_direct_children_only(self) -> None:
+        """Bare directory entry lists only direct children (SRS-245)."""
+        subdir = self.tmp / "sub"
+        subdir.mkdir()
+        _make_temp_file(self.tmp, "top.py")
+        _make_temp_file(subdir, "nested.py")
+        result = _resolve_files([str(self.tmp)])
+        names = [Path(p).name for p in result]
+        self.assertIn("top.py", names)
+        self.assertNotIn("nested.py", names)
+
     def test_nonexistent_path_warns_and_skips(self) -> None:
         """Non-existent path emits a warning to stderr and is skipped."""
         with patch("sys.stderr", new_callable=StringIO) as mock_err:
-            result = _resolve_files(["/no/such/path/file.py"], recursive=False)
+            result = _resolve_files(["/no/such/path/file.py"])
         self.assertEqual(result, [])
         self.assertIn("Warning", mock_err.getvalue())
 
     def test_deduplication(self) -> None:
         """Duplicate entries are resolved to a single occurrence."""
         f = _make_temp_file(self.tmp, "dup.py")
-        result = _resolve_files([str(f), str(f)], recursive=False)
+        result = _resolve_files([str(f), str(f)])
         self.assertEqual(len(result), 1)
 
     def test_empty_inputs(self) -> None:
         """Empty inputs list returns empty result."""
-        result = _resolve_files([], recursive=False)
+        result = _resolve_files([])
         self.assertEqual(result, [])
 
 
@@ -183,14 +185,10 @@ class TestStaticCheckBase(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn("Warning", mock_err.getvalue())
 
-    def test_recursive_flag_passed_through(self) -> None:
-        """recursive=True is stored and used by directory resolution."""
-        subdir = self.tmp / "sub"
-        subdir.mkdir()
-        _make_temp_file(subdir, "nested.py")
-        checker = StaticCheckBase(inputs=[str(self.tmp)], recursive=True)
-        self.assertTrue(checker._recursive)
-        self.assertTrue(any("nested.py" in f for f in checker._files))
+    def test_no_recursive_attribute(self) -> None:
+        """StaticCheckBase has no _recursive attribute (SRS-240)."""
+        checker = StaticCheckBase(inputs=[])
+        self.assertFalse(hasattr(checker, "_recursive"))
 
     def test_label_is_dummy(self) -> None:
         """LABEL of StaticCheckBase is 'Dummy'."""
@@ -550,19 +548,22 @@ class TestRunStaticCheck(unittest.TestCase):
                     rc = run_static_check(["command", "mytool", str(f)])
         self.assertEqual(rc, 0)
 
-    def test_recursive_flag_is_parsed(self) -> None:
-        """--recursive flag is consumed and passed to the checker."""
-        f = _make_temp_file(self.tmp, "rec.py")
-        with patch("builtins.print"):
-            rc = run_static_check(["dummy", "--recursive", str(f)])
+    def test_double_star_glob_resolves_recursively(self) -> None:
+        """** glob pattern in FILES resolves nested files recursively (SRS-245)."""
+        subdir = self.tmp / "pkg"
+        subdir.mkdir()
+        _make_temp_file(self.tmp, "top.py")
+        _make_temp_file(subdir, "nested.py")
+        pattern = str(self.tmp / "**" / "*.py")
+        with patch("builtins.print") as mock_print:
+            rc = run_static_check(["dummy", pattern])
         self.assertEqual(rc, 0)
-
-    def test_recursive_flag_at_any_position(self) -> None:
-        """--recursive flag may appear anywhere after the subcommand."""
-        f = _make_temp_file(self.tmp, "pos.py")
-        with patch("builtins.print"):
-            rc = run_static_check(["dummy", str(f), "--recursive"])
-        self.assertEqual(rc, 0)
+        calls = [str(c.args[0]) for c in mock_print.call_args_list]
+        headers = [s for s in calls if "Static-Check(Dummy)" in s]
+        # Header format: "# Static-Check(Dummy): <filepath>"
+        names_in_headers = [Path(h.split(": ", 1)[1].split(" ")[0]).name for h in headers]
+        self.assertIn("top.py", names_in_headers)
+        self.assertIn("nested.py", names_in_headers)
 
     def test_empty_resolved_files_returns_zero(self) -> None:
         """When no files resolve, returns 0 (warning behavior is covered by TestStaticCheckBase)."""
