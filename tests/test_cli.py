@@ -2292,6 +2292,15 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
 
+    def _run_here_update(self, args: list[str]) -> int:
+        """Runs CLI commands from TEST_DIR to exercise --here resolution."""
+        previous_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            return cli.main(args)
+        finally:
+            os.chdir(previous_cwd)
+
     def test_update_reloads_persisted_flags(self) -> None:
         """SRS-034, SRS-064: --update must restore persisted enable/disable flags from config.json."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -2371,6 +2380,98 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         self.assertTrue(
             (self.TEST_DIR / ".opencode" / "agent").is_dir(),
             "Persisted --enable-opencode and --enable-agents must regenerate OpenCode agents",
+        )
+
+    def test_update_here_reloads_persisted_flags(self) -> None:
+        """SRS-064: --update with --here must reuse persisted flags from .req/config.json."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            install_exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--enable-models",
+                    "--enable-tools",
+                    "--prompts-use-agents",
+                    "--legacy",
+                    "--disable-skills",
+                ]
+                + PROVIDER_FLAGS
+                + ARTIFACT_TYPE_FLAGS
+            )
+        self.assertEqual(install_exit_code, 0)
+
+        shutil.rmtree(self.TEST_DIR / ".github")
+        shutil.rmtree(self.TEST_DIR / ".claude")
+        shutil.rmtree(self.TEST_DIR / ".opencode")
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            update_exit_code = self._run_here_update(["--here", "--update"])
+        self.assertEqual(update_exit_code, 0, "--update --here must reuse persisted flags")
+        self.assertTrue(
+            (self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md").is_file(),
+            "Persisted flags must regenerate provider artifacts in --here mode",
+        )
+        self.assertFalse(
+            (self.TEST_DIR / ".github" / "skills").exists(),
+            "Persisted --disable-skills must remain effective in --here update mode",
+        )
+
+    def test_update_here_invalid_persisted_flags_uses_config_error(self) -> None:
+        """SRS-064: --update --here must fail with config-invalid error for invalid persisted flags."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            install_exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--enable-claude",
+                    "--enable-prompts",
+                ]
+            )
+        self.assertEqual(install_exit_code, 0)
+
+        config_path = self.TEST_DIR / ".req" / "config.json"
+        config_payload = json.loads(config_path.read_text(encoding="utf-8"))
+        for key in (
+            "enable-claude",
+            "enable-codex",
+            "enable-gemini",
+            "enable-github",
+            "enable-kiro",
+            "enable-opencode",
+        ):
+            config_payload[key] = False
+        config_path.write_text(json.dumps(config_payload, indent=2), encoding="utf-8")
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                update_exit_code = self._run_here_update(["--here", "--update"])
+        self.assertEqual(update_exit_code, 11)
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "invalid provider/artifact update configuration",
+            written,
+            "Invalid persisted flags must report config-specific update error",
+        )
+        self.assertNotIn(
+            "at least one --enable-* provider flag is required",
+            written,
+            "Update invalid-config path must not report regular provider-flag validation error",
         )
 
 

@@ -55,7 +55,6 @@ PERSISTED_UPDATE_FLAG_KEYS = (
 )
 """! @brief Config keys persisted for install/update boolean flags."""
 
-
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
     @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
@@ -68,6 +67,7 @@ class ReqError(Exception):
         super().__init__(message)
         self.message = message
         self.code = code
+
 
 
 def log(msg: str) -> None:
@@ -833,6 +833,28 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
         if not isinstance(value, bool):
             raise ReqError(f"Error: missing or invalid '{key}' field in .req/config.json", 11)
         flags[key] = value
+    has_provider = any(
+        (
+            flags["enable-claude"],
+            flags["enable-codex"],
+            flags["enable-gemini"],
+            flags["enable-github"],
+            flags["enable-kiro"],
+            flags["enable-opencode"],
+        )
+    )
+    has_artifact_type = any(
+        (
+            flags["enable-prompts"],
+            flags["enable-agents"],
+            not flags["disable-skills"],
+        )
+    )
+    if not has_provider or not has_artifact_type:
+        raise ReqError(
+            "Error: .req/config.json has an invalid provider/artifact update configuration",
+            11,
+        )
     return flags
 
 
@@ -1612,18 +1634,19 @@ def run(args: Namespace) -> None:
             4,
         )
 
-    if use_here_config:
+    if use_here_config or args.update:
         config = load_config(project_base)
         guidelines_dir_value = config["guidelines-dir"]
         doc_dir_value = config["docs-dir"]
         test_dir_value = config["tests-dir"]
         src_dir_values = config["src-dir"]
-    elif args.update:
-        config = load_config(project_base)
-        guidelines_dir_value = config["guidelines-dir"]
-        doc_dir_value = config["docs-dir"]
-        test_dir_value = config["tests-dir"]
-        src_dir_values = config["src-dir"]
+    else:
+        guidelines_dir_value = guidelines_dir
+        doc_dir_value = doc_dir
+        test_dir_value = test_dir
+        src_dir_values = src_dir
+
+    if args.update:
         persisted_flags = load_persisted_update_flags(project_base)
         args.enable_models = bool(args.enable_models) or persisted_flags["enable-models"]
         args.enable_tools = bool(args.enable_tools) or persisted_flags["enable-tools"]
@@ -1639,11 +1662,6 @@ def run(args: Namespace) -> None:
         args.prompts_use_agents = bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
         args.legacy = bool(args.legacy) or persisted_flags["legacy"]
         args.preserve_models = bool(args.preserve_models) or persisted_flags["preserve-models"]
-    else:
-        guidelines_dir_value = guidelines_dir
-        doc_dir_value = doc_dir
-        test_dir_value = test_dir
-        src_dir_values = src_dir
 
     if not isinstance(guidelines_dir_value, str) or not isinstance(doc_dir_value, str):
         raise ReqError("Error: invalid docs configuration values", 11)
@@ -1765,6 +1783,11 @@ def run(args: Namespace) -> None:
             enable_opencode,
         )
     ):
+        if args.update:
+            raise ReqError(
+                "Error: .req/config.json has an invalid provider/artifact update configuration",
+                11,
+            )
         parser = build_parser()
         parser.print_help()
         raise ReqError(
@@ -1772,6 +1795,11 @@ def run(args: Namespace) -> None:
             4,
         )
     if not any((enable_prompts, enable_agents, enable_skills)):
+        if args.update:
+            raise ReqError(
+                "Error: .req/config.json has an invalid provider/artifact update configuration",
+                11,
+            )
         parser = build_parser()
         parser.print_help()
         raise ReqError(
