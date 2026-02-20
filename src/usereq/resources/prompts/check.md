@@ -1,6 +1,6 @@
 ---
 description: "Run the requirements check"
-argument-hint: "No arguments utilized by the prompt logic"
+argument-hint: "Optional: context to focus the audit (can be empty)"
 usage: >
   Select this prompt if you need a complete, repository-read-only compliance audit that outputs an OK/FAIL verdict for EVERY requirement ID in %%DOC_PATH%%/REQUIREMENTS.md, backed by concrete code/test evidence (and typically by running the test suite). Use after requirements/code changes to measure coverage and to produce a gap list + implementation-only technical report when FAILs exist. Do NOT select if you will modify any files (requirements/code/tests/docs) or implement fixes; downstream implementation should be done via /req.cover (small set of uncovered IDs), /req.implement (large/greenfield gaps), /req.fix, /req.refactor, /req.new, or /req.change depending on intent.
 ---
@@ -122,3 +122,6 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Read %%GUIDELINES_FILES%% files and apply those **guidelines**; ensure the proposed code changes conform to those **guidelines**, and adjust the **Implementation Delta** if needed. Do not apply unrelated **guidelines**.
 3. Present results and **Implementation Delta**
    - PRINT, in the response, the results of the requirements check and the **Implementation Delta** in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
+
+<h2 id="users-request">User's Request</h2>
+%%ARGS%%

@@ -23,7 +23,7 @@ In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in English (followin
    - Do not run any shell/git commands and do not modify any files before starting Step 1 (including creating/modifying files, installing deps, formatting, etc.): **CRITICAL**: Check GIT Status.
    - Step 1 may run only the git commands `git rev-parse --is-inside-work-tree`, `git rev-parse --verify HEAD`, `git status --porcelain`, and `git symbolic-ref -q HEAD` (plus minimal shell built-ins to combine their outputs into a single cleanliness check).
    - If the repository is NOT clean (modified files, staged changes, OR untracked files), exit immediately without changing anything.
-   - At the end you MUST commit only the intended changes with a unique identifier and change description in the commit message
+   - At the end you MUST commit only the intended changes with a unique identifier and change description in the commit message.
    - Leave the working tree AND index clean (git `status --porcelain` must be empty).
    - Do NOT “fix” a dirty repo by force (no `git reset --hard`, no `git clean -fd`, no stash) unless explicitly requested. If dirty: abort.
 
@@ -64,7 +64,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    -  Create/update the references file with `req --references --here >"%%DOC_PATH%%/REFERENCES.md"`
 3. **CRITICAL**: Stage & commit
    - Show a summary of changes with `git diff` and `git diff --stat`.
-   - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include all modified source code & test and REFERENCES.md only if it was modified/created).
+   - Stage changes explicitly (prefer targeted add; avoid `git add -A` if it may include unintended files): `git add <file...>` (ensure to include only `%%DOC_PATH%%/REFERENCES.md`).
    - Ensure there is something to commit with: `git diff --cached --quiet && echo "Nothing to commit. Aborting."`. If command output contains "Aborting", OUTPUT exactly "No changes to commit.", and then terminate the execution.
    - Commit a structured commit message with: `git commit -m "docs(<COMPONENT>): <DESCRIPTION> [<DATE>]"`
       - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
