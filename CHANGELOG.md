@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.0.75](https://github.com/Ogekuri/useReq/compare/v0.0.74..v0.0.75) - 2026-02-21
+### 📚  Documentation
+- *(core)* Review README.md.
+
 ## [0.0.74](https://github.com/Ogekuri/useReq/compare/v0.0.73..v0.0.74) - 2026-02-21
 ### ⛰️  Features
 - *(core)* update github workflow.
@@ -612,6 +616,7 @@
 - \[0.0.72\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.72
 - \[0.0.73\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.73
 - \[0.0.74\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.74
+- \[0.0.75\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.75
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -687,3 +692,4 @@
 [0.0.72]: https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72
 [0.0.73]: https://github.com/Ogekuri/useReq/compare/v0.0.72..v0.0.73
 [0.0.74]: https://github.com/Ogekuri/useReq/compare/v0.0.73..v0.0.74
+[0.0.75]: https://github.com/Ogekuri/useReq/compare/v0.0.74..v0.0.75
