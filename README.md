@@ -1,6 +1,6 @@
 🚧 **DRAFT:** Preliminary Version 📝 - Work in Progress 🏗️ 🚧
 
-⚠️ **IMPORTANT NOTICE**: Created with **[useReq](https://github.com/Ogekuri/useReq)** 🤖✨ ⚠️
+⚠️ **IMPORTANT NOTICE**: Created with **[useReq/req](https://github.com/Ogekuri/useReq)** 🤖✨ ⚠️
 
 # useReq/req (0.0.74)
 
@@ -30,13 +30,15 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 
 
 ## Feature Highlights
+- Supports [Conventional Commit Standards](https://www.conventionalcommits.org/en/v1.0.0/) and is compatible with [release-changelog-builder-action](https://github.com/mikepenz/release-changelog-builder-action).
+- Compatible with [G/Git-Alias CLI](https://github.com/Ogekuri/G).
 - Drives development through requirement changes.
 - Keeps development under control.
-- Usable as skills, agents or prompts.
+- Usable as skills, agents, or prompts.
 - Creates a common interface for different vendor CLIs and Agents.
 - Creates **Software Requirements Specification** [*SRS*] files for existing projects.
 - Keeps source code documentation updated and optimized for LLM Agents reasoning.
-- Lightweight models customization.
+- Lightweight model customization.
 - Supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
 
 
@@ -69,7 +71,7 @@ Click to zoom flowchart image.
 
 ### Prerequisites
 
-- Use supported environments: `linux`
+- Supported environment: `linux`
 - Python 3.11+
 - Install the `uv` tool from: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 
@@ -99,15 +101,15 @@ uv tool uninstall usereq
 ```
 
 ### Usage
-- Run `req` to create/re-create useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.req`, and `.vscode`.
+- Run `req` to create or recreate useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.req`, and `.vscode`.
   - You can run `req` from any directory:
     - Use `--base <project-folder>` to target a specific project directory.
     - Use `--here` to target the current working directory as the project root.
-    - If you run it from inside the project directory, you can omit both arguments; it will use the current working directory as the project base (but you must still provide `--guidelines-dir`, `--docs-dir`, `--tests-dir`, and `--src-dir` unless you use `--update`).
-  - `--docs-dir` is the requirements documentation directory; if it is empty, `REQUIREMENTS.md` is generated from the packaged template.
-  - `--guidelines-dir` must be an existing directory under the project base, and can include user's guidelines files.
-  - `--src-dir` is repeatable and can be provided multiple times to include multiple source directories.
-  - Select CLI to install with:
+    - If you run it from inside the project directory, use `--here` (you cannot omit both `--base` and `--here` for initialization); you must still provide `--guidelines-dir`, `--docs-dir`, `--tests-dir`, and `--src-dir` (all must exist under the project base) unless you use `--update`.
+  - `--docs-dir` is the requirements documentation directory (must exist under the project base); if it is empty, `REQUIREMENTS.md` is generated from the packaged template.
+  - `--guidelines-dir` must be an existing directory under the project base, and can contain the user's guideline files.
+  - `--src-dir` is repeatable and can be provided multiple times to include multiple source directories (each must exist under the project base).
+  - Select at least one provider for this run (required):
     - `--enable-claude`       Enable generation of Claude prompts and agents for this run.
     - `--enable-codex`        Enable generation of Codex prompts for this run.
     - `--enable-gemini`       Enable generation of Gemini prompts for this run.
@@ -122,14 +124,14 @@ uv tool uninstall usereq
 - You need to run `req` again if you add or remove requirement-related files in the documentation directory or any files in the `guidelines/` directory.
 - Option `--prompts-use-agents` generates prompt files as **agent-only references** (adds an `agent:` front matter field) where supported (GitHub prompts, Claude commands, and OpenCode commands).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
-- Add `--update` to update an existing installation.
+- Add `--update` to update an existing installation (requires an existing `.req/config.json` under the project base).
   - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
 - Add `--legacy` to enable the *legacy mode* support (see below).
 - Add `--enable-models` and `--enable-tools` to include `model:` and `tools:` fields when available from centralized models configuration.
 - Add `--add-guidelines` to copy packaged guideline templates into `--guidelines-dir` without overwriting existing files.
 - Add `--upgrade-guidelines` to copy packaged guideline templates into `--guidelines-dir` and overwrite existing files.
 - Add `--ver` / `--version` to print the installed package version and exit.
-- Add `--remove` to remove resources generated by useReq from the target project (requires `.req/config.json`; removes `.req/` and generated provider artifacts).
+- Add `--remove` to remove resources generated by useReq from the target project (requires `--base` or `--here` and an existing `.req/config.json`; removes `.req/` and generated provider artifacts).
 - Add `--upgrade` to self-upgrade useReq via `uv`.
 - Add `--uninstall` to uninstall useReq via `uv`.
 
@@ -145,12 +147,12 @@ uv tool uninstall usereq
   `--files-compress FILE [FILE ...]`
 
 - Find and extract specific constructs from the given files (standalone, no --base/--here required).
-  `--files-find TAG PATTERN FILE [FILE ...]`
+  `--files-find TAG[|TAG...] PATTERN FILE [FILE ...]`
 
-- Run static analysis on the given files (standalone, no --base/--here required).
+- Run static analysis on the given files using tools configured in `.req/config.json` (standalone, no --base/--here required).
   `--files-static-check FILE [FILE ...]`
 
-- Count tokens and chars for files directly under the configured docs directory (requires --base/--here).
+- Count tokens and chars for files directly under the docs directory (requires --here, or --base plus --docs-dir).
   `--tokens`
 
 - Generate LLM reference markdown for all source files in configured --src-dir directories (requires --base/--here).
@@ -160,9 +162,9 @@ uv tool uninstall usereq
   `--compress`
 
 - Find and extract specific constructs from all source files in configured --src-dir directories (requires --base/--here).
-  `--find TAG PATTERN`
+  `--find TAG[|TAG...] PATTERN`
 
-- Run static analysis on all source files in configured --src-dir directories (requires --base/--here).
+- Run static analysis on all source files in configured --src-dir directories using tools configured in `.req/config.json` (requires --base/--here).
   `--static-check`
 
 
@@ -475,7 +477,7 @@ Gemini CLI does not support "model:" or "tools:" on prompts.
 OpenAI Codex CLI does not support "model:" or "tools:" on prompts.
 
 
-## Note on GIT usage
+## Note on Git usage
 
 This section describes the Git behavior when executing the commands provided by the scripts.
 
