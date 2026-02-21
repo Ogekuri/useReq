@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.73](https://github.com/Ogekuri/useReq/compare/v0.0.72..v0.0.73) - 2026-02-21
+### ⛰️  Features
+- *(core)* update github workflow.
+
+### 🐛  Bug Fixes
+- *(cli)* persist install flags for update reload [2026-02-20 15:51:44]
+
+### 🚜  Changes
+- *(cli)* validate Command executable for static-check [2026-02-20 16:27:09]
+- *(cli)* fix --update persisted config precedence and validation [2026-02-20 16:11:33]
+
 ## [0.0.72](https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72) - 2026-02-20
 ### ⛰️  Features
 - *(core)* add static code check.
@@ -595,6 +606,7 @@
 - \[0.0.70\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.70
 - \[0.0.71\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.71
 - \[0.0.72\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.72
+- \[0.0.73\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.73
 
 [0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
@@ -668,3 +680,4 @@
 [0.0.70]: https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70
 [0.0.71]: https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71
 [0.0.72]: https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72
+[0.0.73]: https://github.com/Ogekuri/useReq/compare/v0.0.72..v0.0.73
