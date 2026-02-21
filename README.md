@@ -1,4 +1,4 @@
-# useReq/req (0.0.75)
+# useReq/req (0.0.76)
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">

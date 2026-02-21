@@ -1,695 +1,287 @@
 # Changelog
 
-## [0.0.75](https://github.com/Ogekuri/useReq/compare/v0.0.74..v0.0.75) - 2026-02-21
-### 📚  Documentation
-- *(core)* Review README.md.
-
-## [0.0.74](https://github.com/Ogekuri/useReq/compare/v0.0.73..v0.0.74) - 2026-02-21
+## [0.0.76](https://github.com/Ogekuri/useReq/releases/tag/v0.0.76) - 2026-02-21
 ### ⛰️  Features
-- *(core)* update github workflow.
-
-## [0.0.73](https://github.com/Ogekuri/useReq/compare/v0.0.72..v0.0.73) - 2026-02-21
-### ⛰️  Features
-- *(core)* update github workflow.
+- update github workflow. *(core)*
+- update github workflow. *(core)*
+- add static code check. *(core)*
+- add static-check on req-init.sh. *(core)*
+- add --enable-static-check, --files-static-check, --static-check commands [2026-02-20 09:55:00] *(static_check)*
+- max 35 words for requirement. *(core)*
+- add --test-static-check with Dummy/Pylance/Ruff/Command classes [2026-02-20 00:00:00] *(static_check)*
+- add pyright.sh, ruff.sh scripts. *(core)*
+- add ruff e pyright. *(core)*
+- extend skill generation to resources/skills [2026-02-19 17:30:26] *(cli)*
+- add fallback. *(core)*
+- remove legacy form scripts. *(core)*
+- update models. *(core)*
+- add renumber command. *(core)*
+- recreate use git to commit new requirements file. *(core)*
+- optimize requirements for LLM Agents. *(core)*
+- add usage on prompts. *(core)*
+- add Usage on prompts. *(core)*
+- update for new WORKFLOW.md. *(core)*
+- add Source Construct Extraction. *(core)*
+- add project_examples_doxygen_occurrence_parity_two_phase_flow test. *(core)*
+- move HDT and Doxygen templaste into docs dir. *(core)*
+- add --tokens docs-dir token scan command [2026-02-16 07:46:03] *(cli)*
+- add REFERENCES.md as source of true. *(core)*
+- set English language for WORKFLOW.md. *(core)*
+- add REFERENCES.md management and /req.references prompt. *(core)*
+- add Google_C++_Style_Guide.md template. *(core)*
+- add common scripts. *(core)*
+- add SKILLs to codex. *(core)*
+- add Google Python Guide *(core)*
+- add req/ dir. *(core)*
+- tocken optimization. *(core)*
+- add /req.implement prompt. *(core)*
+- add %%SRC_PATH%% on promtps. *(core)*
+- add src-dir support and update specs/tests [2026-02-08 12:07:55] *(cli)*
+- add --test-dir support and update specs/tests [2026-02-08 11:27:54] *(cli)*
+- add WORKFLOW.md. *(core)*
+- add %%DOC_PATH%% on prompts. *(core)*
+- add doc-dir support [2026-02-08 10:18:36] *(cli)*
+- change WORKFLOW.md logic. *(core)*
+- add --write-tech and --overwrite-tech CLI parameters for tech template copy [2026-02-07 17:15:42] *(core)*
+- add Professional Personas specifications. *(core)*
+- add COMPONENT on commits. *(core)*
+- add models.json config. *(core)*
+- use text list for global activities and todo list for tasks. *(core)*
+- add todo tool fallback if missing. *(core)*
+- change models for github copilot. *(core)*
+- add worklow command. *(core)*
+- add refactor to optimize. *(core)*
+- implement --yolo mode. *(core)*
+- add --prompts-use-agents. *(core)*
+- add WORKFLOW.md management. *(core)*
+- Ann --enable-model and --enable-tools for Claude and Kiro. *(core)*
+- add --enable-model and --enable-tools for GitHub Copilot. *(core)*
+- rename write into create, implement write. *(core)*
+- implement new version check. *(core)*
+- add Claude Code CLI support. *(core)*
+- add OpenCode CLI support. *(core)*
+- add support for multiple requirement files and multiple tech dirs. *(core)*
+- add preliminary Kiro CLI support. *(core)*
+- Initial draft release. *(core)*
+- Add analyze and optimize commands. *(core)*
 
 ### 🐛  Bug Fixes
-- *(cli)* persist install flags for update reload [2026-02-20 15:51:44]
+- fix workflow. *(core)*
+- persist install flags for update reload [2026-02-20 15:51:44] *(cli)*
+- fix WORKFLOW.md update. *(core)*
+- resolve static-check typing and lint defects [2026-02-20 14:08:07] *(core)*
+- minor fixes. *(core)*
+- minor fixes. *(core)*
+- docs/REQUIREMENTS.md *(core)*
+- fix scripts. *(core)*
+- minor fix to recreate.md. *(core)*
+- fix REFERENCES.md. *(core)*
+- minor fixes. *(core)*
+- minor fixes to workflow.md. *(core)*
+- minor fixes. *(core)*
+- include skills/agents in prompts summary [2026-02-19 09:52:36] *(cli)*
+- test.sh script. *(core)*
+- fix scripts. *(core)*
+- fix recreate.md. *(core)*
+- minor prompts fixes. *(core)*
+- minor prompts fixes. *(core)*
+- minor fix. *(core)*
+- minor fixes. *(core)*
+- minor fixes. *(core)*
+- align DOX-018 baselines with command semantics [2026-02-17 14:01:58] *(test_files_commands)*
+- scope collection to tests to avoid conftest mismatch [2026-02-17 12:28:53] *(pytest)*
+- minor fix on prompts *(core)*
+- bundle template files for overwrite copy [2026-02-16 16:07:16] *(guidelines)*
+- align fixture count expectations [2026-02-16 14:33:59] *(source_analyzer)*
+- scope pytest to tests directory [2026-02-16 10:56:35] *(tests.sh)*
+- minor fixes. *(core)*
+- fix WORKFLOW.md. *(core)*
+- add fallback for legacy config keys doc-dir/test-dir [2026-02-15 17:21:55] *(load_config)*
+- narrow run path type handling [2026-02-14 19:13:18] *(cli)*
+- normalize base-prefixed relative paths [2026-02-14 18:29:13] *(cli)*
+- codex model.json. *(core)*
+- minor fixes. *(core)*
+- fix tests in prompts. *(core)*
+- fix WORKFLOW.md structure. *(core)*
+- fix WORKFLOW.md structure. *(core)*
+- major fix on prompts. *(core)*
+- fix calls on WORKFLOW.md. *(core)*
+- fix prompts step numbering. *(core)*
+- minor fixes on prompts. *(core)*
+- minor fix on create and recreate. *(core)*
+- minor fix on prompts. *(core)*
+- add %%TEST_PATH%% to prompts. *(core)*
+- fix global roadmap. *(core)*
+- fix commit language. *(core)*
+- fix workflow prompt. *(core)*
+- fix on workflow prompt. *(core)*
+- fix Professional Personas specifications. *(core)*
+- **Global Roadmap** on prompts *(core)*
+- change prompts. *(core)*
+- promtps changed. *(core)*
+- major fix on prompts *(core)*
+- minor fixes. *(core)*
+- prevent unbound claude metadata [2026-01-27 10:32:37] *(useReq)*
+- update **CRITICAL** about project's home writing. *(core)*
+- rename Optimize in Refactor *(core)*
+- Typo on GPT-5.1-Codex-Mini (Preview) (copilot) *(core)*
+- report workflow in summary table [2026-01-25 20:51:19] *(useReq)*
+- align install summary header [2026-01-25 20:32:17] *(useReq)*
+- change SRS Update and Technical Implementation Records *(core)*
+- align install summary table [2026-01-25 20:01:42] *(useReq)*
+- fix --enable-workflow help string. *(core)*
+- change terminate execution. *(core)*
+- change todo list step. *(core)*
+- align workflow default test with resource text [2026-01-25 15:48:30] *(useReq)*
+- minor fix on workflow. *(core)*
+- misc fixes. *(core)*
+- major defects fixed. *(core)*
+- change models. *(core)*
+- change prioritize for change, optimize, new and cover. *(core)*
+- major fix opencode. *(core)*
+- flowchart. *(core)*
+- add images folder. *(core)*
+- wait for approval. *(core)*
+- use python virtual environment. *(core)*
+- change kiro cli json files. *(core)*
+- block git write operations. *(core)*
+- major fix on templates. *(core)*
+- minor fix on templates. *(core)*
+- minor change on templates. *(core)*
+- minor change on templates. *(core)*
+- minor fixes on templates. *(core)*
+- update templates/requirements.md. *(core)*
+- fix --update command. *(core)*
+- version on venv.sh. *(core)*
+- version on req.sh. *(core)*
 
 ### 🚜  Changes
-- *(cli)* validate Command executable for static-check [2026-02-20 16:27:09]
-- *(cli)* fix --update persisted config precedence and validation [2026-02-20 16:11:33]
-
-## [0.0.72](https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72) - 2026-02-20
-### ⛰️  Features
-- *(core)* add static code check.
-- *(core)* add static-check on req-init.sh.
-- *(static_check)* add --enable-static-check, --files-static-check, --static-check commands [2026-02-20 09:55:00]
-- *(core)* max 35 words for requirement.
-- *(static_check)* add --test-static-check with Dummy/Pylance/Ruff/Command classes [2026-02-20 00:00:00]
-- *(core)* add pyright.sh, ruff.sh scripts.
-- *(core)* add ruff e pyright.
-
-### 🐛  Bug Fixes
-- *(core)* fix WORKFLOW.md update.
-- *(core)* resolve static-check typing and lint defects [2026-02-20 14:08:07]
-- *(core)* minor fixes.
-- *(core)* minor fixes.
-
-### 🚜  Changes
-- *(static_check)* add markdown blank separator lines [2026-02-20 13:44:45]
-- *(static_check)* remove markdown trailing blank lines [2026-02-20 13:33:42]
-- *(static-check)* support multi-module arrays in config [2026-02-20 13:17:36]
-- *(static-check)* support quoted comma params in enable parser [2026-02-20 11:54:56]
-- *(static-check)* update comma-separated spec parsing [2026-02-20 11:41:19]
-- *(static_check)* use '#' as SPEC separator in --enable-static-check to avoid bash ';' conflict [2026-02-20 11:30:51]
-- *(static_check)* use ';' as SPEC separator in --enable-static-check to allow comma-containing params [2026-02-20 11:13:47]
-- *(static_check)* remove --recursive flag; use ** glob for recursive resolution [2026-02-20 09:47:53]
-
-## [0.0.71](https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71) - 2026-02-19
-### ⛰️  Features
-- *(cli)* extend skill generation to resources/skills [2026-02-19 17:30:26]
-- *(core)* add fallback.
-- *(core)* remove legacy form scripts.
-- *(core)* update models.
-- *(core)* add renumber command.
-- *(core)* recreate use git to commit new requirements file.
-- *(core)* optimize requirements for LLM Agents.
-- *(core)* add usage on prompts.
-- *(core)* add Usage on prompts.
-- *(core)* update for new WORKFLOW.md.
-- *(core)* add Source Construct Extraction.
-- *(core)* add project_examples_doxygen_occurrence_parity_two_phase_flow test.
-
-### 🐛  Bug Fixes
-- *(core)* docs/REQUIREMENTS.md
-- *(core)* fix scripts.
-- *(core)* minor fix to recreate.md.
-- *(core)* fix REFERENCES.md.
-- *(core)* minor fixes.
-- *(core)* minor fixes to workflow.md.
-- *(core)* minor fixes.
-- *(cli)* include skills/agents in prompts summary [2026-02-19 09:52:36]
-- *(core)* test.sh script.
-- *(core)* fix scripts.
-- *(core)* fix recreate.md.
-- *(core)* minor prompts fixes.
-- *(core)* minor prompts fixes.
-- *(core)* minor fix.
-- *(core)* minor fixes.
-- *(core)* minor fixes.
-- *(test_files_commands)* align DOX-018 baselines with command semantics [2026-02-17 14:01:58]
-- *(pytest)* scope collection to tests to avoid conftest mismatch [2026-02-17 12:28:53]
-- *(core)* minor fix on prompts
-
-### 🚜  Changes
-- *(cli)* remove resources/skills from skill generation [2026-02-19 17:40:54]
-- *(cli)* use project-relative paths in references/compress output [2026-02-19 12:23:34]
-- *(cli)* default-enable skills with --disable-skills [2026-02-19 09:23:09]
-- *(skills)* generate skills as req-<prompt> dirs [2026-02-19 08:13:27]
-- *(skills)* derive SKILL.md description from prompt usage [2026-02-18 16:50:50]
-- *(cli)* add SKILL.md generation for all CLI providers with skill description from sections [2026-02-18 16:10:07]
-- *(cli)* add --enable-prompts, --enable-agents, --enable-skills artifact-type flags [2026-02-18 15:51:06]
-- *(doxygen)* add root doxygen generator and docs updates [2026-02-17 15:22:33]
-- *(core)* remove remaining legacy doc references [2026-02-17 15:05:28]
-- *(core)* remove legacy doc generator and align docs [2026-02-17 15:04:49]
-- *(find_constructs)* strip comments in --find and --files-find output [2026-02-17 14:37:01]
-- *(source_analyzer)* enforce semantic doxygen fields in references [2026-02-17 14:20:31]
-- *(find-commands)* enforce fixture Doxygen parity in find tests [2026-02-17 12:14:10]
-- *(test_files_commands)* align doxygen reference count tests with fixtures [2026-02-17 12:00:27]
-- *(find_constructs)* aggregate doxygen fields and extend find tests [2026-02-17 11:51:06]
-- *(references)* enforce ordered Doxygen output and update tests/spec [2026-02-17 11:40:52]
-- *(source_analyzer)* validate doxygen fixture extraction [2026-02-17 11:25:26]
-- *(doxygen-parser)* expand parser test matrix and specs [2026-02-17 11:13:49]
-- *(tests)* enhance fixtures with comprehensive Doxygen documentation [2026-02-17 10:57:00]
-- *(core)* add Doxygen parser module with integration into source analyzer and output commands [2026-02-17 10:36:12]
-- *(core)* update source_analyzer output format to Markdown tables and fix tests [2026-02-17 09:43:41]
-
-### 📚  Documentation
-- *(core)* recreate SRS ID stability rules [2026-02-19 15:17:54]
-- *(requirements)* recreate and renumber SRS [2026-02-19 14:36:33]
-- *(core)* update README.md.
-- *(core)* Update all documentation.
-- *(core)* Update requirements.
-
-## [0.0.70](https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70) - 2026-02-16
-### ⛰️  Features
-- *(core)* move HDT and Doxygen templaste into docs dir.
-- *(cli)* add --tokens docs-dir token scan command [2026-02-16 07:46:03]
-
-### 🐛  Bug Fixes
-- *(guidelines)* bundle template files for overwrite copy [2026-02-16 16:07:16]
-- *(source_analyzer)* align fixture count expectations [2026-02-16 14:33:59]
-- *(tests.sh)* scope pytest to tests directory [2026-02-16 10:56:35]
-
-### 🚜  Changes
-- *(cli)* rename copy-guidelines to upgrade-guidelines [2026-02-16 16:27:24]
-- *(cli)* restore copy-guidelines option and align tests [2026-02-16 16:21:41]
-- *(guidelines)* support empty template source and remove defaults [2026-02-16 16:12:29]
-- *(cli)* rename docs template and dynamic req docs copy [2026-02-16 15:59:47]
-- *(test_find_constructs_comprehensive)* enforce five extractions per tag [2026-02-16 14:04:02]
-- *(fixtures)* expand multi-language construct fixtures and coverage [2026-02-16 13:58:36]
-- *(cli)* rename template paths to docs [2026-02-16 13:48:12]
-- *(compress)* switch line prefixes to nn: across outputs [2026-02-16 13:41:08]
-- *(cli)* invert line-number flag defaults [2026-02-16 13:35:55]
-- *(compress_files)* add lines header and fenced compress output [2026-02-16 13:28:59]
-- *(find_constructs)* extract complete constructs without truncation [$DATE]
-- *(cli)* enforce --here config path precedence [2026-02-16 12:16:35]
-- *(cli)* gate scan progress logs behind --verbose [2026-02-16 12:01:09]
-- *(find_constructs)* add dynamic TAG listing in help and error messages [2026-02-16 11:54:46]
-- *(tests)* add comprehensive unit tests for find_constructs covering all language-construct combinations [2026-02-16 11:47:21]
-- *(cli)* add --files-find and --find commands for construct extraction [2026-02-16 11:38:48]
-- *(cli)* add disable-line-numbers support for compression [2026-02-16 11:15:36]
-- *(tests/source_analyzer)* add parity analyzer tests and requirements update [2026-02-16 10:48:11]
-
-## [0.0.69](https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69) - 2026-02-15
-### ⛰️  Features
-- *(core)* add REFERENCES.md as source of true.
-- *(core)* set English language for WORKFLOW.md.
-- *(core)* add REFERENCES.md management and /req.references prompt.
-
-### 🐛  Bug Fixes
-- *(core)* minor fixes.
-- *(core)* fix WORKFLOW.md.
-- *(load_config)* add fallback for legacy config keys doc-dir/test-dir [2026-02-15 17:21:55]
-
-### 🚜  Changes
-- *(cli)* prepend files structure in --references [2026-02-15 19:45:56]
-- *(core)* remove doc-comment reqs and normalize doxygen docs [2026-02-15 19:31:18]
-- *(references)* regenerate references after doxygen updates [2026-02-15 19:20:19]
-
-### 📚  Documentation
-- *(core)* update README.md.
-- *(workflow)* add generated call-tree workflow [2026-02-15 19:07:20]
-- *(references)* regenerate code references document [2026-02-15 18:58:58]
-- *(workflow)* regenerate call-tree workflow specification [2026-02-15 18:56:13]
-
-## [0.0.68](https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68) - 2026-02-14
-### ⛰️  Features
-- *(core)* add Google_C++_Style_Guide.md template.
-- *(core)* add common scripts.
-- *(core)* add SKILLs to codex.
-- *(core)* add Google Python Guide
-- *(core)* add req/ dir.
-- *(core)* tocken optimization.
-- *(core)* add /req.implement prompt.
-- *(core)* add %%SRC_PATH%% on promtps.
-- *(cli)* add src-dir support and update specs/tests [2026-02-08 12:07:55]
-- *(cli)* add --test-dir support and update specs/tests [2026-02-08 11:27:54]
-- *(core)* add WORKFLOW.md.
-- *(core)* add %%DOC_PATH%% on prompts.
-- *(cli)* add doc-dir support [2026-02-08 10:18:36]
-- *(core)* change WORKFLOW.md logic.
-- *(core)* add --write-tech and --overwrite-tech CLI parameters for tech template copy [2026-02-07 17:15:42]
-
-### 🐛  Bug Fixes
-- *(cli)* narrow run path type handling [2026-02-14 19:13:18]
-- *(cli)* normalize base-prefixed relative paths [2026-02-14 18:29:13]
-- *(core)* codex model.json.
-- *(core)* minor fixes.
-- *(core)* fix tests in prompts.
-- *(core)* fix WORKFLOW.md structure.
-- *(core)* fix WORKFLOW.md structure.
-- *(core)* major fix on prompts.
-- *(core)* fix calls on WORKFLOW.md.
-- *(core)* fix prompts step numbering.
-- *(core)* minor fixes on prompts.
-- *(core)* minor fix on create and recreate.
-- *(core)* minor fix on prompts.
-- *(core)* add %%TEST_PATH%% to prompts.
-- *(core)* fix global roadmap.
-- *(core)* fix commit language.
-- *(core)* fix workflow prompt.
-- *(core)* fix on workflow prompt.
-
-### 🚜  Changes
-- *(cli)* rename guidelines copy flags [2026-02-14 18:55:48]
-- *(cli)* rename docs/tests dir flags and update specs/tests [2026-02-14 18:42:42]
-- *(cli)* remove --req-dir and req token handling [2026-02-14 18:14:30]
-- *(cli)* add codex skills generation [2026-02-13 16:06:16]
-- *(cli)* format %%TEST_PATH%% with backticks [2026-02-08 11:43:18]
-- *(cli)* enforce %%TEST_PATH%% trailing slash [2026-02-08 11:35:50]
-- *(cli)* ignore dotfiles, update specs/tests [2026-02-08 10:34:42]
-- *(cli)* update TECH_PATH replacement and specs/tests [2026-02-08 09:45:30]
-- *(cli)* remove workflow flag logic and update specs/tests [2026-02-07 19:45:51]
-- *(core)* refactor deep parameter and function renaming [$(date +"%Y-%m-%d %H:%M:%S")]
+- validate Command executable for static-check [2026-02-20 16:27:09] *(cli)*
+- fix --update persisted config precedence and validation [2026-02-20 16:11:33] *(cli)*
+- add markdown blank separator lines [2026-02-20 13:44:45] *(static_check)*
+- remove markdown trailing blank lines [2026-02-20 13:33:42] *(static_check)*
+- support multi-module arrays in config [2026-02-20 13:17:36] *(static-check)*
+- support quoted comma params in enable parser [2026-02-20 11:54:56] *(static-check)*
+- update comma-separated spec parsing [2026-02-20 11:41:19] *(static-check)*
+- use '#' as SPEC separator in --enable-static-check to avoid bash ';' conflict [2026-02-20 11:30:51] *(static_check)*
+- use ';' as SPEC separator in --enable-static-check to allow comma-containing params [2026-02-20 11:13:47] *(static_check)*
+- remove --recursive flag; use ** glob for recursive resolution [2026-02-20 09:47:53] *(static_check)*
+- remove resources/skills from skill generation [2026-02-19 17:40:54] *(cli)*
+- use project-relative paths in references/compress output [2026-02-19 12:23:34] *(cli)*
+- default-enable skills with --disable-skills [2026-02-19 09:23:09] *(cli)*
+- generate skills as req-<prompt> dirs [2026-02-19 08:13:27] *(skills)*
+- derive SKILL.md description from prompt usage [2026-02-18 16:50:50] *(skills)*
+- add SKILL.md generation for all CLI providers with skill description from sections [2026-02-18 16:10:07] *(cli)*
+- add --enable-prompts, --enable-agents, --enable-skills artifact-type flags [2026-02-18 15:51:06] *(cli)*
+- add root doxygen generator and docs updates [2026-02-17 15:22:33] *(doxygen)*
+- remove remaining legacy doc references [2026-02-17 15:05:28] *(core)*
+- remove legacy doc generator and align docs [2026-02-17 15:04:49] *(core)*
+- strip comments in --find and --files-find output [2026-02-17 14:37:01] *(find_constructs)*
+- enforce semantic doxygen fields in references [2026-02-17 14:20:31] *(source_analyzer)*
+- enforce fixture Doxygen parity in find tests [2026-02-17 12:14:10] *(find-commands)*
+- align doxygen reference count tests with fixtures [2026-02-17 12:00:27] *(test_files_commands)*
+- aggregate doxygen fields and extend find tests [2026-02-17 11:51:06] *(find_constructs)*
+- enforce ordered Doxygen output and update tests/spec [2026-02-17 11:40:52] *(references)*
+- validate doxygen fixture extraction [2026-02-17 11:25:26] *(source_analyzer)*
+- expand parser test matrix and specs [2026-02-17 11:13:49] *(doxygen-parser)*
+- enhance fixtures with comprehensive Doxygen documentation [2026-02-17 10:57:00] *(tests)*
+- add Doxygen parser module with integration into source analyzer and output commands [2026-02-17 10:36:12] *(core)*
+- update source_analyzer output format to Markdown tables and fix tests [2026-02-17 09:43:41] *(core)*
+- rename copy-guidelines to upgrade-guidelines [2026-02-16 16:27:24] *(cli)*
+- restore copy-guidelines option and align tests [2026-02-16 16:21:41] *(cli)*
+- support empty template source and remove defaults [2026-02-16 16:12:29] *(guidelines)*
+- rename docs template and dynamic req docs copy [2026-02-16 15:59:47] *(cli)*
+- enforce five extractions per tag [2026-02-16 14:04:02] *(test_find_constructs_comprehensive)*
+- expand multi-language construct fixtures and coverage [2026-02-16 13:58:36] *(fixtures)*
+- rename template paths to docs [2026-02-16 13:48:12] *(cli)*
+- switch line prefixes to nn: across outputs [2026-02-16 13:41:08] *(compress)*
+- invert line-number flag defaults [2026-02-16 13:35:55] *(cli)*
+- add lines header and fenced compress output [2026-02-16 13:28:59] *(compress_files)*
+- extract complete constructs without truncation [$DATE] *(find_constructs)*
+- enforce --here config path precedence [2026-02-16 12:16:35] *(cli)*
+- gate scan progress logs behind --verbose [2026-02-16 12:01:09] *(cli)*
+- add dynamic TAG listing in help and error messages [2026-02-16 11:54:46] *(find_constructs)*
+- add comprehensive unit tests for find_constructs covering all language-construct combinations [2026-02-16 11:47:21] *(tests)*
+- add --files-find and --find commands for construct extraction [2026-02-16 11:38:48] *(cli)*
+- add disable-line-numbers support for compression [2026-02-16 11:15:36] *(cli)*
+- add parity analyzer tests and requirements update [2026-02-16 10:48:11] *(tests/source_analyzer)*
+- prepend files structure in --references [2026-02-15 19:45:56] *(cli)*
+- remove doc-comment reqs and normalize doxygen docs [2026-02-15 19:31:18] *(core)*
+- regenerate references after doxygen updates [2026-02-15 19:20:19] *(references)*
+- rename guidelines copy flags [2026-02-14 18:55:48] *(cli)*
+- rename docs/tests dir flags and update specs/tests [2026-02-14 18:42:42] *(cli)*
+- remove --req-dir and req token handling [2026-02-14 18:14:30] *(cli)*
+- add codex skills generation [2026-02-13 16:06:16] *(cli)*
+- format %%TEST_PATH%% with backticks [2026-02-08 11:43:18] *(cli)*
+- enforce %%TEST_PATH%% trailing slash [2026-02-08 11:35:50] *(cli)*
+- ignore dotfiles, update specs/tests [2026-02-08 10:34:42] *(cli)*
+- update TECH_PATH replacement and specs/tests [2026-02-08 09:45:30] *(cli)*
+- remove workflow flag logic and update specs/tests [2026-02-07 19:45:51] *(cli)*
+- refactor deep parameter and function renaming [$(date +"%Y-%m-%d %H:%M:%S")] *(core)*
+- add recreate prompt and align configs/tests *(useReq)*
+- record prompts in install summary table [2026-01-26 14:10:43] *(useReq)*
+- Rename 'optimize' prompt to 'refactor' and update configurations and tests [2026-01-26 12:27:00] *(useReq)*
+- print discovered REQ_DOC files and REQ_DIR folders after install; update REQ-078 and bump version to 0.43 [2026-01-25 20:43:09] *(useReq)*
+- include installation modules table in final message; update requirements and tests [2026-01-25 19:36:10] *(useReq)*
+- Make workflow prompt generation conditional on --enable-workflow; adjust recommendations and tests [2026-01-25 19:31:42] *(useReq)*
+- add workflow prompt models to provider configs and update requirements [2026-01-25 19:04:06] *(useReq)*
+- Add final installation success message in CLI and update requirements/tests [2026-01-25 17:36:52] *(useReq)*
+- extract workflow strings to resources/common and load them from files [2026-01-25 11:32:01] *(useReq)*
+- remove obsolete bootstrap test and update requirements revision [fb8f2113-4a6a-4f23-a0d0-0c5db444338b] *(useReq)*
+- fix all prompts. *(core)*
 
 ### ✨  Refactor
-- *(core)* complete prompts refactory.
-- *(core)* major changes on command line parameters.
+- complete prompts refactory. *(core)*
+- major changes on command line parameters. *(core)*
 
 ### 📚  Documentation
-- *(core)* update WORKFLOW.md with detailed call tree [2026-02-09 10:18:10]
-- *(usereq/cli)* documented CLI execution workflow [2026-02-09 08:17:19]
-- *(docs)* Update workflow analysis based on current source code [2026-02-08 19:00:42]
-
-## [0.0.67](https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67) - 2026-02-04
-### 🐛  Bug Fixes
-- *(core)* fix Professional Personas specifications.
-
-## [0.0.66](https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66) - 2026-02-04
-### ⛰️  Features
-- *(core)* add Professional Personas specifications.
-- *(core)* add COMPONENT on commits.
-
-## [0.0.65](https://github.com/Ogekuri/useReq/compare/v0.0.64..v0.0.65) - 2026-02-04
-### ⛰️  Features
-- *(core)* add models.json config.
-
-## [0.0.64](https://github.com/Ogekuri/useReq/compare/v0.0.63..v0.0.64) - 2026-01-31
-### 🐛  Bug Fixes
-- *(core)* **Global Roadmap** on prompts
-
-## [0.0.63](https://github.com/Ogekuri/useReq/compare/v0.0.62..v0.0.63) - 2026-01-31
-### ⛰️  Features
-- *(core)* use text list for global activities and todo list for tasks.
-
-## [0.0.62](https://github.com/Ogekuri/useReq/compare/v0.0.61..v0.0.62) - 2026-01-31
-### ⛰️  Features
-- *(core)* add todo tool fallback if missing.
-
-## [0.0.61](https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61) - 2026-01-30
-### 🐛  Bug Fixes
-- *(core)* change prompts.
-- *(core)* promtps changed.
-- *(core)* major fix on prompts
-
-## [0.0.60](https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60) - 2026-01-27
-### 🐛  Bug Fixes
-- *(core)* minor fixes.
-- *(useReq)* prevent unbound claude metadata [2026-01-27 10:32:37]
-- *(core)* update **CRITICAL** about project's home writing.
-
-### 🚜  Changes
-- *(useReq)* add recreate prompt and align configs/tests
-
-### 📚  Documentation
-- *(core)* recreate tested on requirements.md.
-- *(core)* update docs with recreate.
-
-## [0.0.59](https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59) - 2026-01-26
-### ⛰️  Features
-- *(core)* change models for github copilot.
-
-### 🐛  Bug Fixes
-- *(core)* rename Optimize in Refactor
-- *(core)* Typo on GPT-5.1-Codex-Mini (Preview) (copilot)
-- *(useReq)* report workflow in summary table [2026-01-25 20:51:19]
-- *(useReq)* align install summary header [2026-01-25 20:32:17]
-- *(core)* change SRS Update and Technical Implementation Records
-- *(useReq)* align install summary table [2026-01-25 20:01:42]
-- *(core)* fix --enable-workflow help string.
-
-### 🚜  Changes
-- *(useReq)* record prompts in install summary table [2026-01-26 14:10:43]
-- *(useReq)* Rename 'optimize' prompt to 'refactor' and update configurations and tests [2026-01-26 12:27:00]
-- *(useReq)* print discovered REQ_DOC files and REQ_DIR folders after install; update REQ-078 and bump version to 0.43 [2026-01-25 20:43:09]
-- *(useReq)* include installation modules table in final message; update requirements and tests [2026-01-25 19:36:10]
-- *(useReq)* Make workflow prompt generation conditional on --enable-workflow; adjust recommendations and tests [2026-01-25 19:31:42]
-
-### 📚  Documentation
-- *(core)* update README.md.
-- *(core)* update Mermaid flowchart.
-
-## [0.0.58](https://github.com/Ogekuri/useReq/compare/v0.0.57..v0.0.58) - 2026-01-25
-### ⛰️  Features
-- *(core)* add worklow command.
-
-### 🚜  Changes
-- *(useReq)* add workflow prompt models to provider configs and update requirements [2026-01-25 19:04:06]
-
-## [0.0.57](https://github.com/Ogekuri/useReq/compare/v0.0.56..v0.0.57) - 2026-01-25
-### 🐛  Bug Fixes
-- *(core)* change terminate execution.
-
-### 🚜  Changes
-- *(useReq)* Add final installation success message in CLI and update requirements/tests [2026-01-25 17:36:52]
-
-## [0.0.56](https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56) - 2026-01-25
-### ⛰️  Features
-- *(core)* add refactor to optimize.
-
-### 🐛  Bug Fixes
-- *(core)* change todo list step.
-- *(useReq)* align workflow default test with resource text [2026-01-25 15:48:30]
-- *(core)* minor fix on workflow.
-- *(core)* misc fixes.
-
-### 🚜  Changes
-- *(useReq)* extract workflow strings to resources/common and load them from files [2026-01-25 11:32:01]
-
-### 📚  Documentation
-- *(core)* add tech dir.
-
-## [0.0.55](https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55) - 2026-01-24
-### 🚜  Changes
-- *(useReq)* remove obsolete bootstrap test and update requirements revision [fb8f2113-4a6a-4f23-a0d0-0c5db444338b]
-
-## [0.0.54](https://github.com/Ogekuri/useReq/compare/v0.0.53..v0.0.54) - 2026-01-20
-### ⛰️  Features
-- *(core)* implement --yolo mode.
-
-## [0.0.53](https://github.com/Ogekuri/useReq/compare/v0.0.52..v0.0.53) - 2026-01-19
-### ⛰️  Features
-- *(core)* add --prompts-use-agents.
-
-## [0.0.52](https://github.com/Ogekuri/useReq/compare/v0.0.51..v0.0.52) - 2026-01-17
-### ⛰️  Features
-- *(core)* add WORKFLOW.md management.
-
-## [0.0.51](https://github.com/Ogekuri/useReq/compare/v0.0.50..v0.0.51) - 2026-01-16
-### 📚  Documentation
-- *(core)* add WORKFLOW.md.
-
-## [0.0.50](https://github.com/Ogekuri/useReq/compare/v0.0.49..v0.0.50) - 2026-01-15
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.49](https://github.com/Ogekuri/useReq/compare/v0.0.48..v0.0.49) - 2026-01-15
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.48](https://github.com/Ogekuri/useReq/compare/v0.0.47..v0.0.48) - 2026-01-15
-### 🐛  Bug Fixes
-- *(core)* major defects fixed.
-
-## [0.0.47](https://github.com/Ogekuri/useReq/compare/v0.0.46..v0.0.47) - 2026-01-14
-### ⛰️  Features
-- *(core)* Ann --enable-model and --enable-tools for Claude and Kiro.
-
-## [0.0.46](https://github.com/Ogekuri/useReq/compare/v0.0.45..v0.0.46) - 2026-01-14
-### 🐛  Bug Fixes
-- *(core)* change models.
-
-## [0.0.45](https://github.com/Ogekuri/useReq/compare/v0.0.44..v0.0.45) - 2026-01-14
-### 📚  Documentation
-- *(core)* update README.md
-
-## [0.0.44](https://github.com/Ogekuri/useReq/compare/v0.0.43..v0.0.44) - 2026-01-14
-### ⛰️  Features
-- *(core)* add --enable-model and --enable-tools for GitHub Copilot.
-
-## [0.0.43](https://github.com/Ogekuri/useReq/compare/v0.0.42..v0.0.43) - 2026-01-13
-### 🐛  Bug Fixes
-- *(core)* change prioritize for change, optimize, new and cover.
-
-## [0.0.42](https://github.com/Ogekuri/useReq/compare/v0.0.41..v0.0.42) - 2026-01-12
-### ⛰️  Features
-- *(core)* rename write into create, implement write.
-
-## [0.0.41](https://github.com/Ogekuri/useReq/compare/v0.0.40..v0.0.41) - 2026-01-12
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.40](https://github.com/Ogekuri/useReq/compare/v0.0.39..v0.0.40) - 2026-01-11
-### ⛰️  Features
-- *(core)* implement new version check.
-
-## [0.0.39](https://github.com/Ogekuri/useReq/compare/v0.0.38..v0.0.39) - 2026-01-11
-### 🐛  Bug Fixes
-- *(core)* major fix opencode.
-
-## [0.0.38](https://github.com/Ogekuri/useReq/compare/v0.0.37..v0.0.38) - 2026-01-11
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.37](https://github.com/Ogekuri/useReq/compare/v0.0.36..v0.0.37) - 2026-01-11
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.36](https://github.com/Ogekuri/useReq/compare/v0.0.35..v0.0.36) - 2026-01-11
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.35](https://github.com/Ogekuri/useReq/compare/v0.0.34..v0.0.35) - 2026-01-11
-### 🐛  Bug Fixes
-- *(core)* flowchart.
-
-## [0.0.34](https://github.com/Ogekuri/useReq/compare/v0.0.33..v0.0.34) - 2026-01-11
-### 🐛  Bug Fixes
-- *(core)* add images folder.
-
-## [0.0.33](https://github.com/Ogekuri/useReq/compare/v0.0.32..v0.0.33) - 2026-01-10
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.32](https://github.com/Ogekuri/useReq/compare/v0.0.31..v0.0.32) - 2026-01-10
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.31](https://github.com/Ogekuri/useReq/compare/v0.0.30..v0.0.31) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart link.
-
-## [0.0.30](https://github.com/Ogekuri/useReq/compare/v0.0.29..v0.0.30) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart link.
-
-## [0.0.29](https://github.com/Ogekuri/useReq/compare/v0.0.28..v0.0.29) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart.
-
-## [0.0.28](https://github.com/Ogekuri/useReq/compare/v0.0.27..v0.0.28) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart.
-
-## [0.0.27](https://github.com/Ogekuri/useReq/compare/v0.0.26..v0.0.27) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart.
-
-## [0.0.26](https://github.com/Ogekuri/useReq/compare/v0.0.25..v0.0.26) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart.
-
-## [0.0.25](https://github.com/Ogekuri/useReq/compare/v0.0.24..v0.0.25) - 2026-01-10
-### 📚  Documentation
-- *(core)* update flowchart.
-
-## [0.0.24](https://github.com/Ogekuri/useReq/compare/v0.0.23..v0.0.24) - 2026-01-10
-### ⛰️  Features
-- *(core)* add Claude Code CLI support.
-
-## [0.0.23](https://github.com/Ogekuri/useReq/compare/v0.0.22..v0.0.23) - 2026-01-09
-### 🐛  Bug Fixes
-- *(core)* wait for approval.
-
-## [0.0.22](https://github.com/Ogekuri/useReq/compare/v0.0.21..v0.0.22) - 2026-01-09
-### 📚  Documentation
-- *(core)* update README.md.
-
-## [0.0.21](https://github.com/Ogekuri/useReq/compare/v0.0.20..v0.0.21) - 2026-01-09
-### ⛰️  Features
-- *(core)* add OpenCode CLI support.
-
-## [0.0.20](https://github.com/Ogekuri/useReq/compare/v0.0.19..v0.0.20) - 2026-01-09
-### 🐛  Bug Fixes
-- *(core)* use python virtual environment.
-
-## [0.0.19](https://github.com/Ogekuri/useReq/compare/v0.0.18..v0.0.19) - 2026-01-09
-### 📚  Documentation
-- *(core)* update Kiro CLI infos.
-
-## [0.0.18](https://github.com/Ogekuri/useReq/compare/v0.0.17..v0.0.18) - 2026-01-09
-### 🐛  Bug Fixes
-- *(core)* change kiro cli json files.
-
-## [0.0.17](https://github.com/Ogekuri/useReq/compare/v0.0.16..v0.0.17) - 2026-01-09
-### 🐛  Bug Fixes
-- *(core)* block git write operations.
-
-## [0.0.14](https://github.com/Ogekuri/useReq/compare/v0.0.13..v0.0.14) - 2026-01-07
-### 🐛  Bug Fixes
-- *(core)* major fix on templates.
-
-## [0.0.13](https://github.com/Ogekuri/useReq/compare/v0.0.12..v0.0.13) - 2026-01-05
-### 🐛  Bug Fixes
-- *(core)* minor fix on templates.
-
-## [0.0.12](https://github.com/Ogekuri/useReq/compare/v0.0.11..v0.0.12) - 2026-01-04
-### 🐛  Bug Fixes
-- *(core)* minor change on templates.
-- *(core)* minor change on templates.
-
-## [0.0.11](https://github.com/Ogekuri/useReq/compare/v0.0.10..v0.0.11) - 2026-01-04
-### 🐛  Bug Fixes
-- *(core)* minor fixes on templates.
-
-## [0.0.10](https://github.com/Ogekuri/useReq/compare/v0.0.9..v0.0.10) - 2026-01-03
-### 🐛  Bug Fixes
-- *(core)* update templates/requirements.md.
-
-## [0.0.9](https://github.com/Ogekuri/useReq/compare/v0.0.8..v0.0.9) - 2026-01-02
-### 🐛  Bug Fixes
-- *(core)* fix --update command.
-
-## [0.0.8](https://github.com/Ogekuri/useReq/compare/v0.0.7..v0.0.8) - 2026-01-02
-### 🐛  Bug Fixes
-- *(core)* version on venv.sh.
-- *(core)* version on req.sh.
-
-### 📚  Documentation
-- *(core)* update README.md and TODO.md files.
+- review README.md. *(core)*
+- Review README.md. *(core)*
+- recreate SRS ID stability rules [2026-02-19 15:17:54] *(core)*
+- recreate and renumber SRS [2026-02-19 14:36:33] *(requirements)*
+- update README.md. *(core)*
+- Update all documentation. *(core)*
+- Update requirements. *(core)*
+- update README.md. *(core)*
+- add generated call-tree workflow [2026-02-15 19:07:20] *(workflow)*
+- regenerate code references document [2026-02-15 18:58:58] *(references)*
+- regenerate call-tree workflow specification [2026-02-15 18:56:13] *(workflow)*
+- update WORKFLOW.md with detailed call tree [2026-02-09 10:18:10] *(core)*
+- documented CLI execution workflow [2026-02-09 08:17:19] *(usereq/cli)*
+- Update workflow analysis based on current source code [2026-02-08 19:00:42] *(docs)*
+- recreate tested on requirements.md. *(core)*
+- update docs with recreate. *(core)*
+- update README.md. *(core)*
+- update Mermaid flowchart. *(core)*
+- add tech dir. *(core)*
+- add WORKFLOW.md. *(core)*
+- update README.md. *(core)*
+- update README.md. *(core)*
+- update README.md *(core)*
+- update README.md. *(core)*
+- update README.md. *(core)*
+- update README.md. *(core)*
+- update README.md. *(core)*
+- update README.md. *(core)*
+- update README.md. *(core)*
+- update flowchart link. *(core)*
+- update flowchart link. *(core)*
+- update flowchart. *(core)*
+- update flowchart. *(core)*
+- update flowchart. *(core)*
+- update flowchart. *(core)*
+- update flowchart. *(core)*
+- update README.md. *(core)*
+- update Kiro CLI infos. *(core)*
+- update README.md and TODO.md files. *(core)*
 - Improve English in README.md and TODO.md
-
-## [0.0.7](https://github.com/Ogekuri/useReq/compare/v0.0.6..v0.0.7) - 2026-01-01
-### 📚  Documentation
-- *(core)* update README.md file.
-
-## [0.0.6](https://github.com/Ogekuri/useReq/compare/v0.0.5..v0.0.6) - 2026-01-01
-### ⛰️  Features
-- *(core)* add support for multiple requirement files and multiple tech dirs.
-
-## [0.0.5](https://github.com/Ogekuri/useReq/compare/v0.0.4..v0.0.5) - 2026-01-01
-### ⛰️  Features
-- *(core)* add preliminary Kiro CLI support.
-
-## [0.0.4](https://github.com/Ogekuri/useReq/compare/v0.0.3..v0.0.4) - 2025-12-31
-### 📚  Documentation
-- *(core)* edit README.md
-
-## [0.0.3](https://github.com/Ogekuri/useReq/compare/v0.0.2..v0.0.3) - 2025-12-31
-### 🚜  Changes
-- *(core)* fix all prompts.
-
-## [0.0.2](https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2) - 2025-12-31
-### 📚  Documentation
-- *(core)* aggiornato TODO.md.
-
-## [0.0.1](https://github.com/Ogekuri/useReq/releases/tag/v0.0.1) - 2025-12-31
-### ⛰️  Features
-- *(core)* Initial draft release.
-- *(core)* Add analyze and optimize commands.
+- update README.md file. *(core)*
+- edit README.md *(core)*
+- aggiornato TODO.md. *(core)*
 
 
 # History
 
-- \[0.0.1\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
-- \[0.0.2\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.2
-- \[0.0.3\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.3
-- \[0.0.4\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.4
-- \[0.0.5\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.5
-- \[0.0.6\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.6
-- \[0.0.7\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.7
-- \[0.0.8\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.8
-- \[0.0.9\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.9
-- \[0.0.10\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.10
-- \[0.0.11\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.11
-- \[0.0.12\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.12
-- \[0.0.13\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.13
-- \[0.0.14\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.14
-- \[0.0.15\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.15
-- \[0.0.16\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.16
-- \[0.0.17\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.17
-- \[0.0.18\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.18
-- \[0.0.19\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.19
-- \[0.0.20\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.20
-- \[0.0.21\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.21
-- \[0.0.22\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.22
-- \[0.0.23\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.23
-- \[0.0.24\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.24
-- \[0.0.25\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.25
-- \[0.0.26\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.26
-- \[0.0.27\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.27
-- \[0.0.28\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.28
-- \[0.0.29\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.29
-- \[0.0.30\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.30
-- \[0.0.31\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.31
-- \[0.0.32\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.32
-- \[0.0.33\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.33
-- \[0.0.34\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.34
-- \[0.0.35\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.35
-- \[0.0.36\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.36
-- \[0.0.37\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.37
-- \[0.0.38\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.38
-- \[0.0.39\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.39
-- \[0.0.40\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.40
-- \[0.0.41\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.41
-- \[0.0.42\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.42
-- \[0.0.43\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.43
-- \[0.0.44\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.44
-- \[0.0.45\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.45
-- \[0.0.46\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.46
-- \[0.0.47\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.47
-- \[0.0.48\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.48
-- \[0.0.49\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.49
-- \[0.0.50\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.50
-- \[0.0.51\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.51
-- \[0.0.52\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.52
-- \[0.0.53\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.53
-- \[0.0.54\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.54
-- \[0.0.55\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.55
-- \[0.0.56\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.56
-- \[0.0.57\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.57
-- \[0.0.58\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.58
-- \[0.0.59\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.59
-- \[0.0.60\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.60
-- \[0.0.61\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.61
-- \[0.0.62\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.62
-- \[0.0.63\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.63
-- \[0.0.64\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.64
-- \[0.0.65\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.65
-- \[0.0.66\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.66
-- \[0.0.67\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.67
-- \[0.0.68\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.68
-- \[0.0.69\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.69
-- \[0.0.70\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.70
-- \[0.0.71\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.71
-- \[0.0.72\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.72
-- \[0.0.73\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.73
-- \[0.0.74\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.74
-- \[0.0.75\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.75
+- \[0.0.76\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.76
 
-[0.0.1]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.1
-[0.0.2]: https://github.com/Ogekuri/useReq/compare/v0.0.1..v0.0.2
-[0.0.3]: https://github.com/Ogekuri/useReq/compare/v0.0.2..v0.0.3
-[0.0.4]: https://github.com/Ogekuri/useReq/compare/v0.0.3..v0.0.4
-[0.0.5]: https://github.com/Ogekuri/useReq/compare/v0.0.4..v0.0.5
-[0.0.6]: https://github.com/Ogekuri/useReq/compare/v0.0.5..v0.0.6
-[0.0.7]: https://github.com/Ogekuri/useReq/compare/v0.0.6..v0.0.7
-[0.0.8]: https://github.com/Ogekuri/useReq/compare/v0.0.7..v0.0.8
-[0.0.9]: https://github.com/Ogekuri/useReq/compare/v0.0.8..v0.0.9
-[0.0.10]: https://github.com/Ogekuri/useReq/compare/v0.0.9..v0.0.10
-[0.0.11]: https://github.com/Ogekuri/useReq/compare/v0.0.10..v0.0.11
-[0.0.12]: https://github.com/Ogekuri/useReq/compare/v0.0.11..v0.0.12
-[0.0.13]: https://github.com/Ogekuri/useReq/compare/v0.0.12..v0.0.13
-[0.0.14]: https://github.com/Ogekuri/useReq/compare/v0.0.13..v0.0.14
-[0.0.15]: https://github.com/Ogekuri/useReq/compare/v0.0.14..v0.0.15
-[0.0.16]: https://github.com/Ogekuri/useReq/compare/v0.0.15..v0.0.16
-[0.0.17]: https://github.com/Ogekuri/useReq/compare/v0.0.16..v0.0.17
-[0.0.18]: https://github.com/Ogekuri/useReq/compare/v0.0.17..v0.0.18
-[0.0.19]: https://github.com/Ogekuri/useReq/compare/v0.0.18..v0.0.19
-[0.0.20]: https://github.com/Ogekuri/useReq/compare/v0.0.19..v0.0.20
-[0.0.21]: https://github.com/Ogekuri/useReq/compare/v0.0.20..v0.0.21
-[0.0.22]: https://github.com/Ogekuri/useReq/compare/v0.0.21..v0.0.22
-[0.0.23]: https://github.com/Ogekuri/useReq/compare/v0.0.22..v0.0.23
-[0.0.24]: https://github.com/Ogekuri/useReq/compare/v0.0.23..v0.0.24
-[0.0.25]: https://github.com/Ogekuri/useReq/compare/v0.0.24..v0.0.25
-[0.0.26]: https://github.com/Ogekuri/useReq/compare/v0.0.25..v0.0.26
-[0.0.27]: https://github.com/Ogekuri/useReq/compare/v0.0.26..v0.0.27
-[0.0.28]: https://github.com/Ogekuri/useReq/compare/v0.0.27..v0.0.28
-[0.0.29]: https://github.com/Ogekuri/useReq/compare/v0.0.28..v0.0.29
-[0.0.30]: https://github.com/Ogekuri/useReq/compare/v0.0.29..v0.0.30
-[0.0.31]: https://github.com/Ogekuri/useReq/compare/v0.0.30..v0.0.31
-[0.0.32]: https://github.com/Ogekuri/useReq/compare/v0.0.31..v0.0.32
-[0.0.33]: https://github.com/Ogekuri/useReq/compare/v0.0.32..v0.0.33
-[0.0.34]: https://github.com/Ogekuri/useReq/compare/v0.0.33..v0.0.34
-[0.0.35]: https://github.com/Ogekuri/useReq/compare/v0.0.34..v0.0.35
-[0.0.36]: https://github.com/Ogekuri/useReq/compare/v0.0.35..v0.0.36
-[0.0.37]: https://github.com/Ogekuri/useReq/compare/v0.0.36..v0.0.37
-[0.0.38]: https://github.com/Ogekuri/useReq/compare/v0.0.37..v0.0.38
-[0.0.39]: https://github.com/Ogekuri/useReq/compare/v0.0.38..v0.0.39
-[0.0.40]: https://github.com/Ogekuri/useReq/compare/v0.0.39..v0.0.40
-[0.0.41]: https://github.com/Ogekuri/useReq/compare/v0.0.40..v0.0.41
-[0.0.42]: https://github.com/Ogekuri/useReq/compare/v0.0.41..v0.0.42
-[0.0.43]: https://github.com/Ogekuri/useReq/compare/v0.0.42..v0.0.43
-[0.0.44]: https://github.com/Ogekuri/useReq/compare/v0.0.43..v0.0.44
-[0.0.45]: https://github.com/Ogekuri/useReq/compare/v0.0.44..v0.0.45
-[0.0.46]: https://github.com/Ogekuri/useReq/compare/v0.0.45..v0.0.46
-[0.0.47]: https://github.com/Ogekuri/useReq/compare/v0.0.46..v0.0.47
-[0.0.48]: https://github.com/Ogekuri/useReq/compare/v0.0.47..v0.0.48
-[0.0.49]: https://github.com/Ogekuri/useReq/compare/v0.0.48..v0.0.49
-[0.0.50]: https://github.com/Ogekuri/useReq/compare/v0.0.49..v0.0.50
-[0.0.51]: https://github.com/Ogekuri/useReq/compare/v0.0.50..v0.0.51
-[0.0.52]: https://github.com/Ogekuri/useReq/compare/v0.0.51..v0.0.52
-[0.0.53]: https://github.com/Ogekuri/useReq/compare/v0.0.52..v0.0.53
-[0.0.54]: https://github.com/Ogekuri/useReq/compare/v0.0.53..v0.0.54
-[0.0.55]: https://github.com/Ogekuri/useReq/compare/v0.0.54..v0.0.55
-[0.0.56]: https://github.com/Ogekuri/useReq/compare/v0.0.55..v0.0.56
-[0.0.57]: https://github.com/Ogekuri/useReq/compare/v0.0.56..v0.0.57
-[0.0.58]: https://github.com/Ogekuri/useReq/compare/v0.0.57..v0.0.58
-[0.0.59]: https://github.com/Ogekuri/useReq/compare/v0.0.58..v0.0.59
-[0.0.60]: https://github.com/Ogekuri/useReq/compare/v0.0.59..v0.0.60
-[0.0.61]: https://github.com/Ogekuri/useReq/compare/v0.0.60..v0.0.61
-[0.0.62]: https://github.com/Ogekuri/useReq/compare/v0.0.61..v0.0.62
-[0.0.63]: https://github.com/Ogekuri/useReq/compare/v0.0.62..v0.0.63
-[0.0.64]: https://github.com/Ogekuri/useReq/compare/v0.0.63..v0.0.64
-[0.0.65]: https://github.com/Ogekuri/useReq/compare/v0.0.64..v0.0.65
-[0.0.66]: https://github.com/Ogekuri/useReq/compare/v0.0.65..v0.0.66
-[0.0.67]: https://github.com/Ogekuri/useReq/compare/v0.0.66..v0.0.67
-[0.0.68]: https://github.com/Ogekuri/useReq/compare/v0.0.67..v0.0.68
-[0.0.69]: https://github.com/Ogekuri/useReq/compare/v0.0.68..v0.0.69
-[0.0.70]: https://github.com/Ogekuri/useReq/compare/v0.0.69..v0.0.70
-[0.0.71]: https://github.com/Ogekuri/useReq/compare/v0.0.70..v0.0.71
-[0.0.72]: https://github.com/Ogekuri/useReq/compare/v0.0.71..v0.0.72
-[0.0.73]: https://github.com/Ogekuri/useReq/compare/v0.0.72..v0.0.73
-[0.0.74]: https://github.com/Ogekuri/useReq/compare/v0.0.73..v0.0.74
-[0.0.75]: https://github.com/Ogekuri/useReq/compare/v0.0.74..v0.0.75
+[0.0.76]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.76
