@@ -1,7 +1,3 @@
-🚧 **DRAFT:** Preliminary Version 📝 - Work in Progress 🏗️ 🚧
-
-⚠️ **IMPORTANT NOTICE**: Created with **[useReq/req](https://github.com/Ogekuri/useReq)** 🤖✨ ⚠️
-
 # useReq/req (0.0.75)
 
 <p align="center">
@@ -27,6 +23,13 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   <a href="#known-issues">Known Issues</a> |
   <a href="#legacy-mode">Legacy Mode</a>
 </p>
+
+<p align="center">
+<br>
+🚧 <strong>DRAFT:</strong>Preliminary Version 📝 - Work in Progress 🏗️ 🚧<br>
+⚠️ <strong>IMPORTANT NOTICE</strong>: Created with <a href="https://github.com/Ogekuri/useReq"><strong>useReq/req</strong></a> 🤖✨ ⚠️<br>
+<br>
+<p>
 
 
 ## Feature Highlights
