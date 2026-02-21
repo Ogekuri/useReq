@@ -97,6 +97,7 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: false
           tag_name: ${{ github.ref_name }} # Nome del tag
+          name: ${{github.event.repository.name}} ${{ github.ref_name }}  # Nome della release
           # body_path: CHANGELOG.md # Se hai un file CHANGELOG.md, puoi usarlo come body della release
           body: ${{ steps.build_changelog.outputs.changelog }} # Usa il changelog generato come body della release
         env:
