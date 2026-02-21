@@ -3,7 +3,7 @@ name: Release (uvx)
 on:
   push:
     tags:
-      - "v*"
+      - "v*" # Attiva il workflow per qualsiasi tag che inizia con "v"
 
 permissions:
   contents: write
@@ -39,9 +39,66 @@ jobs:
         with:
           subject-path: dist/*
 
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v6
+        with:
+          mode: "COMMIT"
+          configurationJson: |
+            {
+
+              "categories": [
+               { "title": "## ⛰️ Features", "labels": ["new"] },
+               { "title": "## 🏗️ Implementations", "labels": ["implement"] },
+               { "title": "## 🐛 Bug Fixes", "labels": ["fix"] },
+               { "title": "## 🚜 Changes", "labels": ["change"] },
+               { "title": "## 🎯 Cover Requirements", "labels": ["cover"] },
+               { "title": "## ✨ Refactor", "labels": ["refactor"] },
+               { "title": "## 📚 Documentation", "labels": ["docs"] },
+               { "title": "## 🎨 Styling", "labels": ["style"] },
+               { "title": "## ◀️ Revert", "labels": ["revert"] },
+               { "title": "## ⚙️ Miscellaneous Tasks", "labels": ["misc"] },
+               { "title": "## 💬 Other", "labels": ["other"] },
+               { "title": "## ❓ Unknown", "labels": ["unknown"] },
+               { "title": "## 🚀 Release", "labels": ["release"] }
+             ],
+             "ignore_labels": [
+                "release",
+                "ignore"
+             ],
+             "transformers": [
+              {
+                "pattern": "^[^\\(:\\s]+(\\([^\\)]+\\))?!?:\\s+([\\S]+[\\s\\S]*)",
+                "target": "$2 $1"
+              }
+             ],
+             "sort": {
+                "order": "ASC",
+                "on_property": "mergedAt"
+             },
+             "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>\n\n**Full Changelog**: [#{{FROM_TAG}}...#{{TO_TAG}}](https://github.com/#{{OWNER}}/#{{REPO}}/compare/#{{FROM_TAG}}...#{{TO_TAG}})",
+              "label_extractor": [
+               {
+                 "pattern": "^([^\\(:\\s]+)(\\([^\\)]+\\))?(!)?:\\s+([\\S]+[\\s\\S]*)",
+                 "on_property": "title",
+                 "target": "$1"
+               }
+             ]
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
         with:
+          draft: false
+          prerelease: false
           files: dist/*
           fail_on_unmatched_files: true
-          generate_release_notes: true
+          generate_release_notes: false
+          tag_name: ${{ github.ref_name }} # Nome del tag
+          # body_path: CHANGELOG.md # Se hai un file CHANGELOG.md, puoi usarlo come body della release
+          body: ${{ steps.build_changelog.outputs.changelog }} # Usa il changelog generato come body della release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
