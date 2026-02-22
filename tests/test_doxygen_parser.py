@@ -367,7 +367,35 @@ def _expected_doxygen_fields_for_construct(construct, comment_elements) -> dict[
                 key=lambda comment: (comment.line_start, comment.line_end),
             )
 
-    return parse_doxygen_comment(associated_comment.extract) if associated_comment else {}
+    if not associated_comment:
+        return {}
+
+    comment_text = associated_comment.extract
+    if (
+        associated_comment.name != "inline"
+        and associated_comment.line_end < construct.line_start
+        and parse_doxygen_comment(associated_comment.extract)
+    ):
+        merged_preceding_comments = [associated_comment]
+        current_start = associated_comment.line_start
+        while True:
+            contiguous_candidates = [
+                comment
+                for comment in comment_elements
+                if comment.name != "inline"
+                and comment.line_end == current_start - 1
+            ]
+            if not contiguous_candidates:
+                break
+            previous_comment = max(
+                contiguous_candidates,
+                key=lambda comment: (comment.line_end, comment.line_start),
+            )
+            merged_preceding_comments.insert(0, previous_comment)
+            current_start = previous_comment.line_start
+        comment_text = "\n".join(comment.extract for comment in merged_preceding_comments)
+
+    return parse_doxygen_comment(comment_text)
 
 
 class TestFixtureDoxygenFieldExtraction:

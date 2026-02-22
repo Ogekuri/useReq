@@ -874,7 +874,7 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 
 ---
 
-# source_analyzer.py | Python | 2060L | 59 symbols | 11 imports | 130 comments
+# source_analyzer.py | Python | 2085L | 59 symbols | 11 imports | 130 comments
 > Path: `src/usereq/source_analyzer.py`
 
 ## Imports
@@ -1009,51 +1009,51 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 - Brief: Extract comments and exit points from within function/class bodies.
 - Details: Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
 
-### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1327-1386)
+### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1327-1411)
 - Brief: Extract Doxygen tag fields from associated documentation comments.
-- Details: For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. Parses the resolved comment via parse_doxygen_comment() and stores the extracted fields in element.doxygen_fields.
+- Details: For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
 
-### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1388-1397)
+### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1413-1422)
 - Brief: Detect whether a comment uses postfix Doxygen association markers.
 - Details: Returns True for comment prefixes that explicitly bind documentation to a preceding construct, including variants like `#!<`, `//!<`, `///<`, `/*!<`, and `/**<`.
 - Param: comment_text Raw extracted comment text.
 - Return: True when the comment text starts with a supported postfix marker; otherwise False.
 
-### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1399-1410)
+### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1424-1435)
 - Brief: Strip comment markers from a single line of comment text.
 
-### fn `def _md_loc(elem) -> str` `priv` (L1411-1418)
+### fn `def _md_loc(elem) -> str` `priv` (L1436-1443)
 - Brief: Format element location compactly for markdown.
 
-### fn `def _md_kind(elem) -> str` `priv` (L1419-1446)
+### fn `def _md_kind(elem) -> str` `priv` (L1444-1471)
 - Brief: Short kind label for markdown output.
 
-### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1447-1469)
+### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1472-1494)
 - Brief: Extract clean text content from a comment element.
 - Details: Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
 
-### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1470-1486)
+### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1495-1511)
 - Brief: Extract clean text lines from a multi-line comment (preserving structure).
 
-### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1487-1547)
+### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1512-1572)
 - Brief: Build maps that associate comments with their adjacent definitions.
 - Details: Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
 
-### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1548-1599)
+### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1573-1624)
 - Brief: Render body comments and exit points for a definition element.
 - Details: Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
 
-### fn `def _merge_doxygen_fields(` `priv` (L1600-1602)
+### fn `def _merge_doxygen_fields(` `priv` (L1625-1627)
 
-### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1616-1637)
+### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1641-1662)
 - Brief: Aggregate construct Doxygen fields from associated and body comments.
 - Details: Parses each body-comment tuple with parse_doxygen_comment() and merges results after pre-associated fields so references output can represent both association styles.
 - Param: elem SourceElement containing optional `doxygen_fields` and `body_comments`.
 - Return: Dictionary of normalized Doxygen tags to ordered value lists.
 
-### fn `def format_markdown(` (L1638-1644)
+### fn `def format_markdown(` (L1663-1669)
 
-### fn `def main()` (L1935-2058)
+### fn `def main()` (L1960-2083)
 - Brief: Execute the standalone source analyzer CLI command.
 
 ## Symbol Index
@@ -1105,19 +1105,19 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 |`_extract_inheritance`|fn|priv|1154-1165|def _extract_inheritance(self, elements: list, language: ...|
 |`_parse_inheritance`|fn|priv|1166-1195|def _parse_inheritance(self, first_line: str,|
 |`_extract_body_annotations`|fn|priv|1203-1326|def _extract_body_annotations(self, elements: list,|
-|`_extract_doxygen_fields`|fn|priv|1327-1386|def _extract_doxygen_fields(self, elements: list)|
-|`_is_postfix_doxygen_comment`|fn|priv|1388-1397|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
-|`_clean_comment_line`|fn|priv|1399-1410|def _clean_comment_line(text: str, spec) -> str|
-|`_md_loc`|fn|priv|1411-1418|def _md_loc(elem) -> str|
-|`_md_kind`|fn|priv|1419-1446|def _md_kind(elem) -> str|
-|`_extract_comment_text`|fn|priv|1447-1469|def _extract_comment_text(comment_elem, max_length: int =...|
-|`_extract_comment_lines`|fn|priv|1470-1486|def _extract_comment_lines(comment_elem) -> list|
-|`_build_comment_maps`|fn|priv|1487-1547|def _build_comment_maps(elements: list) -> tuple|
-|`_render_body_annotations`|fn|priv|1548-1599|def _render_body_annotations(out: list, elem, indent: str...|
-|`_merge_doxygen_fields`|fn|priv|1600-1602|def _merge_doxygen_fields(|
-|`_collect_element_doxygen_fields`|fn|priv|1616-1637|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
-|`format_markdown`|fn|pub|1638-1644|def format_markdown(|
-|`main`|fn|pub|1935-2058|def main()|
+|`_extract_doxygen_fields`|fn|priv|1327-1411|def _extract_doxygen_fields(self, elements: list)|
+|`_is_postfix_doxygen_comment`|fn|priv|1413-1422|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
+|`_clean_comment_line`|fn|priv|1424-1435|def _clean_comment_line(text: str, spec) -> str|
+|`_md_loc`|fn|priv|1436-1443|def _md_loc(elem) -> str|
+|`_md_kind`|fn|priv|1444-1471|def _md_kind(elem) -> str|
+|`_extract_comment_text`|fn|priv|1472-1494|def _extract_comment_text(comment_elem, max_length: int =...|
+|`_extract_comment_lines`|fn|priv|1495-1511|def _extract_comment_lines(comment_elem) -> list|
+|`_build_comment_maps`|fn|priv|1512-1572|def _build_comment_maps(elements: list) -> tuple|
+|`_render_body_annotations`|fn|priv|1573-1624|def _render_body_annotations(out: list, elem, indent: str...|
+|`_merge_doxygen_fields`|fn|priv|1625-1627|def _merge_doxygen_fields(|
+|`_collect_element_doxygen_fields`|fn|priv|1641-1662|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
+|`format_markdown`|fn|pub|1663-1669|def format_markdown(|
+|`main`|fn|pub|1960-2083|def main()|
 
 
 ---

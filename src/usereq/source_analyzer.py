@@ -1326,7 +1326,7 @@ class SourceAnalyzer:
 
     def _extract_doxygen_fields(self, elements: list):
         """! @brief Extract Doxygen tag fields from associated documentation comments.
-        @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. Parses the resolved comment via parse_doxygen_comment() and stores the extracted fields in element.doxygen_fields.
+        @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
         """
         comment_elements = [e for e in elements if e.element_type in
                            (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)]
@@ -1382,6 +1382,31 @@ class SourceAnalyzer:
 
             if associated_comment:
                 comment_text = associated_comment.extract
+                if (
+                    associated_comment.name != "inline"
+                    and associated_comment.line_end < elem.line_start
+                    and parse_doxygen_comment(associated_comment.extract)
+                ):
+                    merged_preceding_comments = [associated_comment]
+                    current_start = associated_comment.line_start
+                    while True:
+                        contiguous_candidates = [
+                            comment
+                            for comment in comment_elements
+                            if comment.name != "inline"
+                            and comment.line_end == current_start - 1
+                        ]
+                        if not contiguous_candidates:
+                            break
+                        previous_comment = max(
+                            contiguous_candidates,
+                            key=lambda comment: (comment.line_end, comment.line_start),
+                        )
+                        merged_preceding_comments.insert(0, previous_comment)
+                        current_start = previous_comment.line_start
+                    comment_text = "\n".join(
+                        comment.extract for comment in merged_preceding_comments
+                    )
                 elem.doxygen_fields = parse_doxygen_comment(comment_text)
 
     @staticmethod

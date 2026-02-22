@@ -93,6 +93,18 @@ DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
     "@post": re.compile(r"(?<!\w)@post\b"),
 }
 PROJECT_EXAMPLES_DIR = Path(__file__).parent / "project_examples"
+CMD_MAJOR_SAMPLE_SOURCE = """## @brief CLI entry-point for the `major` release subcommand.
+# @details Increments the major semver index (resets minor and patch to 0), merges and pushes
+# to both configured `develop` and `master` branches, regenerates changelog via a
+# temporary local tag on `work`, and creates the definitive release tag on `master`
+# immediately before pushing `master` with `--tags`.
+# @param extra Iterable of CLI argument strings; accepted flag: `--include-patch`.
+# @return None; delegates to `_run_release_command("major", ...)`.
+# @satisfies REQ-026, REQ-045
+def cmd_major(extra):
+    changelog_args = _parse_release_flags(extra, "major")
+    _run_release_command("major", changelog_args=changelog_args)
+"""
 
 
 def _aggregate_reference_doxygen_fields(element) -> Dict[str, List[str]]:
@@ -353,6 +365,21 @@ def _extract_reference_definition_block(output: str, header: str) -> str:
     return output[start:end]
 
 
+def _extract_reference_definition_block_by_signature(
+    output: str,
+    signature: str,
+) -> str:
+    """! @brief Extract one references definition block by function signature text."""
+    signature_pattern = re.escape(signature.rstrip(":"))
+    match = re.search(
+        rf"^### fn `def {signature_pattern}:?`.*?(?=^### |\n## Symbol Index|\Z)",
+        output,
+        flags=re.M | re.S,
+    )
+    assert match is not None, f"Missing references block for signature: {signature}"
+    return match.group(0)
+
+
 def _assert_doxygen_markdown_order(output: str) -> None:
     """! @brief Assert each contiguous Doxygen bullet block follows DOX-011 ordering."""
     label_order = {
@@ -509,6 +536,48 @@ def _extract_construct_block(
         "Missing construct block for "
         f"{escaped_type}:{escaped_name}:{line_start}-{line_end}"
     )
+
+
+def _extract_construct_block_by_name(output: str, type_label: str, name: str) -> str:
+    """! @brief Extract one construct markdown block by type and name."""
+    for parsed in _extract_construct_blocks(output):
+        if parsed["type_label"] == type_label and parsed["name"] == name:
+            return parsed["block"]
+    raise AssertionError(f"Missing construct block for {type_label}:{name}")
+
+
+def _assert_cmd_major_doxygen_fields(block: str, context_id: str) -> None:
+    """! @brief Assert cmd_major block contains all expected Doxygen fields with key payload fragments."""
+    required_lines = [
+        "- Brief: CLI entry-point for the `major` release subcommand.",
+        "- Param: extra Iterable of CLI argument strings; accepted flag: `--include-patch`.",
+        "- Return: None; delegates to `_run_release_command(\"major\", ...)`.",
+        "- Satisfies: REQ-026, REQ-045",
+    ]
+    for line in required_lines:
+        assert line in block, f"{context_id}: missing line {line}"
+
+    assert "- Details:" in block, f"{context_id}: missing Details label"
+    assert (
+        "Increments the major semver index (resets minor and patch to 0), merges and pushes"
+        in block
+    ), f"{context_id}: missing details leading fragment"
+    assert (
+        "immediately before pushing `master` with `--tags`." in block
+    ), f"{context_id}: missing details trailing fragment"
+
+    ordered_labels = ["- Brief:", "- Details:", "- Param:", "- Return:", "- Satisfies:"]
+    previous_idx = -1
+    for label in ordered_labels:
+        current_idx = block.find(label)
+        assert current_idx != -1, f"{context_id}: missing ordered label {label}"
+        assert current_idx > previous_idx, f"{context_id}: wrong label order at {label}"
+        previous_idx = current_idx
+
+
+def _write_cmd_major_sample(filepath: Path) -> None:
+    """! @brief Write the cmd_major Python sample with Doxygen comments to the target file."""
+    filepath.write_text(CMD_MAJOR_SAMPLE_SOURCE, encoding="utf-8")
 
 
 def _assert_find_construct_listing_matches_expected(
@@ -759,6 +828,27 @@ class TestFilesReferencesCommand:
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
             assert f"- {label}:" not in output
         _assert_no_legacy_annotation_lines(output)
+
+    def test_files_references_cmd_major_extracts_all_expected_doxygen_fields(
+        self,
+        capsys,
+        tmp_path,
+    ):
+        """DOX-014: --files-references must extract brief/details/param/return/satisfies for cmd_major sample."""
+        source_file = tmp_path / "cmd_major_sample.py"
+        _write_cmd_major_sample(source_file)
+
+        rc = main(["--files-references", str(source_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        block = _extract_reference_definition_block_by_signature(
+            captured.out,
+            "cmd_major(extra):",
+        )
+        _assert_cmd_major_doxygen_fields(
+            block,
+            context_id="--files-references::cmd_major",
+        )
 
 
 class TestFilesCompressCommand:
@@ -1054,6 +1144,41 @@ class TestReferencesCommand:
         assert "- Brief: Prints an informational message." in block
         assert "- Param: msg The message string to print." in block
 
+    def test_references_cmd_major_extracts_all_expected_doxygen_fields(
+        self,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-015: --references must extract brief/details/param/return/satisfies for cmd_major sample."""
+        src = tmp_path / "src"
+        src.mkdir()
+        source_file = src / "cmd_major_sample.py"
+        _write_cmd_major_sample(source_file)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--references"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        block = _extract_reference_definition_block_by_signature(
+            captured.out,
+            "cmd_major(extra):",
+        )
+        _assert_cmd_major_doxygen_fields(
+            block,
+            context_id="--references::cmd_major",
+        )
+
 
 class TestCompressCommand:
     """CMD-010, CMD-011, CMD-017: --compress tests."""
@@ -1321,6 +1446,24 @@ class TestFindCommandsDoxygen:
         assert "single-line comment" not in code_payload
         assert "inline block" not in code_payload
 
+    def test_files_find_cmd_major_extracts_all_expected_doxygen_fields(
+        self,
+        capsys,
+        tmp_path,
+    ):
+        """DOX-016: --files-find must extract brief/details/param/return/satisfies for cmd_major sample."""
+        source_file = tmp_path / "cmd_major_sample.py"
+        _write_cmd_major_sample(source_file)
+
+        rc = main(["--files-find", "FUNCTION", "^cmd_major$", str(source_file)])
+        assert rc == 0
+        captured = capsys.readouterr()
+        block = _extract_construct_block_by_name(captured.out, "FUNCTION", "cmd_major")
+        _assert_cmd_major_doxygen_fields(
+            block,
+            context_id="--files-find::cmd_major",
+        )
+
     @pytest.mark.parametrize(
         "fixture_file",
         FIXTURE_FILES,
@@ -1466,6 +1609,38 @@ class TestFindCommandsDoxygen:
         assert "/*" not in code_payload
         assert "single-line comment" not in code_payload
         assert "inline block" not in code_payload
+
+    def test_find_cmd_major_extracts_all_expected_doxygen_fields(
+        self,
+        capsys,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-017: --find must extract brief/details/param/return/satisfies for cmd_major sample."""
+        src = tmp_path / "src"
+        src.mkdir()
+        source_file = src / "cmd_major_sample.py"
+        _write_cmd_major_sample(source_file)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        rc = main(["--here", "--find", "FUNCTION", "^cmd_major$"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        block = _extract_construct_block_by_name(captured.out, "FUNCTION", "cmd_major")
+        _assert_cmd_major_doxygen_fields(
+            block,
+            context_id="--find::cmd_major",
+        )
 
 
 class TestProjectExamplesDoxygenOccurrences:
