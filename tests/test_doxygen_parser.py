@@ -186,6 +186,23 @@ class TestParseDoxygenComment:
         assert result["param"] == ["x First parameter."]
         assert result["return"] == ["Result value."]
 
+    def test_satisfies_does_not_hide_other_tags(self):
+        """! @brief Ensure @satisfies is parsed without suppressing other supported tags."""
+        comment = """
+        @brief Summary.
+        @details Expanded context.
+        @sa RelatedSymbol
+        @satisfies SRS-213
+        @return done
+        """
+
+        result = parse_doxygen_comment(comment)
+        assert result["brief"] == ["Summary."]
+        assert result["details"] == ["Expanded context."]
+        assert result["sa"] == ["RelatedSymbol"]
+        assert result["satisfies"] == ["SRS-213"]
+        assert result["return"] == ["done"]
+
     def test_empty_comment(self):
         """! @brief Return empty dictionary when comment text is empty."""
         assert parse_doxygen_comment("") == {}
