@@ -1,14 +1,26 @@
 # Changelog
 
-## [0.0.76](https://github.com/Ogekuri/useReq/releases/tag/v0.0.76) - 2026-02-21
+## [0.1.0](https://github.com/Ogekuri/useReq/releases/tag/v0.1.0) - 2026-02-22
 ### ⛰️  Features
+- verbose commit. *(core)*
+- add worktree branch on all promts. *(core)*
+- add DataTypes example. *(core)*
+- update tests/project_examples. *(core)*
+- add @satisfies. *(core)*
 - update github workflow. *(core)*
 - update github workflow. *(core)*
 - add static code check. *(core)*
 - add static-check on req-init.sh. *(core)*
 - add --enable-static-check, --files-static-check, --static-check commands [2026-02-20 09:55:00] *(static_check)*
+  - SRS-248..SRS-262: configurable per-language static analysis (Dummy/Pylance/Ruff/Command)
+  - static_check.py: STATIC_CHECK_LANG_CANONICAL, STATIC_CHECK_EXT_TO_LANG, parse_enable_static_check(), dispatch_static_check_for_file()
+  - cli.py: --enable-static-check (repeatable, case-insensitive), --files-static-check, --static-check, save_config static-check persistence, load_static_check_from_config()
+  - tests/test_static_check.py: 60+ new tests covering parse, dispatch, CLI commands, config persistence
+  - docs/REQUIREMENTS.md, WORKFLOW.md, REFERENCES.md updated
+  - Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 - max 35 words for requirement. *(core)*
 - add --test-static-check with Dummy/Pylance/Ruff/Command classes [2026-02-20 00:00:00] *(static_check)*
+  - Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 - add pyright.sh, ruff.sh scripts. *(core)*
 - add ruff e pyright. *(core)*
 - extend skill generation to resources/skills [2026-02-19 17:30:26] *(cli)*
@@ -66,6 +78,13 @@
 - Add analyze and optimize commands. *(core)*
 
 ### 🐛  Bug Fixes
+- fix prompt to check file's precence before fork the branch. *(core)*
+- minor fixes. *(core)*
+- restore full multi-line comment Doxygen extraction and add param[in,out] support [COMMIT_DATE_PLACEHOLDER] *(doxygen_parser)*
+  - Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+- avoid duplicate default pytest run [2026-02-22 13:47:12] *(tests.sh)*
+- preserve multi-line doxygen blocks for cmd_major tests [2026-02-22 12:23:52] *(source_analyzer)*
+- restore full doxygen extraction with @satisfies [2026-02-22 12:09:25] *(doxygen_parser)*
 - fix workflow. *(core)*
 - persist install flags for update reload [2026-02-20 15:51:44] *(cli)*
 - fix WORKFLOW.md update. *(core)*
@@ -156,6 +175,10 @@
 - version on req.sh. *(core)*
 
 ### 🚜  Changes
+- export full Doxygen fields in references/find and strengthen tests [2026-02-22 16:26:20] *(doxygen)*
+- add regex project_examples files-references parity [2026-02-22 14:18:17] *(test_files_commands)*
+- enforce fixture Doxygen file headers [2026-02-22 12:54:06] *(fixtures)*
+- add @satisfies extraction support [2026-02-22 11:55:20] *(doxygen_parser)*
 - validate Command executable for static-check [2026-02-20 16:27:09] *(cli)*
 - fix --update persisted config precedence and validation [2026-02-20 16:11:33] *(cli)*
 - add markdown blank separator lines [2026-02-20 13:44:45] *(static_check)*
@@ -164,8 +187,24 @@
 - support quoted comma params in enable parser [2026-02-20 11:54:56] *(static-check)*
 - update comma-separated spec parsing [2026-02-20 11:41:19] *(static-check)*
 - use '#' as SPEC separator in --enable-static-check to avoid bash ';' conflict [2026-02-20 11:30:51] *(static_check)*
+  - SRS-248, SRS-250, SRS-260: replace ';' separator with '#' in LANG=MODULE[#CMD[#PARAM...]] format
+  - src/usereq/static_check.py: split on '#' in parse_enable_static_check; update docstring and error messages
+  - src/usereq/cli.py: update --enable-static-check help text and example to '#' separator
+  - tests/test_static_check.py: update all SPEC strings and descriptions to '#' separator
+  - docs/REFERENCES.md: regenerated
 - use ';' as SPEC separator in --enable-static-check to allow comma-containing params [2026-02-20 11:13:47] *(static_check)*
+  - SRS-248/SRS-250/SRS-260: SPEC format changed from LANG=MODULE[,CMD[,PARAM...]] to LANG=MODULE[;CMD[;PARAM...]]
+  - src/usereq/static_check.py: parse_enable_static_check splits on ';', error messages and docstring updated
+  - tests/test_static_check.py: updated Command module tests to ';'; added test_command_module_param_with_comma
+  - docs/REQUIREMENTS.md: SRS-248, SRS-250, SRS-260 updated to reflect semicolon separator
+  - docs/REFERENCES.md: regenerated
 - remove --recursive flag; use ** glob for recursive resolution [2026-02-20 09:47:53] *(static_check)*
+  - SRS-240/245: remove --recursive custom flag from Dummy/Pylance/Ruff/Command
+  - _resolve_files: remove recursive param; glob always uses recursive=True (** support)
+  - StaticCheckBase/Command: remove recursive constructor param and _recursive attr
+  - run_static_check: no --recursive extraction; all tokens passed as FILES
+  - cli.py: remove [--recursive] from usage/help strings
+  - tests: replace --recursive tests with ** glob test; update _resolve_files call sites
 - remove resources/skills from skill generation [2026-02-19 17:40:54] *(cli)*
 - use project-relative paths in references/compress output [2026-02-19 12:23:34] *(cli)*
 - default-enable skills with --disable-skills [2026-02-19 09:23:09] *(cli)*
@@ -173,6 +212,15 @@
 - derive SKILL.md description from prompt usage [2026-02-18 16:50:50] *(skills)*
 - add SKILL.md generation for all CLI providers with skill description from sections [2026-02-18 16:10:07] *(cli)*
 - add --enable-prompts, --enable-agents, --enable-skills artifact-type flags [2026-02-18 15:51:06] *(cli)*
+  - SRS: add SRS-231, update SRS-030/034/035/089/090-111 to define three new
+  - artifact-type flags and enforce at least one is required (exit code 4)
+  - cli.py: register --enable-prompts/--enable-agents/--enable-skills in
+  - build_parser(); validate in run(); gate all artifact generation with
+  - compound provider+artifact-type conditions
+  - tests: add ARTIFACT_TYPE_FLAGS constant; update all inline cli.main()
+  - calls; add TestArtifactTypeFlags class with 5 new test cases
+  - docs: update WORKFLOW.md, regenerate REFERENCES.md
+  - Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 - add root doxygen generator and docs updates [2026-02-17 15:22:33] *(doxygen)*
 - remove remaining legacy doc references [2026-02-17 15:05:28] *(core)*
 - remove legacy doc generator and align docs [2026-02-17 15:04:49] *(core)*
@@ -185,6 +233,15 @@
 - validate doxygen fixture extraction [2026-02-17 11:25:26] *(source_analyzer)*
 - expand parser test matrix and specs [2026-02-17 11:13:49] *(doxygen-parser)*
 - enhance fixtures with comprehensive Doxygen documentation [2026-02-17 10:57:00] *(tests)*
+  - Updated test fixtures to meet DOX-008 and FND-014 requirements:
+  - Added inline Doxygen documentation to Python fixture (8 tags)
+  - Added file-level documentation to Go fixture
+  - Updated test expectations for new comment element counts
+  - All 1362 tests passing
+  - Implements requirements:
+  - DOX-008: Comprehensive Doxygen tags on fixture constructs
+  - FND-014: Heterogeneous comment styles (inline, multi-line)
+  - Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 - add Doxygen parser module with integration into source analyzer and output commands [2026-02-17 10:36:12] *(core)*
 - update source_analyzer output format to Markdown tables and fix tests [2026-02-17 09:43:41] *(core)*
 - rename copy-guidelines to upgrade-guidelines [2026-02-16 16:27:24] *(cli)*
@@ -198,11 +255,45 @@
 - invert line-number flag defaults [2026-02-16 13:35:55] *(cli)*
 - add lines header and fenced compress output [2026-02-16 13:28:59] *(compress_files)*
 - extract complete constructs without truncation [$DATE] *(find_constructs)*
+  - Updated --files-find and --find commands to extract COMPLETE constructs
+  - from source files instead of truncated snippets. Changes include:
+  - Requirements (docs/REQUIREMENTS.md):
+  - FND-005: Updated to specify reading complete construct from source file
+  - FND-006: Updated to specify no truncation or snippet limitations
+  - REQ-100: Updated to verify complete extraction in tests
+  - Source code (src/usereq/find_constructs.py):
+  - format_construct(): Added source_lines parameter to read complete code
+  - find_constructs_in_files(): Reads complete source file and passes to formatter
+  - Tests (tests/):
+  - test_find_constructs.py: Updated to pass source_lines to format_construct
+  - test_find_constructs_comprehensive.py: Added tests for complete extraction
+  - Documentation:
+  - docs/WORKFLOW.md: Updated format_construct description
+  - docs/REFERENCES.md: Regenerated with updated signatures
+  - Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 - enforce --here config path precedence [2026-02-16 12:16:35] *(cli)*
 - gate scan progress logs behind --verbose [2026-02-16 12:01:09] *(cli)*
 - add dynamic TAG listing in help and error messages [2026-02-16 11:54:46] *(find_constructs)*
 - add comprehensive unit tests for find_constructs covering all language-construct combinations [2026-02-16 11:47:21] *(tests)*
+  - Added tests/test_find_constructs_comprehensive.py with 54 tests validating construct extraction
+  - Updated docs/REQUIREMENTS.md to version 0.67 with new requirement REQ-100
+  - Updated docs/WORKFLOW.md with comprehensive test feature documentation
+  - Updated docs/REFERENCES.md with regenerated source references
+  - Validates extraction of all construct types defined in FND-002 for all 20 supported languages
+  - using fixture files in tests/fixtures/. Tests verify correct identification and extraction of
+  - constructs matching tag filters and regex patterns across Python, C, C++, Rust, JavaScript,
+  - TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir, C#.
 - add --files-find and --find commands for construct extraction [2026-02-16 11:38:48] *(cli)*
+  - Add new find_constructs module for filtering source constructs by tag and regex pattern
+  - Implement --files-find TAG PATTERN FILE... for standalone file lists
+  - Implement --find TAG PATTERN for project source directories
+  - Support 20 languages with comprehensive TAG mapping (CLASS, FUNCTION, STRUCT, etc.)
+  - Support --disable-line-numbers flag for both commands
+  - Add test coverage with 12 unit tests
+  - Update REQUIREMENTS.md v0.66 with FND-001..011, CMD-018..028
+  - Update WORKFLOW.md with new command workflows and function call traces
+  - Update REFERENCES.md with find_constructs module documentation
+  - Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 - add disable-line-numbers support for compression [2026-02-16 11:15:36] *(cli)*
 - add parity analyzer tests and requirements update [2026-02-16 10:48:11] *(tests/source_analyzer)*
 - prepend files structure in --references [2026-02-15 19:45:56] *(cli)*
@@ -218,6 +309,8 @@
 - update TECH_PATH replacement and specs/tests [2026-02-08 09:45:30] *(cli)*
 - remove workflow flag logic and update specs/tests [2026-02-07 19:45:51] *(cli)*
 - refactor deep parameter and function renaming [$(date +"%Y-%m-%d %H:%M:%S")] *(core)*
+  - Renamed CLI parameters: --doc to --req-dir, --dir to --tech-dir. Updated config.json fields from doc/dir to req-dir/tech-dir. Renamed functions: generate_doc_file_list to generate_req_file_list, generate_dir_list to generate_tech_file_list (now scans files instead of subdirectories, with fallback to directory name if empty). Updated all requirements, tests, and workflow documentation to reflect these changes. No backward compatibility implemented as per requirements.
+  - Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 - add recreate prompt and align configs/tests *(useReq)*
 - record prompts in install summary table [2026-01-26 14:10:43] *(useReq)*
 - Rename 'optimize' prompt to 'refactor' and update configurations and tests [2026-01-26 12:27:00] *(useReq)*
@@ -282,6 +375,6 @@
 
 # History
 
-- \[0.0.76\]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.76
+- \[0.1.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 
-[0.0.76]: https://github.com/Ogekuri/useReq/releases/tag/v0.0.76
+[0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
