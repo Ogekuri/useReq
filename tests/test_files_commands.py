@@ -92,6 +92,14 @@ DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
     "@pre": re.compile(r"(?<!\w)@pre\b"),
     "@post": re.compile(r"(?<!\w)@post\b"),
 }
+DOXYGEN_SOURCE_MULTILINE_ENTRY_PATTERN = re.compile(
+    r"(?is)(?:@|\\)(?P<tag>brief|details|param\s*\[\s*in\s*\]|"
+    r"param\s*\[\s*out\s*\]|param|return|retval|exception|throws|"
+    r"warning|deprecated|note|see|sa|satisfies|pre|post)(?=\s|$)"
+    r"(?P<body>.*?)(?=(?:\n[^\n]*(?:@|\\)(?:brief|details|param\s*\[\s*in\s*\]|"
+    r"param\s*\[\s*out\s*\]|param|return|retval|exception|throws|"
+    r"warning|deprecated|note|see|sa|satisfies|pre|post)(?=\s|$))|\Z)"
+)
 PROJECT_EXAMPLES_DIR = Path(__file__).parent / "project_examples"
 CMD_MAJOR_SAMPLE_SOURCE = """## @brief CLI entry-point for the `major` release subcommand.
 # @details Increments the major semver index (resets minor and patch to 0), merges and pushes
@@ -228,11 +236,13 @@ def _init_zero_tag_counts() -> Dict[str, int]:
 
 
 def _count_source_doxygen_tags_with_regex(filepath: Path) -> Dict[str, int]:
-    """! @brief Count source Doxygen tag occurrences in one file using regex."""
+    """! @brief Count source Doxygen tag occurrences in one file using multiline regex."""
     text = filepath.read_text(encoding="utf-8", errors="replace")
     counts = _init_zero_tag_counts()
-    for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
-        counts[tag] = len(DOXYGEN_SOURCE_TAG_PATTERNS[tag].findall(text))
+    for match in DOXYGEN_SOURCE_MULTILINE_ENTRY_PATTERN.finditer(text):
+        normalized_tag = f"@{re.sub(r'\\s+', '', match.group('tag').lower())}"
+        if normalized_tag in counts:
+            counts[normalized_tag] += 1
     return counts
 
 
@@ -1755,6 +1765,34 @@ class TestProjectExamplesDoxygenOccurrences:
             expected=phase2_expected_directory,
             actual=phase2_directory,
             context_id="phase2::directory",
+        )
+
+    @pytest.mark.parametrize(
+        "filepath",
+        _collect_project_examples_source_files(),
+        ids=lambda path: path.as_posix(),
+    )
+    def test_project_examples_files_references_regex_multiline_per_file_counts(
+        self,
+        filepath: Path,
+    ):
+        """DOX-018: Per-file multiline-regex tag discovery must align with --files-references effective count parity."""
+        regex_counts = _count_source_doxygen_tags_with_regex(filepath)
+        expected_counts = _count_source_doxygen_tags(filepath)
+        for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+            if int(expected_counts[tag]) > 0:
+                assert int(regex_counts[tag]) > 0, (
+                    f"--files-references::{filepath.as_posix()}: "
+                    f"regex extraction did not discover effective tag {tag}"
+                )
+
+        rc, stdout, _ = _run_cli_capture(["--files-references", str(filepath)])
+        assert rc == 0, f"--files-references failed for {filepath.as_posix()}"
+        output_tag_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
+        _assert_tag_counts_match(
+            expected=expected_counts,
+            actual=output_tag_counts,
+            context_id=f"--files-references-regex::{filepath.as_posix()}",
         )
 
 
