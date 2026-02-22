@@ -18,7 +18,7 @@ from typing import Optional
 try:
     from .doxygen_parser import parse_doxygen_comment
 except ImportError:
-    from doxygen_parser import parse_doxygen_comment
+    from usereq.doxygen_parser import parse_doxygen_comment
 
 
 class ElementType(Enum):
@@ -864,7 +864,7 @@ class SourceAnalyzer:
                 if ch == "\\" and i + 1 < len(line):
                     i += 2
                     continue
-                if line[i:].startswith(current_delim):
+                if current_delim and line[i:].startswith(current_delim):
                     in_string = False
                     i += len(current_delim)
                     continue
@@ -900,7 +900,7 @@ class SourceAnalyzer:
                 if ch == "\\" and i + 1 < len(line):
                     i += 2
                     continue
-                if line[i:].startswith(current_delim):
+                if current_delim and line[i:].startswith(current_delim):
                     in_string = False
                     i += len(current_delim)
                     continue
@@ -1002,7 +1002,7 @@ class SourceAnalyzer:
     # ── Enrichment methods for LLM-optimized output ───────────────────
 
     def enrich(self, elements: list, language: str,
-               filepath: str = None) -> list:
+               filepath: Optional[str] = None) -> list:
         """! @brief Enrich elements with signatures, hierarchy, visibility, inheritance.
         @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
         """
@@ -1024,7 +1024,6 @@ class SourceAnalyzer:
         for elem in elements:
             if not elem.name:
                 continue
-            name = elem.name.strip()
             # Try to re-extract the name from the element's extract line
             # using the original pattern (which has group 2 as the identifier)
             spec = self.specs.get(language)
@@ -1327,7 +1326,7 @@ class SourceAnalyzer:
 
     def _extract_doxygen_fields(self, elements: list):
         """! @brief Extract Doxygen tag fields from associated documentation comments.
-        @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. Parses the resolved comment via parse_doxygen_comment() and stores the extracted fields in element.doxygen_fields.
+        @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
         """
         comment_elements = [e for e in elements if e.element_type in
                            (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)]
@@ -1383,6 +1382,31 @@ class SourceAnalyzer:
 
             if associated_comment:
                 comment_text = associated_comment.extract
+                if (
+                    associated_comment.name != "inline"
+                    and associated_comment.line_end < elem.line_start
+                    and parse_doxygen_comment(associated_comment.extract)
+                ):
+                    merged_preceding_comments = [associated_comment]
+                    current_start = associated_comment.line_start
+                    while True:
+                        contiguous_candidates = [
+                            comment
+                            for comment in comment_elements
+                            if comment.name != "inline"
+                            and comment.line_end == current_start - 1
+                        ]
+                        if not contiguous_candidates:
+                            break
+                        previous_comment = max(
+                            contiguous_candidates,
+                            key=lambda comment: (comment.line_end, comment.line_start),
+                        )
+                        merged_preceding_comments.insert(0, previous_comment)
+                        current_start = previous_comment.line_start
+                    comment_text = "\n".join(
+                        comment.extract for comment in merged_preceding_comments
+                    )
                 elem.doxygen_fields = parse_doxygen_comment(comment_text)
 
     @staticmethod
@@ -1547,7 +1571,7 @@ def _build_comment_maps(elements: list) -> tuple:
 
 
 def _render_body_annotations(out: list, elem, indent: str = "",
-                             exclude_ranges: list = None):
+                             exclude_ranges: Optional[list] = None):
     """! @brief Render body comments and exit points for a definition element.
     @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
     """
@@ -1598,6 +1622,44 @@ def _render_body_annotations(out: list, elem, indent: str = "",
                 out.append(f"{indent}L{start}-{end}> {text}")
 
 
+def _merge_doxygen_fields(
+    base_fields: dict[str, list[str]],
+    extra_fields: dict[str, list[str]],
+) -> dict[str, list[str]]:
+    """! @brief Merge Doxygen field dictionaries preserving per-tag value order.
+    @param base_fields Destination dictionary mutated in place.
+    @param extra_fields Source dictionary containing additional tag values.
+    @return Updated destination dictionary.
+    """
+    for tag, values in extra_fields.items():
+        if tag not in base_fields:
+            base_fields[tag] = []
+        base_fields[tag].extend(values)
+    return base_fields
+
+
+def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]:
+    """! @brief Aggregate construct Doxygen fields from associated and body comments.
+    @param elem SourceElement containing optional `doxygen_fields` and `body_comments`.
+    @return Dictionary of normalized Doxygen tags to ordered value lists.
+    @details Parses each body-comment tuple with parse_doxygen_comment() and merges results
+    after pre-associated fields so references output can represent both association styles.
+    """
+    aggregate: dict[str, list[str]] = {}
+    direct_fields = getattr(elem, "doxygen_fields", None) or {}
+    if direct_fields:
+        _merge_doxygen_fields(aggregate, direct_fields)
+
+    for body_comment in getattr(elem, "body_comments", []):
+        if not isinstance(body_comment, tuple) or len(body_comment) < 3:
+            continue
+        parsed = parse_doxygen_comment(body_comment[2])
+        if parsed:
+            _merge_doxygen_fields(aggregate, parsed)
+
+    return aggregate
+
+
 def format_markdown(
     elements: list,
     filepath: str,
@@ -1633,7 +1695,7 @@ def format_markdown(
     try:
         from .doxygen_parser import format_doxygen_fields_as_markdown
     except ImportError:
-        from doxygen_parser import format_doxygen_fields_as_markdown
+        from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 
     # ── Header ────────────────────────────────────────────────────────
     n_comments = sum(1 for e in elements
@@ -1713,12 +1775,16 @@ def format_markdown(
             doc_lines_list = []
             doc_line_num = 0
             doxygen_markdown = []
+            aggregate_doxygen_fields = _collect_element_doxygen_fields(elem)
 
-            if hasattr(elem, 'doxygen_fields') and elem.doxygen_fields:
-                doxygen_markdown = format_doxygen_fields_as_markdown(elem.doxygen_fields)
+            if aggregate_doxygen_fields:
+                doxygen_markdown = format_doxygen_fields_as_markdown(aggregate_doxygen_fields)
                 # Use brief as inline doc_text if available
-                if 'brief' in elem.doxygen_fields:
-                    doc_text = elem.doxygen_fields['brief'][0]
+                if (
+                    "brief" in aggregate_doxygen_fields
+                    and aggregate_doxygen_fields["brief"]
+                ):
+                    doc_text = aggregate_doxygen_fields["brief"][0]
                     if len(doc_text) > 150:
                         doc_text = doc_text[:147] + "..."
             elif include_legacy_annotations and def_docs:
@@ -1792,9 +1858,10 @@ def format_markdown(
                         child_doc = ""
                         child_doc_ln = ""
                         child_doxygen_markdown = []
-                        if hasattr(child, 'doxygen_fields') and child.doxygen_fields:
+                        child_aggregate_doxygen_fields = _collect_element_doxygen_fields(child)
+                        if child_aggregate_doxygen_fields:
                             child_doxygen_markdown = format_doxygen_fields_as_markdown(
-                                child.doxygen_fields
+                                child_aggregate_doxygen_fields
                             )
                         elif include_legacy_annotations:
                             child_docs = doc_for_def.get(child.line_start, [])

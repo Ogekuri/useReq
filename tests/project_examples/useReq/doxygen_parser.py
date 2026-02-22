@@ -27,9 +27,24 @@ DOXYGEN_TAGS = [
     'note',
     'see',
     'sa',
+    'satisfies',
     'pre',
     'post',
 ]
+
+_NON_PARAM_TAGS = [tag for tag in DOXYGEN_TAGS if tag not in {'param', 'param[in]', 'param[out]'}]
+"""! @brief Supported non-param Doxygen tags used to build the parser pattern."""
+
+_NON_PARAM_TAG_ALTERNATION = "|".join(
+    re.escape(tag) for tag in sorted(_NON_PARAM_TAGS, key=len, reverse=True)
+)
+"""! @brief Regex alternation for non-param tags ordered by descending length."""
+
+DOXYGEN_TAG_PATTERN = re.compile(
+    r'[@\\]'
+    rf'(?:(param)(\[[^\]]+\])?|({_NON_PARAM_TAG_ALTERNATION}))'
+)
+"""! @brief Compiled regex that matches supported @tag / \\tag tokens."""
 
 
 def parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]:
@@ -50,29 +65,21 @@ def parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]:
     text = comment_text.replace('\r\n', '\n').replace('\r', '\n')
     text = _strip_comment_delimiters(text)
 
-    # Pattern matches @tag or \tag, optionally with [direction] for param
-    # Captures: tag name (group 1), optional direction like [in] (group 2)
-    tag_pattern = re.compile(
-        r'[@\\]'  # @ or \ prefix
-        r'(brief|details|param|return|retval|exception|throws|warning|'
-        r'deprecated|note|see|sa|pre|post)'  # known tags
-        r'(\[[^\]]+\])?'  # optional [in], [out], [in,out]
-    )
-
-    matches = list(tag_pattern.finditer(text))
+    matches = list(DOXYGEN_TAG_PATTERN.finditer(text))
 
     if not matches:
         return {}
 
     for i, match in enumerate(matches):
-        tag_name = match.group(1)
+        param_tag = match.group(1)
         direction = match.group(2) if match.group(2) else ''
+        non_param_tag = match.group(3)
 
         # Normalize tag key: param[in], param[out], param (no direction)
-        if tag_name == 'param' and direction:
-            normalized_tag = f'param{direction}'
+        if param_tag:
+            normalized_tag = f'param{direction}' if direction else 'param'
         else:
-            normalized_tag = tag_name
+            normalized_tag = non_param_tag
 
         # Extract content from end of tag to start of next tag (or end of text)
         start_pos = match.end()

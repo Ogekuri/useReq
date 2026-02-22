@@ -17,6 +17,7 @@ import sys
 import subprocess
 import urllib.error
 import urllib.request
+import yaml
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Mapping, Optional
@@ -36,12 +37,28 @@ DEBUG = False
 REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
 """! @brief Name of the packaged requirements template file."""
 
+PERSISTED_UPDATE_FLAG_KEYS = (
+    "enable-models",
+    "enable-tools",
+    "enable-claude",
+    "enable-codex",
+    "enable-gemini",
+    "enable-github",
+    "enable-kiro",
+    "enable-opencode",
+    "enable-prompts",
+    "enable-agents",
+    "disable-skills",
+    "prompts-use-agents",
+    "legacy",
+    "preserve-models",
+)
+"""! @brief Config keys persisted for install/update boolean flags."""
 
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
     @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
     """
-
     def __init__(self, message: str, code: int = 1) -> None:
         """! @brief Initialize an expected CLI failure payload.
         @param message Human-readable error message.
@@ -50,6 +67,7 @@ class ReqError(Exception):
         super().__init__(message)
         self.message = message
         self.code = code
+
 
 
 def log(msg: str) -> None:
@@ -90,7 +108,7 @@ def _get_available_tags_help() -> str:
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
     @return Configured ArgumentParser instance.
-    @details Defines all supported CLI arguments, flags, and help texts.
+    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --disable-skills).
     """
     version = load_package_version()
     usage = (
@@ -98,9 +116,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
+        "[--enable-prompts] [--enable-agents] [--disable-skills] "
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
+        "[--test-static-check {dummy,pylance,ruff,command} [FILES...]] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -192,6 +212,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable generation of OpenCode prompts and agents for this run.",
     )
     parser.add_argument(
+        "--enable-prompts",
+        action="store_true",
+        help="Enable generation of prompt/command artifact files for each enabled provider.",
+    )
+    parser.add_argument(
+        "--enable-agents",
+        action="store_true",
+        help="Enable generation of agent artifact files for each enabled provider.",
+    )
+    parser.add_argument(
+        "--disable-skills",
+        dest="enable_skills",
+        action="store_false",
+        default=True,
+        help="Disable generation of skill artifact files for each enabled provider.",
+    )
+    parser.add_argument(
         "--prompts-use-agents",
         action="store_true",
         help="When set, generate .github and .claude prompt files as agent-only references (agent: req-<name>).",
@@ -267,6 +304,59 @@ def build_parser() -> argparse.ArgumentParser:
         "--tokens",
         action="store_true",
         help="Count tokens/chars for files directly under --docs-dir (requires --base/--here and --docs-dir).",
+    )
+    parser.add_argument(
+        "--test-static-check",
+        nargs=argparse.REMAINDER,
+        metavar="ARG",
+        dest="test_static_check",
+        help=(
+            "Run static analysis: --test-static-check <subcommand> [FILES...]. "
+            "Subcommands: dummy, pylance, ruff, command <cmd>. "
+            "[FILES] may be files, directories, or glob patterns including ** (standalone, no --base/--here required)."
+        ),
+    )
+    parser.add_argument(
+        "--enable-static-check",
+        action="append",
+        metavar="SPEC",
+        dest="enable_static_check",
+        default=None,
+        help=(
+            "Configure a static-check tool for a language during install/update. "
+            "SPEC format: LANG=MODULE[,CMD[,PARAM...]]. "
+            "MODULE: Dummy, Pylance, Ruff, Command (case-insensitive). "
+            "LANG: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, "
+            "PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir (case-insensitive). "
+            "For Command, CMD is the binary and subsequent tokens are params saved in config.json; "
+            "tokens containing commas must be wrapped in double quotes. "
+            "Repeatable: multiple flags per language append multiple entries. "
+            "Example: --enable-static-check Python=Pylance "
+            "--enable-static-check C=Command,/usr/bin/cppcheck,--check-library"
+        ),
+    )
+    parser.add_argument(
+        "--files-static-check",
+        nargs="+",
+        metavar="FILE",
+        dest="files_static_check",
+        help=(
+            "Run static analysis on explicit files using tools configured in .req/config.json. "
+            "Detects language from file extension; skips files with no configured tool. "
+            "Standalone (no --base/--here required; uses --here/--base if provided, else CWD). "
+            "Example: --files-static-check src/main.c src/utils.py"
+        ),
+    )
+    parser.add_argument(
+        "--static-check",
+        action="store_true",
+        default=False,
+        dest="static_check",
+        help=(
+            "Run static analysis on all source files in configured --src-dir directories "
+            "(requires --base or --here). Uses the same file-collection logic as --references "
+            "and --compress. Tools are loaded from the 'static-check' section of .req/config.json."
+        ),
     )
     return parser
 
@@ -593,6 +683,8 @@ def save_config(
     doc_dir_value: str,
     test_dir_value: str,
     src_dir_values: list[str],
+    static_check_config: Optional[dict] = None,
+    persisted_flags: Optional[dict[str, bool]] = None,
 ) -> None:
     """! @brief Saves normalized parameters to .req/config.json.
     @param project_base The project root path.
@@ -600,15 +692,24 @@ def save_config(
     @param doc_dir_value Relative path to docs directory.
     @param test_dir_value Relative path to tests directory.
     @param src_dir_values List of relative paths to source directories.
+    @param static_check_config Optional dict of static-check config to persist under key
+      `"static-check"`; omitted from JSON when None or empty.
+    @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
+    @details Writes full config payload to `.req/config.json`. When `static_check_config`
+    is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
     """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
+    payload: dict = {
         "guidelines-dir": guidelines_dir_value,
         "docs-dir": doc_dir_value,
         "tests-dir": test_dir_value,
         "src-dir": src_dir_values,
     }
+    if static_check_config:
+        payload["static-check"] = static_check_config
+    if persisted_flags:
+        payload.update(persisted_flags)
     config_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -653,6 +754,108 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
         "tests-dir": test_dir_value,
         "src-dir": src_dir_value,
     }
+
+
+def load_static_check_from_config(project_base: Path) -> dict:
+    """!
+    @brief Load the `"static-check"` section from `.req/config.json` without validation errors.
+    @param project_base The project root path.
+    @return Dict of static-check config (canonical-lang -> list[config-dict]); empty dict if absent or
+      if config.json is missing/invalid.
+    @details Reads config.json silently; returns `{}` on any read or parse error.
+      Does NOT raise `ReqError`; caller decides whether absence is an error.
+    @see SRS-252, SRS-253, SRS-256
+    """
+    config_path = project_base / ".req" / "config.json"
+    if not config_path.is_file():
+        return {}
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    sc = payload.get("static-check")
+    if not isinstance(sc, dict):
+        return {}
+    normalized: dict = {}
+    for lang, entries in sc.items():
+        if (
+            isinstance(lang, str)
+            and isinstance(entries, list)
+            and entries
+            and all(isinstance(item, dict) for item in entries)
+        ):
+            normalized[lang] = entries
+    return normalized
+
+
+def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
+    """! @brief Build persistent update flags from parsed CLI arguments.
+    @param args Parsed CLI namespace.
+    @return Mapping of config key -> boolean value for install/update persistence.
+    """
+    return {
+        "enable-models": bool(args.enable_models),
+        "enable-tools": bool(args.enable_tools),
+        "enable-claude": bool(args.enable_claude),
+        "enable-codex": bool(args.enable_codex),
+        "enable-gemini": bool(args.enable_gemini),
+        "enable-github": bool(args.enable_github),
+        "enable-kiro": bool(args.enable_kiro),
+        "enable-opencode": bool(args.enable_opencode),
+        "enable-prompts": bool(args.enable_prompts),
+        "enable-agents": bool(args.enable_agents),
+        "disable-skills": not bool(args.enable_skills),
+        "prompts-use-agents": bool(args.prompts_use_agents),
+        "legacy": bool(args.legacy),
+        "preserve-models": bool(args.preserve_models),
+    }
+
+
+def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
+    """! @brief Load persisted install/update boolean flags from `.req/config.json`.
+    @param project_base The project root path.
+    @return Mapping of persisted config key -> boolean value.
+    @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
+    """
+    config_path = project_base / ".req" / "config.json"
+    if not config_path.is_file():
+        raise ReqError(
+            "Error: .req/config.json not found in the project root",
+            11,
+        )
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ReqError("Error: .req/config.json is not valid", 11) from exc
+    flags: dict[str, bool] = {}
+    for key in PERSISTED_UPDATE_FLAG_KEYS:
+        value = payload.get(key)
+        if not isinstance(value, bool):
+            raise ReqError(f"Error: missing or invalid '{key}' field in .req/config.json", 11)
+        flags[key] = value
+    has_provider = any(
+        (
+            flags["enable-claude"],
+            flags["enable-codex"],
+            flags["enable-gemini"],
+            flags["enable-github"],
+            flags["enable-kiro"],
+            flags["enable-opencode"],
+        )
+    )
+    has_artifact_type = any(
+        (
+            flags["enable-prompts"],
+            flags["enable-agents"],
+            not flags["disable-skills"],
+        )
+    )
+    if not has_provider or not has_artifact_type:
+        raise ReqError(
+            "Error: .req/config.json has an invalid provider/artifact update configuration",
+            11,
+        )
+    return flags
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
@@ -879,6 +1082,53 @@ def extract_purpose_first_bullet(body: str) -> str:
         if match:
             return match.group(1).strip()
     raise ReqError("Error: no bullet found under the '## Purpose' section.", 7)
+
+
+def _extract_section_text(body: str, section_name: str) -> str:
+    """! @brief Extracts and collapses the text content of a named ## section.
+    @details Scans `body` line by line for a heading matching `## <section_name>`
+    (case-insensitive). Collects all subsequent non-empty lines until the next
+    `##`-level heading (or end of string). Strips each line, joins with a single
+    space, and returns the collapsed single-line result.
+    @param[in] body str -- Full prompt body text (after front matter removal).
+    @param[in] section_name str -- Target section name without `##` prefix (case-insensitive match).
+    @return str -- Single-line collapsed text of the section; empty string if section absent or empty.
+    """
+    lines = body.splitlines()
+    start_idx = None
+    for idx, line in enumerate(lines):
+        if line.strip().lower() == f"## {section_name.lower()}":
+            start_idx = idx + 1
+            break
+    if start_idx is None:
+        return ""
+    parts: list[str] = []
+    for line in lines[start_idx:]:
+        stripped = line.strip()
+        if stripped.startswith("##"):
+            break
+        if stripped:
+            parts.append(" ".join(stripped.split()))
+    return " ".join(parts)
+
+
+def extract_skill_description(frontmatter: str) -> str:
+    """! @brief Extracts the usage field from YAML front matter as a single YAML-safe line.
+    @details Parses the YAML front matter and returns the `usage` field value with all
+    whitespace normalized to a single line. Returns an empty string if the field is absent.
+    @param[in] frontmatter str -- YAML front matter text (without the leading/trailing `---` delimiters).
+    @return str -- Single-line text of the usage field; empty string if absent.
+    """
+    try:
+        data = yaml.safe_load(frontmatter)
+    except yaml.YAMLError:
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    usage = data.get("usage", "")
+    if not usage:
+        return ""
+    return " ".join(str(usage).split())
 
 
 def json_escape(value: str) -> str:
@@ -1258,8 +1508,13 @@ def remove_generated_resources(project_base: Path) -> None:
     """
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
+        project_base / ".gemini" / "skills",
         project_base / ".claude" / "commands" / "req",
-        project_base / ".codex" / "skills" / "req",
+        project_base / ".claude" / "skills",
+        project_base / ".codex" / "skills",
+        project_base / ".github" / "skills",
+        project_base / ".kiro" / "skills",
+        project_base / ".opencode" / "skill",
         project_base / ".req" / "docs",
     ]
     remove_globs = [
@@ -1341,8 +1596,41 @@ def run_remove(args: Namespace) -> None:
         prune_empty_dirs(project_base / root_name)
 
 
+def _validate_enable_static_check_command_executables(
+    static_check_config: Mapping[str, list[dict[str, Any]]],
+    *,
+    enforce: bool,
+) -> None:
+    """!
+    @brief Validate Command-module executables in `--enable-static-check` parsed entries.
+    @param static_check_config Parsed static-check entries grouped by canonical language.
+    @param enforce When false, skip validation and return immediately.
+    @throws ReqError If a Command entry references a non-executable `cmd` on this system.
+    @details
+      Validation scope is limited to Command entries coming from CLI specs.
+      Each Command `cmd` is resolved with `shutil.which`; on miss, raises `ReqError(code=1)`
+      before any configuration persistence.
+    @see SRS-250
+    """
+    if not enforce:
+        return
+    for entries in static_check_config.values():
+        for entry in entries:
+            if entry.get("module") != "Command":
+                continue
+            cmd_raw = entry.get("cmd")
+            cmd = cmd_raw.strip() if isinstance(cmd_raw, str) else ""
+            if not cmd or shutil.which(cmd) is None:
+                raise ReqError(
+                    f"Error: --enable-static-check Command cmd '{cmd or '<missing>'}' is not an executable program on this system.",
+                    1,
+                )
+
+
 def run(args: Namespace) -> None:
     """! @brief Handles the main initialization flow.
+    @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
+    @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
     """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
@@ -1377,13 +1665,7 @@ def run(args: Namespace) -> None:
             4,
         )
 
-    if use_here_config:
-        config = load_config(project_base)
-        guidelines_dir_value = config["guidelines-dir"]
-        doc_dir_value = config["docs-dir"]
-        test_dir_value = config["tests-dir"]
-        src_dir_values = config["src-dir"]
-    elif args.update:
+    if use_here_config or args.update:
         config = load_config(project_base)
         guidelines_dir_value = config["guidelines-dir"]
         doc_dir_value = config["docs-dir"]
@@ -1394,6 +1676,23 @@ def run(args: Namespace) -> None:
         doc_dir_value = doc_dir
         test_dir_value = test_dir
         src_dir_values = src_dir
+
+    if args.update:
+        persisted_flags = load_persisted_update_flags(project_base)
+        args.enable_models = bool(args.enable_models) or persisted_flags["enable-models"]
+        args.enable_tools = bool(args.enable_tools) or persisted_flags["enable-tools"]
+        args.enable_claude = bool(args.enable_claude) or persisted_flags["enable-claude"]
+        args.enable_codex = bool(args.enable_codex) or persisted_flags["enable-codex"]
+        args.enable_gemini = bool(args.enable_gemini) or persisted_flags["enable-gemini"]
+        args.enable_github = bool(args.enable_github) or persisted_flags["enable-github"]
+        args.enable_kiro = bool(args.enable_kiro) or persisted_flags["enable-kiro"]
+        args.enable_opencode = bool(args.enable_opencode) or persisted_flags["enable-opencode"]
+        args.enable_prompts = bool(args.enable_prompts) or persisted_flags["enable-prompts"]
+        args.enable_agents = bool(args.enable_agents) or persisted_flags["enable-agents"]
+        args.enable_skills = not ((not bool(args.enable_skills)) or persisted_flags["disable-skills"])
+        args.prompts_use_agents = bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
+        args.legacy = bool(args.legacy) or persisted_flags["legacy"]
+        args.preserve_models = bool(args.preserve_models) or persisted_flags["preserve-models"]
 
     if not isinstance(guidelines_dir_value, str) or not isinstance(doc_dir_value, str):
         raise ReqError("Error: invalid docs configuration values", 11)
@@ -1502,6 +1801,9 @@ def run(args: Namespace) -> None:
     enable_github = args.enable_github
     enable_kiro = args.enable_kiro
     enable_opencode = args.enable_opencode
+    enable_prompts = args.enable_prompts
+    enable_agents = args.enable_agents
+    enable_skills = args.enable_skills
     if not any(
         (
             enable_claude,
@@ -1512,15 +1814,54 @@ def run(args: Namespace) -> None:
             enable_opencode,
         )
     ):
+        if args.update:
+            raise ReqError(
+                "Error: .req/config.json has an invalid provider/artifact update configuration",
+                11,
+            )
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one --enable-* flag is required to generate prompts",
+            "Error: at least one --enable-* provider flag is required to generate prompts",
+            4,
+        )
+    if not any((enable_prompts, enable_agents, enable_skills)):
+        if args.update:
+            raise ReqError(
+                "Error: .req/config.json has an invalid provider/artifact update configuration",
+                11,
+            )
+        parser = build_parser()
+        parser.print_help()
+        raise ReqError(
+            "Error: at least one active artifact type is required (--enable-prompts, --enable-agents, or omit --disable-skills)",
             4,
         )
 
     # After validation and before any operation that modifies the filesystem, check for a new version.
     maybe_notify_newer_version(timeout_seconds=1.0)
+
+    # Parse --enable-static-check specs and compute merged static-check config (SRS-248..SRS-252).
+    new_static_check: dict = {}
+    enable_static_check_specs = getattr(args, "enable_static_check", None) or []
+    if enable_static_check_specs:
+        from .static_check import parse_enable_static_check as _parse_sc
+        for spec in enable_static_check_specs:
+            canonical_lang, lang_cfg = _parse_sc(spec)
+            new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
+    _validate_enable_static_check_command_executables(
+        new_static_check,
+        enforce=(not args.update and not use_here_config),
+    )
+
+    # Compute merged static-check: existing config + new entries (SRS-252).
+    if use_here_config or args.update:
+        existing_sc = load_static_check_from_config(project_base)
+        merged_static_check: dict = {k: list(v) for k, v in existing_sc.items()}
+        for lang, entries in new_static_check.items():
+            merged_static_check.setdefault(lang, []).extend(entries)
+    else:
+        merged_static_check = new_static_check
 
     if not args.update:
         save_config(
@@ -1529,6 +1870,21 @@ def run(args: Namespace) -> None:
             config_doc,
             config_test,
             config_src_dirs,
+            static_check_config=merged_static_check if merged_static_check else None,
+            persisted_flags=build_persisted_update_flags(args),
+        )
+    elif merged_static_check:
+        # --update path: re-save config.json with merged static-check entries (SRS-252).
+        existing_full_config = load_config(project_base)
+        persisted_flags = load_persisted_update_flags(project_base)
+        save_config(
+            project_base,
+            str(existing_full_config["guidelines-dir"]),
+            str(existing_full_config["docs-dir"]),
+            str(existing_full_config["tests-dir"]),
+            list(existing_full_config["src-dir"]),  # type: ignore[arg-type]
+            static_check_config=merged_static_check,
+            persisted_flags=persisted_flags,
         )
 
     sub_guidelines_dir = compute_sub_path(normalized_guidelines, abs_guidelines, project_base)
@@ -1597,47 +1953,60 @@ def run(args: Namespace) -> None:
     dlog(f"TOKEN_GUIDELINES_DIR={token_guidelines_dir}")
 
     codex_skills_root = None
+    claude_skills_root = None
+    gemini_skills_root = None
+    opencode_skills_root = None
+    github_skills_root = None
+    kiro_skills_root = None
     target_folders: list[Path] = []
-    if enable_codex:
+    if enable_codex and enable_prompts:
         target_folders.append(project_base / ".codex" / "prompts")
+    if enable_codex and enable_skills:
         codex_skills_root = project_base / ".codex" / "skills"
         target_folders.append(codex_skills_root)
-    if enable_github:
-        target_folders.extend(
-            [
-                project_base / ".github" / "agents",
-                project_base / ".github" / "prompts",
-            ]
-        )
-    if enable_gemini:
+    if enable_github and enable_agents:
+        target_folders.append(project_base / ".github" / "agents")
+    if enable_github and enable_prompts:
+        target_folders.append(project_base / ".github" / "prompts")
+    if enable_github and enable_skills:
+        github_skills_root = project_base / ".github" / "skills"
+        target_folders.append(github_skills_root)
+    if enable_gemini and enable_prompts:
         target_folders.extend(
             [
                 project_base / ".gemini" / "commands",
                 project_base / ".gemini" / "commands" / "req",
             ]
         )
-    if enable_kiro:
+    if enable_gemini and enable_skills:
+        gemini_skills_root = project_base / ".gemini" / "skills"
+        target_folders.append(gemini_skills_root)
+    if enable_kiro and enable_agents:
+        target_folders.append(project_base / ".kiro" / "agents")
+    if enable_kiro and enable_prompts:
+        target_folders.append(project_base / ".kiro" / "prompts")
+    if enable_kiro and enable_skills:
+        kiro_skills_root = project_base / ".kiro" / "skills"
+        target_folders.append(kiro_skills_root)
+    if enable_claude and enable_agents:
+        target_folders.append(project_base / ".claude" / "agents")
+    if enable_claude and enable_prompts:
         target_folders.extend(
             [
-                project_base / ".kiro" / "agents",
-                project_base / ".kiro" / "prompts",
-            ]
-        )
-    if enable_claude:
-        target_folders.extend(
-            [
-                project_base / ".claude" / "agents",
                 project_base / ".claude" / "commands",
                 project_base / ".claude" / "commands" / "req",
             ]
         )
-    if enable_opencode:
-        target_folders.extend(
-            [
-                project_base / ".opencode" / "agent",
-                project_base / ".opencode" / "command",
-            ]
-        )
+    if enable_claude and enable_skills:
+        claude_skills_root = project_base / ".claude" / "skills"
+        target_folders.append(claude_skills_root)
+    if enable_opencode and enable_agents:
+        target_folders.append(project_base / ".opencode" / "agent")
+    if enable_opencode and enable_prompts:
+        target_folders.append(project_base / ".opencode" / "command")
+    if enable_opencode and enable_skills:
+        opencode_skills_root = project_base / ".opencode" / "skill"
+        target_folders.append(opencode_skills_root)
     for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -1687,7 +2056,11 @@ def run(args: Namespace) -> None:
     modules_installed: dict[str, set[str]] = {
         key: set() for key in prompts_installed.keys()
     }
-    for prompt_path in sorted(prompts_dir.glob("*.md")):
+    prompt_sources: list[tuple[str, Path]] = [
+        *[("prompts", path) for path in sorted(prompts_dir.glob("*.md"))],
+    ]
+    for source_kind, prompt_path in prompt_sources:
+        is_prompt_source = source_kind == "prompts"
         PROMPT = prompt_path.stem
         content = prompt_path.read_text(encoding="utf-8")
         frontmatter, prompt_body = extract_frontmatter(content)
@@ -1713,6 +2086,7 @@ def run(args: Namespace) -> None:
 
         # Precompute description and Claude metadata so provider blocks can reuse them safely.
         desc_yaml = yaml_double_quote_escape(description)
+        skill_desc_yaml = yaml_double_quote_escape(extract_skill_description(frontmatter))
         claude_model = None
         claude_tools = None
         if configs:
@@ -1720,7 +2094,7 @@ def run(args: Namespace) -> None:
                 configs.get("claude"), PROMPT, "claude"
             )
 
-        if enable_codex:
+        if is_prompt_source and enable_codex and enable_prompts:
             # .codex/prompts
             dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_codex_prompt.exists()
@@ -1730,36 +2104,37 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("prompts")
 
+        if enable_codex and enable_skills and codex_skills_root is not None:
             # .codex/skills/req-<prompt>/SKILL.md
-            if codex_skills_root is not None:
-                codex_skill_dir = codex_skills_root / f"req-{PROMPT}"
-                codex_skill_dir.mkdir(parents=True, exist_ok=True)
-                codex_model = None
-                codex_tools = None
-                if configs:
-                    codex_model, codex_tools = get_model_tools_for_prompt(
-                        configs.get("codex"), PROMPT, "codex"
-                    )
-                codex_header_lines = [
-                    "---",
-                    f"name: req-{PROMPT}",
-                    f'description: "{desc_yaml}"',
-                ]
-                if include_models and codex_model:
-                    codex_header_lines.append(f"model: {codex_model}")
-                if include_tools and codex_tools:
-                    codex_header_lines.append(
-                        f"tools: {format_tools_inline_list(codex_tools)}"
-                    )
-                codex_skill_text = (
-                    "\n".join(codex_header_lines) + "\n---\n\n" + prompt_body_replaced
+            codex_skill_dir = codex_skills_root / f"req-{PROMPT}"
+            codex_skill_dir.mkdir(parents=True, exist_ok=True)
+            codex_model = None
+            codex_tools = None
+            if configs:
+                codex_model, codex_tools = get_model_tools_for_prompt(
+                    configs.get("codex"), PROMPT, "codex"
                 )
-                if not codex_skill_text.endswith("\n"):
-                    codex_skill_text += "\n"
-                write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
-                modules_installed["codex"].add("skills")
+            codex_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and codex_model:
+                codex_header_lines.append(f"model: {codex_model}")
+            if include_tools and codex_tools:
+                codex_header_lines.append(
+                    f"tools: {format_tools_inline_list(codex_tools)}"
+                )
+            codex_skill_text = (
+                "\n".join(codex_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not codex_skill_text.endswith("\n"):
+                codex_skill_text += "\n"
+            write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
+            prompts_installed["codex"].add(PROMPT)
+            modules_installed["codex"].add("skills")
 
-        if enable_gemini:
+        if is_prompt_source and enable_gemini and enable_prompts:
             # Gemini TOML
             dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
             existed = dst_toml.exists()
@@ -1797,7 +2172,7 @@ def run(args: Namespace) -> None:
             prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("commands")
 
-        if enable_kiro:
+        if is_prompt_source and enable_kiro and enable_prompts:
             # .kiro/prompts
             dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
@@ -1807,7 +2182,7 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("prompts")
 
-        if enable_claude:
+        if is_prompt_source and enable_claude and enable_agents:
             # .claude/agents
             dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
             existed = dst_claude_agent.exists()
@@ -1831,9 +2206,10 @@ def run(args: Namespace) -> None:
             dst_claude_agent.write_text(claude_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_agent}")
+            prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("agents")
 
-        if enable_github:
+        if is_prompt_source and enable_github and enable_agents:
             # .github/agents
             dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
             existed = dst_gh_agent.exists()
@@ -1859,9 +2235,10 @@ def run(args: Namespace) -> None:
             dst_gh_agent.write_text(gh_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_agent}")
+            prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("agents")
 
-        if enable_github:
+        if is_prompt_source and enable_github and enable_prompts:
             # .github/prompts
             dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
             existed = dst_gh_prompt.exists()
@@ -1893,7 +2270,7 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("prompts")
 
-        if enable_kiro:
+        if is_prompt_source and enable_kiro and enable_agents:
             # .kiro/agents
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
             existed = dst_kiro_agent.exists()
@@ -1921,9 +2298,10 @@ def run(args: Namespace) -> None:
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_kiro_agent}")
+            prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("agents")
 
-        if enable_opencode:
+        if is_prompt_source and enable_opencode and enable_agents:
             # .opencode/agent
             dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
             existed = dst_opencode_agent.exists()
@@ -1953,8 +2331,10 @@ def run(args: Namespace) -> None:
             dst_opencode_agent.write_text(opencode_text, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_opencode_agent}")
+            prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("agent")
 
+        if is_prompt_source and enable_opencode and enable_prompts:
             # .opencode/command
             dst_opencode_command = (
                 project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
@@ -1999,7 +2379,7 @@ def run(args: Namespace) -> None:
             prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("command")
 
-        if enable_claude:
+        if is_prompt_source and enable_claude and enable_prompts:
             # .claude/commands/req
             dst_claude_command = (
                 project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
@@ -2041,6 +2421,153 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_claude_command}")
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("commands")
+
+        if enable_claude and enable_skills and claude_skills_root is not None:
+            # .claude/skills/req-<prompt>/SKILL.md
+            claude_skill_dir = claude_skills_root / f"req-{PROMPT}"
+            claude_skill_dir.mkdir(parents=True, exist_ok=True)
+            claude_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and claude_model:
+                claude_skill_header_lines.append(f"model: {claude_model}")
+            if include_tools and claude_tools:
+                claude_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(claude_tools)}"
+                )
+            claude_skill_text = (
+                "\n".join(claude_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not claude_skill_text.endswith("\n"):
+                claude_skill_text += "\n"
+            write_text_file(claude_skill_dir / "SKILL.md", claude_skill_text)
+            prompts_installed["claude"].add(PROMPT)
+            modules_installed["claude"].add("skills")
+
+        if enable_gemini and enable_skills and gemini_skills_root is not None:
+            # .gemini/skills/req-<prompt>/SKILL.md
+            gemini_skill_dir = gemini_skills_root / f"req-{PROMPT}"
+            gemini_skill_dir.mkdir(parents=True, exist_ok=True)
+            gemini_skill_model = None
+            gemini_skill_tools = None
+            if configs:
+                gemini_skill_model, gemini_skill_tools = get_model_tools_for_prompt(
+                    configs.get("gemini"), PROMPT, "gemini"
+                )
+            gemini_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and gemini_skill_model:
+                gemini_skill_header_lines.append(f"model: {gemini_skill_model}")
+            if include_tools and gemini_skill_tools:
+                gemini_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(gemini_skill_tools)}"
+                )
+            gemini_skill_text = (
+                "\n".join(gemini_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not gemini_skill_text.endswith("\n"):
+                gemini_skill_text += "\n"
+            write_text_file(gemini_skill_dir / "SKILL.md", gemini_skill_text)
+            prompts_installed["gemini"].add(PROMPT)
+            modules_installed["gemini"].add("skills")
+
+        if enable_github and enable_skills and github_skills_root is not None:
+            # .github/skills/req-<prompt>/SKILL.md
+            github_skill_dir = github_skills_root / f"req-{PROMPT}"
+            github_skill_dir.mkdir(parents=True, exist_ok=True)
+            github_skill_model = None
+            github_skill_tools = None
+            if configs:
+                github_skill_model, github_skill_tools = get_model_tools_for_prompt(
+                    configs.get("copilot"), PROMPT, "copilot"
+                )
+            github_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and github_skill_model:
+                github_skill_header_lines.append(f"model: {github_skill_model}")
+            if include_tools and github_skill_tools:
+                github_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(github_skill_tools)}"
+                )
+            github_skill_text = (
+                "\n".join(github_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not github_skill_text.endswith("\n"):
+                github_skill_text += "\n"
+            write_text_file(github_skill_dir / "SKILL.md", github_skill_text)
+            prompts_installed["github"].add(PROMPT)
+            modules_installed["github"].add("skills")
+
+        if enable_kiro and enable_skills and kiro_skills_root is not None:
+            # .kiro/skills/req-<prompt>/SKILL.md
+            kiro_skill_dir = kiro_skills_root / f"req-{PROMPT}"
+            kiro_skill_dir.mkdir(parents=True, exist_ok=True)
+            kiro_skill_model, kiro_skill_tools = get_model_tools_for_prompt(
+                kiro_config, PROMPT, "kiro"
+            )
+            kiro_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if include_models and kiro_skill_model:
+                kiro_skill_header_lines.append(f"model: {kiro_skill_model}")
+            if include_tools and isinstance(kiro_skill_tools, list) and kiro_skill_tools:
+                kiro_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(kiro_skill_tools)}"
+                )
+            kiro_skill_text = (
+                "\n".join(kiro_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not kiro_skill_text.endswith("\n"):
+                kiro_skill_text += "\n"
+            write_text_file(kiro_skill_dir / "SKILL.md", kiro_skill_text)
+            prompts_installed["kiro"].add(PROMPT)
+            modules_installed["kiro"].add("skills")
+
+        if enable_opencode and enable_skills and opencode_skills_root is not None:
+            # .opencode/skill/req-<prompt>/SKILL.md
+            opencode_skill_dir = opencode_skills_root / f"req-{PROMPT}"
+            opencode_skill_dir.mkdir(parents=True, exist_ok=True)
+            opencode_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if configs:
+                oc_skill_model, _ = get_model_tools_for_prompt(
+                    configs.get("opencode"), PROMPT, "opencode"
+                )
+                oc_skill_tools_raw = get_raw_tools_for_prompt(
+                    configs.get("opencode"), PROMPT
+                )
+                if include_models and oc_skill_model:
+                    opencode_skill_header_lines.append(f"model: {oc_skill_model}")
+                if include_tools and oc_skill_tools_raw is not None:
+                    if isinstance(oc_skill_tools_raw, list):
+                        opencode_skill_header_lines.append(
+                            f"tools: {format_tools_inline_list(oc_skill_tools_raw)}"
+                        )
+                    elif isinstance(oc_skill_tools_raw, str):
+                        opencode_skill_header_lines.append(
+                            f'tools: "{yaml_double_quote_escape(oc_skill_tools_raw)}"'
+                        )
+            opencode_skill_text = (
+                "\n".join(opencode_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not opencode_skill_text.endswith("\n"):
+                opencode_skill_text += "\n"
+            write_text_file(opencode_skill_dir / "SKILL.md", opencode_skill_text)
+            prompts_installed["opencode"].add(PROMPT)
+            modules_installed["opencode"].add("skills")
 
     templates_target = req_root / "docs"
     if templates_target.exists():
@@ -2122,7 +2649,17 @@ def run(args: Namespace) -> None:
         installed_map: dict[str, set[str]],
         prompts_map: dict[str, set[str]],
     ) -> tuple[str, str, list[str]]:
-        """! @brief Format the installation summary table aligning header, prompts, and rows.
+        """!
+        @brief Format the ASCII installation summary table.
+        @details Builds a deterministic fixed-column table with columns: CLI, Prompts Installed, Modules Installed.
+        Prompts Installed is the sorted set of prompt identifiers installed for a CLI during the current
+        invocation, independent of artifact type (prompts/commands, agents, or skills). Modules Installed is the
+        sorted set of artifact category labels installed for a CLI during the current invocation.
+        @note Complexity: O(C * (P log P + M log M)) where C is CLI count, P is prompts per CLI, M is modules per CLI.
+        @note Side effects: None (pure formatting).
+        @param installed_map {dict[str, set[str]]} Mapping: CLI name -> installed module category labels.
+        @param prompts_map {dict[str, set[str]]} Mapping: CLI name -> installed prompt identifiers (union across artifact types).
+        @return {tuple[str, str, list[str]]} (header_line, separator_line, row_lines).
         """
 
         columns = ("CLI", "Prompts Installed", "Modules Installed")
@@ -2249,24 +2786,38 @@ def _format_files_structure_markdown(files: list[str], project_base: Path) -> st
 
 
 def _is_standalone_command(args: Namespace) -> bool:
-    """! @brief Check if the parsed args contain a standalone file command.
+    """!
+    @brief Check if the parsed args contain a standalone file command.
+    @param args Parsed CLI namespace.
+    @return True when any file-scope standalone flag is present.
+    @details Standalone commands require no `--base`/`--here`: `--files-tokens`,
+      `--files-references`, `--files-compress`, `--files-find`, `--test-static-check`,
+      and `--files-static-check`. SRS-253 adds `--files-static-check` to this group.
     """
     return bool(
         getattr(args, "files_tokens", None)
         or getattr(args, "files_references", None)
         or getattr(args, "files_compress", None)
         or getattr(args, "files_find", None)
+        or (getattr(args, "test_static_check", None) is not None)
+        or getattr(args, "files_static_check", None)
     )
 
 
 def _is_project_scan_command(args: Namespace) -> bool:
-    """! @brief Check if the parsed args contain a project scan command.
+    """!
+    @brief Check if the parsed args contain a project-scan command.
+    @param args Parsed CLI namespace.
+    @return True when any project-scan flag is present (requires `--base`/`--here`).
+    @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`,
+      and `--static-check`. SRS-257 adds `--static-check` to this group.
     """
     return bool(
         getattr(args, "references", False)
         or getattr(args, "compress", False)
         or getattr(args, "tokens", False)
         or getattr(args, "find", None)
+        or getattr(args, "static_check", False)
     )
 
 
@@ -2294,7 +2845,11 @@ def run_files_references(files: list[str]) -> None:
     """
     from .generate_markdown import generate_markdown
 
-    md = generate_markdown(files, verbose=VERBOSE)
+    md = generate_markdown(
+        files,
+        verbose=VERBOSE,
+        output_base=Path.cwd().resolve(),
+    )
     print(md)
 
 
@@ -2302,6 +2857,7 @@ def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> N
     """! @brief Execute --files-compress: compress arbitrary files.
     @param files List of source file paths to compress.
     @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
+    @details Renders output header paths relative to current working directory.
     """
     from .compress_files import compress_files
 
@@ -2309,6 +2865,7 @@ def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> N
         files,
         include_line_numbers=enable_line_numbers,
         verbose=VERBOSE,
+        output_base=Path.cwd().resolve(),
     )
     print(output)
 
@@ -2348,7 +2905,7 @@ def run_references(args: Namespace) -> None:
     files = _collect_source_files(src_dirs, project_base)
     if not files:
         raise ReqError("Error: no source files found in configured directories.", 1)
-    md = generate_markdown(files, verbose=VERBOSE)
+    md = generate_markdown(files, verbose=VERBOSE, output_base=project_base)
     files_structure = _format_files_structure_markdown(files, project_base)
     print(f"{files_structure}\n\n{md}")
 
@@ -2367,6 +2924,7 @@ def run_compress_cmd(args: Namespace) -> None:
         files,
         include_line_numbers=getattr(args, "enable_line_numbers", False),
         verbose=VERBOSE,
+        output_base=project_base,
     )
     print(output)
 
@@ -2421,6 +2979,119 @@ def run_tokens(args: Namespace) -> None:
     run_files_tokens(files)
 
 
+def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
+    """!
+    @brief Execute `--files-static-check`: run static analysis on an explicit file list.
+    @param files List of raw file paths supplied by the user.
+    @param args Parsed CLI namespace; `--here`/`--base` are used to locate config.json.
+    @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
+    @details
+      Project-base resolution order:
+      1. `--base PATH` -> use PATH.
+      2. `--here` -> use CWD.
+      3. Fallback -> use CWD.
+      If `.req/config.json` is not found at the resolved project base, emits a warning to
+      stderr and returns 0 (SRS-254).
+      For each file:
+      - Resolves absolute path; skips with warning if not a regular file.
+      - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension.
+      - Looks up language in the `"static-check"` config section; skips silently if absent.
+      - Executes each configured language entry sequentially via
+        `dispatch_static_check_for_file(filepath, lang_config)`.
+      Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
+    @see SRS-253, SRS-254, SRS-255
+    """
+    from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
+
+    # Resolve project base for config.json lookup
+    base_arg = getattr(args, "base", None)
+    here_arg = getattr(args, "here", False)
+    if base_arg:
+        project_base: Path = Path(base_arg).resolve()
+    elif here_arg:
+        project_base = Path.cwd().resolve()
+    else:
+        project_base = Path.cwd().resolve()
+
+    sc_config = load_static_check_from_config(project_base)
+    if not sc_config:
+        config_path = project_base / ".req" / "config.json"
+        if not config_path.is_file():
+            print(
+                "  Warning: .req/config.json not found; no static-check tools configured.",
+                file=sys.stderr,
+            )
+            return 0
+
+    overall = 0
+    for raw_path in files:
+        p = Path(raw_path)
+        if not p.is_file():
+            print(f"  Warning: skipping (not found or not a file): {raw_path}", file=sys.stderr)
+            continue
+        filepath = str(p.resolve())
+        ext = p.suffix.lower()
+        lang = STATIC_CHECK_EXT_TO_LANG.get(ext)
+        if not lang:
+            vlog(f"Skipping {raw_path}: no language mapping for extension '{ext}'")
+            continue
+        lang_configs = sc_config.get(lang)
+        if not lang_configs:
+            vlog(f"Skipping {raw_path}: no static-check config for language '{lang}'")
+            continue
+        for lang_config in lang_configs:
+            rc = dispatch_static_check_for_file(filepath, lang_config)
+            if rc != 0:
+                overall = 1
+    return overall
+
+
+def run_project_static_check_cmd(args: Namespace) -> int:
+    """!
+    @brief Execute `--static-check`: run static analysis on all project source files.
+    @param args Parsed CLI namespace; `--base`/`--here` required.
+    @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
+    @details
+      Uses the same file-collection logic as `--references` and `--compress` (SRS-177,
+      SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories,
+      applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching.
+      For each collected file:
+      - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension.
+      - Looks up language in the `"static-check"` section of `.req/config.json`.
+      - Skips silently when no tool is configured for the file's language.
+      - Executes each configured language entry sequentially via
+        `dispatch_static_check_for_file(filepath, lang_config)`.
+      Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
+    @throws ReqError If `--base`/`--here` is missing or no source files are found.
+    @see SRS-256, SRS-257
+    """
+    from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
+
+    project_base, src_dirs = _resolve_project_src_dirs(args)
+    sc_config = load_static_check_from_config(project_base)
+
+    files = _collect_source_files(src_dirs, project_base)
+    if not files:
+        raise ReqError("Error: no source files found in configured directories.", 1)
+
+    overall = 0
+    for filepath in files:
+        ext = Path(filepath).suffix.lower()
+        lang = STATIC_CHECK_EXT_TO_LANG.get(ext)
+        if not lang:
+            vlog(f"Skipping {filepath}: no language mapping for extension '{ext}'")
+            continue
+        lang_configs = sc_config.get(lang)
+        if not lang_configs:
+            vlog(f"Skipping {filepath}: no static-check config for language '{lang}'")
+            continue
+        for lang_config in lang_configs:
+            rc = dispatch_static_check_for_file(filepath, lang_config)
+            if rc != 0:
+                overall = 1
+    return overall
+
+
 def _resolve_project_base(args: Namespace) -> Path:
     """! @brief Resolve project base path for project-level commands.
     @param args Parsed CLI arguments namespace.
@@ -2447,17 +3118,37 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
     """
     project_base = _resolve_project_base(args)
 
+    src_dirs: list[str]
     if getattr(args, "here", False):
         config = load_config(project_base)
-        src_dirs = config.get("src-dir", [])
+        raw_src_dirs = config.get("src-dir", [])
+        if (
+            not isinstance(raw_src_dirs, list)
+            or not all(isinstance(item, str) for item in raw_src_dirs)
+        ):
+            raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+        src_dirs = raw_src_dirs
     else:
         # Source dirs can come from args or from config
-        src_dirs = getattr(args, "src_dir", None)
-        if not src_dirs:
+        src_dirs_arg = getattr(args, "src_dir", None)
+        if src_dirs_arg:
+            if (
+                not isinstance(src_dirs_arg, list)
+                or not all(isinstance(item, str) for item in src_dirs_arg)
+            ):
+                raise ReqError("Error: invalid --src-dir value.", 1)
+            src_dirs = src_dirs_arg
+        else:
             config_path = project_base / ".req" / "config.json"
             if config_path.is_file():
                 config = load_config(project_base)
-                src_dirs = config.get("src-dir", [])
+                raw_src_dirs = config.get("src-dir", [])
+                if (
+                    not isinstance(raw_src_dirs, list)
+                    or not all(isinstance(item, str) for item in raw_src_dirs)
+                ):
+                    raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+                src_dirs = raw_src_dirs
             else:
                 raise ReqError(
                     "Error: --src-dir is required or .req/config.json must exist.", 1
@@ -2506,6 +3197,13 @@ def main(argv: Optional[list[str]] = None) -> int:
                     args.files_find,
                     enable_line_numbers=getattr(args, "enable_line_numbers", False),
                 )
+            elif getattr(args, "test_static_check", None) is not None:
+                from .static_check import run_static_check
+                rc = run_static_check(args.test_static_check)
+                return rc
+            elif getattr(args, "files_static_check", None):
+                rc = run_files_static_check_cmd(args.files_static_check, args)
+                return rc
             return 0
         # Project scan commands (require --base/--here)
         if _is_project_scan_command(args):
@@ -2517,6 +3215,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                 run_tokens(args)
             elif getattr(args, "find", None):
                 run_find(args)
+            elif getattr(args, "static_check", False):
+                rc = run_project_static_check_cmd(args)
+                return rc
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):
