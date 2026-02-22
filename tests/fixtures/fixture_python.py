@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# Single line comment
-"""
-Multi-line docstring comment
-spanning multiple lines
+"""!
+@file fixture_python.py
+@brief Comprehensive Python test fixture for parser validation.
+@details Covers classes, protocols, decorators, generators, async functions, and rich Doxygen-tagged constructs used to validate extraction workflows and deterministic parser behavior.
 """
 import os  #!< @brief OS interface module. @details Provides OS-dependent functionality.
 import sys  #!< @brief System-specific parameters. @see sys.exit() for exit handling.

@@ -50,6 +50,17 @@ FIXTURE_FILE_NAMES = sorted(
 )
 
 
+def _extract_fixture_header_window(fixture_path: Path, max_lines: int = 40) -> str:
+    """!
+    @brief Extract the leading header window from a fixture source file.
+    @param fixture_path Fixture file path.
+    @param max_lines Maximum number of leading lines to include.
+    @return Header slice used for file-level Doxygen assertions.
+    """
+    text = fixture_path.read_text(encoding="utf-8", errors="replace")
+    return "\n".join(text.splitlines()[:max_lines])
+
+
 def _tag_slug(tag: str) -> str:
     """!
     @brief Convert a Doxygen tag key into a deterministic ASCII slug.
@@ -283,6 +294,20 @@ class TestNormalizeWhitespace:
         text = "line1  \nline2  "
         result = _normalize_whitespace(text)
         assert result == "line1\nline2"
+
+
+class TestFixtureFileLevelDoxygenDocumentation:
+    """! @brief Validate file-level Doxygen metadata on every fixture source file."""
+
+    @pytest.mark.parametrize("fixture_name", FIXTURE_FILE_NAMES)
+    def test_fixture_header_contains_file_brief_details(self, fixture_name):
+        """! @brief Each fixture file must declare @file, @brief, and @details in the file-level header window."""
+        fixture_path = FIXTURE_DIR / fixture_name
+        header_window = _extract_fixture_header_window(fixture_path)
+
+        assert "@file" in header_window, f"{fixture_name}: missing @file in header"
+        assert "@brief" in header_window, f"{fixture_name}: missing @brief in header"
+        assert "@details" in header_window, f"{fixture_name}: missing @details in header"
 
 
 def _fixture_language_from_path(fixture_path: Path) -> str:

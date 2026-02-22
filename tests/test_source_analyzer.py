@@ -204,7 +204,7 @@ EXPECTED_COUNTS = {
     "python": {
         ElementType.CLASS: 7,
         ElementType.COMMENT_MULTI: 41,
-        ElementType.COMMENT_SINGLE: 32,
+        ElementType.COMMENT_SINGLE: 31,
         ElementType.DECORATOR: 9,
         ElementType.FUNCTION: 32,
         ElementType.IMPORT: 7,
