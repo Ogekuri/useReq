@@ -260,6 +260,19 @@ class TestFormatDoxygenFieldsAsMarkdown:
         lines = format_doxygen_fields_as_markdown(fields)
         assert len(lines) == 1
 
+    def test_format_multiple_values_of_same_tag_as_distinct_lines(self):
+        """! @brief Emit one markdown bullet per extracted field occurrence for the same tag."""
+        fields = {
+            "param[in]": ["x First input.", "y Second input."],
+            "return": ["Result value."],
+        }
+        lines = format_doxygen_fields_as_markdown(fields)
+        assert lines == [
+            "- Param[in]: x First input.",
+            "- Param[in]: y Second input.",
+            "- Return: Result value.",
+        ]
+
 
 class TestStripCommentDelimiters:
     """! @brief Test suite for _strip_comment_delimiters()."""
@@ -340,12 +353,17 @@ def _is_postfix_comment_text(comment_text: str) -> bool:
     return bool(re.match(r"^\s*(?:#|//+|--|/\*+|;+)!?<", comment_text))
 
 
-def _expected_doxygen_fields_for_construct(construct, comment_elements) -> dict[str, list[str]]:
+def _expected_doxygen_fields_for_construct(
+    construct,
+    comment_elements,
+    non_comment_elements,
+) -> dict[str, list[str]]:
     """!
     @brief Compute deterministic expected Doxygen fields for one construct.
     @details Resolves candidate comments in this order: same-line postfix inline comment, nearest preceding standalone comment block within two lines, nearest following standalone postfix comment within two lines.
     @param construct Non-comment SourceElement under validation.
     @param comment_elements Sequence of comment SourceElement values extracted from the same fixture.
+    @param non_comment_elements Sequence of non-comment SourceElement values extracted from the same fixture.
     @return Expected Doxygen fields dictionary for the construct.
     """
     associated_comment = None
@@ -369,13 +387,42 @@ def _expected_doxygen_fields_for_construct(construct, comment_elements) -> dict[
             for comment in comment_elements
             if comment.name != "inline"
             and comment.line_end < construct.line_start
-            and construct.line_start - comment.line_end <= 2
         ]
         if preceding_candidates:
-            associated_comment = max(
-                preceding_candidates,
-                key=lambda comment: (comment.line_end, comment.line_start),
-            )
+            def _has_blocking_element(comment) -> bool:
+                return any(
+                    other is not construct
+                    and other.line_start > comment.line_end
+                    and other.line_start < construct.line_start
+                    for other in non_comment_elements
+                )
+
+            near_preceding_candidates = [
+                comment
+                for comment in preceding_candidates
+                if construct.line_start - comment.line_end <= 2
+            ]
+            if near_preceding_candidates:
+                for comment in sorted(
+                    near_preceding_candidates,
+                    key=lambda c: (c.line_end, c.line_start),
+                    reverse=True,
+                ):
+                    if not _has_blocking_element(comment):
+                        associated_comment = comment
+                        break
+            else:
+                for comment in sorted(
+                    preceding_candidates,
+                    key=lambda c: (c.line_end, c.line_start),
+                    reverse=True,
+                ):
+                    comment_text = getattr(comment, "comment_source", None) or comment.extract
+                    if not parse_doxygen_comment(comment_text):
+                        continue
+                    if not _has_blocking_element(comment):
+                        associated_comment = comment
+                        break
 
     if associated_comment is None:
         following_postfix_candidates = [
@@ -445,7 +492,11 @@ class TestFixtureDoxygenFieldExtraction:
         assert construct_elements, f"No constructs extracted from fixture {fixture_name}"
 
         for construct in construct_elements:
-            expected_fields = _expected_doxygen_fields_for_construct(construct, comment_elements)
+            expected_fields = _expected_doxygen_fields_for_construct(
+                construct,
+                comment_elements,
+                construct_elements,
+            )
             assert construct.doxygen_fields == expected_fields, (
                 f"Unexpected Doxygen fields for fixture={fixture_name} "
                 f"type={construct.type_label} name={construct.name} "

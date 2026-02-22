@@ -22,7 +22,6 @@ from usereq.cli import (
     _collect_source_files,
 )
 from pathlib import Path
-from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 from usereq.doxygen_parser import parse_doxygen_comment
 from usereq.find_constructs import LANGUAGE_TAGS
 from usereq.generate_markdown import detect_language
@@ -119,10 +118,10 @@ def cmd_major(extra):
 
 
 def _aggregate_reference_doxygen_fields(element) -> Dict[str, List[str]]:
-    """! @brief Aggregate Doxygen fields for references output from associated and body comments.
+    """! @brief Aggregate Doxygen fields for references output from canonical construct association.
     @param element SourceAnalyzer element potentially containing doxygen_fields and body_comments.
     @return Deterministic tag->values mapping preserving discovery order.
-    @details Merges `element.doxygen_fields` and parsed Doxygen tags from each body-comment tuple.
+    @details Uses `element.doxygen_fields` plus body comments starting in the first 3 construct lines to retain docstring-style Doxygen while preventing internal-body duplication.
     """
     aggregate: Dict[str, List[str]] = {}
 
@@ -135,6 +134,9 @@ def _aggregate_reference_doxygen_fields(element) -> Dict[str, List[str]]:
     for body_comment in getattr(element, "body_comments", []):
         if not isinstance(body_comment, tuple) or len(body_comment) < 3:
             continue
+        comment_line_start = body_comment[0]
+        if comment_line_start > element.line_start + 3:
+            continue
         parsed = parse_doxygen_comment(body_comment[2])
         for tag, values in parsed.items():
             if tag not in aggregate:
@@ -142,6 +144,16 @@ def _aggregate_reference_doxygen_fields(element) -> Dict[str, List[str]]:
             aggregate[tag].extend(values)
 
     return aggregate
+
+
+def _render_expected_doxygen_lines(doxygen_fields: Dict[str, List[str]]) -> list[str]:
+    """! @brief Render expected Doxygen markdown lines independently from production formatter."""
+    lines: list[str] = []
+    for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+        normalized_tag = tag[1:]
+        for value in doxygen_fields.get(normalized_tag, []):
+            lines.append(f"- {label}: {value}")
+    return lines
 
 
 def _collect_reference_rendered_elements(filepath: Path) -> list:
@@ -193,16 +205,54 @@ def _collect_reference_rendered_elements(filepath: Path) -> list:
 
 
 def _count_source_doxygen_tags(filepath: Path) -> Dict[str, int]:
-    """! @brief Count every parseable Doxygen tag occurrence emitted from source constructs."""
+    """! @brief Count every parseable Doxygen field occurrence emitted from source constructs."""
     counts = {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
     for element in _collect_reference_rendered_elements(filepath):
         fields = _aggregate_reference_doxygen_fields(element)
         for tag in counts:
             normalized_tag = tag[1:]
-            if fields.get(normalized_tag):
-                counts[tag] += 1
+            counts[tag] += len(fields.get(normalized_tag, []))
 
     return counts
+
+
+def _count_file_level_doxygen_tags(filepath: Path) -> Dict[str, int]:
+    """! @brief Count Doxygen tag occurrences from the first file-level (`@file`) comment block."""
+    language = detect_language(str(filepath))
+    assert language is not None, f"Unsupported fixture extension: {filepath}"
+
+    analyzer = SourceAnalyzer()
+    elements = analyzer.analyze(str(filepath), language)
+    analyzer.enrich(elements, language, str(filepath))
+
+    counts = _init_zero_tag_counts()
+    file_tag_pattern = re.compile(r"(?<!\w)(?:@|\\)file\b")
+    comment_elements = sorted(
+        [
+            element for element in elements
+            if element.element_type in (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)
+            and element.name != "inline"
+        ],
+        key=lambda element: (element.line_start, element.line_end),
+    )
+    for comment in comment_elements:
+        comment_text = getattr(comment, "comment_source", None) or comment.extract
+        if not comment_text:
+            continue
+        if not file_tag_pattern.search(comment_text):
+            continue
+        parsed = parse_doxygen_comment(comment_text)
+        for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+            counts[tag] += len(parsed.get(tag[1:], []))
+        break
+    return counts
+
+
+def _count_effective_exportable_doxygen_tags(filepath: Path) -> Dict[str, int]:
+    """! @brief Count Doxygen tags expected in command output (construct-associated + file-level)."""
+    counts = _count_source_doxygen_tags(filepath)
+    file_level_counts = _count_file_level_doxygen_tags(filepath)
+    return _merge_tag_counts(counts, file_level_counts)
 
 
 def _count_output_doxygen_labels(output: str) -> Dict[str, int]:
@@ -335,7 +385,7 @@ def _collect_expected_doxygen_sequences(filepath: Path) -> list[list[str]]:
         aggregate_fields = _aggregate_reference_doxygen_fields(element)
         if not aggregate_fields:
             continue
-        sequence = format_doxygen_fields_as_markdown(aggregate_fields)
+        sequence = _render_expected_doxygen_lines(aggregate_fields)
         if sequence:
             sequences.append(sequence)
     return sequences
@@ -459,6 +509,9 @@ def _collect_expected_find_constructs(
         for body_comment in getattr(element, "body_comments", []):
             if not isinstance(body_comment, tuple) or len(body_comment) < 3:
                 continue
+            comment_line_start = body_comment[0]
+            if comment_line_start > element.line_start + 3:
+                continue
             parsed = parse_doxygen_comment(body_comment[2])
             if parsed:
                 _merge_doxygen_fields(aggregate_fields, parsed)
@@ -469,7 +522,8 @@ def _collect_expected_find_constructs(
                 "name": element.name,
                 "line_start": element.line_start,
                 "line_end": element.line_end,
-                "doxygen_lines": format_doxygen_fields_as_markdown(aggregate_fields),
+                "doxygen_fields": aggregate_fields,
+                "doxygen_lines": _render_expected_doxygen_lines(aggregate_fields),
             }
         )
 
@@ -486,16 +540,11 @@ def _build_fixture_specific_pattern(filepath: Path, tag_filter: str) -> str:
 
 def _count_find_source_doxygen_tags(expected_constructs: list[dict]) -> Dict[str, int]:
     """! @brief Count source Doxygen tags across expected find-construct payload."""
-    label_to_tag = {label: tag for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
     counts = {tag: 0 for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER}
     for expected in expected_constructs:
-        for line in expected["doxygen_lines"]:
-            match = re.match(r"^\s*-\s*([^:]+):", line)
-            if not match:
-                continue
-            tag = label_to_tag.get(match.group(1))
-            if tag is not None:
-                counts[tag] += 1
+        fields = expected.get("doxygen_fields", {})
+        for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+            counts[tag] += len(fields.get(tag[1:], []))
     return counts
 
 
@@ -782,7 +831,7 @@ class TestFilesReferencesCommand:
         capsys,
     ):
         """DOX-014: Every fixture must preserve total Doxygen field count in output."""
-        source_counts = _count_source_doxygen_tags(fixture_file)
+        source_counts = _count_effective_exportable_doxygen_tags(fixture_file)
 
         rc = main(["--files-references", str(fixture_file)])
         assert rc == 0
@@ -1096,7 +1145,7 @@ class TestReferencesCommand:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        source_counts = _count_source_doxygen_tags(copied_fixture)
+        source_counts = _count_effective_exportable_doxygen_tags(copied_fixture)
 
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--references"])
@@ -1379,6 +1428,10 @@ class TestFindCommandsDoxygen:
         )
         assert expected_constructs, f"No expected constructs for {fixture_file.name}"
         source_counts = _count_find_source_doxygen_tags(expected_constructs)
+        source_counts = _merge_tag_counts(
+            source_counts,
+            _count_file_level_doxygen_tags(fixture_file),
+        )
 
         rc = main(["--files-find", tag_filter, pattern, str(fixture_file)])
         assert rc == 0
@@ -1514,6 +1567,10 @@ class TestFindCommandsDoxygen:
         )
         assert expected_constructs, f"No expected constructs for {fixture_file.name}"
         source_counts = _count_find_source_doxygen_tags(expected_constructs)
+        source_counts = _merge_tag_counts(
+            source_counts,
+            _count_file_level_doxygen_tags(copied_fixture),
+        )
 
         monkeypatch.chdir(tmp_path)
         rc = main(["--here", "--find", tag_filter, pattern])
@@ -1668,105 +1725,76 @@ class TestProjectExamplesDoxygenOccurrences:
         for index, filepath in enumerate(files, start=1):
             print(f"[FILE-LIST] {index:02d}. {filepath.as_posix()}")
 
-        phase1_baseline_by_file: Dict[Path, Dict[str, int]] = {}
-        phase1_baseline_directory = _init_zero_tag_counts()
+        phase1_expected_directory = _init_zero_tag_counts()
+        phase1_actual_directory = _init_zero_tag_counts()
+        phase2_expected_directory = _init_zero_tag_counts()
+        phase2_actual_directory = _init_zero_tag_counts()
 
         for filepath in files:
-            baseline_counts = _count_source_doxygen_tags(filepath)
-            phase1_baseline_by_file[filepath] = baseline_counts
-            _merge_tag_counts(phase1_baseline_directory, baseline_counts)
-            _print_file_tag_counts("PHASE1-BASELINE", filepath, baseline_counts)
+            phase1_expected_counts = _count_effective_exportable_doxygen_tags(filepath)
+            _merge_tag_counts(phase1_expected_directory, phase1_expected_counts)
+            _print_file_tag_counts("PHASE1-BASELINE", filepath, phase1_expected_counts)
 
-        _print_directory_tag_counts("PHASE1-BASELINE", phase1_baseline_directory)
-
-        phase1_directory = _init_zero_tag_counts()
-        for filepath in files:
-            rc, stdout, _ = _run_cli_capture(["--files-references", str(filepath)])
+            rc, references_stdout, _ = _run_cli_capture(["--files-references", str(filepath)])
             assert rc == 0, f"phase1::{filepath.as_posix()}: --files-references failed"
-
-            phase1_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
-            _merge_tag_counts(phase1_directory, phase1_counts)
+            phase1_counts = _labels_to_tags_counts(
+                _count_output_doxygen_labels(references_stdout)
+            )
+            _merge_tag_counts(phase1_actual_directory, phase1_counts)
             _print_file_tag_counts("PHASE1", filepath, phase1_counts)
-
             _assert_tag_counts_match(
-                expected=phase1_baseline_by_file[filepath],
+                expected=phase1_expected_counts,
                 actual=phase1_counts,
                 context_id=f"phase1::{filepath.as_posix()}",
             )
 
-        _print_directory_tag_counts("PHASE1", phase1_directory)
-        _assert_tag_counts_match(
-            expected=phase1_baseline_directory,
-            actual=phase1_directory,
-            context_id="phase1::directory",
-        )
-
-        phase2_expected_directory = _init_zero_tag_counts()
-        phase2_directory = _init_zero_tag_counts()
-        for filepath in files:
             tag_filter = _build_language_tag_filter(filepath)
-            constructs = _collect_expected_find_constructs(
+            expected_find_constructs = _collect_expected_find_constructs(
                 filepath=filepath,
                 tag_filter=tag_filter,
                 pattern=".*",
             )
-            print(
-                f"[PHASE2] {filepath.as_posix()} | "
-                f"extractable_constructs={len(constructs)}"
-            )
-
-            phase2_expected_counts = _count_find_source_doxygen_tags(constructs)
-            _merge_tag_counts(phase2_expected_directory, phase2_expected_counts)
-            _print_file_tag_counts("PHASE2-BASELINE", filepath, phase2_expected_counts)
-
-            phase2_file_counts = _init_zero_tag_counts()
-            for construct in constructs:
-                pattern = rf"^{re.escape(str(construct['name']))}$"
-                rc, stdout, _ = _run_cli_capture(
-                    [
-                        "--files-find",
-                        str(construct["type_label"]),
-                        pattern,
-                        str(filepath),
-                    ]
-                )
-                assert rc == 0, (
-                    f"phase2::{filepath.as_posix()}: --files-find failed "
-                    f"for {construct['type_label']}:{construct['name']}"
-                )
-
-                block = _extract_construct_block(
-                    output=stdout,
-                    type_label=str(construct["type_label"]),
-                    name=str(construct["name"]),
-                    line_start=int(construct["line_start"]),
-                    line_end=int(construct["line_end"]),
-                )
-                construct_counts = _labels_to_tags_counts(
-                    _count_output_doxygen_labels(block)
-                )
-                _merge_tag_counts(phase2_file_counts, construct_counts)
-
+            if not expected_find_constructs:
                 print(
-                    f"[PHASE2-CONSTRUCT] {filepath.name} | "
-                    f"{construct['type_label']}:{construct['name']} "
-                    f"{construct['line_start']}-{construct['line_end']} | "
-                    f"fields={_sum_tag_counts(construct_counts)}"
+                    f"[PHASE2-SKIP] {filepath.as_posix()} | "
+                    "no extractable constructs for --files-find"
                 )
-
-            _merge_tag_counts(phase2_directory, phase2_file_counts)
-            _print_file_tag_counts("PHASE2", filepath, phase2_file_counts)
+                continue
+            phase2_expected_counts = _count_find_source_doxygen_tags(
+                expected_find_constructs
+            )
+            phase2_expected_counts = _merge_tag_counts(
+                phase2_expected_counts,
+                _count_file_level_doxygen_tags(filepath),
+            )
+            _merge_tag_counts(phase2_expected_directory, phase2_expected_counts)
+            rc, files_find_stdout, _ = _run_cli_capture(
+                ["--files-find", tag_filter, ".*", str(filepath)]
+            )
+            assert rc == 0, f"phase2::{filepath.as_posix()}: --files-find failed"
+            phase2_counts = _labels_to_tags_counts(
+                _count_output_doxygen_labels(files_find_stdout)
+            )
+            _merge_tag_counts(phase2_actual_directory, phase2_counts)
+            _print_file_tag_counts("PHASE2", filepath, phase2_counts)
             _assert_tag_counts_match(
                 expected=phase2_expected_counts,
-                actual=phase2_file_counts,
+                actual=phase2_counts,
                 context_id=f"phase2::{filepath.as_posix()}",
             )
 
+        _print_directory_tag_counts("PHASE1-BASELINE", phase1_expected_directory)
+        _print_directory_tag_counts("PHASE1", phase1_actual_directory)
+        _assert_tag_counts_match(
+            expected=phase1_expected_directory,
+            actual=phase1_actual_directory,
+            context_id="phase1::directory",
+        )
         _print_directory_tag_counts("PHASE2-BASELINE", phase2_expected_directory)
-        _print_directory_tag_counts("PHASE2", phase2_directory)
+        _print_directory_tag_counts("PHASE2", phase2_actual_directory)
         _assert_tag_counts_match(
             expected=phase2_expected_directory,
-            actual=phase2_directory,
+            actual=phase2_actual_directory,
             context_id="phase2::directory",
         )
 
@@ -1781,7 +1809,7 @@ class TestProjectExamplesDoxygenOccurrences:
     ):
         """DOX-018: Per-file multiline-regex tag discovery must align with --files-references effective count parity."""
         regex_counts = _count_source_doxygen_tags_with_regex(filepath)
-        expected_counts = _count_source_doxygen_tags(filepath)
+        expected_counts = _count_effective_exportable_doxygen_tags(filepath)
         for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
             if int(expected_counts[tag]) > 0:
                 assert int(regex_counts[tag]) > 0, (
@@ -1832,7 +1860,7 @@ class TestProjectExamplesReferencesDoxygenParity:
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
         regex_counts = _count_source_doxygen_tags_with_regex(copied)
-        expected_counts = _count_source_doxygen_tags(copied)
+        expected_counts = _count_effective_exportable_doxygen_tags(copied)
         for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
             if int(expected_counts[tag]) > 0:
                 assert int(regex_counts[tag]) > 0, (
@@ -1874,6 +1902,10 @@ class TestProjectExamplesFilesFindDoxygenParity:
             pytest.skip(f"No extractable constructs for {filepath.name}")
 
         expected_counts = _count_find_source_doxygen_tags(constructs)
+        expected_counts = _merge_tag_counts(
+            expected_counts,
+            _count_file_level_doxygen_tags(filepath),
+        )
         regex_counts = _count_source_doxygen_tags_with_regex(filepath)
         for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
             if int(expected_counts[tag]) > 0:
@@ -1882,21 +1914,17 @@ class TestProjectExamplesFilesFindDoxygenParity:
                     f"regex extraction did not discover effective tag {tag}"
                 )
 
-        output_counts = _init_zero_tag_counts()
+        rc, stdout, _ = _run_cli_capture(
+            [
+                "--files-find",
+                tag_filter,
+                ".*",
+                str(filepath),
+            ]
+        )
+        assert rc == 0, f"--files-find::{filepath.as_posix()}: failed for aggregate run"
+        output_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
         for construct in constructs:
-            pattern = rf"^{re.escape(str(construct['name']))}$"
-            rc, stdout, _ = _run_cli_capture(
-                [
-                    "--files-find",
-                    str(construct["type_label"]),
-                    pattern,
-                    str(filepath),
-                ]
-            )
-            assert rc == 0, (
-                f"--files-find::{filepath.as_posix()}: failed "
-                f"for {construct['type_label']}:{construct['name']}"
-            )
             block = _extract_construct_block(
                 output=stdout,
                 type_label=str(construct["type_label"]),
@@ -1904,10 +1932,10 @@ class TestProjectExamplesFilesFindDoxygenParity:
                 line_start=int(construct["line_start"]),
                 line_end=int(construct["line_end"]),
             )
-            construct_counts = _labels_to_tags_counts(
-                _count_output_doxygen_labels(block)
+            assert block, (
+                f"--files-find::{filepath.as_posix()}: missing block "
+                f"for {construct['type_label']}:{construct['name']}"
             )
-            _merge_tag_counts(output_counts, construct_counts)
 
         _assert_tag_counts_match(
             expected=expected_counts,
@@ -1958,6 +1986,10 @@ class TestProjectExamplesFindDoxygenParity:
             pytest.skip(f"No extractable constructs for {filepath.name}")
 
         expected_counts = _count_find_source_doxygen_tags(constructs)
+        expected_counts = _merge_tag_counts(
+            expected_counts,
+            _count_file_level_doxygen_tags(copied),
+        )
         regex_counts = _count_source_doxygen_tags_with_regex(copied)
         for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
             if int(expected_counts[tag]) > 0:
@@ -1967,21 +1999,17 @@ class TestProjectExamplesFindDoxygenParity:
                 )
 
         monkeypatch.chdir(tmp_path)
-        output_counts = _init_zero_tag_counts()
+        rc, stdout, _ = _run_cli_capture(
+            [
+                "--here",
+                "--find",
+                tag_filter,
+                ".*",
+            ]
+        )
+        assert rc == 0, f"--find::{filepath.as_posix()}: failed for aggregate run"
+        output_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
         for construct in constructs:
-            pattern = rf"^{re.escape(str(construct['name']))}$"
-            rc, stdout, _ = _run_cli_capture(
-                [
-                    "--here",
-                    "--find",
-                    str(construct["type_label"]),
-                    pattern,
-                ]
-            )
-            assert rc == 0, (
-                f"--find::{filepath.as_posix()}: failed "
-                f"for {construct['type_label']}:{construct['name']}"
-            )
             block = _extract_construct_block(
                 output=stdout,
                 type_label=str(construct["type_label"]),
@@ -1989,10 +2017,10 @@ class TestProjectExamplesFindDoxygenParity:
                 line_start=int(construct["line_start"]),
                 line_end=int(construct["line_end"]),
             )
-            construct_counts = _labels_to_tags_counts(
-                _count_output_doxygen_labels(block)
+            assert block, (
+                f"--find::{filepath.as_posix()}: missing block "
+                f"for {construct['type_label']}:{construct['name']}"
             )
-            _merge_tag_counts(output_counts, construct_counts)
 
         _assert_tag_counts_match(
             expected=expected_counts,

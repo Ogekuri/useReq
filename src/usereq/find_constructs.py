@@ -112,7 +112,7 @@ def _merge_doxygen_fields(
 
 def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]:
     """! @brief Build aggregate Doxygen fields for one construct.
-    @details Aggregates fields from two sources: pre-associated element.doxygen_fields and all comment snippets extracted from element.body_comments. Each comment snippet is parsed with parse_doxygen_comment() and merged in discovery order.
+    @details Uses canonical `element.doxygen_fields` from `SourceAnalyzer.enrich()` and merges only body comments located at construct start (first 3 lines) to retain docstring-style Doxygen blocks while preventing internal-body duplication.
     @param element SourceElement instance potentially enriched with doxygen_fields and body_comments.
     @return Dictionary tag->list preserving tag content insertion order.
     """
@@ -121,16 +121,42 @@ def _extract_construct_doxygen_fields(element) -> dict[str, list[str]]:
     if hasattr(element, "doxygen_fields") and element.doxygen_fields:
         _merge_doxygen_fields(aggregate, element.doxygen_fields)
 
-    body_comments = getattr(element, "body_comments", [])
-    for body_comment in body_comments:
+    for body_comment in getattr(element, "body_comments", []):
         if not isinstance(body_comment, tuple) or len(body_comment) < 3:
             continue
-        comment_text = body_comment[2]
-        parsed_fields = parse_doxygen_comment(comment_text)
+        comment_line_start = body_comment[0]
+        if comment_line_start > element.line_start + 3:
+            continue
+        parsed_fields = parse_doxygen_comment(body_comment[2])
         if parsed_fields:
             _merge_doxygen_fields(aggregate, parsed_fields)
 
     return aggregate
+
+
+def _extract_file_level_doxygen_fields(elements: list) -> dict[str, list[str]]:
+    """! @brief Extract file-level Doxygen fields from the first comment containing `@file`.
+    @param elements SourceAnalyzer output for one source file.
+    @return Parsed Doxygen fields from the file-level comment; empty dictionary if absent.
+    @details Scans non-inline comment elements in source order and parses the first block containing `@file` or `\\file` markers.
+    """
+    file_tag_pattern = re.compile(r"(?<!\w)(?:@|\\)file\b")
+    comment_elements = sorted(
+        [
+            element for element in elements
+            if element.element_type.name.startswith("COMMENT")
+            and getattr(element, "name", "") != "inline"
+        ],
+        key=lambda element: (element.line_start, element.line_end),
+    )
+    for comment in comment_elements:
+        comment_text = comment.comment_source or comment.extract
+        if not comment_text:
+            continue
+        if not file_tag_pattern.search(comment_text):
+            continue
+        return parse_doxygen_comment(comment_text)
+    return {}
 
 
 def _strip_construct_comments(
@@ -278,6 +304,12 @@ def find_constructs_in_files(
 
             if matches:
                 header = f"@@@ {fpath} | {lang}"
+                file_level_doxygen_fields = _extract_file_level_doxygen_fields(elements)
+                file_level_doxygen_lines = []
+                if file_level_doxygen_fields:
+                    file_level_doxygen_lines = format_doxygen_fields_as_markdown(
+                        file_level_doxygen_fields
+                    )
                 constructs_md = "\n\n".join(
                     format_construct(
                         el,
@@ -287,7 +319,11 @@ def find_constructs_in_files(
                     )
                     for el in matches
                 )
-                parts.append(f"{header}\n\n{constructs_md}")
+                if file_level_doxygen_lines:
+                    file_level_block = "\n".join(file_level_doxygen_lines)
+                    parts.append(f"{header}\n{file_level_block}\n\n{constructs_md}")
+                else:
+                    parts.append(f"{header}\n\n{constructs_md}")
                 total_matches += len(matches)
                 ok_count += 1
                 if verbose:

@@ -155,17 +155,18 @@ def _normalize_whitespace(text: str) -> str:
 def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]:
     """!
     @brief Format extracted Doxygen fields as Markdown bulleted list.
-    @details Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ prefix, appends ':'. Skips tags not present in input. Each tag's content items are concatenated.
+    @details Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ prefix, and appends ':'. Skips tags not present in input. Each extracted field occurrence is emitted as an independent markdown bullet.
     @param doxygen_fields Dictionary of tag -> content list from parse_doxygen_comment().
     @return List of Markdown lines (each starting with '- ').
     @note Output order matches DOXYGEN_TAGS sequence.
     """
     lines = []
     for tag in DOXYGEN_TAGS:
-        if tag in doxygen_fields:
-            # Capitalize first letter, append colon
-            label = tag.capitalize() + ':'
-            # Join multiple content entries with space
-            content = ' '.join(doxygen_fields[tag])
+        values = doxygen_fields.get(tag, [])
+        if not values:
+            continue
+        # Capitalize first letter, append colon.
+        label = tag.capitalize() + ':'
+        for content in values:
             lines.append(f'- {label} {content}')
     return lines

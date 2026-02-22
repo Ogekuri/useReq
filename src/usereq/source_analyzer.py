@@ -175,7 +175,7 @@ def build_language_specs() -> dict:
                 r"(?:(?:unsigned|signed|long|short|volatile|register)\s+)*"
                 r"(?:void|int|char|float|double|long|short|unsigned|signed|"
                 r"size_t|ssize_t|uint\d+_t|int\d+_t|bool|_Bool|FILE|"
-                r"\w+_t|\w+)\s*\**\s+"
+                r"\w+_t|\w+)\s+(?:\*+\s*)?"
                 r"(\w+)\s*\()")),
             (ElementType.IMPORT, re.compile(
                 r"^(\s*#\s*include\s+(.+))")),
@@ -1339,6 +1339,10 @@ class SourceAnalyzer:
         """
         comment_elements = [e for e in elements if e.element_type in
                            (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)]
+        non_comment_elements = [
+            e for e in elements
+            if e.element_type not in (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)
+        ]
 
         for elem in elements:
             # Skip comments themselves
@@ -1347,12 +1351,19 @@ class SourceAnalyzer:
 
             associated_comment = None
 
+            def _is_file_level_comment(comment) -> bool:
+                comment_text = comment.comment_source or comment.extract
+                if not comment_text:
+                    return False
+                return bool(re.search(r"(?<!\w)(?:@|\\)file\b", comment_text))
+
             same_line_postfix_candidates = [
                 comment
                 for comment in comment_elements
                 if comment.line_start == elem.line_end
                 and comment.name == "inline"
                 and self._is_postfix_doxygen_comment(comment.extract)
+                and not _is_file_level_comment(comment)
             ]
             if same_line_postfix_candidates:
                 associated_comment = min(
@@ -1366,13 +1377,43 @@ class SourceAnalyzer:
                     for comment in comment_elements
                     if comment.name != "inline"
                     and comment.line_end < elem.line_start
-                    and elem.line_start - comment.line_end <= 2
+                    and not _is_file_level_comment(comment)
                 ]
                 if preceding_candidates:
-                    associated_comment = max(
-                        preceding_candidates,
-                        key=lambda comment: (comment.line_end, comment.line_start),
-                    )
+                    def _has_blocking_element(comment) -> bool:
+                        return any(
+                            other is not elem
+                            and other.line_start > comment.line_end
+                            and other.line_start < elem.line_start
+                            for other in non_comment_elements
+                        )
+
+                    near_preceding_candidates = [
+                        comment
+                        for comment in preceding_candidates
+                        if elem.line_start - comment.line_end <= 2
+                    ]
+                    if near_preceding_candidates:
+                        for comment in sorted(
+                            near_preceding_candidates,
+                            key=lambda c: (c.line_end, c.line_start),
+                            reverse=True,
+                        ):
+                            if not _has_blocking_element(comment):
+                                associated_comment = comment
+                                break
+                    else:
+                        for comment in sorted(
+                            preceding_candidates,
+                            key=lambda c: (c.line_end, c.line_start),
+                            reverse=True,
+                        ):
+                            comment_text = comment.comment_source or comment.extract
+                            if not parse_doxygen_comment(comment_text):
+                                continue
+                            if not _has_blocking_element(comment):
+                                associated_comment = comment
+                                break
 
             if associated_comment is None:
                 following_postfix_candidates = [
@@ -1382,6 +1423,7 @@ class SourceAnalyzer:
                     and comment.line_start > elem.line_end
                     and comment.line_start - elem.line_end <= 2
                     and self._is_postfix_doxygen_comment(comment.extract)
+                    and not _is_file_level_comment(comment)
                 ]
                 if following_postfix_candidates:
                     associated_comment = min(
@@ -1651,8 +1693,7 @@ def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]:
     """! @brief Aggregate construct Doxygen fields from associated and body comments.
     @param elem SourceElement containing optional `doxygen_fields` and `body_comments`.
     @return Dictionary of normalized Doxygen tags to ordered value lists.
-    @details Parses each body-comment tuple with parse_doxygen_comment() and merges results
-    after pre-associated fields so references output can represent both association styles.
+    @details Uses canonical `elem.doxygen_fields` from `SourceAnalyzer.enrich()` and merges only body comments located at construct start (first 3 lines) to retain docstring-style Doxygen blocks while avoiding internal-body duplication.
     """
     aggregate: dict[str, list[str]] = {}
     direct_fields = getattr(elem, "doxygen_fields", None) or {}
@@ -1662,11 +1703,39 @@ def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]:
     for body_comment in getattr(elem, "body_comments", []):
         if not isinstance(body_comment, tuple) or len(body_comment) < 3:
             continue
+        comment_line_start = body_comment[0]
+        if comment_line_start > elem.line_start + 3:
+            continue
         parsed = parse_doxygen_comment(body_comment[2])
         if parsed:
             _merge_doxygen_fields(aggregate, parsed)
 
     return aggregate
+
+
+def _collect_file_level_doxygen_fields(elements: list) -> dict[str, list[str]]:
+    """! @brief Extract file-level Doxygen fields from the first `@file` documentation block.
+    @param elements Parsed SourceElement list for one source file.
+    @return Parsed Doxygen fields from the file-level documentation block; empty dictionary if not found.
+    @details Scans non-inline comment elements in source order and selects the first comment containing `@file` or `\\file`, then parses the full comment text through `parse_doxygen_comment()`.
+    """
+    file_tag_pattern = re.compile(r"(?<!\w)(?:@|\\)file\b")
+    comment_elements = sorted(
+        [
+            elem for elem in elements
+            if elem.element_type in (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)
+            and elem.name != "inline"
+        ],
+        key=lambda elem: (elem.line_start, elem.line_end),
+    )
+    for comment in comment_elements:
+        comment_text = comment.comment_source or comment.extract
+        if not comment_text:
+            continue
+        if not file_tag_pattern.search(comment_text):
+            continue
+        return parse_doxygen_comment(comment_text)
+    return {}
 
 
 def format_markdown(
@@ -1705,6 +1774,7 @@ def format_markdown(
         from .doxygen_parser import format_doxygen_fields_as_markdown
     except ImportError:
         from usereq.doxygen_parser import format_doxygen_fields_as_markdown
+    file_level_doxygen_fields = _collect_file_level_doxygen_fields(elements)
 
     # ── Header ────────────────────────────────────────────────────────
     n_comments = sum(1 for e in elements
@@ -1716,6 +1786,8 @@ def format_markdown(
     out.append(f"> Path: `{filepath}`")
     if file_desc:
         out.append(f"> {file_desc}")
+    if file_level_doxygen_fields:
+        out.extend(format_doxygen_fields_as_markdown(file_level_doxygen_fields))
     out.append("")
 
     # ── Imports ───────────────────────────────────────────────────────
