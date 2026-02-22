@@ -37,6 +37,7 @@ These tags define the core interface contract.
 You must analyze the code logic. If these conditions exist, the tag is **Mandatory**.
 * **`@param[out]`**: MANDATORY if a reference/pointer argument is mutated inside the function (C/C++).
 * **`@exception`** (or **`@throws`**): MANDATORY if the function can raise an exception or error state. List specific error classes.
+* **`@satisfies`**: If applicable, link to requirements (e.g., @satisfies REQ-026, REQ-045).
 
 ### C. OPTIONAL TAGS (Semantic Enrichment)
 Use these to increase context window efficiency for future agents.
@@ -46,6 +47,7 @@ Use these to increase context window efficiency for future agents.
 * **`@note`**: Vital implementation details not fitting in `@details`.
 * **`@see`** (or **`@sa`**): Links to related functions/classes for context linkage.
 * **`@deprecated`**: If applicable, link to the replacement API.
+
 
 ## 5) Operational Rules
 

@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-release:
-
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
     steps:
@@ -20,16 +20,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Carica tutta la cronologia per poter confrontare i rami
-
-      - name: Check if tag is on master
-        id: check_branch
-        run: |
-          if git branch -r --contains ${{ github.ref }} | grep -q "origin/master"; then
-            echo "Tag trovato su master, procedo..."
-          else
-            echo "Tag non presente su master, annullo."
-            exit 78 # Codice speciale per "neutral" in GitHub Actions
-          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
