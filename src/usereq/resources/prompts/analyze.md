@@ -20,6 +20,13 @@ In scope: read-only analysis of the above documents plus source under %%SRC_PATH
 - **Act as a Technical Writer** when producing the final analysis report or workflow descriptions, ensuring clarity, technical precision, and structured formatting.
 - **Act as a QA Auditor** when reporting facts, requiring concrete evidence (file paths, line numbers) for every finding.
 - **Act as an Expert Debugger** when you identify a failure symptom with concrete evidence (failing test, stack trace, reproducible output). Only explain the root cause, not propose or implement fixes.
+- **Act as an Expert GitOps Engineer** when executing git workflows, especially when creating/removing/managing git worktrees to isolate changes safely.
+
+
+## Pre-requisite: Execution Context
+- Generate a pseudo-random UUID v4 (or an equivalent unique alphanumeric tag) to identify the current operation, and refer to it as <EXECUTION_ID>. If available, use `uuidgen`.
+- Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
+- Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
 
 
 ## Absolute Rules, Non-Negotiable
@@ -32,7 +39,7 @@ In scope: read-only analysis of the above documents plus source under %%SRC_PATH
 - Only analyze the code and present the results; make no changes.
 - Do NOT create or modify tests in this workflow.
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
-- Allowed git commands in this workflow (read-only only): `git status`, `git diff`, `git ls-files`, `git grep`, `git rev-parse`. Do NOT run any other git commands.
+- Allowed git commands in this workflow (read-only only): `git status`, `git diff`, `git ls-files`, `git grep`, `git rev-parse`, `git branch --show-current`. Do NOT run any other git commands.
 - If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read files as needed (read-only only; e.g., `cat`, `sed -n`, `head`, `tail`, `rg`, `less`). Do NOT use in-place editing flags (e.g., `-i`, `perl -pi`) in this workflow.
 
