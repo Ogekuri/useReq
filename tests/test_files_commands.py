@@ -36,6 +36,7 @@ DOXYGEN_TAG_LABELS_IN_ORDER = [
     "Details",
     "Param",
     "Param[in]",
+    "Param[in,out]",
     "Param[out]",
     "Return",
     "Retval",
@@ -55,6 +56,7 @@ DOXYGEN_TAG_TO_LABEL_IN_ORDER: list[tuple[str, str]] = [
     ("@details", "Details"),
     ("@param", "Param"),
     ("@param[in]", "Param[in]"),
+    ("@param[in,out]", "Param[in,out]"),
     ("@param[out]", "Param[out]"),
     ("@return", "Return"),
     ("@retval", "Retval"),
@@ -77,7 +79,8 @@ DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
     "@brief": re.compile(r"(?<!\w)@brief\b"),
     "@details": re.compile(r"(?<!\w)@details\b"),
     "@param": re.compile(r"(?<!\w)@param(?!\s*\[)\b"),
-    "@param[in]": re.compile(r"(?<!\w)@param\s*\[\s*in\s*\]"),
+    "@param[in]": re.compile(r"(?<!\w)@param\s*\[\s*in\s*\](?!\s*,)"),
+    "@param[in,out]": re.compile(r"(?<!\w)@param\s*\[\s*in\s*,\s*out\s*\]"),
     "@param[out]": re.compile(r"(?<!\w)@param\s*\[\s*out\s*\]"),
     "@return": re.compile(r"(?<!\w)@return\b"),
     "@retval": re.compile(r"(?<!\w)@retval\b"),
@@ -93,10 +96,10 @@ DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
     "@post": re.compile(r"(?<!\w)@post\b"),
 }
 DOXYGEN_SOURCE_MULTILINE_ENTRY_PATTERN = re.compile(
-    r"(?is)(?:@|\\)(?P<tag>brief|details|param\s*\[\s*in\s*\]|"
+    r"(?is)(?:@|\\)(?P<tag>brief|details|param\s*\[\s*in\s*,\s*out\s*\]|param\s*\[\s*in\s*\]|"
     r"param\s*\[\s*out\s*\]|param|return|retval|exception|throws|"
     r"warning|deprecated|note|see|sa|satisfies|pre|post)(?=\s|$)"
-    r"(?P<body>.*?)(?=(?:\n[^\n]*(?:@|\\)(?:brief|details|param\s*\[\s*in\s*\]|"
+    r"(?P<body>.*?)(?=(?:\n[^\n]*(?:@|\\)(?:brief|details|param\s*\[\s*in\s*,\s*out\s*\]|param\s*\[\s*in\s*\]|"
     r"param\s*\[\s*out\s*\]|param|return|retval|exception|throws|"
     r"warning|deprecated|note|see|sa|satisfies|pre|post)(?=\s|$))|\Z)"
 )
@@ -1793,6 +1796,208 @@ class TestProjectExamplesDoxygenOccurrences:
             expected=expected_counts,
             actual=output_tag_counts,
             context_id=f"--files-references-regex::{filepath.as_posix()}",
+        )
+
+
+class TestProjectExamplesReferencesDoxygenParity:
+    """DOX-019: Per-file Doxygen parity for --references using project_examples."""
+
+    @pytest.mark.parametrize(
+        "filepath",
+        _collect_project_examples_source_files(),
+        ids=lambda path: path.as_posix(),
+    )
+    def test_references_regex_multiline_per_file_counts(
+        self,
+        filepath: Path,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-019: --references must export all Doxygen fields from project_examples files."""
+        if filepath.suffix not in SUPPORTED_EXTENSIONS:
+            pytest.skip(f"Extension {filepath.suffix} not in SUPPORTED_EXTENSIONS for --references")
+        src = tmp_path / "src"
+        src.mkdir()
+        copied = src / filepath.name
+        shutil.copy(filepath, copied)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        regex_counts = _count_source_doxygen_tags_with_regex(copied)
+        expected_counts = _count_source_doxygen_tags(copied)
+        for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+            if int(expected_counts[tag]) > 0:
+                assert int(regex_counts[tag]) > 0, (
+                    f"--references::{filepath.as_posix()}: "
+                    f"regex extraction did not discover effective tag {tag}"
+                )
+
+        monkeypatch.chdir(tmp_path)
+        rc, stdout, _ = _run_cli_capture(["--here", "--references"])
+        assert rc == 0, f"--references failed for {filepath.as_posix()}"
+        output_tag_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
+        _assert_tag_counts_match(
+            expected=expected_counts,
+            actual=output_tag_counts,
+            context_id=f"--references-regex::{filepath.as_posix()}",
+        )
+
+
+class TestProjectExamplesFilesFindDoxygenParity:
+    """DOX-020: Per-file Doxygen parity for --files-find using project_examples."""
+
+    @pytest.mark.parametrize(
+        "filepath",
+        _collect_project_examples_source_files(),
+        ids=lambda path: path.as_posix(),
+    )
+    def test_files_find_regex_multiline_per_file_counts(
+        self,
+        filepath: Path,
+    ):
+        """DOX-020: --files-find must export all Doxygen fields from project_examples files."""
+        tag_filter = _build_language_tag_filter(filepath)
+        constructs = _collect_expected_find_constructs(
+            filepath=filepath,
+            tag_filter=tag_filter,
+            pattern=".*",
+        )
+        if not constructs:
+            pytest.skip(f"No extractable constructs for {filepath.name}")
+
+        expected_counts = _count_find_source_doxygen_tags(constructs)
+        regex_counts = _count_source_doxygen_tags_with_regex(filepath)
+        for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+            if int(expected_counts[tag]) > 0:
+                assert int(regex_counts[tag]) > 0, (
+                    f"--files-find::{filepath.as_posix()}: "
+                    f"regex extraction did not discover effective tag {tag}"
+                )
+
+        output_counts = _init_zero_tag_counts()
+        for construct in constructs:
+            pattern = rf"^{re.escape(str(construct['name']))}$"
+            rc, stdout, _ = _run_cli_capture(
+                [
+                    "--files-find",
+                    str(construct["type_label"]),
+                    pattern,
+                    str(filepath),
+                ]
+            )
+            assert rc == 0, (
+                f"--files-find::{filepath.as_posix()}: failed "
+                f"for {construct['type_label']}:{construct['name']}"
+            )
+            block = _extract_construct_block(
+                output=stdout,
+                type_label=str(construct["type_label"]),
+                name=str(construct["name"]),
+                line_start=int(construct["line_start"]),
+                line_end=int(construct["line_end"]),
+            )
+            construct_counts = _labels_to_tags_counts(
+                _count_output_doxygen_labels(block)
+            )
+            _merge_tag_counts(output_counts, construct_counts)
+
+        _assert_tag_counts_match(
+            expected=expected_counts,
+            actual=output_counts,
+            context_id=f"--files-find-regex::{filepath.as_posix()}",
+        )
+
+
+class TestProjectExamplesFindDoxygenParity:
+    """DOX-021: Per-file Doxygen parity for --find using project_examples."""
+
+    @pytest.mark.parametrize(
+        "filepath",
+        _collect_project_examples_source_files(),
+        ids=lambda path: path.as_posix(),
+    )
+    def test_find_regex_multiline_per_file_counts(
+        self,
+        filepath: Path,
+        tmp_path,
+        monkeypatch,
+    ):
+        """DOX-021: --find must export all Doxygen fields from project_examples files."""
+        if filepath.suffix not in SUPPORTED_EXTENSIONS:
+            pytest.skip(f"Extension {filepath.suffix} not in SUPPORTED_EXTENSIONS for --find")
+        src = tmp_path / "src"
+        src.mkdir()
+        copied = src / filepath.name
+        shutil.copy(filepath, copied)
+
+        req_dir = tmp_path / ".req"
+        req_dir.mkdir()
+        config = {
+            "guidelines-dir": "docs/",
+            "docs-dir": "docs/",
+            "tests-dir": "tests/",
+            "src-dir": ["src"],
+        }
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+
+        tag_filter = _build_language_tag_filter(copied)
+        constructs = _collect_expected_find_constructs(
+            filepath=copied,
+            tag_filter=tag_filter,
+            pattern=".*",
+        )
+        if not constructs:
+            pytest.skip(f"No extractable constructs for {filepath.name}")
+
+        expected_counts = _count_find_source_doxygen_tags(constructs)
+        regex_counts = _count_source_doxygen_tags_with_regex(copied)
+        for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+            if int(expected_counts[tag]) > 0:
+                assert int(regex_counts[tag]) > 0, (
+                    f"--find::{filepath.as_posix()}: "
+                    f"regex extraction did not discover effective tag {tag}"
+                )
+
+        monkeypatch.chdir(tmp_path)
+        output_counts = _init_zero_tag_counts()
+        for construct in constructs:
+            pattern = rf"^{re.escape(str(construct['name']))}$"
+            rc, stdout, _ = _run_cli_capture(
+                [
+                    "--here",
+                    "--find",
+                    str(construct["type_label"]),
+                    pattern,
+                ]
+            )
+            assert rc == 0, (
+                f"--find::{filepath.as_posix()}: failed "
+                f"for {construct['type_label']}:{construct['name']}"
+            )
+            block = _extract_construct_block(
+                output=stdout,
+                type_label=str(construct["type_label"]),
+                name=str(construct["name"]),
+                line_start=int(construct["line_start"]),
+                line_end=int(construct["line_end"]),
+            )
+            construct_counts = _labels_to_tags_counts(
+                _count_output_doxygen_labels(block)
+            )
+            _merge_tag_counts(output_counts, construct_counts)
+
+        _assert_tag_counts_match(
+            expected=expected_counts,
+            actual=output_counts,
+            context_id=f"--find-regex::{filepath.as_posix()}",
         )
 
 

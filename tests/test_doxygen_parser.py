@@ -395,11 +395,11 @@ def _expected_doxygen_fields_for_construct(construct, comment_elements) -> dict[
     if not associated_comment:
         return {}
 
-    comment_text = associated_comment.extract
+    comment_text = getattr(associated_comment, 'comment_source', None) or associated_comment.extract
     if (
         associated_comment.name != "inline"
         and associated_comment.line_end < construct.line_start
-        and parse_doxygen_comment(associated_comment.extract)
+        and parse_doxygen_comment(comment_text)
     ):
         merged_preceding_comments = [associated_comment]
         current_start = associated_comment.line_start
@@ -418,7 +418,9 @@ def _expected_doxygen_fields_for_construct(construct, comment_elements) -> dict[
             )
             merged_preceding_comments.insert(0, previous_comment)
             current_start = previous_comment.line_start
-        comment_text = "\n".join(comment.extract for comment in merged_preceding_comments)
+        comment_text = "\n".join(
+            (getattr(c, 'comment_source', None) or c.extract) for c in merged_preceding_comments
+        )
 
     return parse_doxygen_comment(comment_text)
 

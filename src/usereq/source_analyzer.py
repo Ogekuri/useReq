@@ -61,12 +61,19 @@ class SourceElement:
     line_start: int
     line_end: int
     extract: str
+    """! @brief Truncated display text of the element (max 5 lines per SRS-133)."""
     name: Optional[str] = None
     signature: Optional[str] = None
     visibility: Optional[str] = None
     parent_name: Optional[str] = None
     inherits: Optional[str] = None
     depth: int = 0
+    comment_source: Optional[str] = None
+    """! @brief Full untruncated comment text for COMMENT_MULTI elements.
+    @details Preserves the complete multi-line comment content for Doxygen field
+    extraction (SRS-143) while allowing extract to remain truncated (SRS-133).
+    None for non-comment elements and single-line comments.
+    """
     body_comments: list = field(default_factory=list)
     exit_points: list = field(default_factory=list)
     doxygen_fields: dict = field(default_factory=dict)
@@ -729,6 +736,7 @@ class SourceAnalyzer:
                 multiline_comment_lines.append(stripped)
                 if spec.multi_comment_end and spec.multi_comment_end in stripped:
                     in_multiline_comment = False
+                    full_text = "\n".join(multiline_comment_lines)
                     mc_extract = multiline_comment_lines
                     if len(mc_extract) > 5:
                         mc_extract = mc_extract[:4] + ["    ..."]
@@ -737,6 +745,7 @@ class SourceAnalyzer:
                         line_start=multiline_comment_start_line,
                         line_end=line_num,
                         extract="\n".join(mc_extract),
+                        comment_source=full_text,
                     ))
                     multiline_comment_lines = []
                 continue
@@ -1381,11 +1390,11 @@ class SourceAnalyzer:
                     )
 
             if associated_comment:
-                comment_text = associated_comment.extract
+                comment_text = associated_comment.comment_source or associated_comment.extract
                 if (
                     associated_comment.name != "inline"
                     and associated_comment.line_end < elem.line_start
-                    and parse_doxygen_comment(associated_comment.extract)
+                    and parse_doxygen_comment(comment_text)
                 ):
                     merged_preceding_comments = [associated_comment]
                     current_start = associated_comment.line_start
@@ -1405,7 +1414,7 @@ class SourceAnalyzer:
                         merged_preceding_comments.insert(0, previous_comment)
                         current_start = previous_comment.line_start
                     comment_text = "\n".join(
-                        comment.extract for comment in merged_preceding_comments
+                        (comment.comment_source or comment.extract) for comment in merged_preceding_comments
                     )
                 elem.doxygen_fields = parse_doxygen_comment(comment_text)
 

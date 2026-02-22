@@ -17,6 +17,7 @@ DOXYGEN_TAGS = [
     'details',
     'param',
     'param[in]',
+    'param[in,out]',
     'param[out]',
     'return',
     'retval',
@@ -32,7 +33,7 @@ DOXYGEN_TAGS = [
     'post',
 ]
 
-_NON_PARAM_TAGS = [tag for tag in DOXYGEN_TAGS if tag not in {'param', 'param[in]', 'param[out]'}]
+_NON_PARAM_TAGS = [tag for tag in DOXYGEN_TAGS if tag not in {'param', 'param[in]', 'param[in,out]', 'param[out]'}]
 """! @brief Supported non-param Doxygen tags used to build the parser pattern."""
 
 _NON_PARAM_TAG_ALTERNATION = "|".join(
