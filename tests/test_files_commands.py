@@ -46,6 +46,7 @@ DOXYGEN_TAG_LABELS_IN_ORDER = [
     "Note",
     "See",
     "Sa",
+    "Satisfies",
     "Pre",
     "Post",
 ]
@@ -64,6 +65,7 @@ DOXYGEN_TAG_TO_LABEL_IN_ORDER: list[tuple[str, str]] = [
     ("@note", "Note"),
     ("@see", "See"),
     ("@sa", "Sa"),
+    ("@satisfies", "Satisfies"),
     ("@pre", "Pre"),
     ("@post", "Post"),
 ]
@@ -86,6 +88,7 @@ DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
     "@note": re.compile(r"(?<!\w)@note\b"),
     "@see": re.compile(r"(?<!\w)@see\b"),
     "@sa": re.compile(r"(?<!\w)@sa\b"),
+    "@satisfies": re.compile(r"(?<!\w)@satisfies\b"),
     "@pre": re.compile(r"(?<!\w)@pre\b"),
     "@post": re.compile(r"(?<!\w)@post\b"),
 }

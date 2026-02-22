@@ -2,7 +2,7 @@
 """!
 @file test_doxygen_parser.py
 @brief Unit tests for doxygen_parser module.
-@details Validates Doxygen field extraction across all 16 supported tags with a deterministic matrix of 10 scenarios per tag (160 extraction tests), including delimiter cleanup, multiline handling, whitespace normalization, and markdown formatting behavior.
+@details Validates Doxygen field extraction across all supported tags with a deterministic matrix of 10 scenarios per tag (currently 170 extraction tests), including delimiter cleanup, multiline handling, whitespace normalization, and markdown formatting behavior.
 """
 
 from collections import Counter

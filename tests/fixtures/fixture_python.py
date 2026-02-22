@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-MAX_RETRIES = 3  #!< @brief Maximum retry attempts. @details Applied to network operations. @warning Tune per use case.
+MAX_RETRIES = 3  #!< @brief Maximum retry attempts. @details Applied to network operations. @warning Tune per use case. @satisfies retry-policy
 DEFAULT_TIMEOUT = 30.0  #!< @brief Default timeout in seconds. @note For I/O operations.
 _INTERNAL_CACHE: Dict[str, int] = {}  #!< @brief Internal cache dict. @deprecated Use lru_cache instead.
 

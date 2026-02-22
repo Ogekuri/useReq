@@ -27,6 +27,7 @@ DOXYGEN_TAGS = [
     'note',
     'see',
     'sa',
+    'satisfies',
     'pre',
     'post',
 ]
@@ -55,7 +56,7 @@ def parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]:
     tag_pattern = re.compile(
         r'[@\\]'  # @ or \ prefix
         r'(brief|details|param|return|retval|exception|throws|warning|'
-        r'deprecated|note|see|sa|pre|post)'  # known tags
+        r'deprecated|note|see|satisfies|sa|pre|post)'  # known tags
         r'(\[[^\]]+\])?'  # optional [in], [out], [in,out]
     )
 

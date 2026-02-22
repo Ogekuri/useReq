@@ -701,7 +701,7 @@ import argparse
 
 ---
 
-# doxygen_parser.py | Python | 163L | 5 symbols | 2 imports | 19 comments
+# doxygen_parser.py | Python | 164L | 5 symbols | 2 imports | 19 comments
 > Path: `src/usereq/doxygen_parser.py`
 
 ## Imports
@@ -713,7 +713,7 @@ from typing import Dict, List
 ## Definitions
 
 - var `DOXYGEN_TAGS = [` (L15)
-### fn `def parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]` (L35-91)
+### fn `def parse_doxygen_comment(comment_text: str) -> Dict[str, List[str]]` (L36-92)
 - Brief: Extract Doxygen fields from a documentation comment block.
 - Details: Parses both @tag and \\tag syntax. Each tag's content extends until the next tag or end of comment. Multiple occurrences of the same tag accumulate in the returned list. Whitespace is normalized.
 - Param: comment_text Raw comment string potentially containing Doxygen tags.
@@ -721,19 +721,19 @@ from typing import Dict, List
 - Note: Returns empty dict if no Doxygen tags are found.
 - See: DOXYGEN_TAGS for recognized tag list.
 
-### fn `def _strip_comment_delimiters(text: str) -> str` `priv` (L92-120)
+### fn `def _strip_comment_delimiters(text: str) -> str` `priv` (L93-121)
 - Brief: Remove common comment delimiters from text block.
 - Details: Strips leading/trailing /**, */, //, #, triple quotes, and intermediate * column markers. Preserves content while removing comment syntax artifacts.
 - Param: text Raw comment block possibly containing comment delimiters.
 - Return: Cleaned text with delimiters removed.
 
-### fn `def _normalize_whitespace(text: str) -> str` `priv` (L121-146)
+### fn `def _normalize_whitespace(text: str) -> str` `priv` (L122-147)
 - Brief: Normalize internal whitespace in extracted tag content.
 - Details: Collapses multiple spaces to single space, preserves single newlines, removes redundant blank lines.
 - Param: text Tag content with potentially irregular whitespace.
 - Return: Whitespace-normalized content.
 
-### fn `def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]` (L147-163)
+### fn `def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]` (L148-164)
 - Brief: Format extracted Doxygen fields as Markdown bulleted list.
 - Details: Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ prefix, appends ':'. Skips tags not present in input. Each tag's content items are concatenated.
 - Param: doxygen_fields Dictionary of tag -> content list from parse_doxygen_comment().
@@ -744,10 +744,10 @@ from typing import Dict, List
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
 |`DOXYGEN_TAGS`|var|pub|15||
-|`parse_doxygen_comment`|fn|pub|35-91|def parse_doxygen_comment(comment_text: str) -> Dict[str,...|
-|`_strip_comment_delimiters`|fn|priv|92-120|def _strip_comment_delimiters(text: str) -> str|
-|`_normalize_whitespace`|fn|priv|121-146|def _normalize_whitespace(text: str) -> str|
-|`format_doxygen_fields_as_markdown`|fn|pub|147-163|def format_doxygen_fields_as_markdown(doxygen_fields: Dic...|
+|`parse_doxygen_comment`|fn|pub|36-92|def parse_doxygen_comment(comment_text: str) -> Dict[str,...|
+|`_strip_comment_delimiters`|fn|priv|93-121|def _strip_comment_delimiters(text: str) -> str|
+|`_normalize_whitespace`|fn|priv|122-147|def _normalize_whitespace(text: str) -> str|
+|`format_doxygen_fields_as_markdown`|fn|pub|148-164|def format_doxygen_fields_as_markdown(doxygen_fields: Dic...|
 
 
 ---
