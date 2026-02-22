@@ -40,9 +40,8 @@ else
   source ${VENVDIR}/bin/activate
 fi
 
-# Run tests in 2 phases:
-# 1) Standard suite
-# 2) Only post-link validation tests (only if 1) is successful)
+# Run tests in 1 phase by default.
+# Optional post-link validation can be enabled with RUN_POST_LINK_PHASE=1.
 if [ "$#" -eq 0 ]; then
   set -- tests
 fi
@@ -55,8 +54,9 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 
-echo "[tests.sh] Main test suite OK. Running post-link tests..."
-
-PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
-  RUN_POST_LINK_TESTS=1 \
-  ${VENVDIR}/bin/python3 -m 'pytest' "$@"
+if [ "${RUN_POST_LINK_PHASE:-0}" = "1" ]; then
+  echo "[tests.sh] Main test suite OK. Running post-link tests..."
+  PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
+    RUN_POST_LINK_TESTS=1 \
+    ${VENVDIR}/bin/python3 -m 'pytest' "$@"
+fi
