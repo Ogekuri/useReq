@@ -64,6 +64,15 @@ class TestCLI(unittest.TestCase):
     # Test directory path under temp/.
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test"
 
+    @staticmethod
+    def _snapshot_non_hidden_files(root: Path) -> dict[str, str]:
+        """Returns a deterministic snapshot of non-hidden file contents."""
+        return {
+            path.name: path.read_text(encoding="utf-8")
+            for path in sorted(root.iterdir())
+            if path.is_file() and not path.name.startswith(".")
+        }
+
     @classmethod
     def setUpClass(cls) -> None:
         """Prepares the test environment by creating necessary directories."""
@@ -87,6 +96,13 @@ class TestCLI(unittest.TestCase):
         # Creates a subfolder in guidelines to verify REQ-026.
         (cls.TEST_DIR / "guidelines" / "src").mkdir(exist_ok=True)
 
+        cls.prompts_snapshot_before = cls._snapshot_non_hidden_files(
+            cli.RESOURCE_ROOT / "prompts"
+        )
+        cls.docs_snapshot_before = cls._snapshot_non_hidden_files(
+            cli.RESOURCE_ROOT / "docs"
+        )
+
         # Executes the script with specified parameters (REQ-054.3).
         # Avoids network calls during tests.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -108,6 +124,12 @@ class TestCLI(unittest.TestCase):
                 + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
+        cls.prompts_snapshot_after = cls._snapshot_non_hidden_files(
+            cli.RESOURCE_ROOT / "prompts"
+        )
+        cls.docs_snapshot_after = cls._snapshot_non_hidden_files(
+            cli.RESOURCE_ROOT / "docs"
+        )
 
         # Print the list of all available tests
         test_methods = [method for method in dir(cls) if method.startswith("test_")]
@@ -130,6 +152,22 @@ class TestCLI(unittest.TestCase):
     def test_exit_code_is_zero(self) -> None:
         """Verifies that the script ends with exit code 0."""
         self.assertEqual(self.exit_code, 0, "The script must end with exit code 0")
+
+    def test_packaged_prompt_templates_are_read_only(self) -> None:
+        """SRS-263: Verifies packaged prompt templates are not modified by CLI run."""
+        self.assertEqual(
+            self.prompts_snapshot_before,
+            self.prompts_snapshot_after,
+            "Files under src/usereq/resources/prompts must remain unchanged",
+        )
+
+    def test_packaged_docs_templates_are_read_only(self) -> None:
+        """SRS-264: Verifies packaged docs templates are not modified by CLI run."""
+        self.assertEqual(
+            self.docs_snapshot_before,
+            self.docs_snapshot_after,
+            "Files under src/usereq/resources/docs must remain unchanged",
+        )
 
     def test_requirements_md_generated(self) -> None:
         """REQ-001: Verifies that requirements.md is generated in the empty docs directory."""
