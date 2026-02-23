@@ -456,3 +456,46 @@ MAX_BATCH = 64  # inline extension comment
 CACHE_LIMIT = 128
 """coverage extension multiline comment for parser fixtures"""
 MAX_USERS = 500
+
+# REQ-COVER-SRS-231 START
+# @REQ-COVER-SRS-231 block 1
+# @brief Coverage helper construct 1.
+# @details Provides deterministic fixture-level Doxygen coverage block 1.
+# @param value Input value for helper construct 1.
+# @return Output value for helper construct 1.
+def req_cover_py_1(value: int) -> int:
+    return value + 1
+
+# @REQ-COVER-SRS-231 block 2
+# @brief Coverage helper construct 2.
+# @details Provides deterministic fixture-level Doxygen coverage block 2.
+# @param value Input value for helper construct 2.
+# @return Output value for helper construct 2.
+def req_cover_py_2(value: int) -> int:
+    return value + 2
+
+# @REQ-COVER-SRS-231 block 3
+# @brief Coverage helper construct 3.
+# @details Provides deterministic fixture-level Doxygen coverage block 3.
+# @param value Input value for helper construct 3.
+# @return Output value for helper construct 3.
+def req_cover_py_3(value: int) -> int:
+    return value + 3
+
+# @REQ-COVER-SRS-231 block 4
+# @brief Coverage helper construct 4.
+# @details Provides deterministic fixture-level Doxygen coverage block 4.
+# @param value Input value for helper construct 4.
+# @return Output value for helper construct 4.
+def req_cover_py_4(value: int) -> int:
+    return value + 4
+
+# @REQ-COVER-SRS-231 block 5
+# @brief Coverage helper construct 5.
+# @details Provides deterministic fixture-level Doxygen coverage block 5.
+# @param value Input value for helper construct 5.
+# @return Output value for helper construct 5.
+def req_cover_py_5(value: int) -> int:
+    return value + 5
+
+# REQ-COVER-SRS-231 END

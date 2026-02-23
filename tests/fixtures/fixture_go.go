@@ -301,3 +301,41 @@ type Amount int
 type Resolver func(string) error
 const RetryCount = 3
 var LastError error
+
+// REQ-COVER-SRS-231 START
+// @REQ-COVER-SRS-231 block 1
+// @brief Coverage helper construct 1.
+// @details Provides deterministic fixture-level Doxygen coverage block 1.
+// @param value Input value for helper construct 1.
+// @return Output value for helper construct 1.
+func reqCoverGo1(value int) int { return value + 1 }
+
+// @REQ-COVER-SRS-231 block 2
+// @brief Coverage helper construct 2.
+// @details Provides deterministic fixture-level Doxygen coverage block 2.
+// @param value Input value for helper construct 2.
+// @return Output value for helper construct 2.
+func reqCoverGo2(value int) int { return value + 2 }
+
+// @REQ-COVER-SRS-231 block 3
+// @brief Coverage helper construct 3.
+// @details Provides deterministic fixture-level Doxygen coverage block 3.
+// @param value Input value for helper construct 3.
+// @return Output value for helper construct 3.
+func reqCoverGo3(value int) int { return value + 3 }
+
+// @REQ-COVER-SRS-231 block 4
+// @brief Coverage helper construct 4.
+// @details Provides deterministic fixture-level Doxygen coverage block 4.
+// @param value Input value for helper construct 4.
+// @return Output value for helper construct 4.
+func reqCoverGo4(value int) int { return value + 4 }
+
+// @REQ-COVER-SRS-231 block 5
+// @brief Coverage helper construct 5.
+// @details Provides deterministic fixture-level Doxygen coverage block 5.
+// @param value Input value for helper construct 5.
+// @return Output value for helper construct 5.
+func reqCoverGo5(value int) int { return value + 5 }
+
+// REQ-COVER-SRS-231 END

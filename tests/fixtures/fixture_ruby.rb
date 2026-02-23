@@ -295,3 +295,51 @@ attr_writer :token
 attr_reader :state
 require 'yaml'
 require 'logger'
+
+# REQ-COVER-SRS-231 START
+# @REQ-COVER-SRS-231 block 1
+# @brief Coverage helper construct 1.
+# @details Provides deterministic fixture-level Doxygen coverage block 1.
+# @param value Input value for helper construct 1.
+# @return Output value for helper construct 1.
+def req_cover_ruby_1(value)
+  value + 1
+end
+
+# @REQ-COVER-SRS-231 block 2
+# @brief Coverage helper construct 2.
+# @details Provides deterministic fixture-level Doxygen coverage block 2.
+# @param value Input value for helper construct 2.
+# @return Output value for helper construct 2.
+def req_cover_ruby_2(value)
+  value + 2
+end
+
+# @REQ-COVER-SRS-231 block 3
+# @brief Coverage helper construct 3.
+# @details Provides deterministic fixture-level Doxygen coverage block 3.
+# @param value Input value for helper construct 3.
+# @return Output value for helper construct 3.
+def req_cover_ruby_3(value)
+  value + 3
+end
+
+# @REQ-COVER-SRS-231 block 4
+# @brief Coverage helper construct 4.
+# @details Provides deterministic fixture-level Doxygen coverage block 4.
+# @param value Input value for helper construct 4.
+# @return Output value for helper construct 4.
+def req_cover_ruby_4(value)
+  value + 4
+end
+
+# @REQ-COVER-SRS-231 block 5
+# @brief Coverage helper construct 5.
+# @details Provides deterministic fixture-level Doxygen coverage block 5.
+# @param value Input value for helper construct 5.
+# @return Output value for helper construct 5.
+def req_cover_ruby_5(value)
+  value + 5
+end
+
+# REQ-COVER-SRS-231 END

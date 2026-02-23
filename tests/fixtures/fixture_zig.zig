@@ -255,3 +255,41 @@ const Payload = extern union { a: i32, b: i32 };
 const Message = union { txt: [4]u8, len: u32 };
 var retries: i32 = 0;
 var pointer: usize = 0;
+
+// REQ-COVER-SRS-231 START
+/// @REQ-COVER-SRS-231 block 1
+/// @brief Coverage helper construct 1.
+/// @details Provides deterministic fixture-level Doxygen coverage block 1.
+/// @param value Input value for helper construct 1.
+/// @return Output value for helper construct 1.
+fn reqCoverZig1(value: i32) i32 { return value + 1; }
+
+/// @REQ-COVER-SRS-231 block 2
+/// @brief Coverage helper construct 2.
+/// @details Provides deterministic fixture-level Doxygen coverage block 2.
+/// @param value Input value for helper construct 2.
+/// @return Output value for helper construct 2.
+fn reqCoverZig2(value: i32) i32 { return value + 2; }
+
+/// @REQ-COVER-SRS-231 block 3
+/// @brief Coverage helper construct 3.
+/// @details Provides deterministic fixture-level Doxygen coverage block 3.
+/// @param value Input value for helper construct 3.
+/// @return Output value for helper construct 3.
+fn reqCoverZig3(value: i32) i32 { return value + 3; }
+
+/// @REQ-COVER-SRS-231 block 4
+/// @brief Coverage helper construct 4.
+/// @details Provides deterministic fixture-level Doxygen coverage block 4.
+/// @param value Input value for helper construct 4.
+/// @return Output value for helper construct 4.
+fn reqCoverZig4(value: i32) i32 { return value + 4; }
+
+/// @REQ-COVER-SRS-231 block 5
+/// @brief Coverage helper construct 5.
+/// @details Provides deterministic fixture-level Doxygen coverage block 5.
+/// @param value Input value for helper construct 5.
+/// @return Output value for helper construct 5.
+fn reqCoverZig5(value: i32) i32 { return value + 5; }
+
+// REQ-COVER-SRS-231 END

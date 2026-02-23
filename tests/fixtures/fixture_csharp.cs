@@ -16,19 +16,19 @@ namespace MyApp {
 
 /* ── Delegates and events ─────────────────────────────────────────────── */
 
-/// <summary>
-/// Delegate for handling data change notifications.
-/// </summary>
-/// <param name="sender">The object raising the event.</param>
-/// <param name="data">The changed data payload.</param>
+/// @brief Delegate for handling data change notifications.
+/// @details Emits sender and payload when tracked data changes.
+/// @param sender The object raising the event.
+/// @param data The changed data payload.
+/// @return Void delegate invocation.
 public delegate void DataChangedHandler(object sender, string data);
 
-/// <summary>
-/// Delegate for value transformation operations.
-/// </summary>
-/// <typeparam name="T">Input and output type.</typeparam>
-/// <param name="value">The value to transform.</param>
-/// <returns>Transformed value.</returns>
+/// @brief Delegate for value transformation operations.
+/// @details Applies a deterministic conversion from input to output.
+/// @param value The value to transform.
+/// @return Transformed value.
+/// @details Generic type parameter T defines input and output type.
+/// @param value Input value bound to type T.
 public delegate T Transform<T>(T value);
 
 /* ── Attributes ───────────────────────────────────────────────────────── */
@@ -89,11 +89,11 @@ public class Person : IComparable<Person>, IDisposable {
     /// </summary>
     public event DataChangedHandler? OnDataChanged;
 
-    /// <summary>
-    /// Construct a new Person with name and age.
-    /// </summary>
-    /// <param name="name">Display name (required).</param>
-    /// <param name="age">Age in years (must be 0..MAX_AGE).</param>
+    /// @brief Construct a new Person with name and age.
+    /// @details Initializes backing fields and updates instance counters.
+    /// @param name Display name (required).
+    /// @param age Age in years (must be 0..MAX_AGE).
+    /// @return Constructed Person instance.
     public Person(string name, int age) {
         _name = name;
         Age = age;
@@ -109,21 +109,21 @@ public class Person : IComparable<Person>, IDisposable {
         Console.WriteLine($"Hello, {Name}!");
     }
 
-    /// <summary>
-    /// Fetch person data asynchronously with cancellation support.
-    /// </summary>
-    /// <param name="token">Cancellation token for cooperative cancellation.</param>
-    /// <returns>Formatted data string.</returns>
+    /// @brief Fetch person data asynchronously with cancellation support.
+    /// @details Waits asynchronously and returns a deterministic payload.
+    /// @param token Cancellation token for cooperative cancellation.
+    /// @return Formatted data string.
+    /// @details Supports cancellation through token propagation.
     public static async Task<string> FetchAsync(CancellationToken token = default) {
         await Task.Delay(100, token);
         return "data";
     }
 
-    /// <summary>
-    /// Compare persons by age for sorting.
-    /// </summary>
-    /// <param name="other">Person to compare with.</param>
-    /// <returns>Comparison result: negative, zero, or positive.</returns>
+    /// @brief Compare persons by age for sorting.
+    /// @details Implements IComparable ordering semantics.
+    /// @param other Person to compare with.
+    /// @return Comparison result: negative, zero, or positive.
+    /// @details Null values are ordered after non-null instances.
     public int CompareTo(Person? other) {
         if (other is null) return 1;
         return Age.CompareTo(other.Age);
@@ -369,3 +369,43 @@ public const int MIN_AGE = 10;
 public const int RETRY_LIMIT = 3;
 public const int CACHE_SIZE = 128;
 public const int DEFAULT_PAGE = 1;
+
+// REQ-COVER-SRS-231 START
+public static class ReqCoverCsharp {
+    /// @REQ-COVER-SRS-231 block 1
+    /// @brief Coverage helper construct 1.
+    /// @details Provides deterministic fixture-level Doxygen coverage block 1.
+    /// @param value Input value for helper construct 1.
+    /// @return Output value for helper construct 1.
+    public static int ReqCoverCsharp1(int value) { return value + 1; }
+
+    /// @REQ-COVER-SRS-231 block 2
+    /// @brief Coverage helper construct 2.
+    /// @details Provides deterministic fixture-level Doxygen coverage block 2.
+    /// @param value Input value for helper construct 2.
+    /// @return Output value for helper construct 2.
+    public static int ReqCoverCsharp2(int value) { return value + 2; }
+
+    /// @REQ-COVER-SRS-231 block 3
+    /// @brief Coverage helper construct 3.
+    /// @details Provides deterministic fixture-level Doxygen coverage block 3.
+    /// @param value Input value for helper construct 3.
+    /// @return Output value for helper construct 3.
+    public static int ReqCoverCsharp3(int value) { return value + 3; }
+
+    /// @REQ-COVER-SRS-231 block 4
+    /// @brief Coverage helper construct 4.
+    /// @details Provides deterministic fixture-level Doxygen coverage block 4.
+    /// @param value Input value for helper construct 4.
+    /// @return Output value for helper construct 4.
+    public static int ReqCoverCsharp4(int value) { return value + 4; }
+
+    /// @REQ-COVER-SRS-231 block 5
+    /// @brief Coverage helper construct 5.
+    /// @details Provides deterministic fixture-level Doxygen coverage block 5.
+    /// @param value Input value for helper construct 5.
+    /// @return Output value for helper construct 5.
+    public static int ReqCoverCsharp5(int value) { return value + 5; }
+
+}
+// REQ-COVER-SRS-231 END

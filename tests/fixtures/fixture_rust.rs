@@ -340,3 +340,41 @@ macro_rules! build_pair { ($a:expr,$b:expr) => { ($a,$b) }; }
 pub const LIMIT: usize = 8;
 pub type ItemId = u64;
 type AliasValue = i32;
+
+// REQ-COVER-SRS-231 START
+/// @REQ-COVER-SRS-231 block 1
+/// @brief Coverage helper construct 1.
+/// @details Provides deterministic fixture-level Doxygen coverage block 1.
+/// @param value Input value for helper construct 1.
+/// @return Output value for helper construct 1.
+fn req_cover_rust_1(value: i32) -> i32 { value + 1 }
+
+/// @REQ-COVER-SRS-231 block 2
+/// @brief Coverage helper construct 2.
+/// @details Provides deterministic fixture-level Doxygen coverage block 2.
+/// @param value Input value for helper construct 2.
+/// @return Output value for helper construct 2.
+fn req_cover_rust_2(value: i32) -> i32 { value + 2 }
+
+/// @REQ-COVER-SRS-231 block 3
+/// @brief Coverage helper construct 3.
+/// @details Provides deterministic fixture-level Doxygen coverage block 3.
+/// @param value Input value for helper construct 3.
+/// @return Output value for helper construct 3.
+fn req_cover_rust_3(value: i32) -> i32 { value + 3 }
+
+/// @REQ-COVER-SRS-231 block 4
+/// @brief Coverage helper construct 4.
+/// @details Provides deterministic fixture-level Doxygen coverage block 4.
+/// @param value Input value for helper construct 4.
+/// @return Output value for helper construct 4.
+fn req_cover_rust_4(value: i32) -> i32 { value + 4 }
+
+/// @REQ-COVER-SRS-231 block 5
+/// @brief Coverage helper construct 5.
+/// @details Provides deterministic fixture-level Doxygen coverage block 5.
+/// @param value Input value for helper construct 5.
+/// @return Output value for helper construct 5.
+fn req_cover_rust_5(value: i32) -> i32 { value + 5 }
+
+/* REQ-COVER-SRS-231 END */

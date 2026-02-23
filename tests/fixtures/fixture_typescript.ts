@@ -394,3 +394,41 @@ declare module ExtOne { export const one: number; }
 module ExtTwo { export const two = 2; }
 module ExtThree { export const three = 3; }
 module ExtFour { export const four = 4; }
+
+// REQ-COVER-SRS-231 START
+// @REQ-COVER-SRS-231 block 1
+// @brief Coverage helper construct 1.
+// @details Provides deterministic fixture-level Doxygen coverage block 1.
+// @param value Input value for helper construct 1.
+// @return Output value for helper construct 1.
+function reqCoverTs1(value: number): number { return value + 1; }
+
+// @REQ-COVER-SRS-231 block 2
+// @brief Coverage helper construct 2.
+// @details Provides deterministic fixture-level Doxygen coverage block 2.
+// @param value Input value for helper construct 2.
+// @return Output value for helper construct 2.
+function reqCoverTs2(value: number): number { return value + 2; }
+
+// @REQ-COVER-SRS-231 block 3
+// @brief Coverage helper construct 3.
+// @details Provides deterministic fixture-level Doxygen coverage block 3.
+// @param value Input value for helper construct 3.
+// @return Output value for helper construct 3.
+function reqCoverTs3(value: number): number { return value + 3; }
+
+// @REQ-COVER-SRS-231 block 4
+// @brief Coverage helper construct 4.
+// @details Provides deterministic fixture-level Doxygen coverage block 4.
+// @param value Input value for helper construct 4.
+// @return Output value for helper construct 4.
+function reqCoverTs4(value: number): number { return value + 4; }
+
+// @REQ-COVER-SRS-231 block 5
+// @brief Coverage helper construct 5.
+// @details Provides deterministic fixture-level Doxygen coverage block 5.
+// @param value Input value for helper construct 5.
+// @return Output value for helper construct 5.
+function reqCoverTs5(value: number): number { return value + 5; }
+
+// REQ-COVER-SRS-231 END

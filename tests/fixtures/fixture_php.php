@@ -383,3 +383,51 @@ const API_LIMIT = 50;
 const DEFAULT_PAGE = 1;
 const TIMEOUT = 30;
 final class ApiClient {}
+
+/* REQ-COVER-SRS-231 START */
+/**
+ * @REQ-COVER-SRS-231 block 1
+ * @brief Coverage helper construct 1.
+ * @details Provides deterministic fixture-level Doxygen coverage block 1.
+ * @param value Input value for helper construct 1.
+ * @return Output value for helper construct 1.
+ */
+function req_cover_php_1(int $value): int { return $value + 1; }
+
+/**
+ * @REQ-COVER-SRS-231 block 2
+ * @brief Coverage helper construct 2.
+ * @details Provides deterministic fixture-level Doxygen coverage block 2.
+ * @param value Input value for helper construct 2.
+ * @return Output value for helper construct 2.
+ */
+function req_cover_php_2(int $value): int { return $value + 2; }
+
+/**
+ * @REQ-COVER-SRS-231 block 3
+ * @brief Coverage helper construct 3.
+ * @details Provides deterministic fixture-level Doxygen coverage block 3.
+ * @param value Input value for helper construct 3.
+ * @return Output value for helper construct 3.
+ */
+function req_cover_php_3(int $value): int { return $value + 3; }
+
+/**
+ * @REQ-COVER-SRS-231 block 4
+ * @brief Coverage helper construct 4.
+ * @details Provides deterministic fixture-level Doxygen coverage block 4.
+ * @param value Input value for helper construct 4.
+ * @return Output value for helper construct 4.
+ */
+function req_cover_php_4(int $value): int { return $value + 4; }
+
+/**
+ * @REQ-COVER-SRS-231 block 5
+ * @brief Coverage helper construct 5.
+ * @details Provides deterministic fixture-level Doxygen coverage block 5.
+ * @param value Input value for helper construct 5.
+ * @return Output value for helper construct 5.
+ */
+function req_cover_php_5(int $value): int { return $value + 5; }
+
+/* REQ-COVER-SRS-231 END */

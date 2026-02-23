@@ -110,10 +110,10 @@ def test_format_construct_without_line_numbers():
     assert "class Bar:" in output
 
 
-def test_find_constructs_basic(tmp_path):
+def test_find_constructs_basic(repo_temp_dir):
     """! @brief Test basic construct finding functionality."""
     # Create a test Python file
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text(
         """def test_foo():
     return 1
@@ -140,9 +140,9 @@ class TestClass:
     assert "TestClass" not in output
 
 
-def test_find_constructs_multiple_tags(tmp_path):
+def test_find_constructs_multiple_tags(repo_temp_dir):
     """! @brief Test finding with multiple tags."""
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text(
         """class MyClass:
     pass
@@ -164,10 +164,10 @@ MY_CONSTANT = 42
     assert "MY_CONSTANT" not in output
 
 
-def test_find_constructs_skip_unsupported_language(tmp_path):
+def test_find_constructs_skip_unsupported_language(repo_temp_dir):
     """! @brief Test skipping files with unsupported language/tags."""
     # Create a Python file
-    py_file = tmp_path / "test.py"
+    py_file = repo_temp_dir / "test.py"
     py_file.write_text("def foo(): pass")
 
     # Try to find STRUCT (not supported in Python)
@@ -175,9 +175,9 @@ def test_find_constructs_skip_unsupported_language(tmp_path):
         find_constructs_in_files([str(py_file)], "STRUCT", ".*")
 
 
-def test_find_constructs_no_matches(tmp_path):
+def test_find_constructs_no_matches(repo_temp_dir):
     """! @brief Test error when no constructs match."""
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text("def foo(): pass")
 
     # Pattern that won't match
@@ -191,9 +191,9 @@ def test_find_constructs_skip_missing_file():
         find_constructs_in_files(["/nonexistent/file.py"], "FUNCTION", ".*")
 
 
-def test_find_constructs_toggle_line_numbers(tmp_path):
+def test_find_constructs_toggle_line_numbers(repo_temp_dir):
     """! @brief Test line number prefix toggling."""
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text("def foo():\n    pass")
 
     output_with = find_constructs_in_files(
@@ -207,18 +207,18 @@ def test_find_constructs_toggle_line_numbers(tmp_path):
     assert "1: def foo():" not in output_without
 
 
-def test_find_constructs_no_progress_without_verbose(tmp_path, capsys):
+def test_find_constructs_no_progress_without_verbose(repo_temp_dir, capsys):
     """! @brief Test that progress messages are suppressed by default."""
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text("def foo():\n    pass")
     find_constructs_in_files([str(test_file)], "FUNCTION", "foo")
     captured = capsys.readouterr()
     assert captured.err == ""
 
 
-def test_find_constructs_progress_with_verbose(tmp_path, capsys):
+def test_find_constructs_progress_with_verbose(repo_temp_dir, capsys):
     """! @brief Test that progress messages are shown in verbose mode."""
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text("def foo():\n    pass")
     find_constructs_in_files([str(test_file)], "FUNCTION", "foo", verbose=True)
     captured = capsys.readouterr()
@@ -287,9 +287,9 @@ def test_format_available_tags():
                 assert ", " in tags_part, f"Tags should be comma-space separated: {line}"
 
 
-def test_find_constructs_error_shows_available_tags(tmp_path):
+def test_find_constructs_error_shows_available_tags(repo_temp_dir):
     """! @brief Test that error messages include available tags listing."""
-    test_file = tmp_path / "test.py"
+    test_file = repo_temp_dir / "test.py"
     test_file.write_text("def foo(): pass")
 
     # Test with invalid tag filter (empty)

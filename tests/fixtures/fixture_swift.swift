@@ -357,3 +357,41 @@ protocol ParserSwift { func parse(_ input: String) -> String }
 extension String { func trimmed2() -> String { self.trimmingCharacters(in: .whitespaces) } }
 extension Int { func doubled2() -> Int { self * 2 } }
 extension Array { var isNotEmpty: Bool { !self.isEmpty } }
+
+// REQ-COVER-SRS-231 START
+/// @REQ-COVER-SRS-231 block 1
+/// @brief Coverage helper construct 1.
+/// @details Provides deterministic fixture-level Doxygen coverage block 1.
+/// @param value Input value for helper construct 1.
+/// @return Output value for helper construct 1.
+func reqCoverSwift1(_ value: Int) -> Int { value + 1 }
+
+/// @REQ-COVER-SRS-231 block 2
+/// @brief Coverage helper construct 2.
+/// @details Provides deterministic fixture-level Doxygen coverage block 2.
+/// @param value Input value for helper construct 2.
+/// @return Output value for helper construct 2.
+func reqCoverSwift2(_ value: Int) -> Int { value + 2 }
+
+/// @REQ-COVER-SRS-231 block 3
+/// @brief Coverage helper construct 3.
+/// @details Provides deterministic fixture-level Doxygen coverage block 3.
+/// @param value Input value for helper construct 3.
+/// @return Output value for helper construct 3.
+func reqCoverSwift3(_ value: Int) -> Int { value + 3 }
+
+/// @REQ-COVER-SRS-231 block 4
+/// @brief Coverage helper construct 4.
+/// @details Provides deterministic fixture-level Doxygen coverage block 4.
+/// @param value Input value for helper construct 4.
+/// @return Output value for helper construct 4.
+func reqCoverSwift4(_ value: Int) -> Int { value + 4 }
+
+/// @REQ-COVER-SRS-231 block 5
+/// @brief Coverage helper construct 5.
+/// @details Provides deterministic fixture-level Doxygen coverage block 5.
+/// @param value Input value for helper construct 5.
+/// @return Output value for helper construct 5.
+func reqCoverSwift5(_ value: Int) -> Int { value + 5 }
+
+// REQ-COVER-SRS-231 END

@@ -107,27 +107,27 @@ instance Functor Result where
 
 -- ── Functions ──────────────────────────────────────────────────────────
 
--- | Produce a greeting string for a given name.
--- Uses string concatenation with the (++) operator.
+-- @brief Produce a greeting string for a given name. @details Uses string concatenation with the (++) operator. @param name Input name value. @return Greeting message.
+-- Deterministic helper for basic string assembly.
 greet :: String -> String
 greet name = "Hello " ++ name
 
--- | Safe division returning Nothing on division by zero.
--- Demonstrates pattern guards for conditional logic.
+-- @brief Safe division returning Nothing on division by zero. @details Demonstrates pattern guards for conditional logic. @param x Numerator value. @return Maybe quotient.
+-- Returns Nothing when the denominator equals zero.
 safeDiv :: Double -> Double -> Maybe Double
 safeDiv _ 0 = Nothing
 safeDiv x y = Just (x / y)
 
--- | Evaluate an expression AST to its numeric result.
--- Recursively traverses the expression tree.
+-- @brief Evaluate an expression AST to its numeric result. @details Recursively traverses the expression tree. @param expr Expression to evaluate. @return Numeric result.
+-- Handles literals, sums, products, and negations.
 eval :: Expr -> Double
 eval (Lit n)   = n
 eval (Add a b) = eval a + eval b
 eval (Mul a b) = eval a * eval b
 eval (Neg e)   = -(eval e)
 
--- | Process a list of integers with multiple filter stages.
--- Removes duplicates, sorts, and filters to positive values.
+-- @brief Process a list of integers with multiple filter stages. @details Removes duplicates, sorts, and filters positive values. @param xs Input integer list. @return Processed integer list.
+-- Preserves deterministic ordering and positivity constraint.
 processList :: [Int] -> [Int]
 processList xs = result
   where
@@ -138,8 +138,8 @@ processList xs = result
     -- Keep only positive values
     result = filter (> 0) sorted
 
--- | Compute the nth Fibonacci number using pattern matching.
--- Uses accumulator pattern for efficiency.
+-- @brief Compute the nth Fibonacci number using pattern matching. @details Uses accumulator recursion for efficiency. @param n Sequence index. @return Fibonacci value at index n.
+-- Rejects negative input through an explicit error branch.
 fibonacci :: Int -> Integer
 fibonacci n
   | n < 0     = error "negative input"
@@ -205,3 +205,46 @@ class Renderable a where
 class Parsable a where
 class Executable a where
 data Envelope = Envelope String
+
+-- REQ-COVER-SRS-231 START
+-- @REQ-COVER-SRS-231 block 1
+-- @brief Coverage helper construct 1.
+-- @details Provides deterministic fixture-level Doxygen coverage block 1.
+-- @param value Input value for helper construct 1.
+-- @return Output value for helper construct 1.
+reqCoverHaskell1 :: Int -> Int
+reqCoverHaskell1 value = value + 1
+
+-- @REQ-COVER-SRS-231 block 2
+-- @brief Coverage helper construct 2.
+-- @details Provides deterministic fixture-level Doxygen coverage block 2.
+-- @param value Input value for helper construct 2.
+-- @return Output value for helper construct 2.
+reqCoverHaskell2 :: Int -> Int
+reqCoverHaskell2 value = value + 2
+
+-- @REQ-COVER-SRS-231 block 3
+-- @brief Coverage helper construct 3.
+-- @details Provides deterministic fixture-level Doxygen coverage block 3.
+-- @param value Input value for helper construct 3.
+-- @return Output value for helper construct 3.
+reqCoverHaskell3 :: Int -> Int
+reqCoverHaskell3 value = value + 3
+
+-- @REQ-COVER-SRS-231 block 4
+-- @brief Coverage helper construct 4.
+-- @details Provides deterministic fixture-level Doxygen coverage block 4.
+-- @param value Input value for helper construct 4.
+-- @return Output value for helper construct 4.
+reqCoverHaskell4 :: Int -> Int
+reqCoverHaskell4 value = value + 4
+
+-- @REQ-COVER-SRS-231 block 5
+-- @brief Coverage helper construct 5.
+-- @details Provides deterministic fixture-level Doxygen coverage block 5.
+-- @param value Input value for helper construct 5.
+-- @return Output value for helper construct 5.
+reqCoverHaskell5 :: Int -> Int
+reqCoverHaskell5 value = value + 5
+
+-- REQ-COVER-SRS-231 END

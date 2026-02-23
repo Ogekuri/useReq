@@ -872,10 +872,10 @@ class TestFilesReferencesCommand:
     def test_files_references_without_doxygen_outputs_only_construct_reference(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
     ):
         """DOX-009: Constructs without Doxygen comments must not emit Doxygen bullets."""
-        source_file = tmp_path / "plain.py"
+        source_file = repo_temp_dir / "plain.py"
         source_file.write_text(
             "def plain_function(value):\n    return value\n",
             encoding="utf-8",
@@ -894,10 +894,10 @@ class TestFilesReferencesCommand:
     def test_files_references_cmd_major_extracts_all_expected_doxygen_fields(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
     ):
         """DOX-014: --files-references must extract brief/details/param/return/satisfies for cmd_major sample."""
-        source_file = tmp_path / "cmd_major_sample.py"
+        source_file = repo_temp_dir / "cmd_major_sample.py"
         _write_cmd_major_sample(source_file)
 
         rc = main(["--files-references", str(source_file)])
@@ -995,23 +995,23 @@ class TestFilesCompressCommand:
 class TestCollectSourceFiles:
     """CMD-012, CMD-013: Source file collection with exclusions."""
 
-    def test_collects_supported_extensions(self, tmp_path):
+    def test_collects_supported_extensions(self, repo_temp_dir):
         """CMD-012: Must collect files with supported extensions."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
         (src / "main.js").write_text("var x = 1;\n")
         (src / "readme.txt").write_text("not source\n")
-        files = _collect_source_files(["src"], tmp_path)
+        files = _collect_source_files(["src"], repo_temp_dir)
         assert len(files) == 2
         extensions = {os.path.splitext(f)[1] for f in files}
         assert ".py" in extensions
         assert ".js" in extensions
         assert ".txt" not in extensions
 
-    def test_excludes_dirs(self, tmp_path):
+    def test_excludes_dirs(self, repo_temp_dir):
         """CMD-012: Must exclude directories in EXCLUDED_DIRS."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
         cache = src / "__pycache__"
@@ -1020,19 +1020,19 @@ class TestCollectSourceFiles:
         git = src / ".git"
         git.mkdir()
         (git / "something.py").write_text("git file\n")
-        files = _collect_source_files(["src"], tmp_path)
+        files = _collect_source_files(["src"], repo_temp_dir)
         assert len(files) == 1
         assert all("__pycache__" not in f for f in files)
         assert all(".git" not in f for f in files)
 
-    def test_recursive_scan(self, tmp_path):
+    def test_recursive_scan(self, repo_temp_dir):
         """CMD-013: Must scan recursively."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         sub = src / "sub"
         sub.mkdir(parents=True)
         (src / "main.py").write_text("x = 1\n")
         (sub / "helper.py").write_text("y = 2\n")
-        files = _collect_source_files(["src"], tmp_path)
+        files = _collect_source_files(["src"], repo_temp_dir)
         assert len(files) == 2
 
 
@@ -1046,26 +1046,26 @@ class TestReferencesCommand:
         captured = capsys.readouterr()
         assert "--base" in captured.err or "require" in captured.err.lower()
 
-    def test_references_with_here(self, capsys, tmp_path, monkeypatch):
+    def test_references_with_here(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-009: With --here must load src-dir from config and ignore --src-dir."""
-        src = tmp_path / "cfg_lib"
+        src = repo_temp_dir / "cfg_lib"
         src.mkdir()
         (src / "main.py").write_text("def hello():\n    pass\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_lib"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
         assert len(captured.out) > 0
         assert "cfg_lib/main.py" in captured.out
-        assert str(tmp_path) not in captured.out
+        assert str(repo_temp_dir) not in captured.out
 
-    def test_references_prepends_files_structure(self, capsys, tmp_path, monkeypatch):
+    def test_references_prepends_files_structure(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-015: Must prepend a fenced markdown tree of scanned source files."""
-        src = tmp_path / "cfg_src"
+        src = repo_temp_dir / "cfg_src"
         nested = src / "pkg"
         nested.mkdir(parents=True)
         (nested / "main.py").write_text("def hello():\n    return 1\n")
@@ -1073,11 +1073,11 @@ class TestReferencesCommand:
         excluded = src / "__pycache__"
         excluded.mkdir()
         (excluded / "cached.py").write_text("x = 1\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references", "--src-dir", "src"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1087,32 +1087,32 @@ class TestReferencesCommand:
         assert "skip.txt" not in captured.out
         assert "__pycache__/cached.py" not in captured.out
 
-    def test_references_from_config(self, capsys, tmp_path, monkeypatch):
+    def test_references_from_config(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-014: Must load src-dir from config.json."""
-        src = tmp_path / "lib"
+        src = repo_temp_dir / "lib"
         src.mkdir()
         (src / "code.py").write_text("x = 42\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/",
                   "tests-dir": "tests/", "src-dir": ["lib"]}
         (req_dir / "config.json").write_text(json.dumps(config))
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references"])
         assert rc == 0
 
-    def test_references_from_legacy_config_keys(self, capsys, tmp_path,
+    def test_references_from_legacy_config_keys(self, capsys, repo_temp_dir,
                                                 monkeypatch):
         """CMD-014: Must load src-dir from config.json with legacy keys."""
-        src = tmp_path / "lib"
+        src = repo_temp_dir / "lib"
         src.mkdir()
         (src / "code.py").write_text("x = 42\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "doc-dir": "docs/",
                   "test-dir": "tests/", "src-dir": ["lib"]}
         (req_dir / "config.json").write_text(json.dumps(config))
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references"])
         assert rc == 0
 
@@ -1125,17 +1125,17 @@ class TestReferencesCommand:
         self,
         fixture_file: Path,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-015: --references must preserve total Doxygen field count for each fixture."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
 
         copied_fixture = src / fixture_file.name
         shutil.copy(fixture_file, copied_fixture)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1147,7 +1147,7 @@ class TestReferencesCommand:
 
         source_counts = _count_effective_exportable_doxygen_tags(copied_fixture)
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1173,17 +1173,17 @@ class TestReferencesCommand:
     def test_references_cli_log_emits_brief_and_param(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-015: --references must emit semantic Doxygen field content for `log()`."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         cli_source = Path(__file__).resolve().parents[1] / "src" / "usereq" / "cli.py"
         copied_cli = src / "cli.py"
         shutil.copy(cli_source, copied_cli)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1193,7 +1193,7 @@ class TestReferencesCommand:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1209,16 +1209,16 @@ class TestReferencesCommand:
     def test_references_cmd_major_extracts_all_expected_doxygen_fields(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-015: --references must extract brief/details/param/return/satisfies for cmd_major sample."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         source_file = src / "cmd_major_sample.py"
         _write_cmd_major_sample(source_file)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1228,7 +1228,7 @@ class TestReferencesCommand:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--references"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1250,35 +1250,35 @@ class TestCompressCommand:
         rc = main(["--compress"])
         assert rc != 0
 
-    def test_compress_with_here(self, capsys, tmp_path, monkeypatch):
+    def test_compress_with_here(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-011: With --here must load src-dir from config and ignore --src-dir."""
-        src = tmp_path / "cfg_mylib"
+        src = repo_temp_dir / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("# comment\nx = 1\n\ny = 2\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--compress", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "@@@" in captured.out
         assert "cfg_mylib/main.py" in captured.out
-        assert str(tmp_path) not in captured.out
+        assert str(repo_temp_dir) not in captured.out
         assert "- Lines: 2-4" in captured.out
         assert "```" in captured.out
 
-    def test_compress_no_line_numbers_by_default(self, capsys, tmp_path, monkeypatch):
+    def test_compress_no_line_numbers_by_default(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-017: Must suppress <n>: prefixes by default."""
-        src = tmp_path / "cfg_mylib"
+        src = repo_temp_dir / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--compress", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1287,16 +1287,16 @@ class TestCompressCommand:
         assert "- Lines: 1-1" in captured.out
         assert "```" in captured.out
 
-    def test_compress_enable_line_numbers(self, capsys, tmp_path, monkeypatch):
+    def test_compress_enable_line_numbers(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-017: Must include <n>: prefixes when flag is present."""
-        src = tmp_path / "cfg_mylib"
+        src = repo_temp_dir / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--compress", "--src-dir", "mylib", "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1316,25 +1316,25 @@ class TestTokensCommand:
         captured = capsys.readouterr()
         assert "--base" in captured.err or "--here" in captured.err
 
-    def test_tokens_requires_docs_dir(self, tmp_path):
+    def test_tokens_requires_docs_dir(self, repo_temp_dir):
         """CMD-016: Must error when --docs-dir is missing."""
-        rc = main(["--base", str(tmp_path), "--tokens"])
+        rc = main(["--base", str(repo_temp_dir), "--tokens"])
         assert rc != 0
 
-    def test_tokens_counts_docs_files(self, capsys, tmp_path, monkeypatch):
+    def test_tokens_counts_docs_files(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-016: With --here must use docs-dir from config and ignore --docs-dir."""
-        docs = tmp_path / "cfg_docs"
+        docs = repo_temp_dir / "cfg_docs"
         docs.mkdir()
         (docs / "a.md").write_text("# A\n", encoding="utf-8")
         (docs / "b.txt").write_text("hello\nworld\n", encoding="utf-8")
         nested = docs / "nested"
         nested.mkdir()
         (nested / "skip.md").write_text("# ignored\n", encoding="utf-8")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "cfg_docs", "tests-dir": "tests/", "src-dir": ["src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--tokens", "--docs-dir", "docs"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1347,8 +1347,8 @@ class TestTokensCommand:
 class TestFindCommandVerbose:
     """CMD-029: Verbose-gated progress output for --files-find and --find."""
 
-    def test_files_find_default_suppresses_progress(self, capsys, tmp_path):
-        src = tmp_path / "a.py"
+    def test_files_find_default_suppresses_progress(self, capsys, repo_temp_dir):
+        src = repo_temp_dir / "a.py"
         src.write_text("def foo():\n    return 1\n", encoding="utf-8")
         rc = main(["--files-find", "FUNCTION", "foo", str(src)])
         assert rc == 0
@@ -1357,8 +1357,8 @@ class TestFindCommandVerbose:
         assert "1: def foo():" not in captured.out
         assert captured.err == ""
 
-    def test_files_find_verbose_outputs_progress(self, capsys, tmp_path):
-        src = tmp_path / "a.py"
+    def test_files_find_verbose_outputs_progress(self, capsys, repo_temp_dir):
+        src = repo_temp_dir / "a.py"
         src.write_text("def foo():\n    return 1\n", encoding="utf-8")
         rc = main(["--verbose", "--files-find", "FUNCTION", "foo", str(src)])
         assert rc == 0
@@ -1366,23 +1366,23 @@ class TestFindCommandVerbose:
         assert "OK" in captured.err
         assert "Found:" in captured.err
 
-    def test_files_find_enable_line_numbers(self, capsys, tmp_path):
-        src = tmp_path / "a.py"
+    def test_files_find_enable_line_numbers(self, capsys, repo_temp_dir):
+        src = repo_temp_dir / "a.py"
         src.write_text("def foo():\n    return 1\n", encoding="utf-8")
         rc = main(["--files-find", "FUNCTION", "foo", str(src), "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "1: def foo():" in captured.out
 
-    def test_find_verbose_outputs_progress(self, capsys, tmp_path, monkeypatch):
-        src_dir = tmp_path / "cfg_src"
+    def test_find_verbose_outputs_progress(self, capsys, repo_temp_dir, monkeypatch):
+        src_dir = repo_temp_dir / "cfg_src"
         src_dir.mkdir()
         (src_dir / "a.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--verbose", "--here", "--find", "FUNCTION", "foo", "--src-dir", "src"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1390,15 +1390,15 @@ class TestFindCommandVerbose:
         assert "Found:" in captured.err
         assert "1: def foo():" not in captured.out
 
-    def test_find_enable_line_numbers(self, capsys, tmp_path, monkeypatch):
-        src_dir = tmp_path / "cfg_src"
+    def test_find_enable_line_numbers(self, capsys, repo_temp_dir, monkeypatch):
+        src_dir = repo_temp_dir / "cfg_src"
         src_dir.mkdir()
         (src_dir / "a.py").write_text("def foo():\n    return 1\n", encoding="utf-8")
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--find", "FUNCTION", "foo", "--src-dir", "src", "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1456,10 +1456,10 @@ class TestFindCommandsDoxygen:
     def test_files_find_without_doxygen_outputs_only_construct_reference(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
     ):
         """DOX-010: --files-find must omit Doxygen bullets when no Doxygen comment exists."""
-        source_file = tmp_path / "plain.py"
+        source_file = repo_temp_dir / "plain.py"
         source_file.write_text(
             "def plain_function(value):\n    return value\n",
             encoding="utf-8",
@@ -1482,10 +1482,10 @@ class TestFindCommandsDoxygen:
     def test_files_find_strips_comments_from_code_and_keeps_doxygen_header(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
     ):
         """FND-005/FND-006/DOX-010: --files-find strips code comments while keeping Doxygen metadata."""
-        source_file = tmp_path / "sample.c"
+        source_file = repo_temp_dir / "sample.c"
         source_file.write_text(
             "/** @brief Increment value */\n"
             "int inc(int value) {\n"
@@ -1515,10 +1515,10 @@ class TestFindCommandsDoxygen:
     def test_files_find_cmd_major_extracts_all_expected_doxygen_fields(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
     ):
         """DOX-016: --files-find must extract brief/details/param/return/satisfies for cmd_major sample."""
-        source_file = tmp_path / "cmd_major_sample.py"
+        source_file = repo_temp_dir / "cmd_major_sample.py"
         _write_cmd_major_sample(source_file)
 
         rc = main(["--files-find", "FUNCTION", "^cmd_major$", str(source_file)])
@@ -1539,16 +1539,16 @@ class TestFindCommandsDoxygen:
         self,
         fixture_file: Path,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-017: --find must emit expected Doxygen fields for fixture-backed project scans."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         copied_fixture = src / fixture_file.name
         shutil.copy(fixture_file, copied_fixture)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1572,7 +1572,7 @@ class TestFindCommandsDoxygen:
             _count_file_level_doxygen_tags(copied_fixture),
         )
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--find", tag_filter, pattern])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1596,11 +1596,11 @@ class TestFindCommandsDoxygen:
     def test_find_without_doxygen_outputs_only_construct_reference(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-010: --find must omit Doxygen bullets when constructs have no Doxygen comments."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         source_file = src / "plain.py"
         source_file.write_text(
@@ -1608,7 +1608,7 @@ class TestFindCommandsDoxygen:
             encoding="utf-8",
         )
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1618,7 +1618,7 @@ class TestFindCommandsDoxygen:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--find", "FUNCTION", "plain_function"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1636,11 +1636,11 @@ class TestFindCommandsDoxygen:
     def test_find_strips_comments_from_code_and_keeps_doxygen_header(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """FND-005/FND-006/DOX-010: --find strips code comments while keeping Doxygen metadata."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         source_file = src / "sample.c"
         source_file.write_text(
@@ -1653,7 +1653,7 @@ class TestFindCommandsDoxygen:
             encoding="utf-8",
         )
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1663,7 +1663,7 @@ class TestFindCommandsDoxygen:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--find", "FUNCTION", "^inc$"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1683,16 +1683,16 @@ class TestFindCommandsDoxygen:
     def test_find_cmd_major_extracts_all_expected_doxygen_fields(
         self,
         capsys,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-017: --find must extract brief/details/param/return/satisfies for cmd_major sample."""
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         source_file = src / "cmd_major_sample.py"
         _write_cmd_major_sample(source_file)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1702,7 +1702,7 @@ class TestFindCommandsDoxygen:
         }
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc = main(["--here", "--find", "FUNCTION", "^cmd_major$"])
         assert rc == 0
         captured = capsys.readouterr()
@@ -1838,18 +1838,18 @@ class TestProjectExamplesReferencesDoxygenParity:
     def test_references_regex_multiline_per_file_counts(
         self,
         filepath: Path,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-019: --references must export all Doxygen fields from project_examples files."""
         if filepath.suffix not in SUPPORTED_EXTENSIONS:
             pytest.skip(f"Extension {filepath.suffix} not in SUPPORTED_EXTENSIONS for --references")
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         copied = src / filepath.name
         shutil.copy(filepath, copied)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1868,7 +1868,7 @@ class TestProjectExamplesReferencesDoxygenParity:
                     f"regex extraction did not discover effective tag {tag}"
                 )
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc, stdout, _ = _run_cli_capture(["--here", "--references"])
         assert rc == 0, f"--references failed for {filepath.as_posix()}"
         output_tag_counts = _labels_to_tags_counts(_count_output_doxygen_labels(stdout))
@@ -1955,18 +1955,18 @@ class TestProjectExamplesFindDoxygenParity:
     def test_find_regex_multiline_per_file_counts(
         self,
         filepath: Path,
-        tmp_path,
+        repo_temp_dir,
         monkeypatch,
     ):
         """DOX-021: --find must export all Doxygen fields from project_examples files."""
         if filepath.suffix not in SUPPORTED_EXTENSIONS:
             pytest.skip(f"Extension {filepath.suffix} not in SUPPORTED_EXTENSIONS for --find")
-        src = tmp_path / "src"
+        src = repo_temp_dir / "src"
         src.mkdir()
         copied = src / filepath.name
         shutil.copy(filepath, copied)
 
-        req_dir = tmp_path / ".req"
+        req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {
             "guidelines-dir": "docs/",
@@ -1998,7 +1998,7 @@ class TestProjectExamplesFindDoxygenParity:
                     f"regex extraction did not discover effective tag {tag}"
                 )
 
-        monkeypatch.chdir(tmp_path)
+        monkeypatch.chdir(repo_temp_dir)
         rc, stdout, _ = _run_cli_capture(
             [
                 "--here",
