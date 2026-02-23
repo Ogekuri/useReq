@@ -392,8 +392,17 @@ def _expected_doxygen_fields_for_construct(
             def _has_blocking_element(comment) -> bool:
                 return any(
                     other is not construct
-                    and other.line_start > comment.line_end
-                    and other.line_start < construct.line_start
+                    and (
+                        (
+                            other.line_start > comment.line_end
+                            and other.line_start < construct.line_start
+                        )
+                        or (
+                            other.line_start <= comment.line_end
+                            and comment.line_end < other.line_end
+                            and other.line_end < construct.line_start
+                        )
+                    )
                     for other in non_comment_elements
                 )
 

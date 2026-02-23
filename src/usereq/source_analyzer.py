@@ -1383,8 +1383,17 @@ class SourceAnalyzer:
                     def _has_blocking_element(comment) -> bool:
                         return any(
                             other is not elem
-                            and other.line_start > comment.line_end
-                            and other.line_start < elem.line_start
+                            and (
+                                (
+                                    other.line_start > comment.line_end
+                                    and other.line_start < elem.line_start
+                                )
+                                or (
+                                    other.line_start <= comment.line_end
+                                    and comment.line_end < other.line_end
+                                    and other.line_end < elem.line_start
+                                )
+                            )
                             for other in non_comment_elements
                         )
 
