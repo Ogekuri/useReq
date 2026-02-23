@@ -332,7 +332,7 @@ No explicit performance optimizations identified.
 ## 4. Test Requirements
 
 ### 4.1 Test and Verification Requirements
-- **SRS-222**: The implementation MUST preserve this behavior exactly: Unit test devono usare esclusivamente la cartella `temp/` (o `tests/temp/`).
+- **SRS-222**: The implementation MUST preserve this behavior exactly: Unit test devono usare esclusivamente la cartella `temp/` (o `temp/tests/`).
 - **SRS-223**: The implementation MUST preserve this behavior exactly: Il progetto deve includere suite `tests/test_cli.py` che verifica operazioni CLI in cartella temporanea.
 - **SRS-224**: The implementation MUST preserve this behavior exactly: Unit test non devono creare/modificare file fuori da `temp/`.
 - **SRS-225**: The implementation MUST preserve this behavior exactly: Il progetto deve includere i moduli di test `tests/test_analyzer_core.py`, `tests/test_analyzer_comments.py`, `tests/test_analyzer_format.py`, `tests/test_analyzer_errors.py`, `tests/test_analyzer_helpers.py`, e `tests/test_analyzer_cli.py`.
