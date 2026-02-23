@@ -103,6 +103,28 @@ uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git
 uv tool uninstall usereq
 ```
 
+### Typical First-Time Install
+
+1. Install on a projet in path `project_path`, with `docs/`, `guidelines/`, `src/`, and `tests/` already created:
+```
+req \
+--base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
+--src-dir "src/" --tests-dir "tests/" \
+--upgrade-guidelines \
+--enable-claude --enable-codex --enable-github \
+--enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
+--enable-static-check C=Command,clang-format,--dry-run,--Werror \
+--enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
+--enable-static-check C++=Command,clang-format,--dry-run,--Werror \
+--enable-static-check Python=Pylance \
+--enable-static-check Python=Ruff
+
+```
+2. Use `/req.write` or `/req.create` to create requirements
+3. Use `/req.impement` to implemet source-code from requiremets, or `/req.cover` to cover new requirements (documentation).
+4. Use `/req.workflow` and/or `req.references` to update project's documentation.
+5. Star to use `/req.change`, `/req.new`, and `/req.fix`.
+
 ### Usage
 - Run `req` to create or recreate useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.req`, and `.vscode`.
   - You can run `req` from any directory:
