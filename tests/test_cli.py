@@ -169,15 +169,13 @@ class TestCLI(unittest.TestCase):
             "Files under src/usereq/resources/docs must remain unchanged",
         )
 
-    def test_requirements_md_generated(self) -> None:
-        """REQ-001: Verifies that requirements.md is generated in the empty docs directory."""
+    def test_requirements_md_not_generated_when_docs_empty(self) -> None:
+        """REQ-001: Verifies that requirements.md is NOT generated when docs is empty."""
         requirements_path = self.TEST_DIR / "docs" / "requirements.md"
-        self.assertTrue(
+        self.assertFalse(
             requirements_path.exists(),
-            "The file requirements.md must be generated in docs/",
+            "The file requirements.md must NOT be generated even if docs is empty",
         )
-        content = requirements_path.read_text(encoding="utf-8")
-        self.assertIn("---", content, "requirements.md must contain front matter")
 
     def test_codex_directory_created(self) -> None:
         """REQ-002: Verifies the creation of the .codex/prompts directory."""

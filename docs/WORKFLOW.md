@@ -76,6 +76,8 @@
       - `_validate_enable_static_check_command_executables(...)`: in non-update/non-config-loaded init flow, reject Command `cmd` values not resolvable as local executables before persisting `.req/config.json` [`src/usereq/cli.py`]
       - `build_persisted_update_flags(...)`: collect current boolean flag state for persistence in `.req/config.json` [`src/usereq/cli.py`]
       - `save_config(...)`: persist paths, static-check arrays, and persisted boolean flags to `.req/config.json` [`src/usereq/cli.py`]
+      - `list_docs_templates(...)`: enumerate package `resources/docs` files for runtime template propagation [`src/usereq/cli.py`]
+      - `find_requirements_template(...)`: validate `Requirements_Template.md` presence for runtime docs propagation under `.req/docs` [`src/usereq/cli.py`]
 
 ## Communication Edges
 - None across execution units.

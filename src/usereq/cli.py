@@ -1927,18 +1927,7 @@ def run(args: Namespace) -> None:
             log("OK: preserved existing .req/models.json (--preserve-models active)")
 
     docs_templates = list_docs_templates()
-    requirements_template = find_requirements_template(docs_templates)
-    req_dir_path = project_base / normalized_doc
-    req_dir_empty = not any(req_dir_path.iterdir())
-    req_target = project_base / normalized_doc / "requirements.md"
-    # Create requirements.md only if the --docs-dir folder is empty.
-    if req_dir_empty:
-        req_target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(requirements_template, req_target)
-        if VERBOSE:
-            log(
-                f"Created {req_target} — update the file with the project requirements. (source: {requirements_template})"
-            )
+    find_requirements_template(docs_templates)
 
     # Generate the file list for the %%GUIDELINES_FILES%% token.
     guidelines_file_list = generate_guidelines_file_list(project_base / normalized_guidelines, project_base)
