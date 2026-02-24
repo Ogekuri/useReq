@@ -52,18 +52,18 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | Prompt | Description |
   | --- | --- |
   | `write` | Produce a *SRS* draft based on the User Request description |
-  | `create` | Write a *SRS* draft using the project's source code |
-  | `recreate` | Reorganize, update, and renumber the *SRS* |
-  | `renumber` | Deterministically renumber requirement IDs in `REQUIREMENTS.md` |
+  | `create` | Write a *Software Requirements Specification* using the project's source code |
+  | `recreate` | Reorganize and update the *Software Requirements Specification* based on source code analysis (preserve requirement IDs) |
+  | `renumber` | Deterministically renumber requirement IDs in the *Software Requirements Specification* without changing requirement text or order |
   | `analyze` | Produce an analysis report |
   | `change` | Update the requirements and implement the corresponding changes |
   | `check` | Run the requirements check |
-  | `cover` | Implement changes to cover new requirements |
+  | `cover` | Implement minimal changes to cover uncovered existing requirements |
   | `fix` | Fix a defect without changing the requirements |
-  | `implement` | Implement source code from scratch from requirements |
+  | `implement` | Implement source code from requirements (from scratch) |
   | `new` | Implement a new requirement and the corresponding source code changes |
-  | `refactor` | Perform optimizations without changing the requirements |
-  | `readme` | Write root `README.md` from user-visible implementation evidence |
+  | `refactor` | Perform a refactor without changing the requirements |
+  | `readme` | Write `README.md` from user-visible implementation evidence |
   | `references` | Write a `REFERENCES.md` using the project's source code |
   | `workflow` | Write a `WORKFLOW.md` using the project's source code |
 
