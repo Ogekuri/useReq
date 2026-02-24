@@ -69,20 +69,20 @@
   },
   "opencode": {
     "prompts": {
-      "analyze":  { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_only" },
-      "change":   { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "check":    { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_only" },
-      "cover":    { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "create":   { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
-      "implement": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "workflow": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "fix":      { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "new":      { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "renumber": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "recreate": { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
-      "refactor": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
-      "readme":   { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
-      "write":    { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" }
+      "analyze":  { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_only" },
+      "change":   { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "check":    { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_only" },
+      "cover":    { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "create":   { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_write" },
+      "implement": { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "workflow": { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "fix":      { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "new":      { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "renumber": { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "recreate": { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_write" },
+      "refactor": { "model": "github-copilot/claude-opus-4.6", "mode": "read_write" },
+      "readme":   { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_write" },
+      "write":    { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_write" }
     }
   },
   "claude": {
