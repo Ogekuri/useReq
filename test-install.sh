@@ -3,7 +3,7 @@
 FOLDER_PATH="${1:-}"
 if ! [ -d "$FOLDER_PATH" ]; then
     # Assegna il primo argomento passato allo script alla variabile FOLDER_PATH
-    FOLDER_PATH="temp/test-full-install"
+    FOLDER_PATH="temp/test-install"
     echo "Clean+Install on path: ${FOLDER_PATH}"
     rm -rf "${FOLDER_PATH}"
     mkdir -p "${FOLDER_PATH}"
