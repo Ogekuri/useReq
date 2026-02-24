@@ -10,7 +10,7 @@
 
 <p align="center">
 <strong>The <u>req</u> script provides CLI prompts for requirements-driven software development.</strong><br>
-The defined prompts are exposed as <b>req.<name></b> commands within various CLIs and Agents.<br>
+The defined prompts are exposed as <b>/req-<name></b> commands within various CLIs and Agents.<br>
 This allows them to be run both as a Python package (installed as <b>req</b>, <b>usereq</b>, or <b>use-req</b>) and directly using <b>uvx</b>.
 </p>
 
@@ -134,10 +134,10 @@ req \
 
 ```
 
-2. Use `/req.write` or `/req.create` to create requirements
-3. Use `/req.impement` to implemet source-code from requiremets, or `/req.cover` to cover new requirements (documentation).
-4. Use `/req.workflow` and/or `req.references` to update project's documentation.
-5. Star to use `/req.change`, `/req.new`, and `/req.fix`.
+2. Use `/req-write` or `/req-create` to create requirements
+3. Use `/req-impement` to implemet source-code from requiremets, or `/req-cover` to cover new requirements (documentation).
+4. Use `/req-workflow` and/or `/req-references` to update project's documentation.
+5. Star to use `/req-change`, `/req-new`, and `/req-fix`.
 
 ### Usage
 - Run `req` to create or recreate useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.req`, and `.vscode`.
@@ -267,16 +267,16 @@ req \
 - ❌ Kiro: Does not work as expected
 
 #### CLI Prompt Details
-- ✅ OpenAI Codex: [`/prompts:req.create`]
+- ✅ OpenAI Codex: [`/prompts:/req-create`]
 - ✅ Claude Code: [`/req:create`]
 - ✅ GitHub Copilot: [`/agent ➡️ req-create ↩️`]
   - Use `--legacy` to not add `model:` on agents.
   - Slash command not supported. 
   - Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
   - Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
-- ✅ OpenCode: [`/req.create`]
+- ✅ OpenCode: [`/req-create`]
 - ✅ Gemini: [`/req:create`]
-- ❌ Kiro: [`'@req.create'`]
+- ❌ Kiro: [`'@/req-create'`]
   - Does not work as expected
   - Prompt parameters (`$ARGUMENTS`) are not evaluated by the Kiro CLI.
   - *no arguments supported for file-based prompts* → [Manage prompts](https://kiro.dev/docs/cli/chat/manage-prompts/)
@@ -288,20 +288,20 @@ req \
 - ❌ GitHub Copilot
 - ✔️ OpenCode: [`<TAB> ➡️ Req.Create ↩️`]
   - **Starts a new session** (`/new`) for every prompt.
-- ✔️ Kiro: [`/agent swap; select agent ➡️ req.create; ↩️`]
+- ✔️ Kiro: [`/agent swap; select agent ➡️ /req-create; ↩️`]
   - Does not work as expected
   - **Clears the context** (`/clear`) for every prompt.
 
 #### Visual Studio Code Extension Details
 - ✅ OpenAI Codex Extension for Visual Studio Code
   - Skills: [`/ ➡️ Req.Create ↩️`]
-  - Prompts: [`/prompts:req.create`]
+  - Prompts: [`/prompts:/req-create`]
   - set environment variable **CODEX_HOME** to project's home before running VS Code
 - ✅ Claude Extension for Visual Studio Code
   - Skills: [`/req-create`]
   - Prompts: [`@agent-req-create`] (does not **highlight** agent like the CLI)
 - ✔️ GitHub Copilot Agent Chat in Visual Studio Code
-  - Agents: [`gui; select agent ➡️ req.create; ↩️`]
+  - Agents: [`gui; select agent ➡️ /req-create; ↩️`]
   - **Starts a new chat** for every prompt.
 - ✔️ OpenCode in Visual Studio Code
   - Supported with a windowed CLI

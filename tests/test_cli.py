@@ -346,7 +346,7 @@ class TestCLI(unittest.TestCase):
             )
 
     def test_github_prompt_files_created(self) -> None:
-        """REQ-004: Verifies the creation of .github/prompts/req.<name>.prompt.md files."""
+        """REQ-004: Verifies the creation of .github/prompts/req-<name>.prompt.md files."""
         github_prompts = self.TEST_DIR / ".github" / "prompts"
         expected_prompts = [
             "req-analyze.prompt.md",
@@ -375,7 +375,7 @@ class TestCLI(unittest.TestCase):
             self.assertIn("##", content, "The prompt body must be present")
 
     def test_gemini_toml_files_created(self) -> None:
-        """REQ-005: Verifies TOML files generation in .gemini/commands/req."""
+        """REQ-005: Verifies TOML files generation in .gemini/commands/req-"""
         gemini_req = self.TEST_DIR / ".gemini" / "commands" / "req"
         expected_toml = [
             "analyze.toml",
@@ -1505,7 +1505,7 @@ class TestPromptsUseAgents(unittest.TestCase):
         self.assertNotIn("allowed-tools:", content, "The stub must not include allowed-tools")
 
     def test_opencode_commands_are_agent_stubs(self) -> None:
-        """With the flag enabled, .opencode/command files must contain only the agent (agent: req.<name>)."""
+        """With the flag enabled, .opencode/command files must contain only the agent (agent: /req-<name>)."""
         cmd_path = self.TEST_DIR / ".opencode" / "command" / "req-analyze.md"
         self.assertTrue(cmd_path.exists())
         content = cmd_path.read_text(encoding="utf-8").strip()

@@ -1536,7 +1536,7 @@ def remove_generated_resources(project_base: Path) -> None:
         if not folder.is_dir():
             continue
         ensure_wrapped(folder, project_base, 10)
-        for pattern in ("req-*", "req.*"):
+        for pattern in ("req-*", "req-*"):
             for path in folder.glob(pattern):
                 if path.is_file():
                     path.unlink()

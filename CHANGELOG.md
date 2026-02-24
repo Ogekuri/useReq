@@ -39,14 +39,14 @@
 - add --tokens docs-dir token scan command [2026-02-16 07:46:03] *(cli)*
 - add REFERENCES.md as source of true. *(core)*
 - set English language for WORKFLOW.md. *(core)*
-- add REFERENCES.md management and /req.references prompt. *(core)*
+- add REFERENCES.md management and /req-references prompt. *(core)*
 - add Google_C++_Style_Guide.md template. *(core)*
 - add common scripts. *(core)*
 - add SKILLs to codex. *(core)*
 - add Google Python Guide *(core)*
 - add req/ dir. *(core)*
 - tocken optimization. *(core)*
-- add /req.implement prompt. *(core)*
+- add /req-implement prompt. *(core)*
 - add %%SRC_PATH%% on promtps. *(core)*
 - add src-dir support and update specs/tests [2026-02-08 12:07:55] *(cli)*
 - add --test-dir support and update specs/tests [2026-02-08 11:27:54] *(cli)*
