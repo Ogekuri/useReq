@@ -54,6 +54,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `write` | Produce a *SRS* draft based on the User Request description |
   | `create` | Write a *SRS* draft using the project's source code |
   | `recreate` | Reorganize, update, and renumber the *SRS* |
+  | `renumber` | Deterministically renumber requirement IDs in `REQUIREMENTS.md` |
   | `analyze` | Produce an analysis report |
   | `change` | Update the requirements and implement the corresponding changes |
   | `check` | Run the requirements check |
@@ -62,6 +63,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `implement` | Implement source code from scratch from requirements |
   | `new` | Implement a new requirement and the corresponding source code changes |
   | `refactor` | Perform optimizations without changing the requirements |
+  | `readme` | Write root `README.md` from user-visible implementation evidence |
   | `references` | Write a `REFERENCES.md` using the project's source code |
   | `workflow` | Write a `WORKFLOW.md` using the project's source code |
 
@@ -377,6 +379,7 @@ The `--enable-models` switch adds a `model:` specification to prompts as detaile
   | `fix` | GPT-5.3-Codex (copilot) |
   | `implement` | GPT-5.3-Codex (copilot) |
   | `new` | GPT-5.3-Codex (copilot) |
+  | `readme` | Gemini 3 Pro (Preview) (copilot) |
   | `recreate` | Gemini 3 Pro (Preview) (copilot) |
   | `refactor` | GPT-5.3-Codex (copilot) |
   | `renumber` | GPT-5.3-Codex (copilot) |
@@ -416,6 +419,7 @@ When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enable
   | `fix` | opus |
   | `implement` | opus |
   | `new` | sonnet |
+  | `readme` | haiku |
   | `recreate` | haiku |
   | `refactor` | opus |
   | `renumber` | opus |
@@ -446,6 +450,7 @@ When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enable
   | `fix` | claude-sonnet-4.5 |
   | `implement` | claude-sonnet-4.5 |
   | `new` | claude-sonnet-4.5 |
+  | `readme` | claude-haiku-4.5 |
   | `recreate` | claude-haiku-4.5 |
   | `refactor` | claude-sonnet-4.5 |
   | `renumber` | claude-sonnet-4.5 |
@@ -495,14 +500,15 @@ OpenCode CLI does not support "tools:" on agents/prompts.
   | `change` | github-copilot/gpt-5.2-codex |
   | `check` | github-copilot/gemini-3-pro-preview |
   | `cover` | github-copilot/gpt-5.2-codex |
-  | `create` | github-copilot/gpt-5.2-codex |
+  | `create` | github-copilot/gemini-3-pro-preview |
   | `fix` | github-copilot/gpt-5.2-codex |
   | `implement` | github-copilot/gpt-5.2-codex |
   | `new` | github-copilot/gpt-5.2-codex |
+  | `readme` | github-copilot/gemini-3-pro-preview |
   | `recreate` | github-copilot/gemini-3-pro-preview |
   | `refactor` | github-copilot/gpt-5.2-codex |
   | `renumber` | github-copilot/gpt-5.2-codex |
-  | `workflow` | github-copilot/gemini-3-pro-preview |
+  | `workflow` | github-copilot/gpt-5.2-codex |
   | `write` | github-copilot/gemini-3-pro-preview |
 
 
