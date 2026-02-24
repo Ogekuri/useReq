@@ -108,17 +108,17 @@ uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git
 uv tool uninstall usereq
 ```
 
-### Typical First-Time Install
+### Quick Install
 
-1. Install on a projet in path `project_path`, with `docs/`, `guidelines/`, `src/`, and `tests/` already created:
-- Common Install:
+1. Install on a project in path `project_path`, where `docs/`, `guidelines/`, `src/`, and `tests/` already created:
+- Typical Install:
 ```
 req \
 --base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
 --src-dir "src/" --tests-dir "tests/" \
 --enable-claude --enable-codex --enable-github
 ```
-- Full Install:
+- Full-Features Install:
 ```
 req \
 --base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
