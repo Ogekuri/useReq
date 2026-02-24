@@ -2,7 +2,7 @@
 description: "Perform a refactor without changing the requirements"
 argument-hint: "Description of the refactor goal"
 usage: >
-  Select this prompt when the primary intent is internal code improvement under %%SRC_PATHS%% (maintainability/structure/performance) and externally observable behavior must remain unchanged and compliant with %%DOC_PATH%%/REQUIREMENTS.md (SRS stays unchanged). Use when you will restructure internals, keep public interfaces/data formats stable, verify via the test suite, update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md, and commit. Do NOT select if the user’s goal is to fix incorrect behavior relative to requirements (use /req.fix), to add/modify requirements/behavior (use /req.new or /req.change), or to close uncovered requirement IDs (use /req.cover or /req.implement). Do NOT select for read-only audits/triage (use /req.check or /req.analyze).
+  Select this prompt when the primary intent is internal code improvement under %%SRC_PATHS%% (maintainability/structure/performance) and externally observable behavior must remain unchanged and compliant with %%DOC_PATH%%/REQUIREMENTS.md (SRS stays unchanged). Use when you will restructure internals, keep public interfaces/data formats stable, verify via the test suite, update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md, and commit. Do NOT select if the user’s goal is to fix incorrect behavior relative to requirements (use /req-fix), to add/modify requirements/behavior (use /req-new or /req-change), or to close uncovered requirement IDs (use /req-cover or /req-implement). Do NOT select for read-only audits/triage (use /req-check or /req-analyze).
 ---
 
 # Perform a refactor without changing the requirements
@@ -11,7 +11,7 @@ usage: >
 Improve maintainability, structure, and/or performance while strictly preserving externally observable behavior and keeping the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) unchanged, so downstream LLM Agents can treat the refactor as a semantics-preserving transformation.
 
 ## Scope
-In scope: internal refactors under %%SRC_PATHS%% (including private API reshaping) that preserve public interfaces/data formats, optional test adjustments only when objectively incorrect, verification via the test suite, updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and a clean git commit. Out of scope: editing requirements, introducing new features, or making intentional behavioral changes (use `/req.change` or `/req.new`).
+In scope: internal refactors under %%SRC_PATHS%% (including private API reshaping) that preserve public interfaces/data formats, optional test adjustments only when objectively incorrect, verification via the test suite, updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and a clean git commit. Out of scope: editing requirements, introducing new features, or making intentional behavioral changes (use `/req-change` or `/req-new`).
 
 
 ## Professional Personas
@@ -121,15 +121,17 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 1. **CRITICAL**: Check GIT Status
    - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && test -z "$(git status --porcelain)" && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
-   - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md does not exist, generate it with the /req.write prompt!", and then terminate the execution.
-   - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md does not exist, generate it with the /req.workflow prompt!", and then terminate the execution.
-   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REFERENCES.md does not exist, generate it with the /req.references prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/REQUIREMENTS.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REQUIREMENTS.md does not exist, generate it with the /req-write prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/WORKFLOW.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/WORKFLOW.md does not exist, generate it with the /req-workflow prompt!", and then terminate the execution.
+   - If the `%%DOC_PATH%%/REFERENCES.md` file does NOT exist, OUTPUT exactly "ERROR: File %%DOC_PATH%%/REFERENCES.md does not exist, generate it with the /req-references prompt!", and then terminate the execution.
 3. **CRITICAL**: Worktree Generation & Isolation
    - Generate a pseudo-random UUID v4 (or an equivalent unique alphanumeric tag) to identify the current operation, and refer to it as <EXECUTION_ID>. If available, use `uuidgen`.
    - Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
    - Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
    - Create a dedicated worktree OUTSIDE the current repository directory to isolate changes:
       - Execute: `git worktree add ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> -b userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
+      - If `.gitignore` excludes `.req/config.json`, copy `.req/config.json` into the new worktree before continuing:
+         - `if git check-ignore -q .req/config.json && [ -f .req/config.json ]; then mkdir -p ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req && cp .req/config.json ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req/config.json; fi`
    - Move into the worktree directory and perform ALL subsequent steps from there:
       - `cd ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
 4. Generate **Design Delta** and implement the **Implementation Delta** to implement the refactor
@@ -139,7 +141,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - From %%TEST_PATH%%, locate and read only the unit tests that are relevant to the affected requirement IDs and touched modules (via targeted search), and plan the necessary refactoring/additions to cover performance-critical paths and include these details in the **Implementation Delta**.
       - **CRITICAL**: All tests MUST implement these instructions: `.req/docs/HDT_Test_Authoring_Guide.md`.
       - Read %%GUIDELINES_FILES%% files and apply those **guidelines**; ensure the proposed code changes conform to those **guidelines**, and adjust the **Implementation Delta** if needed. Do not apply unrelated **guidelines**.
-   - A change is allowed ONLY if it: (a) preserves externally observable behavior required by `%%DOC_PATH%%/REQUIREMENTS.md` AND (b) improves structure/performance/reliability with measurable evidence or a clear invariant-based justification. Do not claim performance wins without explicit benchmarks, profiling notes, or complexity-relevant code changes. If the request requires new user-visible features, new configuration options, or changes to documented behavior, recommend to use the `req.new` or `req.change` workflow instead, then OUTPUT exactly "ERROR: Refactor failed due to incompatible requirements!", and then terminate the execution.
+   - A change is allowed ONLY if it: (a) preserves externally observable behavior required by `%%DOC_PATH%%/REQUIREMENTS.md` AND (b) improves structure/performance/reliability with measurable evidence or a clear invariant-based justification. Do not claim performance wins without explicit benchmarks, profiling notes, or complexity-relevant code changes. If the request requires new user-visible features, new configuration options, or changes to documented behavior, recommend to use the `/req-new` or `/req-change` workflow instead, then OUTPUT exactly "ERROR: Refactor failed due to incompatible requirements!", and then terminate the execution.
    - IMPLEMENT the **Implementation Delta** in the source code (creating new files/directories if necessary). You may make minimal mechanical adjustments needed to fit the actual codebase (file paths, symbol names), but you MUST NOT add new features or scope beyond the **Implementation Delta**.
 5. Generate **Verification Delta** by testing the implementation result and implementing needed bug fixes
    - Read ALL requirements from `%%DOC_PATH%%/REQUIREMENTS.md`, analyze them one by one, and cross-reference them with the source code to check requirements. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance, and do not assume compliance without locating the specific code implementation.
@@ -195,6 +197,8 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 9.  **CRITICAL**: Merge Conflict Management
    - Return to the original repository directory (the sibling directory of the worktree). After working in `../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`, return with: `cd ../<PROJECT_NAME>`
    - Ensure you are on <ORIGINAL_BRANCH>: `git checkout <ORIGINAL_BRANCH>`
+   - If `.gitignore` excludes `.req/config.json`, remove `.req/config.json` before merge:
+      - `if git check-ignore -q .req/config.json; then rm -f .req/config.json; fi`
    - Merge the isolated branch into <ORIGINAL_BRANCH>: `git merge userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
    - If the merge completes successfully, remove the worktree directory with force: `git worktree remove ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> --force`
    - If the merge fails or results in conflicts, do NOT remove the worktree directory and override the final line with EXACTLY "WARNING: Refactor request completed with merge conflicting!".

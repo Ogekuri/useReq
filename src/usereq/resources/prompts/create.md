@@ -2,7 +2,7 @@
 description: "Write a Software Requirements Specification using the project's source code"
 argument-hint: "No arguments utilized by the prompt logic (English only)"
 usage: >
-  Select this prompt when an implementation already exists under %%SRC_PATHS%% but %%DOC_PATH%%/REQUIREMENTS.md is missing or incomplete, and you need to bootstrap/update the SRS to reflect the code’s true current behavior (with evidence) BEFORE any SRS-driven change work. Output is only an updated SRS; source code, tests, %%DOC_PATH%%/WORKFLOW.md, and %%DOC_PATH%%/REFERENCES.md must remain unchanged. Do NOT select if you must draft the SRS from a user description without relying on code (use /req.write), if you must reorganize/renumber an existing SRS with an explicit old→new ID mapping (use /req.recreate), or if you intend to implement/fix/refactor anything (use /req.change, /req.new, /req.fix, /req.refactor, /req.cover, /req.implement).
+  Select this prompt when an implementation already exists under %%SRC_PATHS%% but %%DOC_PATH%%/REQUIREMENTS.md is missing or incomplete, and you need to bootstrap/update the SRS to reflect the code’s true current behavior (with evidence) BEFORE any SRS-driven change work. Output is only an updated SRS; source code, tests, %%DOC_PATH%%/WORKFLOW.md, and %%DOC_PATH%%/REFERENCES.md must remain unchanged. Do NOT select if you must draft the SRS from a user description without relying on code (use /req-write), if you must reorganize/renumber an existing SRS with an explicit old→new ID mapping (use /req-recreate), or if you intend to implement/fix/refactor anything (use /req-change, /req-new, /req-fix, /req-refactor, /req-cover, /req-implement).
 ---
 
 # Write a Software Requirements Specification using the project's source code

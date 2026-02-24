@@ -42,7 +42,10 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 - Creates **Software Requirements Specification** [*SRS*] files for existing projects.
 - Keeps source code documentation updated and optimized for LLM Agents reasoning.
 - Lightweight model customization.
-- Supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
+- Use **git worktree** to parallelize tasks (only on clean git repositories)
+- Provide **source-code analysis tool**, that supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
+- Support **static-code analysis** with Pylance, Ruff or customizable Command-Line commands.
+- Support cutomizable guidelines.
 
 
 ## Prompts and Agents
@@ -106,12 +109,22 @@ uv tool uninstall usereq
 ### Typical First-Time Install
 
 1. Install on a projet in path `project_path`, with `docs/`, `guidelines/`, `src/`, and `tests/` already created:
+- Common Install:
+```
+req \
+--base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
+--src-dir "src/" --tests-dir "tests/" \
+--enable-claude --enable-codex --enable-github
+```
+- Full Install:
 ```
 req \
 --base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
 --src-dir "src/" --tests-dir "tests/" \
 --upgrade-guidelines \
---enable-claude --enable-codex --enable-github \
+--enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode \
+--enable-models --enable-tools \
+--enable-prompts --enable-agents \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
 --enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
@@ -120,6 +133,7 @@ req \
 --enable-static-check Python=Ruff
 
 ```
+
 2. Use `/req.write` or `/req.create` to create requirements
 3. Use `/req.impement` to implemet source-code from requiremets, or `/req.cover` to cover new requirements (documentation).
 4. Use `/req.workflow` and/or `req.references` to update project's documentation.

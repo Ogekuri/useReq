@@ -2,7 +2,7 @@
 description: "Produce a Software Requirements Specification draft based on the User Request description"
 argument-hint: "Description of the application to be drafted from scratch (English only)"
 usage: >
-  Select this prompt to draft/author %%DOC_PATH%%/REQUIREMENTS.md ONLY from the user’s textual request (greenfield/kickoff, no authoritative implementation to analyze). Use when you must capture intent, fill gaps via explicit Assumptions, and produce an SRS suitable for SRS-driven development, without touching code/tests/%%DOC_PATH%%/WORKFLOW.md/%%DOC_PATH%%/REFERENCES.md. Do NOT select if an implementation already exists and you need requirements grounded in repo evidence (use /req.create or /req.recreate), if you need to change existing requirements and implement (use /req.change or /req.new), or for audit/triage or implementation work (use /req.analyze, /req.check, /req.fix, /req.refactor, /req.cover, /req.implement).
+  Select this prompt to draft/author %%DOC_PATH%%/REQUIREMENTS.md ONLY from the user’s textual request (greenfield/kickoff, no authoritative implementation to analyze). Use when you must capture intent, fill gaps via explicit Assumptions, and produce an SRS suitable for SRS-driven development, without touching code/tests/%%DOC_PATH%%/WORKFLOW.md/%%DOC_PATH%%/REFERENCES.md. Do NOT select if an implementation already exists and you need requirements grounded in repo evidence (use /req-create or /req-recreate), if you need to change existing requirements and implement (use /req-change or /req-new), or for audit/triage or implementation work (use /req-analyze, /req-check, /req-fix, /req-refactor, /req-cover, /req-implement).
 ---
 
 # Produce a Software Requirements Specification draft based on the User Request description

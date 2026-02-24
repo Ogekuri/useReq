@@ -2,7 +2,7 @@
 description: "Implement source code from requirements (from scratch)"
 argument-hint: "No arguments utilized by the prompt logic"
 usage: >
-  Select this prompt when %%DOC_PATH%%/REQUIREMENTS.md is already authoritative and stable, but the codebase under %%SRC_PATHS%% is missing large parts of the required functionality (greenfield or major gaps) and you must build an end-to-end implementation (including creating new modules/files and tests under %%TEST_PATH%%) WITHOUT changing requirements. Do NOT select if only a small/known set of requirement IDs is uncovered in an otherwise working codebase (use /req.cover), if you need to modify or add requirements (use /req.change or /req.new), or if the task is a narrow defect fix or refactor (use /req.fix or /req.refactor). Do NOT select for auditing/triage (use /req.check or /req.analyze).
+  Select this prompt when %%DOC_PATH%%/REQUIREMENTS.md is already authoritative and stable, but the codebase under %%SRC_PATHS%% is missing large parts of the required functionality (greenfield or major gaps) and you must build an end-to-end implementation (including creating new modules/files and tests under %%TEST_PATH%%) WITHOUT changing requirements. Do NOT select if only a small/known set of requirement IDs is uncovered in an otherwise working codebase (use /req-cover), if you need to modify or add requirements (use /req-change or /req-new), or if the task is a narrow defect fix or refactor (use /req-fix or /req-refactor). Do NOT select for auditing/triage (use /req-check or /req-analyze).
 ---
 
 # Implement source code from requirements from scratch
@@ -11,7 +11,7 @@ usage: >
 Produce a working implementation from the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) by building missing functionality end-to-end (including “from scratch” where needed), so the codebase becomes fully compliant with the documented requirement IDs without changing those requirements.
 
 ## Scope
-In scope: read `%%DOC_PATH%%/REQUIREMENTS.md`, implement/introduce source under %%SRC_PATHS%% (including new modules/files), add tests under %%TEST_PATH%%, verify via the test suite, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing requirements or introducing features not present in the SRS (use `/req.change` or `/req.new` to evolve requirements first).
+In scope: read `%%DOC_PATH%%/REQUIREMENTS.md`, implement/introduce source under %%SRC_PATHS%% (including new modules/files), add tests under %%TEST_PATH%%, verify via the test suite, update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing requirements or introducing features not present in the SRS (use `/req-change` or `/req-new` to evolve requirements first).
 
 
 ## Professional Personas
@@ -86,6 +86,8 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
    - Create a dedicated worktree OUTSIDE the current repository directory to isolate changes:
       - Execute: `git worktree add ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> -b userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
+      - If `.gitignore` excludes `.req/config.json`, copy `.req/config.json` into the new worktree before continuing:
+         - `if git check-ignore -q .req/config.json && [ -f .req/config.json ]; then mkdir -p ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req && cp .req/config.json ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req/config.json; fi`
    - Move into the worktree directory and perform ALL subsequent steps from there:
       - `cd ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
 3. Read requirements, generate **Design Delta** and implement the **Implementation Delta** to cover all requirements
@@ -156,6 +158,8 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 9. **CRITICAL**: Merge Conflict Management
    - Return to the original repository directory (the sibling directory of the worktree). After working in `../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`, return with: `cd ../<PROJECT_NAME>`
    - Ensure you are on <ORIGINAL_BRANCH>: `git checkout <ORIGINAL_BRANCH>`
+   - If `.gitignore` excludes `.req/config.json`, remove `.req/config.json` before merge:
+      - `if git check-ignore -q .req/config.json; then rm -f .req/config.json; fi`
    - Merge the isolated branch into <ORIGINAL_BRANCH>: `git merge userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
    - If the merge completes successfully, remove the worktree directory with force: `git worktree remove ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> --force`
    - If the merge fails or results in conflicts, do NOT remove the worktree directory and override the final line with EXACTLY "WARNING: Implement request completed with merge conflicting!".

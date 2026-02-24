@@ -2,7 +2,7 @@
 description: "Write a REFERENCES.md using the project's source code"
 argument-hint: "No arguments utilized by the prompt logic"
 usage: >
-  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/REFERENCES.md: when that file is missing/outdated and you need to regenerate the repository navigation/index from evidence (entrypoints, modules, dependencies) and commit that doc change. Do NOT select if any other file (requirements, workflow, source, tests) must change; use /req.change, /req.new, /req.fix, /req.refactor, /req.cover, /req.implement, /req.create, or /req.recreate for those workflows. Do NOT select for read-only analysis/audits (use /req.analyze or /req.check).
+  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/REFERENCES.md: when that file is missing/outdated and you need to regenerate the repository navigation/index from evidence (entrypoints, modules, dependencies) and commit that doc change. Do NOT select if any other file (requirements, workflow, source, tests) must change; use /req-change, /req-new, /req-fix, /req-refactor, /req-cover, /req-implement, /req-create, or /req-recreate for those workflows. Do NOT select for read-only analysis/audits (use /req-analyze or /req-check).
 ---
 
 # Write a REFERENCES.md using the project's source code
@@ -76,6 +76,8 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
    - Create a dedicated worktree OUTSIDE the current repository directory to isolate changes:
       - Execute: `git worktree add ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> -b userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
+      - If `.gitignore` excludes `.req/config.json`, copy `.req/config.json` into the new worktree before continuing:
+         - `if git check-ignore -q .req/config.json && [ -f .req/config.json ]; then mkdir -p ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req && cp .req/config.json ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req/config.json; fi`
    - Move into the worktree directory and perform ALL subsequent steps from there:
       - `cd ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
 3. Update `%%DOC_PATH%%/REFERENCES.md` references file
@@ -94,6 +96,8 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 5. **CRITICAL**: Merge Conflict Management
    - Return to the original repository directory (the sibling directory of the worktree). After working in `../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`, return with: `cd ../<PROJECT_NAME>`
    - Ensure you are on <ORIGINAL_BRANCH>: `git checkout <ORIGINAL_BRANCH>`
+   - If `.gitignore` excludes `.req/config.json`, remove `.req/config.json` before merge:
+      - `if git check-ignore -q .req/config.json; then rm -f .req/config.json; fi`
    - Merge the isolated branch into <ORIGINAL_BRANCH>: `git merge userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
    - If the merge completes successfully, remove the worktree directory with force: `git worktree remove ../userReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> --force`
    - If the merge fails or results in conflicts, do NOT remove the worktree directory and override the final line with EXACTLY "WARNING: References request completed with merge conflicting!".
