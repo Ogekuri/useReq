@@ -15,7 +15,7 @@ from . import compress_files  # usereq.compress_files submodule
 from . import find_constructs  # usereq.find_constructs submodule
 from .cli import main  # re-export of CLI entry point
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 """! @brief Semantic version string of the package."""
 
 __all__ = [

@@ -1,7 +1,9 @@
 # Changelog
 
-## [0.1.1](https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.1.1) - 2026-02-24
+## [0.2.0](https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0) - 2026-02-24
 ### ⛰️  Features
+- update prompts. *(core)*
+- update models. *(core)*
 - add new prompts. *(core)*
 - add guidelines. *(core)*
 - update prompts and templates. *(core)*
@@ -9,6 +11,7 @@
 - update README.md. *(core)*
 
 ### 🐛  Bug Fixes
+- Fix workflow file. *(core)*
 - update .gitignore. *(core)*
 - opencode models. *(core)*
 - replace req. with req-. *(core)*
@@ -50,6 +53,13 @@
   - recalibrate analyzer expected counts for updated fixture corpus
 
 ### 📚  Documentation
+- align README prompt descriptions [useReq] *(prompts)*
+  - sync Prompts and Agents descriptions with packaged prompt metadata
+  - keep README structure and non-interface sections unchanged
+- fix typos and update model configurations [useReq] *(readme)*
+  - Fixed typos: cutomizable, implement, requirements.
+  - Updated Gemini 3 Pro to Gemini 3.1 Pro for Copilot and OpenCode.
+  - Updated OpenCode models to Claude Opus 4.6 as per models.json evidence.
 - update README.md. *(core)*
 - align prompt and model tables with implementation [useReq] *(readme)*
   - add missing prompt coverage entries (readme, renumber)\n- add readme model rows across provider configured-model tables\n- correct OpenCode create/workflow model mapping
@@ -430,7 +440,7 @@
 # History
 
 - \[0.1.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
-- \[0.1.1\]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.1
+- \[0.2.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.2.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
-[0.1.1]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.1.1
+[0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
