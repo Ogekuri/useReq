@@ -17,6 +17,7 @@
       "new":      { "model": "gpt-5.3-codex", "mode": "read_write" },
       "recreate": { "model": "gpt-5.2", "mode": "read_write" },
       "refactor": { "model": "gpt-5.3-codex", "mode": "read_write" },
+      "readme":   { "model": "gpt-5.2", "mode": "read_write" },
       "write":    { "model": "gpt-5.2", "mode": "read_write" }
     },
     "usage_modes": {
@@ -42,6 +43,7 @@
       "renumber": { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
       "recreate": { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
       "refactor": { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "readme":   { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" },
       "write":    { "model": "Gemini 3 Pro (Preview) (copilot)", "mode": "read_write" }
     },
     "usage_modes": {
@@ -79,6 +81,7 @@
       "renumber": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
       "recreate": { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
       "refactor": { "model": "github-copilot/gpt-5.2-codex", "mode": "read_write" },
+      "readme":   { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" },
       "write":    { "model": "github-copilot/gemini-3-pro-preview", "mode": "read_write" }
     }
   },
@@ -96,6 +99,7 @@
       "renumber": { "model": "opus", "mode": "read_write" },
       "recreate": { "model": "haiku", "mode": "read_write" },
       "refactor": { "model": "opus", "mode": "read_write" },
+      "readme":   { "model": "haiku", "mode": "read_write" },
       "write":    { "model": "haiku", "mode": "read_write" }
     },
     "usage_modes": {
@@ -123,6 +127,7 @@
       "renumber": { "model": "claude-sonnet-4.5", "mode": "read_write" },
       "recreate": { "model": "claude-haiku-4.5", "mode": "read_write" },
       "refactor": { "model": "claude-sonnet-4.5", "mode": "read_write" },
+      "readme":   { "model": "claude-haiku-4.5", "mode": "read_write" },
       "write":    { "model": "claude-haiku-4.5", "mode": "read_write" }
       },
     "usage_modes": {

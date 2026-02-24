@@ -1687,6 +1687,45 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
         )
 
 
+class TestBundledModelsReadmeMapping(unittest.TestCase):
+    """Verifies packaged model configs align readme prompt with write prompt."""
+
+    PROVIDERS = ("codex", "copilot", "opencode", "claude", "kiro")
+
+    def _assert_readme_matches_write(self, config_file: Path) -> None:
+        payload = json.loads(config_file.read_text(encoding="utf-8"))
+        for provider in self.PROVIDERS:
+            prompts = (payload.get(provider) or {}).get("prompts") or {}
+            self.assertIsInstance(prompts, dict, f"{provider} prompts must be a mapping")
+            write_cfg = prompts.get("write")
+            readme_cfg = prompts.get("readme")
+            self.assertIsInstance(write_cfg, dict, f"{provider}.prompts.write must exist")
+            self.assertIsInstance(readme_cfg, dict, f"{provider}.prompts.readme must exist")
+            assert isinstance(write_cfg, dict)
+            assert isinstance(readme_cfg, dict)
+            self.assertEqual(
+                readme_cfg.get("mode"),
+                write_cfg.get("mode"),
+                f"{provider}.prompts.readme.mode must match write.mode",
+            )
+            if "model" in write_cfg:
+                self.assertEqual(
+                    readme_cfg.get("model"),
+                    write_cfg.get("model"),
+                    f"{provider}.prompts.readme.model must match write.model",
+                )
+
+    def test_models_json_readme_matches_write(self) -> None:
+        """SRS-085: models.json keeps readme model/mode aligned with write."""
+        self._assert_readme_matches_write(cli.RESOURCE_ROOT / "common" / "models.json")
+
+    def test_models_legacy_json_readme_matches_write(self) -> None:
+        """SRS-085: models-legacy.json keeps readme model/mode aligned with write."""
+        self._assert_readme_matches_write(
+            cli.RESOURCE_ROOT / "common" / "models-legacy.json"
+        )
+
+
 class TestCLIWithoutClaude(unittest.TestCase):
     """Runs CLI without Claude enabled to ensure other providers work."""
 

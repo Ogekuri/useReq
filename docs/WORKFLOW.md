@@ -72,6 +72,7 @@
               - `StaticCheckBase._emit_line(...)`: emit markdown lines with per-line newline termination and append one blank separator line after each file block [`src/usereq/static_check.py`]
       - `run(...)`: install/update flow including `--update` persisted-flag merge, `--enable-static-check` parsing, `req-*` artifact filename emission for prompt/agent outputs, and config persistence [`src/usereq/cli.py`]
       - `load_persisted_update_flags(...)`: on `--update` (including `--here --update`), load persisted boolean install/update flags from `.req/config.json` and validate provider/artifact activation invariants [`src/usereq/cli.py`]
+      - `load_centralized_models(...)`: load provider prompt metadata from `models.json` / `models-legacy.json`, including `readme` entries aligned to `write` model/mode where `write.model` is defined [`src/usereq/cli.py`]
       - `parse_enable_static_check(...)`: parse one SPEC into one static-check entry object [`src/usereq/static_check.py`]
       - `_validate_enable_static_check_command_executables(...)`: in non-update/non-config-loaded init flow, reject Command `cmd` values not resolvable as local executables before persisting `.req/config.json` [`src/usereq/cli.py`]
       - `build_persisted_update_flags(...)`: collect current boolean flag state for persistence in `.req/config.json` [`src/usereq/cli.py`]
