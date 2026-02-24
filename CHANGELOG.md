@@ -1,5 +1,59 @@
 # Changelog
 
+## [0.1.1](https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.1.1) - 2026-02-24
+### ⛰️  Features
+- add new prompts. *(core)*
+- add guidelines. *(core)*
+- update prompts and templates. *(core)*
+- remove other examples. *(core)*
+- update README.md. *(core)*
+
+### 🐛  Bug Fixes
+- update .gitignore. *(core)*
+- opencode models. *(core)*
+- replace req. with req-. *(core)*
+- test.sh. *(core)*
+- stop cross-function Doxygen leakage [useReq] *(source_analyzer)*
+  - treat completed enclosing constructs as blockers when associating preceding comments
+  - keep nested/contained comment association behavior intact
+  - add regression for parse_args in find_constructs output
+  - align fixture expectation helper and regenerate docs/REFERENCES.md
+- fix docs/REQUIREMENTS.md. *(core)*
+- fix typo on breaking changes. *(core)*
+
+### 🚜  Changes
+- align readme prompt mapping with write [useReq] *(models)*
+  - Update SRS-085 to require readme prompt model/mode parity with write when write.model exists.
+  - Add readme entries to models.json and models-legacy.json for codex, copilot, opencode, claude, and kiro.
+  - Add regression tests asserting readme/write parity across bundled model files.
+  - Update WORKFLOW.md runtime note for centralized model loading semantics.
+- normalize prompt and agent filenames to hyphen style [useReq] *(cli)*
+  - Update SRS IDs SRS-090/091/093/099/100/105/106/108 for req-<name> artifact naming.
+  - Generate Codex/GitHub/Kiro/Claude/OpenCode prompt and agent files with hyphenated names.
+  - Align prompts-use-agents references to agent: req-<name> across providers.
+  - Refresh CLI tests for the new artifact names and resource references.
+  - Regenerate REFERENCES.md and adjust WORKFLOW.md targeted runtime note.
+- stop creating requirements.md in docs-dir [useReq] *(cli)*
+  - update SRS-053 to forbid requirements.md generation in --docs-dir
+  - keep Requirements_Template validation and copy only to .req/docs
+  - adjust REQ-001 tests for empty docs directories
+  - refresh WORKFLOW and REFERENCES docs
+- enforce packaged resource read-only rules [useReq] *(requirements)*
+  - Remove SRS-088 editing-oriented requirement on resources/prompts
+  - Add SRS-263 and SRS-264 read-only constraints for packaged resources
+  - Add regression tests verifying CLI runs do not modify packaged prompts/docs
+
+### 🎯  Cover Requirements
+- enforce fixture doxygen coverage and temp dirs [useReq] *(tests)*
+  - replace tmp_path usage with repository temp fixture under temp/tests
+  - add deterministic Doxygen helper blocks across all fixtures for SRS-231
+  - recalibrate analyzer expected counts for updated fixture corpus
+
+### 📚  Documentation
+- update README.md. *(core)*
+- align prompt and model tables with implementation [useReq] *(readme)*
+  - add missing prompt coverage entries (readme, renumber)\n- add readme model rows across provider configured-model tables\n- correct OpenCode create/workflow model mapping
+
 ## [0.1.0](https://github.com/Ogekuri/useReq/releases/tag/v0.1.0) - 2026-02-22
 ### ⛰️  Features
 - verbose commit. *(core)*
@@ -39,14 +93,14 @@
 - add --tokens docs-dir token scan command [2026-02-16 07:46:03] *(cli)*
 - add REFERENCES.md as source of true. *(core)*
 - set English language for WORKFLOW.md. *(core)*
-- add REFERENCES.md management and /req-references prompt. *(core)*
+- add REFERENCES.md management and /req.references prompt. *(core)*
 - add Google_C++_Style_Guide.md template. *(core)*
 - add common scripts. *(core)*
 - add SKILLs to codex. *(core)*
 - add Google Python Guide *(core)*
 - add req/ dir. *(core)*
 - tocken optimization. *(core)*
-- add /req-implement prompt. *(core)*
+- add /req.implement prompt. *(core)*
 - add %%SRC_PATH%% on promtps. *(core)*
 - add src-dir support and update specs/tests [2026-02-08 12:07:55] *(cli)*
 - add --test-dir support and update specs/tests [2026-02-08 11:27:54] *(cli)*
@@ -376,5 +430,7 @@
 # History
 
 - \[0.1.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
+- \[0.1.1\]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.1
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
+[0.1.1]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.1.1
