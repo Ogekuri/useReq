@@ -45,7 +45,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 - Use **git worktree** to parallelize tasks (only on clean git repositories)
 - Provide **source-code analysis tool**, that supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
 - Support **static-code analysis** with Pylance, Ruff or customizable Command-Line commands.
-- Support cutomizable guidelines.
+- Support customizable guidelines.
 
 
 ## Prompts and Agents
@@ -137,7 +137,7 @@ req \
 ```
 
 2. Use `/req-write` or `/req-create` to create requirements
-3. Use `/req-impement` to implemet source-code from requiremets, or `/req-cover` to cover new requirements (documentation).
+3. Use `/req-implement` to implement source-code from requirements, or `/req-cover` to cover new requirements (documentation).
 4. Use `/req-workflow` and/or `/req-references` to update project's documentation.
 5. Star to use `/req-change`, `/req-new`, and `/req-fix`.
 
@@ -334,7 +334,7 @@ The `--enable-models` switch adds a `model:` specification to prompts as detaile
   | Claude Sonnet 4.5 | 1M | | [2]
   | Claude Opus 4.5 | 200K | *Yes* |
   | Gemini 3 Flash (Preview) | 1.05M | |
-  | Gemini 3 Pro (Preview) | 1.05M | Yes |
+  | Gemini 3.1 Pro (Preview) | 1.05M | Yes |
   | GPT-4.1 | 1.05M | **No** |
   | GPT-5 mini | 400K | Yes |
   | GPT-5.1 | 400K | Yes |
@@ -358,7 +358,7 @@ The `--enable-models` switch adds a `model:` specification to prompts as detaile
   | Claude Sonnet 4.5 | 1x |
   | *Claude Opus 4.5* | *3x* |
   | Gemini 3 Flash (Preview) | 0.33x |
-  | Gemini 3 Pro (Preview) | 1x |
+  | Gemini 3.1 Pro (Preview) | 1x |
   | GPT-5 mini | **0x** |
   | GPT-5.1 | 1x |
   | GPT-5.1-Codex-Mini (Preview) | 0.33x |
@@ -371,20 +371,20 @@ The `--enable-models` switch adds a `model:` specification to prompts as detaile
 
   | Prompt | Model |
   | --- | --- |
-  | `analyze` | Gemini 3 Pro (Preview) (copilot) |
+  | `analyze` | Gemini 3.1 Pro (Preview) (copilot) |
   | `change` | GPT-5.3-Codex (copilot) |
-  | `check` | Gemini 3 Pro (Preview) (copilot) |
+  | `check` | Gemini 3.1 Pro (Preview) (copilot) |
   | `cover` | GPT-5.3-Codex (copilot) |
-  | `create` | Gemini 3 Pro (Preview) (copilot) |
+  | `create` | Gemini 3.1 Pro (Preview) (copilot) |
   | `fix` | GPT-5.3-Codex (copilot) |
   | `implement` | GPT-5.3-Codex (copilot) |
   | `new` | GPT-5.3-Codex (copilot) |
-  | `readme` | Gemini 3 Pro (Preview) (copilot) |
-  | `recreate` | Gemini 3 Pro (Preview) (copilot) |
+  | `readme` | Gemini 3.1 Pro (Preview) (copilot) |
+  | `recreate` | Gemini 3.1 Pro (Preview) (copilot) |
   | `refactor` | GPT-5.3-Codex (copilot) |
   | `renumber` | GPT-5.3-Codex (copilot) |
   | `workflow` | GPT-5.3-Codex (copilot) |
-  | `write` | Gemini 3 Pro (Preview) (copilot) |
+  | `write` | Gemini 3.1 Pro (Preview) (copilot) |
 
 ### Claude Code
 
@@ -475,7 +475,7 @@ OpenCode CLI does not support "tools:" on agents/prompts.
 - github-copilot/gpt-5.1-codex
 - github-copilot/gpt-5.1-codex-max
 - github-copilot/gpt-5.2
-- github-copilot/gpt-5.2-codex
+- github-copilot/claude-opus-4.6
 
 ##### Not Working GitHub Models
 
@@ -497,18 +497,18 @@ OpenCode CLI does not support "tools:" on agents/prompts.
   | Prompt | Model |
   | --- | --- |
   | `analyze` | github-copilot/gemini-3-pro-preview |
-  | `change` | github-copilot/gpt-5.2-codex |
+  | `change` | github-copilot/claude-opus-4.6 |
   | `check` | github-copilot/gemini-3-pro-preview |
-  | `cover` | github-copilot/gpt-5.2-codex |
+  | `cover` | github-copilot/claude-opus-4.6 |
   | `create` | github-copilot/gemini-3-pro-preview |
-  | `fix` | github-copilot/gpt-5.2-codex |
-  | `implement` | github-copilot/gpt-5.2-codex |
-  | `new` | github-copilot/gpt-5.2-codex |
+  | `fix` | github-copilot/claude-opus-4.6 |
+  | `implement` | github-copilot/claude-opus-4.6 |
+  | `new` | github-copilot/claude-opus-4.6 |
   | `readme` | github-copilot/gemini-3-pro-preview |
   | `recreate` | github-copilot/gemini-3-pro-preview |
-  | `refactor` | github-copilot/gpt-5.2-codex |
-  | `renumber` | github-copilot/gpt-5.2-codex |
-  | `workflow` | github-copilot/gpt-5.2-codex |
+  | `refactor` | github-copilot/claude-opus-4.6 |
+  | `renumber` | github-copilot/claude-opus-4.6 |
+  | `workflow` | github-copilot/claude-opus-4.6 |
   | `write` | github-copilot/gemini-3-pro-preview |
 
 
