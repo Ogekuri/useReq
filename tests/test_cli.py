@@ -240,15 +240,15 @@ class TestCLI(unittest.TestCase):
         """REQ-003: Verifies copy of prompt files into .codex/prompts."""
         codex_prompts = self.TEST_DIR / ".codex" / "prompts"
         expected_prompts = [
-            "req.analyze.md",
-            "req.change.md",
-            "req.check.md",
-            "req.cover.md",
-            "req.fix.md",
-            "req.new.md",
-            "req.refactor.md",
-            "req.recreate.md",
-            "req.write.md",
+            "req-analyze.md",
+            "req-change.md",
+            "req-check.md",
+            "req-cover.md",
+            "req-fix.md",
+            "req-new.md",
+            "req-refactor.md",
+            "req-recreate.md",
+            "req-write.md",
         ]
         for prompt in expected_prompts:
             prompt_path = codex_prompts / prompt
@@ -281,7 +281,7 @@ class TestCLI(unittest.TestCase):
     def test_codex_skill_front_matter_structure(self) -> None:
         """SRS-095: Verifies Codex SKILL.md front matter has correct name and skill description."""
         codex_skill = self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md"
-        github_agent = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        github_agent = self.TEST_DIR / ".github" / "agents" / "req-analyze.agent.md"
         self.assertTrue(codex_skill.exists(), "The Codex SKILL.md must exist")
         self.assertTrue(github_agent.exists(), "The GitHub agent must exist")
         codex_content = codex_skill.read_text(encoding="utf-8")
@@ -308,15 +308,15 @@ class TestCLI(unittest.TestCase):
         """REQ-003, REQ-053: Verifies copy of files into .github/agents with front matter name."""
         github_agents = self.TEST_DIR / ".github" / "agents"
         expected_agents = [
-            "req.analyze.agent.md",
-            "req.change.agent.md",
-            "req.check.agent.md",
-            "req.cover.agent.md",
-            "req.fix.agent.md",
-            "req.new.agent.md",
-            "req.refactor.agent.md",
-            "req.recreate.agent.md",
-            "req.write.agent.md",
+            "req-analyze.agent.md",
+            "req-change.agent.md",
+            "req-check.agent.md",
+            "req-cover.agent.md",
+            "req-fix.agent.md",
+            "req-new.agent.md",
+            "req-refactor.agent.md",
+            "req-recreate.agent.md",
+            "req-write.agent.md",
         ]
         for agent in expected_agents:
             agent_path = github_agents / agent
@@ -349,15 +349,15 @@ class TestCLI(unittest.TestCase):
         """REQ-004: Verifies the creation of .github/prompts/req.<name>.prompt.md files."""
         github_prompts = self.TEST_DIR / ".github" / "prompts"
         expected_prompts = [
-            "req.analyze.prompt.md",
-            "req.change.prompt.md",
-            "req.check.prompt.md",
-            "req.cover.prompt.md",
-            "req.fix.prompt.md",
-            "req.new.prompt.md",
-            "req.refactor.prompt.md",
-            "req.recreate.prompt.md",
-            "req.write.prompt.md",
+            "req-analyze.prompt.md",
+            "req-change.prompt.md",
+            "req-check.prompt.md",
+            "req-cover.prompt.md",
+            "req-fix.prompt.md",
+            "req-new.prompt.md",
+            "req-refactor.prompt.md",
+            "req-recreate.prompt.md",
+            "req-write.prompt.md",
         ]
         for prompt in expected_prompts:
             prompt_path = github_prompts / prompt
@@ -424,15 +424,15 @@ class TestCLI(unittest.TestCase):
         """REQ-018: Verifies copy of files into .kiro/prompts."""
         kiro_prompts = self.TEST_DIR / ".kiro" / "prompts"
         expected_prompts = [
-            "req.analyze.md",
-            "req.change.md",
-            "req.check.md",
-            "req.cover.md",
-            "req.fix.md",
-            "req.new.md",
-            "req.refactor.md",
-            "req.recreate.md",
-            "req.write.md",
+            "req-analyze.md",
+            "req-change.md",
+            "req-check.md",
+            "req-cover.md",
+            "req-fix.md",
+            "req-new.md",
+            "req-refactor.md",
+            "req-recreate.md",
+            "req-write.md",
         ]
         for prompt in expected_prompts:
             prompt_path = kiro_prompts / prompt
@@ -442,8 +442,8 @@ class TestCLI(unittest.TestCase):
 
     def test_codex_kiro_prompt_contents_match(self) -> None:
         """Verifies that Codex and Kiro prompt contents match after replacement."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
-        kiro_prompt = self.TEST_DIR / ".kiro" / "prompts" / "req.analyze.md"
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req-analyze.md"
+        kiro_prompt = self.TEST_DIR / ".kiro" / "prompts" / "req-analyze.md"
         codex_content = codex_prompt.read_text(encoding="utf-8")
         kiro_content = kiro_prompt.read_text(encoding="utf-8")
         self.assertEqual(
@@ -460,15 +460,15 @@ class TestCLI(unittest.TestCase):
         """REQ-019, REQ-020: Verifies JSON files generation in .kiro/agents."""
         kiro_agents = self.TEST_DIR / ".kiro" / "agents"
         expected_agents = [
-            "req.analyze.json",
-            "req.change.json",
-            "req.check.json",
-            "req.cover.json",
-            "req.fix.json",
-            "req.new.json",
-            "req.refactor.json",
-            "req.recreate.json",
-            "req.write.json",
+            "req-analyze.json",
+            "req-change.json",
+            "req-check.json",
+            "req-cover.json",
+            "req-fix.json",
+            "req-new.json",
+            "req-refactor.json",
+            "req-recreate.json",
+            "req-write.json",
         ]
         for agent in expected_agents:
             agent_path = kiro_agents / agent
@@ -613,15 +613,15 @@ class TestCLI(unittest.TestCase):
         """REQ-047: Verifies OpenCode agents generation in .opencode/agent."""
         opencode_agent = self.TEST_DIR / ".opencode" / "agent"
         expected_agents = [
-            "req.analyze.md",
-            "req.change.md",
-            "req.check.md",
-            "req.cover.md",
-            "req.fix.md",
-            "req.new.md",
-            "req.refactor.md",
-            "req.recreate.md",
-            "req.write.md",
+            "req-analyze.md",
+            "req-change.md",
+            "req-check.md",
+            "req-cover.md",
+            "req-fix.md",
+            "req-new.md",
+            "req-refactor.md",
+            "req-recreate.md",
+            "req-write.md",
         ]
         for agent in expected_agents:
             agent_path = opencode_agent / agent
@@ -638,7 +638,7 @@ class TestCLI(unittest.TestCase):
 
     def test_opencode_command_contains_metadata(self) -> None:
         """Verifies that .opencode/command files include description and argument-hint."""
-        cmd_path = self.TEST_DIR / ".opencode" / "command" / "req.analyze.md"
+        cmd_path = self.TEST_DIR / ".opencode" / "command" / "req-analyze.md"
         self.assertTrue(cmd_path.exists(), "The opencode command must exist")
         content = cmd_path.read_text(encoding="utf-8")
         self.assertIn("description:", content, "Must include description in front matter")
@@ -648,15 +648,15 @@ class TestCLI(unittest.TestCase):
         """REQ-050, REQ-051: Verifies Claude Code files generation."""
         claude_agents = self.TEST_DIR / ".claude" / "agents"
         expected_agents = [
-            "req.analyze.md",
-            "req.change.md",
-            "req.check.md",
-            "req.cover.md",
-            "req.fix.md",
-            "req.new.md",
-            "req.refactor.md",
-            "req.recreate.md",
-            "req.write.md",
+            "req-analyze.md",
+            "req-change.md",
+            "req-check.md",
+            "req-cover.md",
+            "req-fix.md",
+            "req-new.md",
+            "req-refactor.md",
+            "req-recreate.md",
+            "req-write.md",
         ]
         for agent in expected_agents:
             agent_path = claude_agents / agent
@@ -695,7 +695,7 @@ class TestCLI(unittest.TestCase):
 
     def test_req_dir_replacement(self) -> None:
         """REQ-026, REQ-027: Verifies %%GUIDELINES_FILES%% replacement."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req-analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
         # Verify that %%GUIDELINES_FILES%% has been replaced.
         self.assertNotIn(
@@ -710,7 +710,7 @@ class TestCLI(unittest.TestCase):
 
     def test_kiro_resources_include_prompt(self) -> None:
         """REQ-046: Verifies that Kiro resources field includes the prompt."""
-        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req-analyze.json"
         content = kiro_agent.read_text(encoding="utf-8")
         data = json.loads(content)
 
@@ -728,9 +728,9 @@ class TestCLI(unittest.TestCase):
         # Verify that the first entry is the prompt.
         first_resource = resources[0]
         self.assertIn(
-            ".kiro/prompts/req.analyze.md",
+            ".kiro/prompts/req-analyze.md",
             first_resource,
-            "The first resource must be the prompt .kiro/prompts/req.analyze.md",
+            "The first resource must be the prompt .kiro/prompts/req-analyze.md",
         )
 
     def test_claude_skills_directory_created(self) -> None:
@@ -1038,7 +1038,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
     def test_guidelines_path_replacement(self) -> None:
         """REQ-090: Verifies that %%GUIDELINES_PATH%% is replaced."""
         self.assertEqual(self.exit_code, 0, "The script must end with exit code 0")
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.techpath.md"
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req-techpath.md"
         self.assertTrue(codex_prompt.exists(), "The Codex prompt must exist")
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
@@ -1052,7 +1052,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
 
     def test_test_path_replacement(self) -> None:
         """REQ-092: Verifies that %%TEST_PATH%% is replaced."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.techpath.md"
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req-techpath.md"
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
             "%%TEST_PATH%%", content, "The token %%TEST_PATH%% must be replaced"
@@ -1065,7 +1065,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
 
     def test_src_paths_replacement(self) -> None:
         """REQ-094: Verifies that %%SRC_PATHS%% is replaced."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.techpath.md"
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req-techpath.md"
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
             "%%SRC_PATHS%%", content, "The token %%SRC_PATHS%% must be replaced"
@@ -1195,13 +1195,13 @@ class TestModelsAndTools(unittest.TestCase):
 
     def test_generated_files_include_model_and_tools(self) -> None:
         """Verifies that generated files contain model and tools when configs exist and flags are active."""
-        gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        gha = self.TEST_DIR / ".github" / "agents" / "req-analyze.agent.md"
         self.assertTrue(gha.exists(), "GitHub agent should exist")
         content = gha.read_text(encoding="utf-8")
         self.assertIn("model:", content)
         self.assertIn("tools:", content)
 
-        ghp = self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md"
+        ghp = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
         self.assertTrue(ghp.exists(), "GitHub prompt should exist")
         ghp_content = ghp.read_text(encoding="utf-8")
         self.assertIn("model:", ghp_content)
@@ -1214,7 +1214,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn("model:", codex_content)
         self.assertIn("tools:", codex_content)
 
-        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req-analyze.json"
         self.assertTrue(kiro_agent.exists(), "Kiro agent should exist")
         data = json.loads(kiro_agent.read_text(encoding="utf-8"))
         self.assertIn("model", data)
@@ -1264,7 +1264,7 @@ class TestModelsAndTools(unittest.TestCase):
                 + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
-        gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        gha = self.TEST_DIR / ".github" / "agents" / "req-analyze.agent.md"
         content = gha.read_text(encoding="utf-8")
         # model/tools should not be present in GitHub agent when flags are off
         self.assertNotIn("tools:", content)
@@ -1300,7 +1300,7 @@ class TestModelsAndTools(unittest.TestCase):
             )
         self.assertEqual(exit_code, 0)
 
-        gha = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        gha = self.TEST_DIR / ".github" / "agents" / "req-analyze.agent.md"
         content = gha.read_text(encoding="utf-8")
         self.assertIn("tools:", content)
         self.assertNotIn("model:", content)
@@ -1315,7 +1315,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertIn("tools =", gemini_content)
         self.assertNotIn("model =", gemini_content)
 
-        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req-analyze.json"
         kiro_data = json.loads(kiro_agent.read_text(encoding="utf-8"))
         self.assertIn("tools", kiro_data)
         self.assertNotIn("model", kiro_data)
@@ -1402,7 +1402,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
     def test_kiro_resources_contains_existing_file(self) -> None:
         """REQ-046: Verifies Kiro resources include existing docs files."""
-        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req-analyze.json"
         data = json.loads(kiro_agent.read_text(encoding="utf-8"))
         self.assertIn(
             "file://docs/existing.md",
@@ -1412,18 +1412,18 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
     def test_kiro_resources_include_prompt_when_docs_nonempty(self) -> None:
         """REQ-046: Verifies Kiro resources include generated prompt when docs non-empty."""
-        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        kiro_agent = self.TEST_DIR / ".kiro" / "agents" / "req-analyze.json"
         data = json.loads(kiro_agent.read_text(encoding="utf-8"))
         resources = data.get("resources", [])
         self.assertIn(
-            "file://.kiro/prompts/req.analyze.md",
+            "file://.kiro/prompts/req-analyze.md",
             resources,
             "Kiro resources must include prompt file",
         )
 
     def test_guidelines_dir_ignores_dotfiles(self) -> None:
         """DES-014: Verifies that %%GUIDELINES_FILES%% ignores dotfiles."""
-        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req.analyze.md"
+        codex_prompt = self.TEST_DIR / ".codex" / "prompts" / "req-analyze.md"
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
             "guidelines/.place-holder",
@@ -1480,7 +1480,7 @@ class TestPromptsUseAgents(unittest.TestCase):
 
     def test_github_prompts_are_agent_stubs(self) -> None:
         """With the flag enabled, .github/prompts files must be agent stubs."""
-        prompt_path = self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md"
+        prompt_path = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
         self.assertTrue(prompt_path.exists())
         content = prompt_path.read_text(encoding="utf-8").strip()
         self.assertEqual(content, "---\nagent: req-analyze\n---", "The prompt must be a stub with only agent")
@@ -1506,11 +1506,11 @@ class TestPromptsUseAgents(unittest.TestCase):
 
     def test_opencode_commands_are_agent_stubs(self) -> None:
         """With the flag enabled, .opencode/command files must contain only the agent (agent: req.<name>)."""
-        cmd_path = self.TEST_DIR / ".opencode" / "command" / "req.analyze.md"
+        cmd_path = self.TEST_DIR / ".opencode" / "command" / "req-analyze.md"
         self.assertTrue(cmd_path.exists())
         content = cmd_path.read_text(encoding="utf-8").strip()
         # With the flag enabled, OpenCode commands must include the 'agent:' line.
-        self.assertIn("agent: req.analyze", content, "The opencode command must contain 'agent:' line when --prompts-use-agents is active")
+        self.assertIn("agent: req-analyze", content, "The opencode command must contain 'agent:' line when --prompts-use-agents is active")
         self.assertTrue(content.startswith("---"))
         self.assertTrue(content.endswith("---"))
 
@@ -1560,10 +1560,10 @@ class TestKiroToolsEnabled(unittest.TestCase):
 
     def test_kiro_change_tools_match_read_write_mode(self) -> None:
         """REQ-075: with enable-tools, change prompt uses read_write tools."""
-        change_agent = self.TEST_DIR / ".kiro" / "agents" / "req.change.json"
+        change_agent = self.TEST_DIR / ".kiro" / "agents" / "req-change.json"
         self.assertTrue(
             change_agent.exists(),
-            "The file req.change.json must be present",
+            "The file req-change.json must be present",
         )
         data = json.loads(change_agent.read_text(encoding="utf-8"))
         self.assertEqual(
@@ -1579,10 +1579,10 @@ class TestKiroToolsEnabled(unittest.TestCase):
 
     def test_kiro_analyze_tools_match_read_only_mode(self) -> None:
         """REQ-075: with enable-tools, analyze prompt uses read_only tools."""
-        analyze_agent = self.TEST_DIR / ".kiro" / "agents" / "req.analyze.json"
+        analyze_agent = self.TEST_DIR / ".kiro" / "agents" / "req-analyze.json"
         self.assertTrue(
             analyze_agent.exists(),
-            "The file req.analyze.json must be present",
+            "The file req-analyze.json must be present",
         )
         data = json.loads(analyze_agent.read_text(encoding="utf-8"))
         self.assertEqual(
@@ -1733,7 +1733,7 @@ class TestCLIWithoutClaude(unittest.TestCase):
 
     def test_github_files_created_without_claude(self) -> None:
         """GitHub artifacts must be generated without requiring Claude resources."""
-        github_agent = self.TEST_DIR / ".github" / "agents" / "req.analyze.agent.md"
+        github_agent = self.TEST_DIR / ".github" / "agents" / "req-analyze.agent.md"
         self.assertTrue(github_agent.exists(), "GitHub agent must be generated")
         content = github_agent.read_text(encoding="utf-8")
         self.assertIn("description:", content, "GitHub agent must include description")
@@ -2398,7 +2398,7 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
             )
         self.assertEqual(update_exit_code, 0, "--update must reuse persisted provider/artifact flags")
 
-        github_prompt = self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md"
+        github_prompt = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
         self.assertTrue(github_prompt.is_file(), "GitHub prompts must be regenerated from persisted flags")
         self.assertEqual(
             github_prompt.read_text(encoding="utf-8").strip(),
@@ -2452,7 +2452,7 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
             update_exit_code = self._run_here_update(["--here", "--update"])
         self.assertEqual(update_exit_code, 0, "--update --here must reuse persisted flags")
         self.assertTrue(
-            (self.TEST_DIR / ".github" / "prompts" / "req.analyze.prompt.md").is_file(),
+            (self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md").is_file(),
             "Persisted flags must regenerate provider artifacts in --here mode",
         )
         self.assertFalse(

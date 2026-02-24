@@ -1453,7 +1453,7 @@ def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
     if not prompts_dir.is_dir():
         return recommendations
     for prompt_path in sorted(prompts_dir.glob("*.md")):
-        recommendations[f"req.{prompt_path.stem}"] = True
+        recommendations[f"req-{prompt_path.stem}"] = True
     return recommendations
 
 
@@ -1536,9 +1536,10 @@ def remove_generated_resources(project_base: Path) -> None:
         if not folder.is_dir():
             continue
         ensure_wrapped(folder, project_base, 10)
-        for path in folder.glob("req.*"):
-            if path.is_file():
-                path.unlink()
+        for pattern in ("req-*", "req.*"):
+            for path in folder.glob(pattern):
+                if path.is_file():
+                    path.unlink()
     config_path = project_base / ".req" / "config.json"
     if config_path.exists():
         ensure_wrapped(config_path, project_base, 10)
@@ -2085,7 +2086,7 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_codex and enable_prompts:
             # .codex/prompts
-            dst_codex_prompt = project_base / ".codex" / "prompts" / f"req.{PROMPT}.md"
+            dst_codex_prompt = project_base / ".codex" / "prompts" / f"req-{PROMPT}.md"
             existed = dst_codex_prompt.exists()
             write_text_file(dst_codex_prompt, prompt_with_replacements)
             if VERBOSE:
@@ -2163,7 +2164,7 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_kiro and enable_prompts:
             # .kiro/prompts
-            dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req.{PROMPT}.md"
+            dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req-{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
             write_text_file(dst_kiro_prompt, prompt_with_replacements)
             if VERBOSE:
@@ -2173,7 +2174,7 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_claude and enable_agents:
             # .claude/agents
-            dst_claude_agent = project_base / ".claude" / "agents" / f"req.{PROMPT}.md"
+            dst_claude_agent = project_base / ".claude" / "agents" / f"req-{PROMPT}.md"
             existed = dst_claude_agent.exists()
             claude_header_lines = [
                 "---",
@@ -2200,7 +2201,7 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_github and enable_agents:
             # .github/agents
-            dst_gh_agent = project_base / ".github" / "agents" / f"req.{PROMPT}.agent.md"
+            dst_gh_agent = project_base / ".github" / "agents" / f"req-{PROMPT}.agent.md"
             existed = dst_gh_agent.exists()
             gh_model = None
             gh_tools = None
@@ -2229,7 +2230,7 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_github and enable_prompts:
             # .github/prompts
-            dst_gh_prompt = project_base / ".github" / "prompts" / f"req.{PROMPT}.prompt.md"
+            dst_gh_prompt = project_base / ".github" / "prompts" / f"req-{PROMPT}.prompt.md"
             existed = dst_gh_prompt.exists()
             if prompts_use_agents:
                 gh_prompt_text = f"---\nagent: req-{PROMPT}\n---\n"
@@ -2261,9 +2262,9 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_kiro and enable_agents:
             # .kiro/agents
-            dst_kiro_agent = project_base / ".kiro" / "agents" / f"req.{PROMPT}.json"
+            dst_kiro_agent = project_base / ".kiro" / "agents" / f"req-{PROMPT}.json"
             existed = dst_kiro_agent.exists()
-            kiro_prompt_rel = f".kiro/prompts/req.{PROMPT}.md"
+            kiro_prompt_rel = f".kiro/prompts/req-{PROMPT}.md"
             kiro_resources = generate_kiro_resources(
                 project_base / normalized_doc,
                 project_base,
@@ -2292,7 +2293,7 @@ def run(args: Namespace) -> None:
 
         if is_prompt_source and enable_opencode and enable_agents:
             # .opencode/agent
-            dst_opencode_agent = project_base / ".opencode" / "agent" / f"req.{PROMPT}.md"
+            dst_opencode_agent = project_base / ".opencode" / "agent" / f"req-{PROMPT}.md"
             existed = dst_opencode_agent.exists()
             opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
             if configs:
@@ -2326,11 +2327,11 @@ def run(args: Namespace) -> None:
         if is_prompt_source and enable_opencode and enable_prompts:
             # .opencode/command
             dst_opencode_command = (
-                project_base / ".opencode" / "command" / f"req.{PROMPT}.md"
+                project_base / ".opencode" / "command" / f"req-{PROMPT}.md"
             )
             existed = dst_opencode_command.exists()
             if prompts_use_agents:
-                command_text = f"---\nagent: req.{PROMPT}\n---\n"
+                command_text = f"---\nagent: req-{PROMPT}\n---\n"
             else:
                 command_header_lines = [
                     "---",
