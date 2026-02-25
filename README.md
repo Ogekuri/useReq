@@ -496,20 +496,20 @@ OpenCode CLI does not support "tools:" on agents/prompts.
 
   | Prompt | Model |
   | --- | --- |
-  | `analyze` | github-copilot/gemini-3-pro-preview |
+  | `analyze` | github-copilot/gemini-3.1-pro-preview |
   | `change` | github-copilot/claude-opus-4.6 |
-  | `check` | github-copilot/gemini-3-pro-preview |
+  | `check` | github-copilot/gemini-3.1-pro-preview |
   | `cover` | github-copilot/claude-opus-4.6 |
-  | `create` | github-copilot/gemini-3-pro-preview |
+  | `create` | github-copilot/gemini-3.1-pro-preview |
   | `fix` | github-copilot/claude-opus-4.6 |
   | `implement` | github-copilot/claude-opus-4.6 |
   | `new` | github-copilot/claude-opus-4.6 |
-  | `readme` | github-copilot/gemini-3-pro-preview |
-  | `recreate` | github-copilot/gemini-3-pro-preview |
+  | `readme` | github-copilot/gemini-3.1-pro-preview |
+  | `recreate` | github-copilot/gemini-3.1-pro-preview |
   | `refactor` | github-copilot/claude-opus-4.6 |
   | `renumber` | github-copilot/claude-opus-4.6 |
   | `workflow` | github-copilot/claude-opus-4.6 |
-  | `write` | github-copilot/gemini-3-pro-preview |
+  | `write` | github-copilot/gemini-3.1-pro-preview |
 
 
 ### Gemini CLI
