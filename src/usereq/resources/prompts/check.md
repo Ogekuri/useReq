@@ -23,7 +23,7 @@ In scope: read `%%DOC_PATH%%/REQUIREMENTS.md` (and related docs), run the test s
 
 
 ## Pre-requisite: Execution Context
-- Generate a pseudo-random UUID v4 (or an equivalent unique alphanumeric tag) to identify the current operation, and refer to it as <EXECUTION_ID>. If available, use `uuidgen`.
+- Generate <EXECUTION_ID> from the current date/time (NOT UUID) to keep date traceability in worktree and branch names by executing `date +"%Y%m%d%H%M%S"`.
 - Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
 - Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
 
