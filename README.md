@@ -196,16 +196,16 @@ req \
 - Count tokens and chars for files directly under the docs directory (requires --here, or --base plus --docs-dir).
   `--tokens`
 
-- Generate LLM reference markdown for all source files in configured --src-dir directories (requires --base/--here).
+- Generate LLM reference markdown for git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--references`
 
-- Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).  
+- Generate compressed output for git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).  
   `--compress`
 
-- Find and extract specific constructs from all source files in configured --src-dir directories (requires --base/--here).
+- Find and extract specific constructs from git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--find TAG[|TAG...] PATTERN`
 
-- Run static analysis on all source files in configured --src-dir directories using tools configured in `.req/config.json` (requires --base/--here).
+- Run static analysis on git-tracked source files under configured `src-dir` directories using tools configured in `.req/config.json` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--static-check`
 
 
