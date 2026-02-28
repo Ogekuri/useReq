@@ -281,18 +281,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--references",
         action="store_true",
-        help="Generate LLM reference markdown for all source files in configured --src-dir directories (requires --base/--here).",
+        help="Generate LLM reference markdown for all source files in configured src-dir directories (here-only project scan; --here implied; --base forbidden).",
     )
     parser.add_argument(
         "--compress",
         action="store_true",
-        help="Generate compressed output for all source files in configured --src-dir directories (requires --base/--here).",
+        help="Generate compressed output for all source files in configured src-dir directories (here-only project scan; --here implied; --base forbidden).",
     )
     parser.add_argument(
         "--find",
         nargs=2,
         metavar=("TAG", "PATTERN"),
-        help="Find and extract specific constructs from configured --src-dir: --find TAG PATTERN (requires --base/--here). For available tags, see --files-find help.",
+        help="Find and extract specific constructs from configured src-dir: --find TAG PATTERN (here-only project scan; --here implied; --base forbidden). For available tags, see --files-find help.",
     )
     parser.add_argument(
         "--enable-line-numbers",
@@ -353,8 +353,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=False,
         dest="static_check",
         help=(
-            "Run static analysis on all source files in configured --src-dir directories "
-            "(requires --base or --here). Uses the same file-collection logic as --references "
+            "Run static analysis on all source files in configured src-dir directories "
+            "(here-only project scan; --here implied; --base forbidden). Uses the same file-collection logic as --references "
             "and --compress. Tools are loaded from the 'static-check' section of .req/config.json."
         ),
     )
@@ -2686,14 +2686,10 @@ def run(args: Namespace) -> None:
         print(line)
 
 
-# ── Excluded directories for --references and --compress ──────────────────
+# ── Excluded directories for project-scan file selection ──────────────────
 
-EXCLUDED_DIRS = frozenset({
-    ".git", ".vscode", "tmp", "temp", ".cache", ".pytest_cache",
-    "node_modules", "__pycache__", ".venv", "venv", "dist", "build",
-    ".tox", ".mypy_cache", ".ruff_cache",
-})
-"""Directories excluded from source scanning in --references and --compress."""
+EXCLUDED_DIRS: frozenset[str] = frozenset()
+"""Directories additionally excluded from project scan after `.gitignore` filtering."""
 
 # ── Supported source file extensions ──────────────────────────────────────
 
@@ -2706,24 +2702,52 @@ SUPPORTED_EXTENSIONS = frozenset({
 
 
 def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
-    """! @brief Recursively collect source files from the given directories.
-    @details Applies EXCLUDED_DIRS filtering and SUPPORTED_EXTENSIONS matching.
+    """! @brief Collect source files from git-indexed project paths.
+    @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
     """
-    collected = []
+    cmd = [
+        "git", "-C", str(project_base),
+        "ls-files", "--cached", "--others", "--exclude-standard",
+    ]
+    try:
+        output = subprocess.check_output(
+            cmd,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        raise ReqError(
+            "Error: failed to collect source files with `git ls-files` in project root.",
+            1,
+        )
+
+    normalized_src_dirs: list[str] = []
     for src_dir in src_dirs:
-        base_path = project_base / src_dir
-        if not base_path.is_dir():
+        normalized = make_relative_if_contains_project(src_dir, project_base)
+        normalized = Path(normalized).as_posix().strip("/")
+        normalized_src_dirs.append(normalized)
+
+    collected: set[str] = set()
+    for rel_path in output.splitlines():
+        rel_posix = Path(rel_path.strip()).as_posix()
+        if rel_posix.startswith("./"):
+            rel_posix = rel_posix[2:]
+        if not rel_posix:
             continue
-        for dirpath, dirnames, filenames in os.walk(str(base_path)):
-            # Filter out excluded directories (modifies dirnames in-place)
-            dirnames[:] = [
-                d for d in dirnames if d not in EXCLUDED_DIRS
-            ]
-            for fname in sorted(filenames):
-                _, ext = os.path.splitext(fname)
-                if ext.lower() in SUPPORTED_EXTENSIONS:
-                    collected.append(os.path.join(dirpath, fname))
-    return collected
+        if not any(
+            src_dir in {"", "."}
+            or rel_posix == src_dir
+            or rel_posix.startswith(f"{src_dir}/")
+            for src_dir in normalized_src_dirs
+        ):
+            continue
+        rel_obj = Path(rel_posix)
+        if any(part in EXCLUDED_DIRS for part in rel_obj.parts[:-1]):
+            continue
+        if rel_obj.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            continue
+        collected.add(str((project_base / rel_obj).resolve()))
+    return sorted(collected)
 
 
 def _build_ascii_tree(paths: list[str]) -> str:
@@ -2798,7 +2822,7 @@ def _is_project_scan_command(args: Namespace) -> bool:
     """!
     @brief Check if the parsed args contain a project-scan command.
     @param args Parsed CLI namespace.
-    @return True when any project-scan flag is present (requires `--base`/`--here`).
+    @return True when any project-scan flag is present.
     @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`,
       and `--static-check`. SRS-257 adds `--static-check` to this group.
     """
@@ -2806,6 +2830,20 @@ def _is_project_scan_command(args: Namespace) -> bool:
         getattr(args, "references", False)
         or getattr(args, "compress", False)
         or getattr(args, "tokens", False)
+        or getattr(args, "find", None)
+        or getattr(args, "static_check", False)
+    )
+
+
+def _is_here_only_project_scan_command(args: Namespace) -> bool:
+    """!
+    @brief Check if args request a project-scan command restricted to `--here` mode.
+    @param args Parsed CLI namespace.
+    @return True when command is one of `--references`, `--compress`, `--find`, `--static-check`.
+    """
+    return bool(
+        getattr(args, "references", False)
+        or getattr(args, "compress", False)
         or getattr(args, "find", None)
         or getattr(args, "static_check", False)
     )
@@ -3039,7 +3077,7 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
 def run_project_static_check_cmd(args: Namespace) -> int:
     """!
     @brief Execute `--static-check`: run static analysis on all project source files.
-    @param args Parsed CLI namespace; `--base`/`--here` required.
+    @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
     @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
     @details
       Uses the same file-collection logic as `--references` and `--compress` (SRS-177,
@@ -3052,7 +3090,7 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       - Executes each configured language entry sequentially via
         `dispatch_static_check_for_file(filepath, lang_config)`.
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
-    @throws ReqError If `--base`/`--here` is missing or no source files are found.
+    @throws ReqError If no source files are found.
     @see SRS-256, SRS-257
     """
     from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
@@ -3089,9 +3127,7 @@ def _resolve_project_base(args: Namespace) -> Path:
     @throws ReqError If --base/--here is missing or the resolved path does not exist.
     """
     if not getattr(args, "base", None) and not getattr(args, "here", False):
-        raise ReqError(
-            "Error: --references, --compress, and --tokens require --base or --here.", 1
-        )
+        raise ReqError("Error: --base or --here is required for this command.", 1)
 
     if args.base:
         project_base = args.base.resolve()
@@ -3104,7 +3140,7 @@ def _resolve_project_base(args: Namespace) -> Path:
 
 
 def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
-    """! @brief Resolve project base and src-dirs for --references/--compress.
+    """! @brief Resolve project base and src-dirs for project source commands.
     """
     project_base = _resolve_project_base(args)
 
@@ -3171,6 +3207,13 @@ def main(argv: Optional[list[str]] = None) -> int:
         args = parse_args(argv_list)
         VERBOSE = getattr(args, "verbose", False)
         DEBUG = getattr(args, "debug", False)
+        if _is_here_only_project_scan_command(args):
+            if getattr(args, "base", None):
+                raise ReqError(
+                    "Error: --references, --compress, --find, and --static-check do not allow --base; use --here.",
+                    1,
+                )
+            args.here = True
         # Standalone file commands (no --base/--here required)
         if _is_standalone_command(args):
             if getattr(args, "files_tokens", None):
@@ -3195,7 +3238,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 rc = run_files_static_check_cmd(args.files_static_check, args)
                 return rc
             return 0
-        # Project scan commands (require --base/--here)
+        # Project scan commands
         if _is_project_scan_command(args):
             if getattr(args, "references", False):
                 run_references(args)

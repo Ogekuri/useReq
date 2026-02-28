@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import subprocess
 import uuid
 from pathlib import Path
 
@@ -37,6 +38,19 @@ def repo_temp_dir():
     base.mkdir(parents=True, exist_ok=True)
     path = base / f"pytest-{uuid.uuid4().hex}"
     path.mkdir(parents=True, exist_ok=False)
+    subprocess.run(["git", "init"], cwd=path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "tests@example.com"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "tests"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+    )
     try:
         yield path
     finally:

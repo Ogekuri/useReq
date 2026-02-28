@@ -993,7 +993,7 @@ class TestFilesCompressCommand:
 
 
 class TestCollectSourceFiles:
-    """CMD-012, CMD-013: Source file collection with exclusions."""
+    """CMD-012, CMD-013: Source file collection from git ls-files."""
 
     def test_collects_supported_extensions(self, repo_temp_dir):
         """CMD-012: Must collect files with supported extensions."""
@@ -1010,10 +1010,11 @@ class TestCollectSourceFiles:
         assert ".txt" not in extensions
 
     def test_excludes_dirs(self, repo_temp_dir):
-        """CMD-012: Must exclude directories in EXCLUDED_DIRS."""
+        """CMD-012: Must exclude paths ignored by .gitignore."""
         src = repo_temp_dir / "src"
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
+        (repo_temp_dir / ".gitignore").write_text("__pycache__/\n", encoding="utf-8")
         cache = src / "__pycache__"
         cache.mkdir()
         (cache / "cached.py").write_text("cached\n")
@@ -1039,12 +1040,12 @@ class TestCollectSourceFiles:
 class TestReferencesCommand:
     """CMD-008, CMD-009, CMD-014, CMD-015: --references tests."""
 
-    def test_requires_base_or_here(self, capsys):
-        """CMD-008: Must error without --base or --here."""
-        rc = main(["--references"])
+    def test_rejects_base(self, capsys, repo_temp_dir):
+        """CMD-008: --references must reject --base."""
+        rc = main(["--base", str(repo_temp_dir), "--references"])
         assert rc != 0
         captured = capsys.readouterr()
-        assert "--base" in captured.err or "require" in captured.err.lower()
+        assert "do not allow --base" in captured.err
 
     def test_references_with_here(self, capsys, repo_temp_dir, monkeypatch):
         """CMD-009: With --here must load src-dir from config and ignore --src-dir."""
@@ -1068,6 +1069,7 @@ class TestReferencesCommand:
         src = repo_temp_dir / "cfg_src"
         nested = src / "pkg"
         nested.mkdir(parents=True)
+        (repo_temp_dir / ".gitignore").write_text("__pycache__/\n", encoding="utf-8")
         (nested / "main.py").write_text("def hello():\n    return 1\n")
         (nested / "skip.txt").write_text("ignore\n")
         excluded = src / "__pycache__"
@@ -1088,7 +1090,7 @@ class TestReferencesCommand:
         assert "__pycache__/cached.py" not in captured.out
 
     def test_references_from_config(self, capsys, repo_temp_dir, monkeypatch):
-        """CMD-014: Must load src-dir from config.json."""
+        """CMD-014: Must load src-dir from config.json with implicit --here."""
         src = repo_temp_dir / "lib"
         src.mkdir()
         (src / "code.py").write_text("x = 42\n")
@@ -1098,7 +1100,7 @@ class TestReferencesCommand:
                   "tests-dir": "tests/", "src-dir": ["lib"]}
         (req_dir / "config.json").write_text(json.dumps(config))
         monkeypatch.chdir(repo_temp_dir)
-        rc = main(["--here", "--references"])
+        rc = main(["--references"])
         assert rc == 0
 
     def test_references_from_legacy_config_keys(self, capsys, repo_temp_dir,
@@ -1245,13 +1247,15 @@ class TestReferencesCommand:
 class TestCompressCommand:
     """CMD-010, CMD-011, CMD-017: --compress tests."""
 
-    def test_requires_base_or_here(self, capsys):
-        """CMD-010: Must error without --base or --here."""
-        rc = main(["--compress"])
+    def test_rejects_base(self, capsys, repo_temp_dir):
+        """CMD-010: --compress must reject --base."""
+        rc = main(["--base", str(repo_temp_dir), "--compress"])
         assert rc != 0
+        captured = capsys.readouterr()
+        assert "do not allow --base" in captured.err
 
     def test_compress_with_here(self, capsys, repo_temp_dir, monkeypatch):
-        """CMD-011: With --here must load src-dir from config and ignore --src-dir."""
+        """CMD-011: With implicit --here must load src-dir from config and ignore --src-dir."""
         src = repo_temp_dir / "cfg_mylib"
         src.mkdir()
         (src / "main.py").write_text("# comment\nx = 1\n\ny = 2\n")
@@ -1260,7 +1264,7 @@ class TestCompressCommand:
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_mylib"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(repo_temp_dir)
-        rc = main(["--here", "--compress", "--src-dir", "mylib"])
+        rc = main(["--compress", "--src-dir", "mylib"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "@@@" in captured.out
@@ -1383,7 +1387,7 @@ class TestFindCommandVerbose:
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(repo_temp_dir)
-        rc = main(["--verbose", "--here", "--find", "FUNCTION", "foo", "--src-dir", "src"])
+        rc = main(["--verbose", "--find", "FUNCTION", "foo", "--src-dir", "src"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "OK" in captured.err
@@ -1399,10 +1403,17 @@ class TestFindCommandVerbose:
         config = {"guidelines-dir": "docs/", "docs-dir": "docs/", "tests-dir": "tests/", "src-dir": ["cfg_src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(repo_temp_dir)
-        rc = main(["--here", "--find", "FUNCTION", "foo", "--src-dir", "src", "--enable-line-numbers"])
+        rc = main(["--find", "FUNCTION", "foo", "--src-dir", "src", "--enable-line-numbers"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "1: def foo():" in captured.out
+
+    def test_find_rejects_base(self, capsys, repo_temp_dir):
+        """CMD-029: --find must reject --base."""
+        rc = main(["--base", str(repo_temp_dir), "--find", "FUNCTION", "foo"])
+        assert rc != 0
+        captured = capsys.readouterr()
+        assert "do not allow --base" in captured.err
 
 
 class TestFindCommandsDoxygen:
@@ -2045,13 +2056,6 @@ class TestSupportedExtensions:
 class TestExcludedDirs:
     """CMD-012: Verify excluded directories constant."""
 
-    def test_common_exclusions_present(self):
-        """Common excluded directories must be in EXCLUDED_DIRS."""
-        assert ".git" in EXCLUDED_DIRS
-        assert ".vscode" in EXCLUDED_DIRS
-        assert "tmp" in EXCLUDED_DIRS
-        assert "temp" in EXCLUDED_DIRS
-        assert ".cache" in EXCLUDED_DIRS
-        assert ".pytest_cache" in EXCLUDED_DIRS
-        assert "node_modules" in EXCLUDED_DIRS
-        assert "__pycache__" in EXCLUDED_DIRS
+    def test_excluded_dirs_kept_only_when_not_gitignored(self):
+        """EXCLUDED_DIRS should be empty for this repository."""
+        assert EXCLUDED_DIRS == frozenset()

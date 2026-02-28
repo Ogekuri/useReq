@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 from io import StringIO
@@ -1101,6 +1102,7 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         if self.tmp.exists():
             shutil.rmtree(self.tmp)
         self.tmp.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init"], cwd=self.tmp, check=True, capture_output=True)
         (self.tmp / ".req").mkdir()
         (self.tmp / "src").mkdir()
 
@@ -1121,12 +1123,17 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         (self.tmp / ".req" / "config.json").write_text(json.dumps(payload), encoding="utf-8")
 
     def test_static_check_dummy_on_project_files(self) -> None:
-        """--static-check runs Dummy on .py files in src-dir."""
+        """--static-check runs Dummy on .py files in src-dir with implicit --here."""
         from usereq import cli
         _make_temp_file(self.tmp / "src", "main.py")
         self._write_config({"Python": [{"module": "Dummy"}]})
-        with patch("builtins.print"):
-            rc = cli.main(["--base", str(self.tmp), "--static-check"])
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("builtins.print"):
+                rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
         self.assertEqual(rc, 0)
 
     def test_static_check_skips_unconfigured_language(self) -> None:
@@ -1135,8 +1142,13 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         _make_temp_file(self.tmp / "src", "main.c", "int main(){return 0;}\n")
         # Only Python configured, but file is C
         self._write_config({"Python": [{"module": "Dummy"}]})
-        with patch("builtins.print") as mock_print:
-            rc = cli.main(["--base", str(self.tmp), "--static-check"])
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("builtins.print") as mock_print:
+                rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
         # rc=0 because no files were actually checked (all skipped)
         self.assertEqual(rc, 0)
         calls = [str(c.args[0]) for c in mock_print.call_args_list if c.args]
@@ -1152,9 +1164,14 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         mock_result.returncode = 1
         mock_result.stdout = "type error"
         mock_result.stderr = ""
-        with patch("subprocess.run", return_value=mock_result):
-            with patch("builtins.print"):
-                rc = cli.main(["--base", str(self.tmp), "--static-check"])
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("subprocess.run", return_value=mock_result):
+                with patch("builtins.print"):
+                    rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
         self.assertEqual(rc, 1)
 
     def test_static_check_no_source_files_raises(self) -> None:
@@ -1162,30 +1179,34 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         from usereq import cli
         # src dir exists but is empty
         self._write_config({})
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("sys.stderr", new_callable=StringIO):
+                with patch("builtins.print"):
+                    rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
+        self.assertNotEqual(rc, 0)
+
+    def test_static_check_rejects_base(self) -> None:
+        """--static-check rejects --base in here-only mode."""
+        from usereq import cli
         with patch("sys.stderr", new_callable=StringIO):
             with patch("builtins.print"):
                 rc = cli.main(["--base", str(self.tmp), "--static-check"])
         self.assertNotEqual(rc, 0)
 
-    def test_static_check_requires_base_or_here(self) -> None:
-        """--static-check without --base/--here returns non-zero."""
-        from usereq import cli
-        with patch("sys.stderr", new_callable=StringIO):
-            with patch("builtins.print"):
-                rc = cli.main(["--static-check"])
-        self.assertNotEqual(rc, 0)
-
     def test_static_check_uses_cwd_as_project_base_with_here(self) -> None:
-        """--static-check with --here uses CWD as project base."""
+        """--static-check with implied --here uses CWD as project base."""
         from usereq import cli
-        import os
         _make_temp_file(self.tmp / "src", "ok.py")
         self._write_config({"Python": [{"module": "Dummy"}]})
         old_cwd = os.getcwd()
         try:
             os.chdir(str(self.tmp))
             with patch("builtins.print"):
-                rc = cli.main(["--here", "--static-check"])
+                rc = cli.main(["--static-check"])
         finally:
             os.chdir(old_cwd)
         self.assertEqual(rc, 0)
@@ -1202,8 +1223,13 @@ class TestStaticCheckProjectScan(unittest.TestCase):
                 ]
             }
         )
-        with patch("usereq.static_check.dispatch_static_check_for_file", side_effect=[0, 0]) as mock_dispatch:
-            rc = cli.main(["--base", str(self.tmp), "--static-check"])
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("usereq.static_check.dispatch_static_check_for_file", side_effect=[0, 0]) as mock_dispatch:
+                rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
         self.assertEqual(rc, 0)
         self.assertEqual(mock_dispatch.call_count, 2)
         self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
