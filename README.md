@@ -193,7 +193,7 @@ req \
 - Run static analysis on the given files using tools configured in `.req/config.json` (standalone, no --base/--here required).
   `--files-static-check FILE [FILE ...]`
 
-- Count tokens and chars for files directly under the docs directory (requires --here, or --base plus --docs-dir).
+- Count tokens and chars for files directly under configured `docs-dir` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed, and explicit `--docs-dir` is ignored).
   `--tokens`
 
 - Generate LLM reference markdown for git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
