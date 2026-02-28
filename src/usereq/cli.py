@@ -303,7 +303,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tokens",
         action="store_true",
-        help="Count tokens/chars for files directly under --docs-dir (requires --base/--here and --docs-dir).",
+        help="Count tokens/chars for files directly under configured docs-dir (here-only project scan; --here implied; --base forbidden).",
     )
     parser.add_argument(
         "--test-static-check",
@@ -2839,11 +2839,12 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
     """!
     @brief Check if args request a project-scan command restricted to `--here` mode.
     @param args Parsed CLI namespace.
-    @return True when command is one of `--references`, `--compress`, `--find`, `--static-check`.
+    @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
     """
     return bool(
         getattr(args, "references", False)
         or getattr(args, "compress", False)
+        or getattr(args, "tokens", False)
         or getattr(args, "find", None)
         or getattr(args, "static_check", False)
     )
@@ -2987,17 +2988,11 @@ def run_find(args: Namespace) -> None:
 def run_tokens(args: Namespace) -> None:
     """! @brief Execute --tokens: count tokens for files directly in --docs-dir.
     @param args Parsed CLI arguments namespace.
-    @details Requires --base/--here and --docs-dir, then delegates reporting to run_files_tokens.
+    @details Uses docs-dir from .req/config.json in here-only mode and delegates reporting to run_files_tokens.
     """
     project_base = _resolve_project_base(args)
-    if getattr(args, "here", False):
-        config = load_config(project_base)
-        docs_dir_value = config["docs-dir"]
-    else:
-        docs_dir_arg = getattr(args, "docs_dir", None)
-        if not docs_dir_arg:
-            raise ReqError("Error: --tokens requires --docs-dir.", 1)
-        docs_dir_value = str(docs_dir_arg)
+    config = load_config(project_base)
+    docs_dir_value = config["docs-dir"]
     ensure_doc_directory(str(docs_dir_value), project_base)
     normalized_docs_dir = make_relative_if_contains_project(str(docs_dir_value), project_base)
     docs_dir = project_base / normalized_docs_dir
@@ -3210,7 +3205,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         if _is_here_only_project_scan_command(args):
             if getattr(args, "base", None):
                 raise ReqError(
-                    "Error: --references, --compress, --find, and --static-check do not allow --base; use --here.",
+                    "Error: --references, --compress, --tokens, --find, and --static-check do not allow --base; use --here.",
                     1,
                 )
             args.here = True

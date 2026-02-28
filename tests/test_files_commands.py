@@ -1313,20 +1313,30 @@ class TestCompressCommand:
 class TestTokensCommand:
     """CMD-016: --tokens tests."""
 
-    def test_tokens_requires_base_or_here(self, capsys):
-        """CMD-016: Must error without --base or --here."""
-        rc = main(["--tokens", "--docs-dir", "docs"])
-        assert rc != 0
-        captured = capsys.readouterr()
-        assert "--base" in captured.err or "--here" in captured.err
-
-    def test_tokens_requires_docs_dir(self, repo_temp_dir):
-        """CMD-016: Must error when --docs-dir is missing."""
+    def test_tokens_rejects_base(self, capsys, repo_temp_dir):
+        """CMD-016: Must reject --base for here-only --tokens."""
         rc = main(["--base", str(repo_temp_dir), "--tokens"])
         assert rc != 0
+        captured = capsys.readouterr()
+        assert "do not allow --base" in captured.err
+
+    def test_tokens_implies_here_and_uses_config_docs_dir(self, capsys, repo_temp_dir, monkeypatch):
+        """CMD-016: Without --here, --tokens must still use docs-dir from config."""
+        docs = repo_temp_dir / "cfg_docs"
+        docs.mkdir()
+        (docs / "only.md").write_text("# only\n", encoding="utf-8")
+        req_dir = repo_temp_dir / ".req"
+        req_dir.mkdir()
+        config = {"guidelines-dir": "docs/", "docs-dir": "cfg_docs", "tests-dir": "tests/", "src-dir": ["src"]}
+        (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
+        monkeypatch.chdir(repo_temp_dir)
+        rc = main(["--tokens"])
+        assert rc == 0
+        captured = capsys.readouterr()
+        assert "only.md" in captured.out
 
     def test_tokens_counts_docs_files(self, capsys, repo_temp_dir, monkeypatch):
-        """CMD-016: With --here must use docs-dir from config and ignore --docs-dir."""
+        """CMD-016: --tokens must use docs-dir from config and ignore explicit --docs-dir."""
         docs = repo_temp_dir / "cfg_docs"
         docs.mkdir()
         (docs / "a.md").write_text("# A\n", encoding="utf-8")
@@ -1339,7 +1349,7 @@ class TestTokensCommand:
         config = {"guidelines-dir": "docs/", "docs-dir": "cfg_docs", "tests-dir": "tests/", "src-dir": ["src"]}
         (req_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
         monkeypatch.chdir(repo_temp_dir)
-        rc = main(["--here", "--tokens", "--docs-dir", "docs"])
+        rc = main(["--tokens", "--docs-dir", "docs"])
         assert rc == 0
         captured = capsys.readouterr()
         assert "Pack Summary" in captured.out
