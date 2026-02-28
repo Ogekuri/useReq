@@ -1,8 +1,23 @@
 # Changelog
 
-## [0.3.1](https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.3.1) - 2026-02-26
+## [0.4.0](https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.4.0) - 2026-02-28
 ### ⛰️  Features
+- Update prompts with more checks.
 - Update prompts.
+
+### 🚜  Changes
+- enforce here-only tokens mode [useReq] *(cli)*
+  - update SRS-184 for implicit --here and --base rejection on --tokens\n- route --tokens through here-only project-scan gating\n- always load docs-dir from .req/config.json in run_tokens\n- adapt CMD-016 tests to new --tokens behavior\n- update WORKFLOW and regenerate REFERENCES
+- use git ls-files for here-only scans [useReq] *(cli)*
+  - update requirements for here-only project scans and git-based collection\n- enforce implicit --here and reject --base for references/compress/find/static-check\n- replace project-scan file discovery with git ls-files scoped by configured src-dir\n- adapt command tests to git-backed temp repos and base-rejection semantics\n- update WORKFLOW and regenerate REFERENCES
+
+### 📚  Documentation
+- align tokens command semantics [useReq] *(readme)*
+  - update --tokens usage to reflect here-only project-scan behavior
+  - document implicit --here and explicit --base rejection
+  - clarify that explicit --docs-dir is ignored for --tokens
+- align project-scan CLI usage [useReq] *(readme)*
+  - update --references, --compress, --find, and --static-check usage notes\n- document here-only behavior with implicit --here\n- document --base rejection for project-scan commands\n- clarify project-scan scope as git-tracked files under configured src-dir
 
 ## [0.3.0](https://github.com/Ogekuri/useReq/compare/v0.2.0..v0.3.0) - 2026-02-25
 ### ⛰️  Features
@@ -457,9 +472,9 @@
 - \[0.1.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 - \[0.2.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.2.0
 - \[0.3.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.3.0
-- \[0.3.1\]: https://github.com/Ogekuri/useReq/releases/tag/v0.3.1
+- \[0.4.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.4.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
 [0.3.0]: https://github.com/Ogekuri/useReq/compare/v0.2.0..v0.3.0
-[0.3.1]: https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.3.1
+[0.4.0]: https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.4.0
