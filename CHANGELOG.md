@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.0](https://github.com/Ogekuri/useReq/compare/v0.4.0..v0.5.0) - 2026-02-28
+### 📚  Documentation
+- Update README.md document.
+
 ## [0.4.0](https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.4.0) - 2026-02-28
 ### ⛰️  Features
 - Update prompts with more checks.
@@ -473,8 +477,10 @@
 - \[0.2.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.2.0
 - \[0.3.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.3.0
 - \[0.4.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.4.0
+- \[0.5.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.5.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
 [0.3.0]: https://github.com/Ogekuri/useReq/compare/v0.2.0..v0.3.0
 [0.4.0]: https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.4.0
+[0.5.0]: https://github.com/Ogekuri/useReq/compare/v0.4.0..v0.5.0
