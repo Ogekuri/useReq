@@ -33,7 +33,8 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 
 
 ## Feature Highlights
-- It stops the Agent from asking more questions and **makes it just do it**.
+- You will no longer need to read the codebase.
+- It stops the Agent from asking more questions and makes it just do it.
 - Drives development through requirement changes.
 - Keeps development under control.
 - Usable as skills, or agents, or prompts.
