@@ -71,14 +71,14 @@ When you need hard evidence from source code (APIs, entrypoints, data types, imp
     - optional extracted Doxygen fields (if present in/around the construct)
     - a fenced code block containing the complete construct slice, with comments stripped (strings preserved)
 ### Choose the right mode
-- Project-wide scan (configured --src-dir): use --find (requires --here or --base)
-    - Correct syntax is: req --here --find <TAG_FILTER> <NAME_REGEX>
+- Project-wide scan (configured --src-dir): use --find (`--here` is implicit; `--base` is forbidden)
+    - Correct syntax is: req --find <TAG_FILTER> <NAME_REGEX>
     - Note: --find does not take a filename; it scans all files under the configured source dirs.
 - Target specific files: use --files-find (standalone; --here is optional but harmless)
     - Syntax: req --here --files-find <TAG_FILTER> <NAME_REGEX> <FILE1> [FILE2 ...]
 ### Always enable line-numbered code when you plan to cite evidence
-Add --enable-line-numbers so code lines are prefixed as <n>::
-- req --here --enable-line-numbers --find "<TAG_FILTER>" "<NAME_REGEX>"
+Add --enable-line-numbers so code lines are prefixed as "<n>:":
+- req --enable-line-numbers --find "<TAG_FILTER>" "<NAME_REGEX>"
 - req --here --enable-line-numbers --files-find "<TAG_FILTER>" "<NAME_REGEX>" <FILE...>
 ### TAGs and filters
 - TAG_FILTER is a pipe-separated list (case-insensitive): e.g. CLASS|FUNCTION|IMPORT
