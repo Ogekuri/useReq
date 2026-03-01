@@ -59,7 +59,7 @@ When you need hard evidence from source code (APIs, entrypoints, data types, imp
     - optional extracted Doxygen fields (if present in/around the construct)
     - a fenced code block containing the complete construct slice, with comments stripped (strings preserved)
 ### Choose the right mode
-- Project-wide scan (configured --src-dir): use --find (`--here` is implicit; `--base` is forbidden)
+- Project-wide scan: use --find (`--here` is implicit; `--base` is forbidden)
     - Correct syntax is: req --find <TAG_FILTER> <NAME_REGEX>
     - Note: --find does not take a filename; it scans all files under the configured source dirs.
 - Target specific files: use --files-find (standalone; --here is optional but harmless)
