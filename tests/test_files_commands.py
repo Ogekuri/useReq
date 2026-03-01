@@ -560,7 +560,7 @@ def _extract_construct_blocks(output: str) -> list[dict]:
         name = match.group(2)
         block = match.group(0)
         body = match.group(3)
-        lines_match = re.search(r"- Lines: (\d+)-(\d+)", body)
+        lines_match = re.search(r"> Lines: (\d+)-(\d+)", body)
         if lines_match is None:
             continue
         blocks.append(
@@ -688,7 +688,7 @@ def _assert_find_construct_doxygen_block(
     )
     expected_lines = expected_construct["doxygen_lines"]
 
-    lines_idx = block.find("- Lines:")
+    lines_idx = block.find("> Lines:")
     code_idx = block.find("```")
     assert lines_idx != -1
     assert code_idx != -1
@@ -1270,7 +1270,7 @@ class TestCompressCommand:
         assert "@@@" in captured.out
         assert "cfg_mylib/main.py" in captured.out
         assert str(repo_temp_dir) not in captured.out
-        assert "- Lines: 2-4" in captured.out
+        assert "> Lines: 2-4" in captured.out
         assert "```" in captured.out
 
     def test_compress_no_line_numbers_by_default(self, capsys, repo_temp_dir, monkeypatch):
@@ -1288,7 +1288,7 @@ class TestCompressCommand:
         captured = capsys.readouterr()
         assert "1: x = 1" not in captured.out
         assert "x = 1" in captured.out
-        assert "- Lines: 1-1" in captured.out
+        assert "> Lines: 1-1" in captured.out
         assert "```" in captured.out
 
     def test_compress_enable_line_numbers(self, capsys, repo_temp_dir, monkeypatch):
@@ -1306,7 +1306,7 @@ class TestCompressCommand:
         captured = capsys.readouterr()
         assert "1: x = 1" in captured.out
         assert "x = 1" in captured.out
-        assert "- Lines: 1-1" in captured.out
+        assert "> Lines: 1-1" in captured.out
         assert "```" in captured.out
 
 
@@ -1493,7 +1493,7 @@ class TestFindCommandsDoxygen:
         assert "FUNCTION: `plain_function`" in output
 
         block = _extract_construct_block(output, "FUNCTION", "plain_function", 1, 2)
-        lines_idx = block.find("- Lines:")
+        lines_idx = block.find("> Lines:")
         code_idx = block.find("```")
         assert lines_idx != -1 and code_idx != -1 and lines_idx < code_idx
         metadata_section = block[lines_idx:code_idx]
@@ -1647,7 +1647,7 @@ class TestFindCommandsDoxygen:
         assert "FUNCTION: `plain_function`" in output
 
         block = _extract_construct_block(output, "FUNCTION", "plain_function", 1, 2)
-        lines_idx = block.find("- Lines:")
+        lines_idx = block.find("> Lines:")
         code_idx = block.find("```")
         assert lines_idx != -1 and code_idx != -1 and lines_idx < code_idx
         metadata_section = block[lines_idx:code_idx]

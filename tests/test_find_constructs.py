@@ -84,8 +84,8 @@ def test_construct_matches():
 
     output = format_construct(elem, source_lines, include_line_numbers=True)
     assert "### FUNCTION: `foo`" in output
-    assert "Signature: `def foo()`" in output
-    assert "Lines: 10-12" in output
+    assert "> Signature: `def foo()`" in output
+    assert "> Lines: 10-12" in output
     assert "10: def foo():" in output
     assert "11:     return 42" in output
 
@@ -105,7 +105,7 @@ def test_format_construct_without_line_numbers():
 
     output = format_construct(elem, source_lines, include_line_numbers=False)
     assert "### CLASS: `Bar`" in output
-    assert "Lines: 1-3" in output
+    assert "> Lines: 1-3" in output
     assert "1: class Bar:" not in output
     assert "class Bar:" in output
 

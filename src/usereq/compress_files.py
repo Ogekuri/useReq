@@ -55,7 +55,7 @@ def compress_files(filepaths: list[str],
     @param output_base Project-home base used to render header paths as relative paths.
     @return Concatenated compressed output string.
     @throws ValueError If no files could be processed.
-    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `- Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line.
+    @details Each file is compressed and emitted as: header line `@@@ <path> | <lang>`, line-range metadata `> Lines: <start>-<end>`, and fenced code block delimited by triple backticks. Line range is derived from the already computed <n>: prefixes to preserve existing numbering logic. Files are separated by a blank line.
     """
     parts = []
     ok_count = 0
@@ -85,7 +85,7 @@ def compress_files(filepaths: list[str],
             output_path = _format_output_path(fpath, resolved_output_base)
             header = f"@@@ {output_path} | {lang}"
             parts.append(
-                f"{header}\n- Lines: {line_start}-{line_end}\n```\n{compressed}\n```"
+                f"{header}\n> Lines: {line_start}-{line_end}\n```\n{compressed}\n```"
             )
             ok_count += 1
             if verbose:

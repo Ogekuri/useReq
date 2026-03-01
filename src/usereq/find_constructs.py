@@ -216,8 +216,8 @@ def format_construct(
     lines = []
     lines.append(f"### {element.type_label}: `{element.name}`")
     if element.signature:
-        lines.append(f"- Signature: `{element.signature}`")
-    lines.append(f"- Lines: {element.line_start}-{element.line_end}")
+        lines.append(f"> Signature: `{element.signature}`")
+    lines.append(f"> Lines: {element.line_start}-{element.line_end}")
 
     # Insert Doxygen fields if present (DOX-010, DOX-011)
     doxygen_fields = _extract_construct_doxygen_fields(element)

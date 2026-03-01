@@ -265,7 +265,7 @@ No explicit performance optimizations identified.
 - **SRS-160**: The implementation MUST preserve this behavior exactly: Le shebang lines (`#!`) alla prima riga del file devono essere preservate.
 - **SRS-161**: The implementation MUST preserve this behavior exactly: I commenti all'interno di stringhe letterali non devono essere rimossi.
 - **SRS-162**: The implementation MUST preserve this behavior exactly: Il modulo deve determinare automaticamente il linguaggio dall'estensione del file, con possibilità di override manuale.
-- **SRS-163**: The implementation MUST preserve this behavior exactly: Il modulo `usereq.compress_files` deve comprimere e concatenare file sorgente multipli, producendo per ciascun file un header nel formato `@@@ <percorso> | <linguaggio>`, una riga metadato `- Lines: <riga_iniziale>-<riga_finale>` e il contenuto compresso racchiuso in un blocco Markdown delimitato da triple backtick.
+- **SRS-163**: The `usereq.compress_files` module MUST emit, per file, header `@@@ <path> | <language>`, metadata line `> Lines: <line_start>-<line_end>`, and compressed content inside a fenced Markdown code block.
 - **SRS-164**: The implementation MUST preserve this behavior exactly: I file non trovati devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **SRS-165**: The implementation MUST preserve this behavior exactly: I file con estensione non supportata devono essere ignorati; il messaggio SKIP su stderr deve essere stampato solo quando la modalità verbose è attiva.
 - **SRS-166**: The implementation MUST preserve this behavior exactly: Se nessun file valido viene processato, deve essere lanciata una eccezione `ValueError`.
@@ -315,7 +315,7 @@ No explicit performance optimizations identified.
 - **SRS-208**: When `--update` is used with `--find`, `src-dir` values MUST be loaded from `.req/config.json` before applying `git ls-files` filtering.
 - **SRS-209**: The implementation MUST preserve this behavior exactly: Il comando `--find` deve accettare il flag opzionale `--enable-line-numbers`; quando il flag è assente l'output non deve includere i prefissi `<numero>:`, quando il flag è presente i prefissi devono essere inclusi.
 - **SRS-210**: The implementation MUST preserve this behavior exactly: I comandi `--files-references`, `--references`, `--files-compress`, `--compress`, `--files-find` e `--find` devono stampare su stderr gli output di stato elaborazione (OK/SKIP/FAIL e riepiloghi) solo quando è presente il flag `--verbose`; senza `--verbose` tali output non devono essere stampati.
-- **SRS-211**: The `--files-compress` and `--compress` commands MUST print, for each processed file, the same structured payload: header `@@@ <path> | <language>`, line `- Lines: <line_start>-<line_end>`, and fenced code block; paths MUST be project-relative and never absolute.
+- **SRS-211**: The `--files-compress` and `--compress` commands MUST print, per processed file, header `@@@ <path> | <language>`, metadata line `> Lines: <line_start>-<line_end>`, and fenced code block; paths MUST be project-relative only.
 
 ### 3.11 Doxygen Parsing and Field Emission
 - **SRS-212**: The implementation MUST preserve this behavior exactly: Il modulo `usereq.doxygen_parser` deve estrarre campi Doxygen da commenti di documentazione seguendo la sintassi standard Doxygen per tutti i linguaggi supportati.
@@ -326,7 +326,7 @@ No explicit performance optimizations identified.
 - **SRS-217**: The implementation MUST preserve this behavior exactly: Il contenuto di ciascun tag deve estendersi fino al prossimo tag Doxygen o alla fine del commento, con normalizzazione degli spazi.
 - **SRS-218**: The implementation MUST preserve this behavior exactly: Il modulo `usereq.source_analyzer` deve invocare `parse_doxygen_comment()` sui commenti associati ai costrutti e popolare un nuovo campo `doxygen_fields` in `SourceElement`.
 - **SRS-219**: MUST format Doxygen fields for `--files-references` and `--references` as Markdown bullets using original Doxygen tags (`@tag`) exactly, without human-readable label conversion and without `:` suffix.
-- **SRS-220**: MUST emit extracted Doxygen fields for `--files-find` and `--find` after `- Lines: ...` and before code blocks as Markdown bullets preserving original Doxygen tags (`@tag`) without `:` suffix.
+- **SRS-220**: The `--files-find` and `--find` outputs MUST emit metadata lines as `> Signature: ...` (when available) and `> Lines: ...`; extracted Doxygen bullets MUST appear after `> Lines: ...` and before code blocks, preserving original `@tag` names without `:` suffix.
 - **SRS-221**: The implementation MUST preserve this behavior exactly: Doxygen fields MUST be emitted in fixed order: @brief, @details, @param, @param[in], @param[out], @param[in,out], @return, @retval, @exception, @throws, @warning, @deprecated, @note, @see, @sa, @satisfies, @pre, @post, omitting missing tags.
 
 ## 4. Test Requirements
