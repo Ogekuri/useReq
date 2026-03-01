@@ -33,19 +33,20 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 
 
 ## Feature Highlights
-- Supports [Conventional Commit Standards](https://www.conventionalcommits.org/en/v1.0.0/) and is compatible with [release-changelog-builder-action](https://github.com/mikepenz/release-changelog-builder-action).
-- Compatible with [G/Git-Alias CLI](https://github.com/Ogekuri/G).
+- It stops the Agent from asking more questions and **makes it just do it**.
 - Drives development through requirement changes.
 - Keeps development under control.
-- Usable as skills, agents, or prompts.
+- Usable as skills, or agents, or prompts.
 - Creates a common interface for different vendor CLIs and Agents.
-- Creates **Software Requirements Specification** [*SRS*] files for existing projects.
+- Creates **Software Requirements Specification** [*SRS*] file, optimized for LLM Agents, for new or existing projects.
 - Keeps source code documentation updated and optimized for LLM Agents reasoning.
-- Lightweight model customization.
+- Lightweight and simpel tool.
 - Use **git worktree** to parallelize tasks (only on clean git repositories)
 - Provide **source-code analysis tool**, that supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
 - Support **static-code analysis** with Pylance, Ruff or customizable Command-Line commands.
 - Support customizable guidelines.
+- Supports [Conventional Commit Standards](https://www.conventionalcommits.org/en/v1.0.0/) and is compatible with [release-changelog-builder-action](https://github.com/mikepenz/release-changelog-builder-action).
+- Compatible with [G/Git-Alias CLI](https://github.com/Ogekuri/G).
 
 
 ## Prompts and Agents
