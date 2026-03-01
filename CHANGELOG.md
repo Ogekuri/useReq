@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://github.com/Ogekuri/useReq/compare/v0.5.0..v0.6.0) - 2026-03-01
+### ⛰️  Features
+- Update prompts.
+- Update prompts.
+
+### 🚜  Changes
+- switch markdown metadata prefixes to blockquote [useReq] *(find-compress)*
+  - Update SRS-163, SRS-211, and SRS-220 for '> Signature' and '> Lines' metadata format.
+  - Implement output changes in find_constructs and compress_files.
+  - Adjust affected unit tests and project_examples fixtures.
+  - Keep workflow runtime documentation aligned with metadata rendering behavior.
+- preserve raw doxygen tags in output [useReq] *(doxygen_parser)*
+  - Update SRS-219/SRS-220 and SRS-234..SRS-237 for raw @tag emission.
+  - Refactor doxygen field markdown formatter to keep original @tag tokens.
+  - Adjust parser/find/references tests to assert no human-readable label conversion.
+  - Refresh WORKFLOW and regenerate REFERENCES documentation.
+
 ## [0.5.0](https://github.com/Ogekuri/useReq/compare/v0.4.0..v0.5.0) - 2026-02-28
 ### 📚  Documentation
 - Update README.md document.
@@ -478,9 +495,11 @@
 - \[0.3.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.3.0
 - \[0.4.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.4.0
 - \[0.5.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.5.0
+- \[0.6.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.6.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
 [0.3.0]: https://github.com/Ogekuri/useReq/compare/v0.2.0..v0.3.0
 [0.4.0]: https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.4.0
 [0.5.0]: https://github.com/Ogekuri/useReq/compare/v0.4.0..v0.5.0
+[0.6.0]: https://github.com/Ogekuri/useReq/compare/v0.5.0..v0.6.0
