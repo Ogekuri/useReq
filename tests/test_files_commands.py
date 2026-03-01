@@ -31,47 +31,47 @@ from usereq.source_analyzer import ElementType, SourceAnalyzer
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 FIXTURE_FILES = sorted(FIXTURES_DIR.glob("fixture_*.*"))
 DOXYGEN_TAG_LABELS_IN_ORDER = [
-    "Brief",
-    "Details",
-    "Param",
-    "Param[in]",
-    "Param[in,out]",
-    "Param[out]",
-    "Return",
-    "Retval",
-    "Exception",
-    "Throws",
-    "Warning",
-    "Deprecated",
-    "Note",
-    "See",
-    "Sa",
-    "Satisfies",
-    "Pre",
-    "Post",
+    "@brief",
+    "@details",
+    "@param",
+    "@param[in]",
+    "@param[out]",
+    "@param[in,out]",
+    "@return",
+    "@retval",
+    "@exception",
+    "@throws",
+    "@warning",
+    "@deprecated",
+    "@note",
+    "@see",
+    "@sa",
+    "@satisfies",
+    "@pre",
+    "@post",
 ]
 DOXYGEN_TAG_TO_LABEL_IN_ORDER: list[tuple[str, str]] = [
-    ("@brief", "Brief"),
-    ("@details", "Details"),
-    ("@param", "Param"),
-    ("@param[in]", "Param[in]"),
-    ("@param[in,out]", "Param[in,out]"),
-    ("@param[out]", "Param[out]"),
-    ("@return", "Return"),
-    ("@retval", "Retval"),
-    ("@exception", "Exception"),
-    ("@throws", "Throws"),
-    ("@warning", "Warning"),
-    ("@deprecated", "Deprecated"),
-    ("@note", "Note"),
-    ("@see", "See"),
-    ("@sa", "Sa"),
-    ("@satisfies", "Satisfies"),
-    ("@pre", "Pre"),
-    ("@post", "Post"),
+    ("@brief", "@brief"),
+    ("@details", "@details"),
+    ("@param", "@param"),
+    ("@param[in]", "@param[in]"),
+    ("@param[out]", "@param[out]"),
+    ("@param[in,out]", "@param[in,out]"),
+    ("@return", "@return"),
+    ("@retval", "@retval"),
+    ("@exception", "@exception"),
+    ("@throws", "@throws"),
+    ("@warning", "@warning"),
+    ("@deprecated", "@deprecated"),
+    ("@note", "@note"),
+    ("@see", "@see"),
+    ("@sa", "@sa"),
+    ("@satisfies", "@satisfies"),
+    ("@pre", "@pre"),
+    ("@post", "@post"),
 ]
 DOXYGEN_OUTPUT_LABEL_PATTERNS: Dict[str, re.Pattern[str]] = {
-    label: re.compile(rf"(?m)^\s*-\s*{re.escape(label)}:")
+    label: re.compile(rf"(?m)^\s*-\s*{re.escape(label)}(?=\s|$)")
     for _, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER
 }
 DOXYGEN_SOURCE_TAG_PATTERNS: Dict[str, re.Pattern[str]] = {
@@ -149,10 +149,10 @@ def _aggregate_reference_doxygen_fields(element) -> Dict[str, List[str]]:
 def _render_expected_doxygen_lines(doxygen_fields: Dict[str, List[str]]) -> list[str]:
     """! @brief Render expected Doxygen markdown lines independently from production formatter."""
     lines: list[str] = []
-    for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
+    for tag, _ in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
         normalized_tag = tag[1:]
         for value in doxygen_fields.get(normalized_tag, []):
-            lines.append(f"- {label}: {value}")
+            lines.append(f"- {tag} {value}")
     return lines
 
 
@@ -300,7 +300,7 @@ def _count_source_doxygen_tags_with_regex(filepath: Path) -> Dict[str, int]:
 
 
 def _labels_to_tags_counts(label_counts: Dict[str, int]) -> Dict[str, int]:
-    """! @brief Convert output-label counts (Brief:, Param:, ...) to source-tag keys (@brief, @param, ...)."""
+    """! @brief Convert output-token counts to source-tag keys."""
     return {
         tag: int(label_counts.get(label, 0))
         for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER
@@ -364,7 +364,7 @@ def _assert_doxygen_reference_counts(
     output_counts: Dict[str, int],
     context_id: str,
 ) -> None:
-    """! @brief Assert 1:1 parity between source Doxygen tags and emitted reference labels."""
+    """! @brief Assert 1:1 parity between source Doxygen tags and emitted output tokens."""
     for tag, label in DOXYGEN_TAG_TO_LABEL_IN_ORDER:
         assert output_counts[label] == source_counts[tag], (
             f"{context_id}: mismatch {tag} ({source_counts[tag]}) "
@@ -445,18 +445,18 @@ def _extract_reference_definition_block_by_signature(
 
 def _assert_doxygen_markdown_order(output: str) -> None:
     """! @brief Assert each contiguous Doxygen bullet block follows DOX-011 ordering."""
-    label_order = {
-        label: index for index, label in enumerate(DOXYGEN_TAG_LABELS_IN_ORDER)
+    tag_order = {
+        tag: index for index, tag in enumerate(DOXYGEN_TAG_LABELS_IN_ORDER)
     }
     in_block = False
     last_index = -1
 
     for line in output.splitlines():
         stripped = line.strip()
-        if stripped.startswith("- ") and ":" in stripped:
-            label = stripped[2:].split(":", 1)[0]
-            if label in label_order:
-                current_index = label_order[label]
+        if stripped.startswith("- @"):
+            tag = stripped.split(None, 2)[1]
+            if tag in tag_order:
+                current_index = tag_order[tag]
                 if not in_block:
                     in_block = True
                     last_index = current_index
@@ -611,15 +611,15 @@ def _extract_construct_block_by_name(output: str, type_label: str, name: str) ->
 def _assert_cmd_major_doxygen_fields(block: str, context_id: str) -> None:
     """! @brief Assert cmd_major block contains all expected Doxygen fields with key payload fragments."""
     required_lines = [
-        "- Brief: CLI entry-point for the `major` release subcommand.",
-        "- Param: extra Iterable of CLI argument strings; accepted flag: `--include-patch`.",
-        "- Return: None; delegates to `_run_release_command(\"major\", ...)`.",
-        "- Satisfies: REQ-026, REQ-045",
+        "- @brief CLI entry-point for the `major` release subcommand.",
+        "- @param extra Iterable of CLI argument strings; accepted flag: `--include-patch`.",
+        "- @return None; delegates to `_run_release_command(\"major\", ...)`.",
+        "- @satisfies REQ-026, REQ-045",
     ]
     for line in required_lines:
         assert line in block, f"{context_id}: missing line {line}"
 
-    assert "- Details:" in block, f"{context_id}: missing Details label"
+    assert "- @details" in block, f"{context_id}: missing @details field"
     assert (
         "Increments the major semver index (resets minor and patch to 0), merges and pushes"
         in block
@@ -628,7 +628,7 @@ def _assert_cmd_major_doxygen_fields(block: str, context_id: str) -> None:
         "immediately before pushing `master` with `--tags`." in block
     ), f"{context_id}: missing details trailing fragment"
 
-    ordered_labels = ["- Brief:", "- Details:", "- Param:", "- Return:", "- Satisfies:"]
+    ordered_labels = ["- @brief", "- @details", "- @param", "- @return", "- @satisfies"]
     previous_idx = -1
     for label in ordered_labels:
         current_idx = block.find(label)
@@ -705,7 +705,7 @@ def _assert_find_construct_doxygen_block(
             assert idx < code_idx
             cursor = idx
     else:
-        doxygen_prefixes = [f"- {label}:" for label in DOXYGEN_TAG_LABELS_IN_ORDER]
+        doxygen_prefixes = [f"- {label}" for label in DOXYGEN_TAG_LABELS_IN_ORDER]
         metadata_section = block[lines_idx:code_idx]
         for prefix in doxygen_prefixes:
             assert prefix not in metadata_section
@@ -866,8 +866,8 @@ class TestFilesReferencesCommand:
             output=output,
             header="### fn `def log(msg: str) -> None` (L73-79)",
         )
-        assert "- Brief: Prints an informational message." in block
-        assert "- Param: msg The message string to print." in block
+        assert "- @brief Prints an informational message." in block
+        assert "- @param msg The message string to print." in block
 
     def test_files_references_without_doxygen_outputs_only_construct_reference(
         self,
@@ -888,7 +888,7 @@ class TestFilesReferencesCommand:
 
         assert "plain_function" in output
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
-            assert f"- {label}:" not in output
+            assert f"- {label}" not in output
         _assert_no_legacy_annotation_lines(output)
 
     def test_files_references_cmd_major_extracts_all_expected_doxygen_fields(
@@ -1205,8 +1205,8 @@ class TestReferencesCommand:
             output=output,
             header="### fn `def log(msg: str) -> None` (L73-79)",
         )
-        assert "- Brief: Prints an informational message." in block
-        assert "- Param: msg The message string to print." in block
+        assert "- @brief Prints an informational message." in block
+        assert "- @param msg The message string to print." in block
 
     def test_references_cmd_major_extracts_all_expected_doxygen_fields(
         self,
@@ -1498,7 +1498,7 @@ class TestFindCommandsDoxygen:
         assert lines_idx != -1 and code_idx != -1 and lines_idx < code_idx
         metadata_section = block[lines_idx:code_idx]
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
-            assert f"- {label}:" not in metadata_section
+            assert f"- {label}" not in metadata_section
 
     def test_files_find_strips_comments_from_code_and_keeps_doxygen_header(
         self,
@@ -1521,7 +1521,7 @@ class TestFindCommandsDoxygen:
         assert rc == 0
         captured = capsys.readouterr()
         output = captured.out
-        assert "- Brief: Increment value" in output
+        assert "- @brief Increment value" in output
 
         block = _extract_construct_block(output, "FUNCTION", "inc", 2, 6)
         code_start = block.find("```")
@@ -1652,7 +1652,7 @@ class TestFindCommandsDoxygen:
         assert lines_idx != -1 and code_idx != -1 and lines_idx < code_idx
         metadata_section = block[lines_idx:code_idx]
         for label in DOXYGEN_TAG_LABELS_IN_ORDER:
-            assert f"- {label}:" not in metadata_section
+            assert f"- {label}" not in metadata_section
 
     def test_find_strips_comments_from_code_and_keeps_doxygen_header(
         self,
@@ -1689,7 +1689,7 @@ class TestFindCommandsDoxygen:
         assert rc == 0
         captured = capsys.readouterr()
         output = captured.out
-        assert "- Brief: Increment value" in output
+        assert "- @brief Increment value" in output
 
         block = _extract_construct_block(output, "FUNCTION", "inc", 2, 6)
         code_start = block.find("```")

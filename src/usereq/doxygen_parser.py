@@ -17,8 +17,8 @@ DOXYGEN_TAGS = [
     'details',
     'param',
     'param[in]',
-    'param[in,out]',
     'param[out]',
+    'param[in,out]',
     'return',
     'retval',
     'exception',
@@ -155,7 +155,7 @@ def _normalize_whitespace(text: str) -> str:
 def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]:
     """!
     @brief Format extracted Doxygen fields as Markdown bulleted list.
-    @details Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ prefix, and appends ':'. Skips tags not present in input. Each extracted field occurrence is emitted as an independent markdown bullet.
+    @details Emits fields in fixed order (DOXYGEN_TAGS) preserving original Doxygen tag tokens with `@` prefix and no `:` suffix. Skips tags not present in input. Each extracted field occurrence is emitted as an independent markdown bullet.
     @param doxygen_fields Dictionary of tag -> content list from parse_doxygen_comment().
     @return List of Markdown lines (each starting with '- ').
     @note Output order matches DOXYGEN_TAGS sequence.
@@ -165,8 +165,8 @@ def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> L
         values = doxygen_fields.get(tag, [])
         if not values:
             continue
-        # Capitalize first letter, append colon.
-        label = tag.capitalize() + ':'
+        # Preserve original Doxygen tag token.
+        label = f'@{tag}'
         for content in values:
             lines.append(f'- {label} {content}')
     return lines

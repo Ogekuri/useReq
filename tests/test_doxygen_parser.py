@@ -231,7 +231,7 @@ class TestFormatDoxygenFieldsAsMarkdown:
         """! @brief Format a single brief field as markdown bullet."""
         fields = {"brief": ["Short description."]}
         lines = format_doxygen_fields_as_markdown(fields)
-        assert lines == ["- Brief: Short description."]
+        assert lines == ["- @brief Short description."]
 
     def test_format_multiple_fields(self):
         """! @brief Format multiple fields preserving DOXYGEN_TAGS ordering."""
@@ -242,17 +242,17 @@ class TestFormatDoxygenFieldsAsMarkdown:
         }
 
         lines = format_doxygen_fields_as_markdown(fields)
-        assert lines[0].startswith("- Brief:")
-        assert lines[1].startswith("- Param:")
-        assert lines[2].startswith("- Return:")
+        assert lines[0].startswith("- @brief")
+        assert lines[1].startswith("- @param")
+        assert lines[2].startswith("- @return")
 
-    def test_capitalize_tag_labels(self):
-        """! @brief Capitalize markdown labels for short tags such as see/sa."""
+    def test_preserve_original_tag_tokens(self):
+        """! @brief Preserve original Doxygen tag tokens in markdown bullets."""
         fields = {"see": ["other_func()"], "sa": ["module"]}
         lines = format_doxygen_fields_as_markdown(fields)
 
-        assert "- See:" in lines[0]
-        assert "- Sa:" in lines[1]
+        assert lines[0].startswith("- @see ")
+        assert lines[1].startswith("- @sa ")
 
     def test_skip_missing_tags(self):
         """! @brief Omit markdown entries for tags not present in the parsed field dictionary."""
@@ -268,9 +268,9 @@ class TestFormatDoxygenFieldsAsMarkdown:
         }
         lines = format_doxygen_fields_as_markdown(fields)
         assert lines == [
-            "- Param[in]: x First input.",
-            "- Param[in]: y Second input.",
-            "- Return: Result value.",
+            "- @param[in] x First input.",
+            "- @param[in] y Second input.",
+            "- @return Result value.",
         ]
 
 

@@ -319,8 +319,8 @@ def test_find_constructs_parse_args_uses_only_local_doxygen_fields():
         "FUNCTION",
         "^parse_args$",
     )
-    assert "- Brief: Parses command-line arguments into a namespace." in output
-    assert "- Brief: Builds the CLI argument parser." not in output
+    assert "- @brief Parses command-line arguments into a namespace." in output
+    assert "- @brief Builds the CLI argument parser." not in output
 
 
 def test_format_construct_strips_comments_and_keeps_doxygen_fields():
@@ -351,7 +351,7 @@ def test_format_construct_strips_comments_and_keeps_doxygen_fields():
         language="c",
     )
 
-    assert "- Brief: Increment value by one." in output
+    assert "- @brief Increment value by one." in output
     assert "single-line comment" not in output
     assert "inline block" not in output
     assert "multi-line" not in output

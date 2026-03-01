@@ -836,7 +836,7 @@ from typing import Dict, List
 
 ### fn `def format_doxygen_fields_as_markdown(doxygen_fields: Dict[str, List[str]]) -> List[str]` (L155-172)
 - Brief: Format extracted Doxygen fields as Markdown bulleted list.
-- Details: Emits fields in fixed order (DOXYGEN_TAGS), capitalizes tag, omits @ prefix, and appends ':'. Skips tags not present in input. Each extracted field occurrence is emitted as an independent markdown bullet.
+- Details: Emits fields in fixed order (DOXYGEN_TAGS) preserving original Doxygen tag tokens with `@` prefix and no `:` suffix. Skips tags not present in input. Each extracted field occurrence is emitted as an independent markdown bullet.
 - Param: doxygen_fields Dictionary of tag -> content list from parse_doxygen_comment().
 - Return: List of Markdown lines (each starting with '- ').
 - Note: Output order matches DOXYGEN_TAGS sequence.
