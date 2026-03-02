@@ -69,40 +69,71 @@ In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite on
   - For EACH execution unit: a complete internal call-trace tree from entrypoint(s) down to internal leaf functions (internal functions only).
   - ALL explicit communication/interconnection paths between execution units.
 
-## Source Construct Extraction via req --find / req --files-find
-When you need hard evidence from source code (APIs, entrypoints, data types, imports, constants, decorators/annotations, modules/namespaces), use req to extract language constructs as structured markdown (with signatures + line ranges, and optional line-numbered code).
-### What these commands do (and what they don’t)
-- They extract named constructs (e.g., CLASS, FUNCTION, STRUCT, INTERFACE, IMPORT, …) and filter them by TAG and name-regex.
-- The regex (PATTERN) matches the construct name only (not the body). If you need “search inside code”, use rg/git grep in addition.
-- Output is markdown, grouped by file: header @@@ <filepath> | <language>, then per-construct blocks with:
-    - ### <TAG>: <name> + optional Signature + Lines: <start>-<end>
+## Source Code Analysis Toolkit
+Four complementary pillars provide a complete, token-efficient source code analysis pipeline. Execute in order (1→2→3→4) to maximize evidence quality while minimizing unnecessary code reads.
+
+### 1. Runtime Model: `%%DOC_PATH%%/WORKFLOW.md`
+Compact document — read in full. Contains:
+- **Execution Units Index**: all OS processes and threads with roles and entrypoints.
+- **Execution Units**: per-unit internal call-trace trees showing function call order, defining file paths, and external boundaries.
+- **Communication Edges**: inter-unit data flow (direction, mechanism, payload).
+
+Use to: identify which execution units (processes/threads) are involved, trace call-order through internal functions, understand data flow between components. Build a runtime mental model before reading any code.
+
+### 2. Symbol Index: `%%DOC_PATH%%/REFERENCES.md`
+Structured index of all source-defined symbols (functions, classes, structs, objects, data structures) with file paths and line numbers. Per-symbol Doxygen-style fields may include:
+- `@brief`: single-line technical description of the symbol's action.
+- `@details`: high-density algorithmic summary (LLM-optimized, not prose).
+- `@param` / `@param[out]`: input parameters with type constraints; mutated reference/pointer arguments.
+- `@return` / `@retval`: output data structure or specific return values.
+- `@exception` / `@throws`: error states and specific exception classes.
+- `@satisfies`: linked requirement IDs (e.g., `@satisfies REQ-026, REQ-045`).
+- `@pre` / `@post`: pre-conditions and post-conditions.
+- `@warning`: critical usage hazards.
+- `@note`: vital implementation details.
+- `@see` / `@sa`: related symbols for context linkage.
+- `@deprecated`: replacement API link.
+
+Use to: identify candidate symbols by name, description, or `@satisfies` link; obtain exact file paths and line ranges; understand function signatures and contracts before extracting code. Cross-reference with WORKFLOW.md call-traces to narrow scope.
+
+### 3. Code Extraction: `req --find` / `req --files-find`
+Extract actual source constructs as structured markdown with signatures, line ranges, and optional line-numbered code. Use after pillars 1-2 to extract only the targeted constructs identified during analysis.
+#### What these commands do (and what they don't)
+- Extract named constructs (e.g., CLASS, FUNCTION, STRUCT, INTERFACE, IMPORT, …) filtered by TAG and name-regex.
+- Regex (PATTERN) matches construct name only (not body). For body-content search, use rg/git grep (pillar 4).
+- Output per file: header `@@@ <filepath> | <language>`, per-construct blocks with:
+    - `### <TAG>: <name>` + optional Signature + `Lines: <start>-<end>`
     - optional extracted Doxygen fields (if present in/around the construct)
-    - a fenced code block containing the complete construct slice, with comments stripped (strings preserved)
-### Choose the right mode
+    - fenced code block with the complete construct slice (comments stripped, strings preserved)
+#### Choose the right mode
 - Project-wide scan: use --find (`--here` is implicit; `--base` is forbidden)
-    - Correct syntax is: req --find <TAG_FILTER> <NAME_REGEX>
-    - Note: --find does not take a filename; it scans all files under the configured source dirs.
+    - Syntax: `req --find <TAG_FILTER> <NAME_REGEX>`
+    - Note: --find scans all files under configured source dirs; does not take a filename.
 - Target specific files: use --files-find (standalone; --here is optional but harmless)
-    - Syntax: req --here --files-find <TAG_FILTER> <NAME_REGEX> <FILE1> [FILE2 ...]
-### Always enable line-numbered code when you plan to cite evidence
-Add --enable-line-numbers so code lines are prefixed as "<n>:":
-- req --enable-line-numbers --find "<TAG_FILTER>" "<NAME_REGEX>"
-- req --here --enable-line-numbers --files-find "<TAG_FILTER>" "<NAME_REGEX>" <FILE...>
-### TAGs and filters
-- TAG_FILTER is a pipe-separated list (case-insensitive): e.g. CLASS|FUNCTION|IMPORT
-- Tags are language-dependent; unsupported tags are simply ignored for that language, and files may be skipped if none of the requested tags apply.
-- To discover the exact supported TAGs list (per language), run: req -h and read the --files-find help section.
-- Practical “broad but safe” TAG_FILTER for analysis (cross-language): CLASS|STRUCT|ENUM|INTERFACE|TRAIT|IMPL|FUNCTION|METHOD|MODULE|NAMESPACE|TYPE_ALIAS|TYPEDEF|IMPORT|CONSTANT|VARIABLE|MACRO|DECORATOR|COMPONENT|PROPERTY|PROTOCOL|EXTENSION|UNION
-### Regex rules (NAME_REGEX)
-- It’s a Python-style regex applied with re.search() against the construct name.
-- Prefer anchored patterns when possible:
-    - Exact: ^Foo$
-    - Prefix: ^parse_
-    - Suffix: Service$
-    - Fallback: .* (only when scope is already constrained by files/TAGs)
-### Failure modes you must handle
-- If you get “no constructs found”, adjust one of: TAGs (supported?), file paths, or NAME_REGEX (valid regex?).
-- This extractor is regex-based (not a full AST parser); treat results as evidence pointers, and confirm edge cases by opening the referenced file/lines if needed.
+    - Syntax: `req --here --files-find <TAG_FILTER> <NAME_REGEX> <FILE1> [FILE2 ...]`
+#### Enable line-numbered code for evidence citation
+Add --enable-line-numbers (code lines prefixed as `<n>:`):
+- `req --enable-line-numbers --find "<TAG_FILTER>" "<NAME_REGEX>"`
+- `req --here --enable-line-numbers --files-find "<TAG_FILTER>" "<NAME_REGEX>" <FILE...>`
+#### TAGs and filters
+- TAG_FILTER: pipe-separated, case-insensitive (e.g., `CLASS|FUNCTION|IMPORT`).
+- Tags are language-dependent; unsupported tags are ignored. Run `req -h` for supported TAGs per language.
+- Broad cross-language TAG_FILTER: `CLASS|STRUCT|ENUM|INTERFACE|TRAIT|IMPL|FUNCTION|METHOD|MODULE|NAMESPACE|TYPE_ALIAS|TYPEDEF|IMPORT|CONSTANT|VARIABLE|MACRO|DECORATOR|COMPONENT|PROPERTY|PROTOCOL|EXTENSION|UNION`
+#### Regex rules (NAME_REGEX)
+- Python-style regex via `re.search()` against construct name.
+- Prefer anchored patterns: exact `^Foo$`, prefix `^parse_`, suffix `Service$`. Use `.*` only when scope is already constrained by files/TAGs.
+#### Failure modes you must handle
+- "No constructs found": adjust TAGs (supported?), file paths, or NAME_REGEX (valid regex?).
+- Regex-based extractor (not full AST): treat results as evidence pointers; confirm edge cases by opening referenced file/lines.
+
+### 4. Supplementary Search: `rg` / `git grep`
+Use for: string/pattern searches inside code bodies, cross-file references, configuration values, error messages, or any content not captured by construct-name-based extraction.
+
+### Recommended Analysis Workflow
+1. **Read `%%DOC_PATH%%/WORKFLOW.md`** (full read) → identify execution units, call-trace paths, and function names relevant to the task.
+2. **Read `%%DOC_PATH%%/REFERENCES.md`** (full read or targeted search) → locate candidate symbols by name/description/`@satisfies`, obtain file paths and line ranges, understand function contracts.
+3. **Extract code** via `req --find`/`req --files-find` → use symbol names from steps 1-2 as NAME_REGEX, file paths as --files-find targets; enable --enable-line-numbers when citing evidence.
+4. **Search code bodies** via `rg`/`git grep` → find patterns, references, or values not captured by construct-level extraction.
 
 
 ## Execution Protocol (Global vs Local)
