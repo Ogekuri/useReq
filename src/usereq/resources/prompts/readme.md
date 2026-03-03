@@ -1,6 +1,6 @@
 ---
 description: "Write README.md from user-visible implementation evidence"
-argument-hint: "No arguments utilized by the prompt logic"
+argument-hint: "Description of additional edits to perform on README.md file"
 usage: >
   Select this prompt ONLY for docs-maintenance of root README.md: when user-visible behavior changed and you must align README with current implementation evidence. Analyze externally visible surfaces only (features, CLI parameters, GUI behavior, distributed APIs, configuration schema), identify affected README sections before editing, and update only those sections while preserving unrelated content/format. Do NOT include internal implementation logic. Do NOT select if requirements, workflow, references, source code, or tests must change.
 ---
@@ -47,6 +47,7 @@ In scope: static analysis of user-visible behavior from %%SRC_PATHS%% and relate
 - Do not perform unrelated edits.
 - Analyze user-visible implementation changes, including new features, CLI parameters/options, GUI interactions, distributed APIs, and configuration-file schema updates when present.
 - Validate whether the current root `README.md` is aligned with implementation evidence; identify exact sections to update first, then update only missing, outdated, or incorrect user-facing content in those sections.
+- Parse [User Request](#users-request) (`%%ARGS%%`) as explicit additional-edit directives, using the same anchor-based reference model used by `write.md`, and execute those directives in the same scoped README update pass.
 - Keep non-analysis documentary sections unchanged, including document headers, versioning metadata, context/scope descriptions, personal motivations, related projects, and high-level conceptual or graphical descriptions that do not alter interface usage.
 - Preserve existing README structure and formatting patterns (section order, heading hierarchy, bullet/list style, table style) whenever possible.
 - Exclude internal implementation details, internal architecture logic, private symbols, and algorithm internals from `README.md`.
@@ -176,7 +177,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Derive a compact "README coverage list" of user-visible behavior that MUST appear in root `README.md`.
 4. Validate and update root `README.md`
    - Read the current root `README.md` and compare it with the README coverage list from Step 3.
-   - Identify and list the exact `README.md` sections impacted by the detected user-visible implementation changes before editing.
+   - Identify and list the exact `README.md` sections impacted by the detected user-visible implementation changes and explicit additional edits from [User Request](#users-request) before editing.
    - Update only the identified sections so `README.md` reflects the current externally visible behavior and usage flows.
    - Keep all non-analysis documentary sections unchanged (e.g., headers, versioning, context/scope narratives, motivations, related projects, high-level graphics/descriptions not tied to interface behavior).
    - Keep content focused on user interaction, setup, commands, interfaces, and observable outputs.
@@ -205,3 +206,6 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - If the merge fails or results in conflicts, do NOT remove the worktree directory and override the final line with EXACTLY "WARNING: README request completed with merge conflicting!".
 7. Present results
    - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
+
+<h2 id="users-request">User's Request</h2>
+%%ARGS%%
