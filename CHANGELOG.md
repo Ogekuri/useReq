@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.1](https://github.com/Ogekuri/useReq/compare/v0.6.0..v0.6.1) - 2026-03-02
+## [0.7.0](https://github.com/Ogekuri/useReq/compare/v0.6.0..v0.7.0) - 2026-03-03
 ### ⛰️  Features
 - Update prompts.
 
@@ -504,7 +504,7 @@
 - \[0.4.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.4.0
 - \[0.5.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.5.0
 - \[0.6.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.6.0
-- \[0.6.1\]: https://github.com/Ogekuri/useReq/releases/tag/v0.6.1
+- \[0.7.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.7.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -512,4 +512,4 @@
 [0.4.0]: https://github.com/Ogekuri/useReq/compare/v0.3.0..v0.4.0
 [0.5.0]: https://github.com/Ogekuri/useReq/compare/v0.4.0..v0.5.0
 [0.6.0]: https://github.com/Ogekuri/useReq/compare/v0.5.0..v0.6.0
-[0.6.1]: https://github.com/Ogekuri/useReq/compare/v0.6.0..v0.6.1
+[0.7.0]: https://github.com/Ogekuri/useReq/compare/v0.6.0..v0.7.0
