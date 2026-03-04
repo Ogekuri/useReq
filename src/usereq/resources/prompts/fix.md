@@ -196,8 +196,9 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Fix the source code to pass valid tests autonomously without asking for user intervention. Execute a strict fix loop: 1) Read and analyze the specific failure output/logs using filesystem tools, 2) Analyze the root cause internally based on evidence, 3) Fix code, 4) Re-run tests. Repeat this loop up to 2 times. If tests still fail after the second attempt, report the failure, OUTPUT exactly "ERROR: Defect fix failed due to inability to complete tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - Limitations: Do not introduce new features or change the architecture logic during this fix phase; if a fix requires substantial refactoring or requirements changes, report the failure, then OUTPUT exactly "ERROR: Defect fix failed due to requirements incompatible with tests!", revert tracked-file changes using `git restore .` (or `git checkout .` on older Git), DO NOT run `git clean -fd`, and then terminate the execution.
       - You may freely modify the new tests you added in the previous steps. Strictly avoid modifying pre-existing tests unless they are objectively incorrect. If you must modify a pre-existing test, you must include a specific section in your final report explaining why the test assumption was wrong, citing line numbers.
-6. Update `%%DOC_PATH%%/WORKFLOW.md` via targeted edits using the canonical WORKFLOW.md contract (same terminology, same schema, same call-trace rules).
+6. Update `%%DOC_PATH%%/WORKFLOW.md` via targeted edits using the canonical WORKFLOW.md contract (same terminology, same schema, same call-trace rules) and declaration file paths only, excluding line numbers, line ranges, and internal file-reference pointers.
    - Update `%%DOC_PATH%%/WORKFLOW.md` as an LLM-first runtime model (English only) using a TARGETED EDIT policy.
+      - During generation/update, include declaration file paths only; MUST NOT include line numbers, line ranges, or internal file-reference pointers.
       - Determine the change surface from repository evidence: run `git diff --name-only` and `git diff` to identify the modified files/symbols under %%SRC_PATHS%%.
       - Modify ONLY the WORKFLOW.md sections impacted by those changes (execution unit index entries, execution unit subsections, and communication edges); preserve stable IDs and do not rewrite unrelated content.
       - Ensure global consistency: if a changed internal symbol appears in any call-trace, update all affected call-trace nodes; if a unit/edge is added/removed, reflect it.
@@ -210,7 +211,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - Do NOT include external boundaries (system/library/framework calls) as nodes; annotate them only as external boundaries where relevant.
       - No maximum depth: expand until an internal leaf function or an external boundary is reached.
    - Identify and document ALL Communication Edges between Execution Units:
-      - For each edge: direction (source -> destination), mechanism, endpoint/channel, payload/data-shape reference, and evidence pointers.
+      - For each edge: direction (source -> destination), mechanism, endpoint/channel, payload/data-shape reference, and declaration file path references only.
    - Preserve and maintain the canonical `WORKFLOW.md` schema:
       - `## Execution Units Index`
       - `## Execution Units`

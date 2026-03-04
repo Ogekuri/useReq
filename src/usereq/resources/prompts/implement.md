@@ -124,9 +124,10 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
       - No maximum depth: expand until an internal leaf function or an external boundary is reached.
    - Identify ALL explicit communication edges between execution units and record for each edge:
       - Direction (source -> destination), mechanism (IPC/thread communication), endpoint/channel (queue/topic/path/socket/etc.), and payload/data-shape references.
-6. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document
+6. Generate and overwrite `%%DOC_PATH%%/WORKFLOW.md` document using declaration file paths only, excluding line numbers, line ranges, and internal file-reference pointers
    - Read any existing `%%DOC_PATH%%/WORKFLOW.md` to preserve stable IDs and minimize unnecessary churn, then update it to strictly conform to the Output Contract above.
    - Generate %%DOC_PATH%%/WORKFLOW.md in English only using deterministic, machine-interpretable Markdown with the required schema and stable field order.
+      - During generation/update, include declaration file paths only; MUST NOT include line numbers, line ranges, or internal file-reference pointers.
       - `## Execution Units Index` (stable IDs)
          - Use stable IDs: `PROC:main`, `PROC:<name>` for processes; `THR:<proc_id>#<name>` for threads.
          - For each execution unit: ID, type (process/thread), parent process (for threads), role, entrypoint symbol(s), and defining file(s).
@@ -137,7 +138,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
            - Internal Call-Trace Tree (internal functions only; no maximum depth)
            - External Boundaries (file I/O, network, DB, external APIs, OS interaction)
       - `## Communication Edges`
-         - List ALL `Communication Edge` items with direction + mechanism + endpoint/channel + payload/data-shape reference + evidence pointers.
+         - List ALL `Communication Edge` items with direction + mechanism + endpoint/channel + payload/data-shape reference + declaration file path references only.
    - Call-trace node format (MUST be consistent):
       - `symbol_name(...)`: `<single-line role>` [`<defining filepath>`]
          - `<optional: brief invariants/external boundaries>`
