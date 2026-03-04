@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/Ogekuri/useReq/compare/v0.9.0..v0.10.0) - 2026-03-04
+### ⛰️  Features
+- Update .req/models.json file.
+
+### 📚  Documentation
+- Update README.md documenet.
+
 ## [0.9.0](https://github.com/Ogekuri/useReq/compare/v0.8.0..v0.9.0) - 2026-03-04
 ### ⛰️  Features
 - Update prompts.
@@ -529,6 +536,7 @@
 - \[0.7.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.7.0
 - \[0.8.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.9.0
+- \[0.10.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.10.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -539,3 +547,4 @@
 [0.7.0]: https://github.com/Ogekuri/useReq/compare/v0.6.0..v0.7.0
 [0.8.0]: https://github.com/Ogekuri/useReq/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/useReq/compare/v0.8.0..v0.9.0
+[0.10.0]: https://github.com/Ogekuri/useReq/compare/v0.9.0..v0.10.0
