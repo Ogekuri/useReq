@@ -2669,6 +2669,11 @@ def run(args: Namespace) -> None:
             rows.append((cli_name, prompts_text, mods_text))
 
         def fmt(row: tuple[str, ...]) -> str:
+            """! @brief Format one fixed-width ASCII table row.
+            @details Applies left-padding normalization using the precomputed `widths` vector and joins cells with ` | ` to preserve deterministic column alignment.
+            @param row {tuple[str, ...]} Row values ordered as (CLI, Prompts Installed, Modules Installed).
+            @return {str} Aligned table row string.
+            """
             return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))
 
         header = fmt(columns)
@@ -2776,6 +2781,12 @@ def _build_ascii_tree(paths: list[str]) -> str:
         branch: dict[str, dict[str, Any] | None],
         prefix: str = "",
     ) -> None:
+        """! @brief Emit one subtree in deterministic ASCII-tree order.
+        @details Traverses child entries sorted lexicographically, appends connector glyphs (`├──`, `└──`) to `lines`, and recursively emits nested directories while preserving tree indentation state in `prefix`.
+        @param branch {dict[str, dict[str, Any] | None]} Current subtree mapping where `None` denotes file leaf and `dict` denotes directory node.
+        @param prefix {str} Prefix containing indentation and vertical-branch markers for current depth.
+        @return {None} This helper mutates closure variable `lines` with formatted rows.
+        """
         entries = sorted(branch.items(), key=lambda item: item[0])
         for idx, (name, child) in enumerate(entries):
             last = idx == len(entries) - 1

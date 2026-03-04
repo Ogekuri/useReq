@@ -54,7 +54,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3266L | 103 symbols | 28 imports | 166 comments
+# cli.py | Python | 3277L | 103 symbols | 28 imports | 168 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -421,91 +421,95 @@ before any configuration persistence.
 - var `PROMPT = prompt_path.stem` (L2054)
 ### fn `def _format_install_table(` `priv` (L2638-2640)
 
-### fn `def fmt(row: tuple[str, ...]) -> str` (L2671-2673)
+### fn `def fmt(row: tuple[str, ...]) -> str` (L2671-2678)
 - @brief Format the ASCII installation summary table.
+- @brief Format one fixed-width ASCII table row.
 - @details Builds a deterministic fixed-column table with columns: CLI, Prompts Installed, Modules Installed.
 Prompts Installed is the sorted set of prompt identifiers installed for a CLI during the current
 invocation, independent of artifact type (prompts/commands, agents, or skills). Modules Installed is the
 sorted set of artifact category labels installed for a CLI during the current invocation.
+- @details Applies left-padding normalization using the precomputed `widths` vector and joins cells with ` | ` to preserve deterministic column alignment.
 - @param installed_map {dict[str, set[str]]} Mapping: CLI name -> installed module category labels.
 - @param prompts_map {dict[str, set[str]]} Mapping: CLI name -> installed prompt identifiers (union across artifact types).
+- @param row {tuple[str, ...]} Row values ordered as (CLI, Prompts Installed, Modules Installed).
 - @return {tuple[str, str, list[str]]} (header_line, separator_line, row_lines).
+- @return {str} Aligned table row string.
 - @note Complexity: O(C * (P log P + M log M)) where C is CLI count, P is prompts per CLI, M is modules per CLI.
 - @note Side effects: None (pure formatting).
 
-- var `SUPPORTED_EXTENSIONS = frozenset({` (L2696)
-### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2704-2752)
+- var `SUPPORTED_EXTENSIONS = frozenset({` (L2701)
+### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2709-2757)
 - @brief Collect source files from git-indexed project paths.
 - @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
 
-### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2753-2790)
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2758-2801)
 - @brief Build a deterministic tree string from project-relative paths.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _emit(` `priv` (L2775-2777)
+### fn `def _emit(` `priv` (L2780-2782)
 - @brief Build a deterministic tree string from project-relative paths.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2791-2801)
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2802-2812)
 - @brief Format markdown section containing the scanned files tree.
 - @param files Absolute file paths selected for --references processing.
 - @param project_base Project root used to normalize relative paths.
 - @return Markdown section with heading and fenced tree.
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2802-2820)
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2813-2831)
 - @brief Check if the parsed args contain a standalone file command.
 - @details Standalone commands require no `--base`/`--here`: `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--test-static-check`, and `--files-static-check`. SRS-253 adds `--files-static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any file-scope standalone flag is present.
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2821-2837)
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2832-2848)
 - @brief Check if the parsed args contain a project-scan command.
 - @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`, and `--static-check`. SRS-257 adds `--static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any project-scan flag is present.
 
-### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L2838-2852)
+### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L2849-2863)
 - @brief Check if args request a project-scan command restricted to `--here` mode.
 - @param args Parsed CLI namespace.
 - @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L2853-2871)
+### fn `def run_files_tokens(files: list[str]) -> None` (L2864-2882)
 - @brief Execute --files-tokens: count tokens for arbitrary files.
 
-### fn `def run_files_references(files: list[str]) -> None` (L2872-2884)
+### fn `def run_files_references(files: list[str]) -> None` (L2883-2895)
 - @brief Execute --files-references: generate markdown for arbitrary files.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2885-2901)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2896-2912)
 - @brief Execute --files-compress: compress arbitrary files.
 - @details Renders output header paths relative to current working directory.
 - @param files List of source file paths to compress.
 - @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2902-2927)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2913-2938)
 - @brief Execute --files-find: find constructs in arbitrary files.
 - @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
 - @param enable_line_numbers If True, emits <n>: prefixes in output.
 
-### fn `def run_references(args: Namespace) -> None` (L2928-2941)
+### fn `def run_references(args: Namespace) -> None` (L2939-2952)
 - @brief Execute --references: generate markdown for project source files.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2942-2960)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L2953-2971)
 - @brief Execute --compress: compress project source files.
 - @param args Parsed CLI arguments namespace.
 
-### fn `def run_find(args: Namespace) -> None` (L2961-2987)
+### fn `def run_find(args: Namespace) -> None` (L2972-2998)
 - @brief Execute --find: find constructs in project source files.
 - @param args Parsed CLI arguments namespace.
 - @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L2988-3004)
+### fn `def run_tokens(args: Namespace) -> None` (L2999-3015)
 - @brief Execute --tokens: count tokens for files directly in --docs-dir.
 - @details Uses docs-dir from .req/config.json in here-only mode and delegates reporting to run_files_tokens.
 - @param args Parsed CLI arguments namespace.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3005-3071)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3016-3082)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
 - @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
@@ -513,7 +517,7 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3072-3117)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3083-3128)
 - @brief Execute `--static-check`: run static analysis on all project source files.
 - @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
@@ -521,23 +525,23 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3118-3136)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3129-3147)
 - @brief Resolve project base path for project-level commands.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3137-3183)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3148-3194)
 - @brief Resolve project base and src-dirs for project source commands.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L3184-3266)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L3195-3277)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L3203)
+- var `VERBOSE = getattr(args, "verbose", False)` (L3214)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
-- var `DEBUG = getattr(args, "debug", False)` (L3204)
+- var `DEBUG = getattr(args, "debug", False)` (L3215)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -620,30 +624,30 @@ sorted set of artifact category labels installed for a CLI during the current in
 |`DEBUG`|var|pub|1638||
 |`PROMPT`|var|pub|2054||
 |`_format_install_table`|fn|priv|2638-2640|def _format_install_table(|
-|`fmt`|fn|pub|2671-2673|def fmt(row: tuple[str, ...]) -> str|
-|`SUPPORTED_EXTENSIONS`|var|pub|2696||
-|`_collect_source_files`|fn|priv|2704-2752|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_build_ascii_tree`|fn|priv|2753-2790|def _build_ascii_tree(paths: list[str]) -> str|
-|`_emit`|fn|priv|2775-2777|def _emit(|
-|`_format_files_structure_markdown`|fn|priv|2791-2801|def _format_files_structure_markdown(files: list[str], pr...|
-|`_is_standalone_command`|fn|priv|2802-2820|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|2821-2837|def _is_project_scan_command(args: Namespace) -> bool|
-|`_is_here_only_project_scan_command`|fn|priv|2838-2852|def _is_here_only_project_scan_command(args: Namespace) -...|
-|`run_files_tokens`|fn|pub|2853-2871|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|2872-2884|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2885-2901|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|2902-2927|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|2928-2941|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2942-2960|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|2961-2987|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2988-3004|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|3005-3071|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|3072-3117|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|3118-3136|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|3137-3183|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|3184-3266|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|3203||
-|`DEBUG`|var|pub|3204||
+|`fmt`|fn|pub|2671-2678|def fmt(row: tuple[str, ...]) -> str|
+|`SUPPORTED_EXTENSIONS`|var|pub|2701||
+|`_collect_source_files`|fn|priv|2709-2757|def _collect_source_files(src_dirs: list[str], project_ba...|
+|`_build_ascii_tree`|fn|priv|2758-2801|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|2780-2782|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|2802-2812|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|2813-2831|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|2832-2848|def _is_project_scan_command(args: Namespace) -> bool|
+|`_is_here_only_project_scan_command`|fn|priv|2849-2863|def _is_here_only_project_scan_command(args: Namespace) -...|
+|`run_files_tokens`|fn|pub|2864-2882|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|2883-2895|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|2896-2912|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|2913-2938|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|2939-2952|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|2953-2971|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|2972-2998|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|2999-3015|def run_tokens(args: Namespace) -> None|
+|`run_files_static_check_cmd`|fn|pub|3016-3082|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|3083-3128|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|3129-3147|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|3148-3194|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|3195-3277|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|3214||
+|`DEBUG`|var|pub|3215||
 
 
 ---
@@ -1028,7 +1032,7 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 
 ---
 
-# source_analyzer.py | Python | 2175L | 62 symbols | 11 imports | 133 comments
+# source_analyzer.py | Python | 2185L | 62 symbols | 11 imports | 135 comments
 > Path: `src/usereq/source_analyzer.py`
 - @brief Multi-language source code analyzer.
 - @details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Definitions of functions, methods, classes, structs, enums, traits, interfaces, modules, components and other constructs - Comments (single-line and multi-line) in language-specific syntax - A structured listing of the entire file with line number prefixes
@@ -1169,49 +1173,57 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 - @brief Extract comments and exit points from within function/class bodies.
 - @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
 
-### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1336-1471)
+### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1336-1481)
 - @brief Extract Doxygen tag fields from associated documentation comments.
 - @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
 
-### fn `def _is_file_level_comment(comment) -> bool` `priv` (L1354-1359)
+### fn `def _is_file_level_comment(comment) -> bool` `priv` (L1354-1364)
 - @brief Extract Doxygen tag fields from associated documentation comments.
+- @brief Detect whether a comment block is file-scoped Doxygen metadata.
 - @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
+- @details Resolves canonical text from `comment_source` or fallback `extract` and checks for a standalone `@file` or `\\file` tag token; empty comment payloads are treated as non file-level.
+- @param comment {SourceElement} Candidate comment element.
+- @return {bool} True when the comment declares file-level metadata and must not be bound to a symbol.
 
-### fn `def _has_blocking_element(comment) -> bool` `priv` (L1383-1399)
+### fn `def _has_blocking_element(comment) -> bool` `priv` (L1388-1409)
+- @brief Validate that no non-comment construct exists between comment and target symbol.
+- @details Evaluates direct-span and overlap-span blockers in `non_comment_elements`; returns True when any unrelated construct occupies the interval between `comment.line_end` and `elem.line_start`.
+- @param comment {SourceElement} Candidate preceding comment element.
+- @return {bool} True when association must be rejected due to an intervening non-comment element.
 
-### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1473-1482)
+### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1483-1492)
 - @brief Detect whether a comment uses postfix Doxygen association markers.
 - @details Returns True for comment prefixes that explicitly bind documentation to a preceding construct, including variants like `#!<`, `//!<`, `///<`, `/*!<`, and `/**<`.
 - @param comment_text Raw extracted comment text.
 - @return True when the comment text starts with a supported postfix marker; otherwise False.
 
-### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1484-1495)
+### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1494-1505)
 - @brief Strip comment markers from a single line of comment text.
 
-### fn `def _md_loc(elem) -> str` `priv` (L1496-1503)
+### fn `def _md_loc(elem) -> str` `priv` (L1506-1513)
 - @brief Format element location compactly for markdown.
 
-### fn `def _md_kind(elem) -> str` `priv` (L1504-1531)
+### fn `def _md_kind(elem) -> str` `priv` (L1514-1541)
 - @brief Short kind label for markdown output.
 
-### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1532-1554)
+### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1542-1564)
 - @brief Extract clean text content from a comment element.
 - @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
 
-### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1555-1571)
+### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1565-1581)
 - @brief Extract clean text lines from a multi-line comment (preserving structure).
 
-### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1572-1632)
+### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1582-1642)
 - @brief Build maps that associate comments with their adjacent definitions.
 - @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
 
-### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1633-1684)
+### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1643-1694)
 - @brief Render body comments and exit points for a definition element.
 - @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
 
-### fn `def _merge_doxygen_fields(` `priv` (L1685-1687)
+### fn `def _merge_doxygen_fields(` `priv` (L1695-1697)
 
-### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1701-1724)
+### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1711-1734)
 - @brief Merge Doxygen field dictionaries preserving per-tag value order.
 - @brief Aggregate construct Doxygen fields from associated and body comments.
 - @details Uses canonical `elem.doxygen_fields` from `SourceAnalyzer.enrich()` and merges only body comments located at construct start (first 3 lines) to retain docstring-style Doxygen blocks while avoiding internal-body duplication.
@@ -1221,15 +1233,15 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 - @return Updated destination dictionary.
 - @return Dictionary of normalized Doxygen tags to ordered value lists.
 
-### fn `def _collect_file_level_doxygen_fields(elements: list) -> dict[str, list[str]]` `priv` (L1725-1749)
+### fn `def _collect_file_level_doxygen_fields(elements: list) -> dict[str, list[str]]` `priv` (L1735-1759)
 - @brief Extract file-level Doxygen fields from the first `@file` documentation block.
 - @details Scans non-inline comment elements in source order and selects the first comment containing `@file` or `\\file`, then parses the full comment text through `parse_doxygen_comment()`.
 - @param elements Parsed SourceElement list for one source file.
 - @return Parsed Doxygen fields from the file-level documentation block; empty dictionary if not found.
 
-### fn `def format_markdown(` (L1750-1756)
+### fn `def format_markdown(` (L1760-1766)
 
-### fn `def main()` (L2050-2173)
+### fn `def main()` (L2060-2183)
 - @brief Execute the standalone source analyzer CLI command.
 
 ## Symbol Index
@@ -1281,22 +1293,22 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 |`_extract_inheritance`|fn|priv|1163-1174|def _extract_inheritance(self, elements: list, language: ...|
 |`_parse_inheritance`|fn|priv|1175-1204|def _parse_inheritance(self, first_line: str,|
 |`_extract_body_annotations`|fn|priv|1212-1335|def _extract_body_annotations(self, elements: list,|
-|`_extract_doxygen_fields`|fn|priv|1336-1471|def _extract_doxygen_fields(self, elements: list)|
-|`_is_file_level_comment`|fn|priv|1354-1359|def _is_file_level_comment(comment) -> bool|
-|`_has_blocking_element`|fn|priv|1383-1399|def _has_blocking_element(comment) -> bool|
-|`_is_postfix_doxygen_comment`|fn|priv|1473-1482|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
-|`_clean_comment_line`|fn|priv|1484-1495|def _clean_comment_line(text: str, spec) -> str|
-|`_md_loc`|fn|priv|1496-1503|def _md_loc(elem) -> str|
-|`_md_kind`|fn|priv|1504-1531|def _md_kind(elem) -> str|
-|`_extract_comment_text`|fn|priv|1532-1554|def _extract_comment_text(comment_elem, max_length: int =...|
-|`_extract_comment_lines`|fn|priv|1555-1571|def _extract_comment_lines(comment_elem) -> list|
-|`_build_comment_maps`|fn|priv|1572-1632|def _build_comment_maps(elements: list) -> tuple|
-|`_render_body_annotations`|fn|priv|1633-1684|def _render_body_annotations(out: list, elem, indent: str...|
-|`_merge_doxygen_fields`|fn|priv|1685-1687|def _merge_doxygen_fields(|
-|`_collect_element_doxygen_fields`|fn|priv|1701-1724|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
-|`_collect_file_level_doxygen_fields`|fn|priv|1725-1749|def _collect_file_level_doxygen_fields(elements: list) ->...|
-|`format_markdown`|fn|pub|1750-1756|def format_markdown(|
-|`main`|fn|pub|2050-2173|def main()|
+|`_extract_doxygen_fields`|fn|priv|1336-1481|def _extract_doxygen_fields(self, elements: list)|
+|`_is_file_level_comment`|fn|priv|1354-1364|def _is_file_level_comment(comment) -> bool|
+|`_has_blocking_element`|fn|priv|1388-1409|def _has_blocking_element(comment) -> bool|
+|`_is_postfix_doxygen_comment`|fn|priv|1483-1492|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
+|`_clean_comment_line`|fn|priv|1494-1505|def _clean_comment_line(text: str, spec) -> str|
+|`_md_loc`|fn|priv|1506-1513|def _md_loc(elem) -> str|
+|`_md_kind`|fn|priv|1514-1541|def _md_kind(elem) -> str|
+|`_extract_comment_text`|fn|priv|1542-1564|def _extract_comment_text(comment_elem, max_length: int =...|
+|`_extract_comment_lines`|fn|priv|1565-1581|def _extract_comment_lines(comment_elem) -> list|
+|`_build_comment_maps`|fn|priv|1582-1642|def _build_comment_maps(elements: list) -> tuple|
+|`_render_body_annotations`|fn|priv|1643-1694|def _render_body_annotations(out: list, elem, indent: str...|
+|`_merge_doxygen_fields`|fn|priv|1695-1697|def _merge_doxygen_fields(|
+|`_collect_element_doxygen_fields`|fn|priv|1711-1734|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
+|`_collect_file_level_doxygen_fields`|fn|priv|1735-1759|def _collect_file_level_doxygen_fields(elements: list) ->...|
+|`format_markdown`|fn|pub|1760-1766|def format_markdown(|
+|`main`|fn|pub|2060-2183|def main()|
 
 
 ---

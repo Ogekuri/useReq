@@ -1352,6 +1352,11 @@ class SourceAnalyzer:
             associated_comment = None
 
             def _is_file_level_comment(comment) -> bool:
+                """! @brief Detect whether a comment block is file-scoped Doxygen metadata.
+                @details Resolves canonical text from `comment_source` or fallback `extract` and checks for a standalone `@file` or `\\file` tag token; empty comment payloads are treated as non file-level.
+                @param comment {SourceElement} Candidate comment element.
+                @return {bool} True when the comment declares file-level metadata and must not be bound to a symbol.
+                """
                 comment_text = comment.comment_source or comment.extract
                 if not comment_text:
                     return False
@@ -1381,6 +1386,11 @@ class SourceAnalyzer:
                 ]
                 if preceding_candidates:
                     def _has_blocking_element(comment) -> bool:
+                        """! @brief Validate that no non-comment construct exists between comment and target symbol.
+                        @details Evaluates direct-span and overlap-span blockers in `non_comment_elements`; returns True when any unrelated construct occupies the interval between `comment.line_end` and `elem.line_start`.
+                        @param comment {SourceElement} Candidate preceding comment element.
+                        @return {bool} True when association must be rejected due to an intervening non-comment element.
+                        """
                         return any(
                             other is not elem
                             and (
