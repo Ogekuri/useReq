@@ -1,0 +1,71 @@
+{
+  "guidelines-dir": "guidelines",
+  "docs-dir": "docs",
+  "tests-dir": "tests",
+  "src-dir": [
+    "src",
+    ".github/workflows"
+  ],
+  "static-check": {
+    "C": [
+      {
+        "module": "Command",
+        "cmd": "cppcheck",
+        "params": [
+          "--error-exitcode=1",
+          "--enable=warning,style,performance,portability",
+          "--std=c11"
+        ]
+      },
+      {
+        "module": "Command",
+        "cmd": "clang-format",
+        "params": [
+          "--dry-run",
+          "--Werror"
+        ]
+      }
+    ],
+    "C++": [
+      {
+        "module": "Command",
+        "cmd": "cppcheck",
+        "params": [
+          "--error-exitcode=1",
+          "--enable=warning,style,performance,portability",
+          "--std=c++20"
+        ]
+      },
+      {
+        "module": "Command",
+        "cmd": "clang-format",
+        "params": [
+          "--dry-run",
+          "--Werror"
+        ]
+      }
+    ],
+    "Python": [
+      {
+        "module": "Pylance"
+      },
+      {
+        "module": "Ruff"
+      }
+    ]
+  },
+  "enable-models": false,
+  "enable-tools": false,
+  "enable-claude": true,
+  "enable-codex": true,
+  "enable-gemini": true,
+  "enable-github": true,
+  "enable-kiro": true,
+  "enable-opencode": true,
+  "enable-prompts": false,
+  "enable-agents": false,
+  "disable-skills": false,
+  "prompts-use-agents": false,
+  "legacy": false,
+  "preserve-models": false
+}

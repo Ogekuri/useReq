@@ -1,0 +1,23 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    ".scripts/bash/": true,
+    ".scripts/powershell/": true,
+    ".req/.scripts/bash/": true
+  },
+  "chat.promptFilesRecommendations": {
+    "req.analyze": true,
+    "req.change": true,
+    "req.check": true,
+    "req.cover": true,
+    "req.create": true,
+    "req.fix": true,
+    "req.implement": true,
+    "req.new": true,
+    "req.recreate": true,
+    "req.refactor": true,
+    "req.references": true,
+    "req.renumber": true,
+    "req.workflow": true,
+    "req.write": true
+  }
+}

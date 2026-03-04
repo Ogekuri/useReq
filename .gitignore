@@ -15,6 +15,8 @@
 !/.github/workflows/
 !/.github/workflows/**/*.yaml
 !/.gitignore
+!/.req/
+!/.req/**/*
 !README.md
 !CHANGELOG.md
 !WORKFLOW.md
