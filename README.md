@@ -534,6 +534,7 @@ This section describes the Git behavior when executing the commands provided by 
   - Execute commands from a working branch (not in detached HEAD).
   - Preferably, the working tree should be clean: avoid unintended changes in the repository before starting the scripts.
   - Save all files and verify that you are in the correct project directory.
+  - **IMPORTANT:** `useReq/req` uses the `.req/` directory (including `.req/config.json`). Keep `.req/` tracked in the Git repository (do not ignore it), so `git worktree` checkouts include the same configuration; otherwise commands that depend on project configuration can fail.
 
 - What the scripts do to the repository:
   - The scripts may modify, create, or remove files in the working tree (files on disk).
