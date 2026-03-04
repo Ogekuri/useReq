@@ -86,6 +86,26 @@ Click to zoom flowchart image.
 - Install the `uv` tool from: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 
 
+### Project's Tree
+
+Here the typical project's tree, except for `.req` directory you can configurare the other directories according your project layout:
+
+```text
+.
+├── .req/
+│   └── useReq/req files
+├── docs/
+│   ├── REQUIREMENTS.md
+│   ├── REFERENCES.md
+│   └── WORKFLOW.md
+├── guidelines/
+│   └── User's guidelines
+├── src/
+│   └── Source code
+└── tests/
+    └── Unit tests suite
+```
+
 ### Run useReq/req with uvx
 ```bash
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
