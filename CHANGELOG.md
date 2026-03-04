@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.0](https://github.com/Ogekuri/useReq/compare/v0.8.0..v0.9.0) - 2026-03-04
+### ⛰️  Features
+- Update prompts.
+
+### 🐛  Bug Fixes
+- Fix workflow line numbers bug.
+- Include .req directory to support worktree.
+
+### 🚜  Changes
+- enforce doxygen coverage for nested helpers [useReq] *(source-analyzer)*
+  - update SRS-024 to require Doxygen coverage for declarations under src/\n- add missing Doxygen docstrings for nested helper functions\n- regenerate docs/REFERENCES.md for updated symbol metadata\n- verify with req --here --static-check and full tests.sh suite
+
+### 📚  Documentation
+- document .req tracking for git worktree [useReq] *(readme)*
+  - add an IMPORTANT note in Git usage section\n- require tracking .req/ so worktrees inherit config
+- regenerate runtime workflow model [useReq] *(core)*
+  - rewrite docs/WORKFLOW.md with parser-stable schema\n- refresh execution unit metadata and lifecycle fields\n- update internal call-trace tree from src evidence\n- record external boundaries and communication-edge evidence
+
 ## [0.8.0](https://github.com/Ogekuri/useReq/compare/v0.7.0..v0.8.0) - 2026-03-03
 ### ⛰️  Features
 - Update readme prompt.
@@ -510,6 +528,7 @@
 - \[0.6.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.6.0
 - \[0.7.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.7.0
 - \[0.8.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.8.0
+- \[0.9.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.9.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -519,3 +538,4 @@
 [0.6.0]: https://github.com/Ogekuri/useReq/compare/v0.5.0..v0.6.0
 [0.7.0]: https://github.com/Ogekuri/useReq/compare/v0.6.0..v0.7.0
 [0.8.0]: https://github.com/Ogekuri/useReq/compare/v0.7.0..v0.8.0
+[0.9.0]: https://github.com/Ogekuri/useReq/compare/v0.8.0..v0.9.0
