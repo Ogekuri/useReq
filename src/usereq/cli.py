@@ -303,7 +303,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tokens",
         action="store_true",
-        help="Count tokens/chars for files directly under configured docs-dir (here-only project scan; --here implied; --base forbidden).",
+        help="Count tokens/chars for REQUIREMENTS.md, WORKFLOW.md, and REFERENCES.md in configured docs-dir (here-only project scan; --here implied; --base forbidden).",
     )
     parser.add_argument(
         "--test-static-check",
@@ -2997,9 +2997,13 @@ def run_find(args: Namespace) -> None:
 
 
 def run_tokens(args: Namespace) -> None:
-    """! @brief Execute --tokens: count tokens for files directly in --docs-dir.
+    """! @brief Execute --tokens on the canonical documentation files in --docs-dir.
     @param args Parsed CLI arguments namespace.
-    @details Uses docs-dir from .req/config.json in here-only mode and delegates reporting to run_files_tokens.
+    @return None.
+    @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
+    @details Uses docs-dir from .req/config.json in here-only mode, ignores explicit --docs-dir,
+      selects only REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md as direct regular files in fixed order,
+      and delegates summary rendering to run_files_tokens.
     """
     project_base = _resolve_project_base(args)
     config = load_config(project_base)
@@ -3007,9 +3011,14 @@ def run_tokens(args: Namespace) -> None:
     ensure_doc_directory(str(docs_dir_value), project_base)
     normalized_docs_dir = make_relative_if_contains_project(str(docs_dir_value), project_base)
     docs_dir = project_base / normalized_docs_dir
-    files = sorted(str(path) for path in docs_dir.iterdir() if path.is_file())
+    canonical_names = ("REQUIREMENTS.md", "WORKFLOW.md", "REFERENCES.md")
+    files = [
+        str(candidate_path)
+        for candidate_path in (docs_dir / name for name in canonical_names)
+        if candidate_path.is_file()
+    ]
     if not files:
-        raise ReqError("Error: no files found in --docs-dir.", 1)
+        raise ReqError("Error: no canonical docs files found in --docs-dir.", 1)
     run_files_tokens(files)
 
 

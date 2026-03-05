@@ -1324,7 +1324,7 @@ class TestTokensCommand:
         """CMD-016: Without --here, --tokens must still use docs-dir from config."""
         docs = repo_temp_dir / "cfg_docs"
         docs.mkdir()
-        (docs / "only.md").write_text("# only\n", encoding="utf-8")
+        (docs / "REQUIREMENTS.md").write_text("# req\n", encoding="utf-8")
         req_dir = repo_temp_dir / ".req"
         req_dir.mkdir()
         config = {"guidelines-dir": "docs/", "docs-dir": "cfg_docs", "tests-dir": "tests/", "src-dir": ["src"]}
@@ -1333,14 +1333,17 @@ class TestTokensCommand:
         rc = main(["--tokens"])
         assert rc == 0
         captured = capsys.readouterr()
-        assert "only.md" in captured.out
+        assert "REQUIREMENTS.md" in captured.out
 
     def test_tokens_counts_docs_files(self, capsys, repo_temp_dir, monkeypatch):
-        """CMD-016: --tokens must use docs-dir from config and ignore explicit --docs-dir."""
+        """CMD-016: --tokens must process only canonical docs files from configured docs-dir."""
         docs = repo_temp_dir / "cfg_docs"
         docs.mkdir()
-        (docs / "a.md").write_text("# A\n", encoding="utf-8")
-        (docs / "b.txt").write_text("hello\nworld\n", encoding="utf-8")
+        (docs / "REQUIREMENTS.md").write_text("# A\n", encoding="utf-8")
+        (docs / "WORKFLOW.md").write_text("wf\n", encoding="utf-8")
+        (docs / "REFERENCES.md").write_text("ref\n", encoding="utf-8")
+        (docs / "a.md").write_text("ignore me\n", encoding="utf-8")
+        (docs / "b.txt").write_text("ignore me too\n", encoding="utf-8")
         nested = docs / "nested"
         nested.mkdir()
         (nested / "skip.md").write_text("# ignored\n", encoding="utf-8")
@@ -1353,8 +1356,11 @@ class TestTokensCommand:
         assert rc == 0
         captured = capsys.readouterr()
         assert "Pack Summary" in captured.out
-        assert "a.md" in captured.out
-        assert "b.txt" in captured.out
+        assert "REQUIREMENTS.md" in captured.out
+        assert "WORKFLOW.md" in captured.out
+        assert "REFERENCES.md" in captured.out
+        assert "a.md" not in captured.out
+        assert "b.txt" not in captured.out
         assert "skip.md" not in captured.out
 
 

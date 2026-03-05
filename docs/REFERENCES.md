@@ -1,6 +1,11 @@
 # Files Structure
 ```
 .
+├── scripts
+│   ├── pyright.sh
+│   ├── req.sh
+│   ├── ruff.sh
+│   └── test-install.sh
 └── src
     └── usereq
         ├── __init__.py
@@ -15,6 +20,120 @@
         ├── static_check.py
         └── token_counter.py
 ```
+
+# pyright.sh | Shell | 50L | 6 symbols | 2 imports | 18 comments
+> Path: `scripts/pyright.sh`
+
+## Imports
+```
+source ${VENVDIR}/bin/activate
+source ${VENVDIR}/bin/activate
+```
+
+## Definitions
+
+- var `FULL_PATH=$(readlink -f "$0")` (L9)
+- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
+- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
+- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
+- var `VENVDIR="${BASE_DIR}/.venv"` (L27)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L49)
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`FULL_PATH`|var||9||
+|`SCRIPT_PATH`|var||12||
+|`SCRIPT_NAME`|var||15||
+|`BASE_DIR`|var||18||
+|`VENVDIR`|var||27||
+|`PYTHONPATH`|var||49||
+
+
+---
+
+# req.sh | Shell | 50L | 6 symbols | 2 imports | 18 comments
+> Path: `scripts/req.sh`
+
+## Imports
+```
+source ${VENVDIR}/bin/activate
+source ${VENVDIR}/bin/activate
+```
+
+## Definitions
+
+- var `FULL_PATH=$(readlink -f "$0")` (L9)
+- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
+- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
+- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
+- var `VENVDIR="${BASE_DIR}/.venv"` (L27)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L49)
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`FULL_PATH`|var||9||
+|`SCRIPT_PATH`|var||12||
+|`SCRIPT_NAME`|var||15||
+|`BASE_DIR`|var||18||
+|`VENVDIR`|var||27||
+|`PYTHONPATH`|var||49||
+
+
+---
+
+# ruff.sh | Shell | 50L | 6 symbols | 2 imports | 18 comments
+> Path: `scripts/ruff.sh`
+
+## Imports
+```
+source ${VENVDIR}/bin/activate
+source ${VENVDIR}/bin/activate
+```
+
+## Definitions
+
+- var `FULL_PATH=$(readlink -f "$0")` (L9)
+- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
+- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
+- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
+- var `VENVDIR="${BASE_DIR}/.venv"` (L27)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L49)
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`FULL_PATH`|var||9||
+|`SCRIPT_PATH`|var||12||
+|`SCRIPT_NAME`|var||15||
+|`BASE_DIR`|var||18||
+|`VENVDIR`|var||27||
+|`PYTHONPATH`|var||49||
+
+
+---
+
+# test-install.sh | Shell | 97L | 6 symbols | 0 imports | 17 comments
+> Path: `scripts/test-install.sh`
+
+## Definitions
+
+- var `FULL_PATH=$(readlink -f "$0")` (L9)
+- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
+- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
+- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
+- var `FOLDER_PATH="${1:-}"` (L26)
+- var `FOLDER_PATH="$BASE_DIR/temp/test-install"` (L29)
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`FULL_PATH`|var||9||
+|`SCRIPT_PATH`|var||12||
+|`SCRIPT_NAME`|var||15||
+|`BASE_DIR`|var||18||
+|`FOLDER_PATH`|var||26||
+|`FOLDER_PATH`|var||29||
+
+
+---
 
 # __init__.py | Python | 26L | 0 symbols | 8 imports | 3 comments
 > Path: `src/usereq/__init__.py`
@@ -54,7 +173,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3277L | 103 symbols | 28 imports | 168 comments
+# cli.py | Python | 3286L | 103 symbols | 28 imports | 168 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -504,12 +623,14 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @param args Parsed CLI arguments namespace.
 - @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L2999-3015)
-- @brief Execute --tokens: count tokens for files directly in --docs-dir.
-- @details Uses docs-dir from .req/config.json in here-only mode and delegates reporting to run_files_tokens.
+### fn `def run_tokens(args: Namespace) -> None` (L2999-3024)
+- @brief Execute --tokens on the canonical documentation files in --docs-dir.
+- @details Uses docs-dir from .req/config.json in here-only mode, ignores explicit --docs-dir, selects only REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md as direct regular files in fixed order, and delegates summary rendering to run_files_tokens.
 - @param args Parsed CLI arguments namespace.
+- @return None.
+- @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3016-3082)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3025-3091)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
 - @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
@@ -517,7 +638,7 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3083-3128)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3092-3137)
 - @brief Execute `--static-check`: run static analysis on all project source files.
 - @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
@@ -525,23 +646,23 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3129-3147)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3138-3156)
 - @brief Resolve project base path for project-level commands.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3148-3194)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3157-3203)
 - @brief Resolve project base and src-dirs for project source commands.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L3195-3277)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L3204-3286)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L3214)
+- var `VERBOSE = getattr(args, "verbose", False)` (L3223)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
-- var `DEBUG = getattr(args, "debug", False)` (L3215)
+- var `DEBUG = getattr(args, "debug", False)` (L3224)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -640,14 +761,14 @@ sorted set of artifact category labels installed for a CLI during the current in
 |`run_references`|fn|pub|2939-2952|def run_references(args: Namespace) -> None|
 |`run_compress_cmd`|fn|pub|2953-2971|def run_compress_cmd(args: Namespace) -> None|
 |`run_find`|fn|pub|2972-2998|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2999-3015|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|3016-3082|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|3083-3128|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|3129-3147|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|3148-3194|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|3195-3277|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|3214||
-|`DEBUG`|var|pub|3215||
+|`run_tokens`|fn|pub|2999-3024|def run_tokens(args: Namespace) -> None|
+|`run_files_static_check_cmd`|fn|pub|3025-3091|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|3092-3137|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|3138-3156|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|3157-3203|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|3204-3286|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|3223||
+|`DEBUG`|var|pub|3224||
 
 
 ---

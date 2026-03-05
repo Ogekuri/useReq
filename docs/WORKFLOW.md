@@ -58,7 +58,7 @@
         - `_resolve_project_src_dirs(...)`: resolve project base and source dirs [`src/usereq/cli.py`]
         - `_collect_source_files(...)`: select files via `git ls-files` + extension filtering [`src/usereq/cli.py`]
         - `find_constructs_in_files(...)`: perform tag/name filtered extraction [`src/usereq/find_constructs.py`]
-      - `run_tokens(...)`: count tokens on docs-dir direct files [`src/usereq/cli.py`]
+      - `run_tokens(...)`: count tokens on canonical docs files (REQUIREMENTS/WORKFLOW/REFERENCES) in docs-dir [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_config(...)`: load docs-dir from `.req/config.json` [`src/usereq/cli.py`]
         - `ensure_doc_directory(...)`: validate docs directory existence [`src/usereq/cli.py`]
