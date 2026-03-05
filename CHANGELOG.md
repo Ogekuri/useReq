@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.12.0](https://github.com/Ogekuri/useReq/compare/v0.11.0..v0.12.0) - 2026-03-05
+### 🐛  Bug Fixes
+- add English REQUIREMENS alias [useReq] *(docs)*
+  - add docs/REQUIREMENS.md in English\n- point to docs/REQUIREMENTS.md as canonical SRS
+
+### 🚜  Changes
+- translate REQUIREMENTS.md to English [useReq] *(requirements)*
+  - Translate previously Italian requirement statements to English.
+  - Preserve requirement IDs and existing requirement structure.
+  - Normalize RFC 2119 keyword casing in edited requirements.
+- remove centralized model version metadata [useReq] *(models-config)*
+  - update SRS-084 to remove settings.version requirement
+  - remove settings.version from models.json and models-legacy.json
+  - remove .g.conf version checks for centralized model files
+
+### 📚  Documentation
+- Update README.md document.
+- align SRS IDs with true-state wrappers [useReq] *(requirements)*
+  - reassign duplicate SRS-264 collision to SRS-265\n- align script-path requirements to scripts/ wrappers\n- document missing root doxygen.sh as current limitation\n- add wrapper requirements for scripts/ruff.sh and scripts/pyright.sh
+
 ## [0.11.0](https://github.com/Ogekuri/useReq/compare/v0.10.0..v0.11.0) - 2026-03-05
 ### ⛰️  Features
 - Add package.json file.
@@ -571,6 +591,7 @@
 - \[0.9.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.10.0
 - \[0.11.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.11.0
+- \[0.12.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.12.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -583,3 +604,4 @@
 [0.9.0]: https://github.com/Ogekuri/useReq/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/useReq/compare/v0.9.0..v0.10.0
 [0.11.0]: https://github.com/Ogekuri/useReq/compare/v0.10.0..v0.11.0
+[0.12.0]: https://github.com/Ogekuri/useReq/compare/v0.11.0..v0.12.0
