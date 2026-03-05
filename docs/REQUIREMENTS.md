@@ -1,8 +1,8 @@
 ---
 title: "useReq Requirements"
 description: "Software Requirements Specification"
-date: "2026-02-19"
-version: 1.02
+date: "2026-03-05"
+version: 1.03
 author: "Ogekuri"
 scope:
   paths:
@@ -108,7 +108,7 @@ No explicit performance optimizations identified.
 - **SRS-022**: The implementation MUST preserve this behavior exactly: La funzione `generate_req_file_list` non deve essere utilizzata dal flusso di generazione prompt e il token `%%REQ_DIR%%` non deve essere più supportato.
 - **SRS-023**: The implementation MUST preserve this behavior exactly: La funzione `generate_dir_list` deve essere rinominata in `generate_guidelines_file_list`. Il comportamento deve essere allineato a `generate_req_file_list`: scansionare la directory specificata (quella passata con `--guidelines-dir`) e restituire la lista dei file presenti in quella directory (senza ricerca ricorsiva di sottocartelle), ignorando i file che iniziano con punto (`.`). Se la directory è vuota o non contiene file non nascosti, deve restituire il nome della directory stessa come fallback (preservando il comportamento originale solo per il caso di directory vuota).
 - **SRS-024**: All declarations under `src/` MUST include Doxygen-style documentation blocks for modules, classes, structs, objects, functions, and methods.
-- **SRS-025**: The implementation MUST preserve this behavior exactly: The documentation format must strictly follow the guidelines provided in `guidelines/Document_Source_Code_in_Doxygen_Style_for_LLM-Agent.md`, focusing on semantic density for LLM consumption.
+- **SRS-025**: The documentation format MUST follow `src/usereq/resources/docs/Document_Source_Code_in_Doxygen_Style.md` with high semantic density for LLM-oriented source documentation.
 - **SRS-026**: The implementation MUST preserve this behavior exactly: Documentation blocks must use standard language-specific docstring syntax (e.g., triple double quotes `"""` for Python) and include standard Doxygen tags (e.g., `@param`, `@return`, `@brief`) as specified in the guidelines.
 
 ### 3.2 CLI Interface and Lifecycle
@@ -139,13 +139,15 @@ No explicit performance optimizations identified.
 - **SRS-051**: The online release-check path MUST be fail-open: network errors, HTTP errors, timeout errors, JSON parse errors, and invalid payload values are swallowed and MUST NOT abort command execution.
 - **SRS-052**: The implementation MUST preserve this behavior exactly: If the release-check call succeeds and the remote version is greater than `__version__`, the command MUST print an English message showing current version, latest version, and upgrade command.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
-- **SRS-054**: The implementation MUST preserve this behavior exactly: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
+- **SRS-054**: The repository MUST include `scripts/req.sh` as the development launcher wrapper for the CLI.
 - **SRS-055**: The repository MUST keep `requirements.txt` as the canonical runtime/build dependency list containing all and only packages required to execute or build the application.
-- **SRS-056**: Script `req.sh` MUST execute CLI commands using `.venv` Python and MUST forward all user-provided CLI arguments unchanged.
+- **SRS-056**: `scripts/req.sh` MUST execute the CLI via `.venv/bin/python3` and MUST forward all user-provided CLI arguments unchanged.
 - **SRS-264**: Dependency declarations in `pyproject.toml` or `setup.py` MUST match `requirements.txt` exactly and MUST include all and only packages required to execute or build the application.
-- **SRS-057**: The implementation MUST preserve this behavior exactly: Il progetto deve includere uno script `doxygen.sh` nella root repository per generare documentazione Doxygen dai sorgenti presenti in `src/`.
-- **SRS-058**: The implementation MUST preserve this behavior exactly: Lo script `doxygen.sh` deve risolvere la root del repository dal proprio percorso, usare l'eseguibile `doxygen` installato nel sistema operativo, e generare output nei path `doxygen/html`, `doxygen/pdf`, `doxygen/markdown`.
-- **SRS-059**: The implementation MUST preserve this behavior exactly: La configurazione Doxygen usata da `doxygen.sh` deve applicare opzioni best-practice per documentazione completa del codice in `src/`, includendo estrazione membri pubblici/privati/statici e ricorsione input; per il formato Markdown lo script deve usare `GENERATE_MARKDOWN` quando supportato dalla versione Doxygen installata, altrimenti deve produrre `doxygen/markdown` tramite trasformazione deterministica dei metadati XML generati da Doxygen.
+- **SRS-057**: The current implementation MUST be treated as not providing a root-level `doxygen.sh` script for automated Doxygen generation.
+- **SRS-058**: Any workflow that invokes `doxygen.sh` from repository root MUST fail fast because no such script path exists in the repository.
+- **SRS-059**: Doxygen output generation to `doxygen/html`, `doxygen/pdf`, and `doxygen/markdown` MUST be treated as unsupported by committed automation scripts.
+- **SRS-266**: The repository MUST include `scripts/ruff.sh`, which bootstraps `.venv` from `requirements.txt` when missing and then execs `.venv/bin/ruff` with passthrough arguments.
+- **SRS-267**: The repository MUST include `scripts/pyright.sh`, which bootstraps `.venv` from `requirements.txt` when missing and then execs `.venv/bin/pyright` with passthrough arguments.
 - **SRS-060**: The implementation MUST preserve this behavior exactly: Il comando deve salvare i valori di `--guidelines-dir`, `--docs-dir`, `--tests-dir`, e l'elenco di `--src-dir` in `.req/config.json` come percorsi relativi.
 - **SRS-061**: The implementation MUST preserve this behavior exactly: Il file `.req/config.json` deve includere campi `guidelines-dir`, `docs-dir`, `tests-dir`, e `src-dir` preservando slash finali; `src-dir` deve essere un array con una voce per ogni directory passata.
 - **SRS-062**: The implementation MUST preserve this behavior exactly: Il comando deve supportare l'opzione `--update` per rieseguire l'inizializzazione usando parametri salvati.
@@ -209,7 +211,7 @@ No explicit performance optimizations identified.
 - **SRS-118**: For each Markdown prompt, the CLI MUST generate `.kiro/skills/req-<prompt_name>/SKILL.md` with YAML front matter (`name`, `description` from SRS-113, optional `model`/`tools`) and prompt body with token substitutions, using the `kiro` configuration from `models.json`, when `--enable-kiro` is active and `--disable-skills` is absent.
 - **SRS-238**: For skill artifact generation, the CLI MUST process Markdown files only from `src/usereq/resources/prompts`, while prompt and agent artifacts MUST be generated only from `src/usereq/resources/prompts`.
 - **SRS-263**: The CLI MUST treat files under `src/usereq/resources/prompts` as read-only package inputs and MUST NOT create, modify, overwrite, rename, or delete files in that directory.
-- **SRS-264**: The CLI MUST treat files under `src/usereq/resources/docs` as read-only package templates and MUST NOT create, modify, overwrite, rename, or delete files in that directory.
+- **SRS-265**: The CLI MUST treat files under `src/usereq/resources/docs` as read-only package templates and MUST NOT create, modify, overwrite, rename, or delete files in that directory.
 
 ### 3.4 Removal and Cleanup
 - **SRS-119**: The implementation MUST preserve this behavior exactly: Il comando deve supportare l'opzione `--remove` per rimuovere risorse create.
