@@ -9,6 +9,7 @@
 ##########################################
 # Include specific files and directories #
 ##########################################
+!.place-holder
 !/.github/
 !/.github/workflows/
 !/.github/workflows/**/*.yml
@@ -27,6 +28,8 @@
 !pyproject.toml
 !requirements.txt
 !.g.conf
+!package-lock.json
+!package.json
 !src/
 !src/**/*
 !docs/
