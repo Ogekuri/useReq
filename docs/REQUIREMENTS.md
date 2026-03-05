@@ -228,6 +228,7 @@ No explicit performance optimizations identified.
 - **SRS-128**: The implementation MUST preserve this behavior exactly: The workflow MUST build Python package (sdist and wheel) in `dist/`.
 - **SRS-129**: The implementation MUST preserve this behavior exactly: The workflow MUST create GitHub Release for the tag and load assets from `dist/`.
 - **SRS-130**: The implementation MUST preserve this behavior exactly: The workflow MUST generate artifact certifications for files in `dist/`.
+- **SRS-268**: The `.github/workflows/release-uvx.yml` workflow MUST define `workflow_dispatch` under `on` in addition to tag-push triggers so releases MAY be launched manually without altering automatic tag-trigger behavior.
 
 ### 3.6 Source Analysis Core
 - **SRS-131**: The implementation MUST preserve this behavior exactly: The `usereq.source_analyzer` module MUST support 20 programming languages: C (`.c`), C++ (`.cpp`), C# (`.cs`), Elixir (`.ex`), Go (`.go`), Haskell (`.hs`), Java (`.java`), JavaScript (`.js`), Kotlin (`.kt`), Lua (`.lua`), Perl (`.pl`), PHP (`.php`), Python (`.py`), Ruby (`.rb`), Rust (`.rs`), Scala (`.scala`), Shell (`.sh`), Swift (`.swift`), TypeScript (`.ts`), and Zig (`.zig`).

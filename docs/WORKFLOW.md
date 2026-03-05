@@ -27,6 +27,13 @@
   - `entrypoints`: `scripts/pyright.sh`
   - `defining_files`: `scripts/pyright.sh`
   - `threads`: `no explicit threads detected`
+- `PROC:gha-release-uvx`
+  - `type`: `Process`
+  - `parent_process`: `-`
+  - `role`: `GitHub Actions release workflow orchestration for tag-based and manual release execution`
+  - `entrypoints`: `.github/workflows/release-uvx.yml`
+  - `defining_files`: `.github/workflows/release-uvx.yml`
+  - `threads`: `no explicit threads detected`
 
 ## Execution Units
 ### `PROC:main`
@@ -130,6 +137,17 @@
 - **Internal Call-Trace Tree**
   - `pyright.sh(...)`: shell bootstrap for virtualenv initialization and Pyright dispatch [`scripts/pyright.sh`]
     - external boundaries: `virtualenv`, `pip install -r`, `exec .../pyright`
+
+### `PROC:gha-release-uvx`
+- **Type**: Process
+- **Parent Process**: `-`
+- **Entrypoint(s)**: `.github/workflows/release-uvx.yml` [`.github/workflows/release-uvx.yml`]
+- **Lifecycle/Trigger**: starts on GitHub Actions events (`push` on version tags and `workflow_dispatch`), evaluates release eligibility, and executes release build/publish jobs.
+- **Internal Call-Trace Tree**
+  - `release-uvx.yml(...)`: workflow coordinator for release automation [`.github/workflows/release-uvx.yml`]
+    - `check-branch(...)`: verify tagged commit is reachable from `origin/master` before release [`.github/workflows/release-uvx.yml`]
+    - `build-release(...)`: run Python build, provenance attestation, and GitHub release publication when branch check passes [`.github/workflows/release-uvx.yml`]
+      - external boundaries: GitHub-hosted runners, checkout/setup actions, uv/pip/build tooling, GitHub release APIs
 
 ## Communication Edges
 - `PROC:req-sh -> PROC:main`
