@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.11.0](https://github.com/Ogekuri/useReq/compare/v0.10.0..v0.11.0) - 2026-03-05
+### ⛰️  Features
+- Add package.json file.
+- Update .req/models.json file.
+
+### 🐛  Bug Fixes
+- complete Doxygen tags for source declarations [useReq] *(src-docs)*
+  - add missing @details/@param/@return tags across src/usereq modules
+  - regenerate docs/REFERENCES.md with updated declaration metadata
+  - stabilize references tests by matching log() block by signature
+- Fix version numbers.
+
+### 🚜  Changes
+- remove mandatory .venv refresh on requirements changes [useReq] *(scripts)*
+  - replace SRS-056 with execution-only req.sh requirement
+  - remove hash-based .venv recreation logic from req/ruff/pyright scripts
+  - align dependency manifest test with updated SRS-056 behavior
+  - update WORKFLOW.md runtime descriptions and regenerate REFERENCES.md
+- align dependency manifests and venv refresh [useReq] *(deps)*
+  - update SRS-055/SRS-056 and add SRS-264 for dependency governance
+  - align requirements.txt with pyproject runtime/build dependencies
+  - refresh req.sh, ruff.sh, and pyright.sh on requirements hash changes
+  - add tests for manifest alignment and runner sync behavior
+  - update WORKFLOW.md and regenerate REFERENCES.md
+- scope --tokens to canonical docs files [useReq] *(cli)*
+  - Update SRS-184 to constrain --tokens file selection.
+  - Run --tokens only on REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md.
+  - Adjust CLI help and run_tokens Doxygen contract.
+  - Refresh CMD-016 token tests and regenerate docs references/workflow.
+
+### 📚  Documentation
+- Update src/usereq/resources/docs/Document_Source_Code_in_Doxygen_Style.md file.
+
 ## [0.10.0](https://github.com/Ogekuri/useReq/compare/v0.9.0..v0.10.0) - 2026-03-04
 ### ⛰️  Features
 - Update .req/models.json file.
@@ -537,6 +570,7 @@
 - \[0.8.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.8.0
 - \[0.9.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.9.0
 - \[0.10.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.10.0
+- \[0.11.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.11.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -548,3 +582,4 @@
 [0.8.0]: https://github.com/Ogekuri/useReq/compare/v0.7.0..v0.8.0
 [0.9.0]: https://github.com/Ogekuri/useReq/compare/v0.8.0..v0.9.0
 [0.10.0]: https://github.com/Ogekuri/useReq/compare/v0.9.0..v0.10.0
+[0.11.0]: https://github.com/Ogekuri/useReq/compare/v0.10.0..v0.11.0
