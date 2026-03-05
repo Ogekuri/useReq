@@ -1,5 +1,5 @@
 """@brief Validate repository dependency manifest invariants.
-@details Enforces alignment between requirements.txt and packaging metadata plus shell-runner venv refresh logic to guarantee deterministic runtime/build dependency activation.
+@details Enforces alignment between requirements.txt and packaging metadata plus req.sh invocation semantics for .venv execution behavior.
 @satisfies SRS-055
 @satisfies SRS-056
 @satisfies SRS-264
@@ -15,11 +15,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
-SCRIPT_PATHS = (
-    REPO_ROOT / "scripts" / "req.sh",
-    REPO_ROOT / "scripts" / "ruff.sh",
-    REPO_ROOT / "scripts" / "pyright.sh",
-)
+REQ_SCRIPT_PATH = REPO_ROOT / "scripts" / "req.sh"
 RUNTIME_BUILD_PACKAGES = {"build", "setuptools", "wheel", "tiktoken", "pyyaml"}
 
 
@@ -76,15 +72,15 @@ def test_pyproject_dependencies_are_aligned_with_requirements() -> None:
     assert pyproject_packages == _read_requirements_packages()
 
 
-def test_runner_scripts_refresh_venv_on_requirements_change() -> None:
-    """@brief Validate shell runners implement requirements-hash-based venv refresh.
-    @details Confirms each runner computes requirements hash, stores it, and recreates .venv when the hash changes, guaranteeing dependency set synchronization.
+def test_req_sh_executes_cli_with_venv_python() -> None:
+    """@brief Validate req.sh executes CLI through .venv Python without hash-refresh logic.
+    @details Confirms req.sh forwards CLI arguments unchanged to the .venv Python entrypoint and does not contain requirements-hash synchronization behavior.
     @return {None} No return value.
     """
 
-    for script_path in SCRIPT_PATHS:
-        content = script_path.read_text(encoding="utf-8")
-        assert "REQ_HASH_FILE=" in content
-        assert "sha256sum" in content
-        assert "rm -rf \"${VENVDIR}/\"" in content
-        assert "pip\" install -r \"${REQUIREMENTS_FILE}\"" in content
+    content = REQ_SCRIPT_PATH.read_text(encoding="utf-8")
+    assert "exec \"${VENVDIR}/bin/python3\"" in content
+    assert 'raise SystemExit(main())' in content
+    assert "\"$@\"" in content
+    assert "REQ_HASH_FILE=" not in content
+    assert "sha256sum" not in content

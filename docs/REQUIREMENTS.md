@@ -141,7 +141,7 @@ No explicit performance optimizations identified.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
 - **SRS-054**: The implementation MUST preserve this behavior exactly: Il progetto deve includere uno script `req.sh` nella root repository per avviare la versione in sviluppo.
 - **SRS-055**: The repository MUST keep `requirements.txt` as the canonical runtime/build dependency list containing all and only packages required to execute or build the application.
-- **SRS-056**: Script `req.sh` MUST recreate or update `.venv` whenever the package set in `requirements.txt` changes, then install that exact set before invoking CLI commands with `.venv` Python.
+- **SRS-056**: Script `req.sh` MUST execute CLI commands using `.venv` Python and MUST forward all user-provided CLI arguments unchanged.
 - **SRS-264**: Dependency declarations in `pyproject.toml` or `setup.py` MUST match `requirements.txt` exactly and MUST include all and only packages required to execute or build the application.
 - **SRS-057**: The implementation MUST preserve this behavior exactly: Il progetto deve includere uno script `doxygen.sh` nella root repository per generare documentazione Doxygen dai sorgenti presenti in `src/`.
 - **SRS-058**: The implementation MUST preserve this behavior exactly: Lo script `doxygen.sh` deve risolvere la root del repository dal proprio percorso, usare l'eseguibile `doxygen` installato nel sistema operativo, e generare output nei path `doxygen/html`, `doxygen/pdf`, `doxygen/markdown`.

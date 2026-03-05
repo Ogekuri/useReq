@@ -21,7 +21,7 @@
         └── token_counter.py
 ```
 
-# pyright.sh | Shell | 63L | 11 symbols | 2 imports | 14 comments
+# pyright.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
 > Path: `scripts/pyright.sh`
 
 ## Imports
@@ -38,11 +38,7 @@ source "${VENVDIR}/bin/activate"
 - var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
 - var `VENVDIR="${BASE_DIR}/.venv"` (L27)
 - var `REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"` (L28)
-- var `REQ_HASH_FILE="${VENVDIR}/.requirements.sha256"` (L29)
-- var `REQ_HASH=$(sha256sum "${REQUIREMENTS_FILE}" | awk '{print $1}')` (L36)
-- var `CACHED_REQ_HASH=""` (L37)
-- var `CACHED_REQ_HASH=$(cat "${REQ_HASH_FILE}")` (L39)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L62)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L51)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -52,16 +48,12 @@ source "${VENVDIR}/bin/activate"
 |`BASE_DIR`|var||18||
 |`VENVDIR`|var||27||
 |`REQUIREMENTS_FILE`|var||28||
-|`REQ_HASH_FILE`|var||29||
-|`REQ_HASH`|var||36||
-|`CACHED_REQ_HASH`|var||37||
-|`CACHED_REQ_HASH`|var||39||
-|`PYTHONPATH`|var||62||
+|`PYTHONPATH`|var||51||
 
 
 ---
 
-# req.sh | Shell | 63L | 11 symbols | 2 imports | 14 comments
+# req.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
 > Path: `scripts/req.sh`
 
 ## Imports
@@ -78,11 +70,7 @@ source "${VENVDIR}/bin/activate"
 - var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
 - var `VENVDIR="${BASE_DIR}/.venv"` (L27)
 - var `REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"` (L28)
-- var `REQ_HASH_FILE="${VENVDIR}/.requirements.sha256"` (L29)
-- var `REQ_HASH=$(sha256sum "${REQUIREMENTS_FILE}" | awk '{print $1}')` (L36)
-- var `CACHED_REQ_HASH=""` (L37)
-- var `CACHED_REQ_HASH=$(cat "${REQ_HASH_FILE}")` (L39)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L62)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L51)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -92,16 +80,12 @@ source "${VENVDIR}/bin/activate"
 |`BASE_DIR`|var||18||
 |`VENVDIR`|var||27||
 |`REQUIREMENTS_FILE`|var||28||
-|`REQ_HASH_FILE`|var||29||
-|`REQ_HASH`|var||36||
-|`CACHED_REQ_HASH`|var||37||
-|`CACHED_REQ_HASH`|var||39||
-|`PYTHONPATH`|var||62||
+|`PYTHONPATH`|var||51||
 
 
 ---
 
-# ruff.sh | Shell | 63L | 11 symbols | 2 imports | 14 comments
+# ruff.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
 > Path: `scripts/ruff.sh`
 
 ## Imports
@@ -118,11 +102,7 @@ source "${VENVDIR}/bin/activate"
 - var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
 - var `VENVDIR="${BASE_DIR}/.venv"` (L27)
 - var `REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"` (L28)
-- var `REQ_HASH_FILE="${VENVDIR}/.requirements.sha256"` (L29)
-- var `REQ_HASH=$(sha256sum "${REQUIREMENTS_FILE}" | awk '{print $1}')` (L36)
-- var `CACHED_REQ_HASH=""` (L37)
-- var `CACHED_REQ_HASH=$(cat "${REQ_HASH_FILE}")` (L39)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L62)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L51)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -132,11 +112,7 @@ source "${VENVDIR}/bin/activate"
 |`BASE_DIR`|var||18||
 |`VENVDIR`|var||27||
 |`REQUIREMENTS_FILE`|var||28||
-|`REQ_HASH_FILE`|var||29||
-|`REQ_HASH`|var||36||
-|`CACHED_REQ_HASH`|var||37||
-|`CACHED_REQ_HASH`|var||39||
-|`PYTHONPATH`|var||62||
+|`PYTHONPATH`|var||51||
 
 
 ---
