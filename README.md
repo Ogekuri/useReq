@@ -41,7 +41,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 - Creates a common interface for different vendor CLIs and Agents.
 - Creates **Software Requirements Specification** [*SRS*] file, optimized for LLM Agents, for new or existing projects.
 - Keeps source code documentation updated and optimized for LLM Agents reasoning.
-- Lightweight and simpel tool.
+- Optimized credits usage.
 - Use **git worktree** to parallelize tasks (only on clean git repositories)
 - Provide **source-code analysis tool**, that supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
 - Support **static-code analysis** with Pylance, Ruff or customizable Command-Line commands.
