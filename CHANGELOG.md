@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/Ogekuri/useReq/compare/v0.12.0..v0.13.0) - 2026-03-05
+### 🐛  Bug Fixes
+- ensure release-check for standalone/project commands [useReq] *(cli)*
+  - add reproducer tests for standalone update-check and version-only bypass
+  - invoke online release-check for standalone and project-scan flows
+  - refresh WORKFLOW.md and REFERENCES.md
+
 ## [0.12.0](https://github.com/Ogekuri/useReq/compare/v0.11.0..v0.12.0) - 2026-03-05
 ### 🐛  Bug Fixes
 - add English REQUIREMENS alias [useReq] *(docs)*
@@ -592,6 +599,7 @@
 - \[0.10.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.10.0
 - \[0.11.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.11.0
 - \[0.12.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.12.0
+- \[0.13.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.13.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -605,3 +613,4 @@
 [0.10.0]: https://github.com/Ogekuri/useReq/compare/v0.9.0..v0.10.0
 [0.11.0]: https://github.com/Ogekuri/useReq/compare/v0.10.0..v0.11.0
 [0.12.0]: https://github.com/Ogekuri/useReq/compare/v0.11.0..v0.12.0
+[0.13.0]: https://github.com/Ogekuri/useReq/compare/v0.12.0..v0.13.0
