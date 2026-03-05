@@ -14,12 +14,17 @@ SCRIPT_PATH=$(dirname "$FULL_PATH")
 # 3. Extract the filename
 SCRIPT_NAME=$(basename "$FULL_PATH")
 
+# 4. Extract the base directory
+BASE_DIR=$(dirname "$SCRIPT_PATH")
+
 # --- Output tests (can be removed) ---
 #echo "Full path:          $FULL_PATH"
 #echo "Directory:          $SCRIPT_PATH"
 #echo "Script name:        $SCRIPT_NAME"
+#echo "Base Directory:     $BASE_DIR"
 
-VENVDIR="${SCRIPT_PATH}/.venv"
+
+VENVDIR="${BASE_DIR}/.venv"
 #echo ${VENVDIR}
 
 # If ${VENVDIR} does not exist, create it
@@ -33,7 +38,7 @@ if ! [ -d "${VENVDIR}/" ]; then
   source ${VENVDIR}/bin/activate
 
   echo -n "Install python requirements ..."
-  ${VENVDIR}/bin/pip install -r "${SCRIPT_PATH}/requirements.txt" >/dev/null
+  ${VENVDIR}/bin/pip install -r "${BASE_DIR}/requirements.txt" >/dev/null
   echo "done." 
 else
   # echo "Virtual environment found."
@@ -41,5 +46,5 @@ else
 fi
 
 # Execute the application:
-PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
-    exec ${VENVDIR}/bin/pyright "$@"
+PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \
+    exec ${VENVDIR}/bin/ruff "$@"

@@ -1,9 +1,29 @@
 #!/bin/bash
 
+now=$(date '+%Y-%m-%d_%H-%M-%S')
+
+# 1. Get the full absolute path of the file (resolving symbolic links)
+FULL_PATH=$(readlink -f "$0")
+
+# 2. Extract the directory (the path without the filename)
+SCRIPT_PATH=$(dirname "$FULL_PATH")
+
+# 3. Extract the filename
+SCRIPT_NAME=$(basename "$FULL_PATH")
+
+# 4. Extract the base directory
+BASE_DIR=$(dirname "$SCRIPT_PATH")
+
+# --- Output tests (can be removed) ---
+#echo "Full path:          $FULL_PATH"
+#echo "Directory:          $SCRIPT_PATH"
+#echo "Script name:        $SCRIPT_NAME"
+#echo "Base Directory:     $BASE_DIR"
+
 FOLDER_PATH="${1:-}"
 if ! [ -d "$FOLDER_PATH" ]; then
     # Assegna il primo argomento passato allo script alla variabile FOLDER_PATH
-    FOLDER_PATH="temp/test-install"
+    FOLDER_PATH="$BASE_DIR/temp/test-install"
     echo "Clean+Install on path: ${FOLDER_PATH}"
     rm -rf "${FOLDER_PATH}"
     mkdir -p "${FOLDER_PATH}"

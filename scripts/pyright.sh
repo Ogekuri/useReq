@@ -1,6 +1,6 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# VERSION: 0.10.0
+# VERSION: 0.0.71
 # AUTHORS: Ogekuri
 
 now=$(date '+%Y-%m-%d_%H-%M-%S')
@@ -14,12 +14,17 @@ SCRIPT_PATH=$(dirname "$FULL_PATH")
 # 3. Extract the filename
 SCRIPT_NAME=$(basename "$FULL_PATH")
 
+# 4. Extract the base directory
+BASE_DIR=$(dirname "$SCRIPT_PATH")
+
 # --- Output tests (can be removed) ---
 #echo "Full path:          $FULL_PATH"
 #echo "Directory:          $SCRIPT_PATH"
 #echo "Script name:        $SCRIPT_NAME"
+#echo "Base Directory:     $BASE_DIR"
 
-VENVDIR="${SCRIPT_PATH}/.venv"
+
+VENVDIR="${BASE_DIR}/.venv"
 #echo ${VENVDIR}
 
 # If ${VENVDIR} does not exist, create it
@@ -33,30 +38,13 @@ if ! [ -d "${VENVDIR}/" ]; then
   source ${VENVDIR}/bin/activate
 
   echo -n "Install python requirements ..."
-  ${VENVDIR}/bin/pip install -r "${SCRIPT_PATH}/requirements.txt" >/dev/null
+  ${VENVDIR}/bin/pip install -r "${BASE_DIR}/requirements.txt" >/dev/null
   echo "done." 
 else
   # echo "Virtual environment found."
   source ${VENVDIR}/bin/activate
 fi
 
-# Run tests in 1 phase by default.
-# Optional post-link validation can be enabled with RUN_POST_LINK_PHASE=1.
-if [ "$#" -eq 0 ]; then
-  set -- tests
-fi
-
-PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
-    ${VENVDIR}/bin/python3 -m 'pytest' "$@"
-
-rc=$?
-if [ $rc -ne 0 ]; then
-  exit $rc
-fi
-
-if [ "${RUN_POST_LINK_PHASE:-0}" = "1" ]; then
-  echo "[tests.sh] Main test suite OK. Running post-link tests..."
-  PYTHONPATH="${SCRIPT_PATH}/src:${PYTHONPATH}" \
-    RUN_POST_LINK_TESTS=1 \
-    ${VENVDIR}/bin/python3 -m 'pytest' "$@"
-fi
+# Execute the application:
+PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \
+    exec ${VENVDIR}/bin/pyright "$@"

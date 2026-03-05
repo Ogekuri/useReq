@@ -27,7 +27,6 @@
 !pyproject.toml
 !requirements.txt
 !.g.conf
-!/**/*.sh
 !src/
 !src/**/*
 !docs/
@@ -39,7 +38,7 @@
 !other-stuff/
 !other-stuff/**/*
 !scripts/
-!scripts/**/*
+!scripts/**/*.sh
 !images/
 !images/**/*
 

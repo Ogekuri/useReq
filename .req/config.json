@@ -4,6 +4,7 @@
   "tests-dir": "tests",
   "src-dir": [
     "src",
+    "scripts",
     ".github/workflows"
   ],
   "static-check": {
