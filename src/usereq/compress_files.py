@@ -33,10 +33,12 @@ def _extract_line_range(compressed_with_line_numbers: str) -> tuple[int, int]:
 
 
 def _format_output_path(filepath: str, output_base: Path | None) -> str:
-    """! @brief Build the header-visible path for one compressed source file.
-    @param filepath Absolute or relative source file path.
-    @param output_base Project-home base used to relativize output paths.
-    @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+    """!
+    @brief Build the header-visible path for one compressed source file.
+        @param filepath Absolute or relative source file path.
+        @param output_base Project-home base used to relativize output paths.
+        @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+    @details Implements the _format_output_path function behavior with deterministic control flow.
     """
     if output_base is None:
         return filepath
@@ -106,8 +108,10 @@ def compress_files(filepaths: list[str],
 
 
 def main():
-    """! @brief Execute the multi-file compression CLI command.
-    @details Parses command-line arguments, calls `compress_files`, and prints output or errors.
+    """!
+    @brief Execute the multi-file compression CLI command.
+        @details Parses command-line arguments, calls `compress_files`, and prints output or errors.
+    @return {None} Function return value.
     """
     import argparse
     parser = argparse.ArgumentParser(

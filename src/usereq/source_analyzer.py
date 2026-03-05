@@ -128,7 +128,10 @@ class LanguageSpec:
 
 
 def build_language_specs() -> dict:
-    """! @brief Build specifications for all supported languages.
+    """!
+    @brief Build specifications for all supported languages.
+    @details Implements the build_language_specs function behavior with deterministic control flow.
+    @return {dict} Function return value.
     """
     specs = {}
 
@@ -686,12 +689,18 @@ class SourceAnalyzer:
     """
 
     def __init__(self):
-        """! @brief Initialize analyzer state with language specifications."""
+        """!
+        @brief Initialize analyzer state with language specifications.
+        @details Implements the __init__ function behavior with deterministic control flow.
+        @return {None} Function return value.
+        """
         self.specs = build_language_specs()
 
     def get_supported_languages(self) -> list:
-        """! @brief Return list of supported languages (without aliases).
-        @return Sorted list of unique language identifiers.
+        """!
+        @brief Return list of supported languages (without aliases).
+                @return Sorted list of unique language identifiers.
+        @details Implements the get_supported_languages function behavior with deterministic control flow.
         """
         seen = set()
         result = []
@@ -858,11 +867,13 @@ class SourceAnalyzer:
         return elements
 
     def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool:
-        """! @brief Check if position pos is inside a string literal.
-        @param line The line of code.
-        @param pos The column index.
-        @param spec The LanguageSpec instance.
-        @return True if pos is within a string.
+        """!
+        @brief Check if position pos is inside a string literal.
+                @param line The line of code.
+                @param pos The column index.
+                @param spec The LanguageSpec instance.
+                @return True if pos is within a string.
+        @details Implements the _in_string_context function behavior with deterministic control flow.
         """
         in_string = False
         current_delim = None
@@ -892,10 +903,12 @@ class SourceAnalyzer:
         return in_string
 
     def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]:
-        """! @brief Find position of single-line comment, ignoring strings.
-        @param line The line of code.
-        @param spec The LanguageSpec instance.
-        @return Column index of comment start, or None.
+        """!
+        @brief Find position of single-line comment, ignoring strings.
+                @param line The line of code.
+                @param spec The LanguageSpec instance.
+                @return Column index of comment start, or None.
+        @details Implements the _find_comment function behavior with deterministic control flow.
         """
         if not spec.single_comment:
             return None
@@ -1012,8 +1025,13 @@ class SourceAnalyzer:
 
     def enrich(self, elements: list, language: str,
                filepath: Optional[str] = None) -> list:
-        """! @brief Enrich elements with signatures, hierarchy, visibility, inheritance.
-        @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
+        """!
+        @brief Enrich elements with signatures, hierarchy, visibility, inheritance.
+                @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
+        @param elements Input parameter `elements`.
+        @param language Input parameter `language`.
+        @param filepath Input parameter `filepath`.
+        @return {list} Function return value.
         """
         language = language.lower().strip().lstrip(".")
         self._clean_names(elements, language)
@@ -1027,8 +1045,12 @@ class SourceAnalyzer:
         return elements
 
     def _clean_names(self, elements: list, language: str):
-        """! @brief Extract clean identifiers from name fields.
-        @details Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
+        """!
+        @brief Extract clean identifiers from name fields.
+                @details Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
+        @param elements Input parameter `elements`.
+        @param language Input parameter `language`.
+        @return {None} Function return value.
         """
         for elem in elements:
             if not elem.name:
@@ -1052,7 +1074,12 @@ class SourceAnalyzer:
                             break
 
     def _extract_signatures(self, elements: list, language: str):
-        """! @brief Extract clean signatures from element extracts.
+        """!
+        @brief Extract clean signatures from element extracts.
+        @details Implements the _extract_signatures function behavior with deterministic control flow.
+        @param elements Input parameter `elements`.
+        @param language Input parameter `language`.
+        @return {None} Function return value.
         """
         skip_types = (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI,
                       ElementType.IMPORT, ElementType.DECORATOR)
@@ -1068,8 +1095,11 @@ class SourceAnalyzer:
             elem.signature = sig
 
     def _detect_hierarchy(self, elements: list):
-        """! @brief Detect parent-child relationships between elements.
-        @details Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
+        """!
+        @brief Detect parent-child relationships between elements.
+                @details Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
+        @param elements Input parameter `elements`.
+        @return {None} Function return value.
         """
         container_types = (
             ElementType.CLASS, ElementType.STRUCT, ElementType.MODULE,
@@ -1102,7 +1132,12 @@ class SourceAnalyzer:
                 elem.depth = 1
 
     def _extract_visibility(self, elements: list, language: str):
-        """! @brief Extract visibility/access modifiers from elements.
+        """!
+        @brief Extract visibility/access modifiers from elements.
+        @details Implements the _extract_visibility function behavior with deterministic control flow.
+        @param elements Input parameter `elements`.
+        @param language Input parameter `language`.
+        @return {None} Function return value.
         """
         for elem in elements:
             if elem.element_type in (ElementType.COMMENT_SINGLE,
@@ -1116,7 +1151,13 @@ class SourceAnalyzer:
 
     def _parse_visibility(self, sig: str, name: Optional[str],
                           language: str) -> Optional[str]:
-        """! @brief Parse visibility modifier from a signature line.
+        """!
+        @brief Parse visibility modifier from a signature line.
+        @details Implements the _parse_visibility function behavior with deterministic control flow.
+        @param sig Input parameter `sig`.
+        @param name Input parameter `name`.
+        @param language Input parameter `language`.
+        @return {Optional[str]} Function return value.
         """
         if language in ("python", "py"):
             if name and name.startswith("__") and not name.endswith("__"):
@@ -1161,7 +1202,12 @@ class SourceAnalyzer:
         return None
 
     def _extract_inheritance(self, elements: list, language: str):
-        """! @brief Extract inheritance/implementation info from class-like elements.
+        """!
+        @brief Extract inheritance/implementation info from class-like elements.
+        @details Implements the _extract_inheritance function behavior with deterministic control flow.
+        @param elements Input parameter `elements`.
+        @param language Input parameter `language`.
+        @return {None} Function return value.
         """
         for elem in elements:
             if elem.element_type not in (ElementType.CLASS, ElementType.STRUCT,
@@ -1174,7 +1220,12 @@ class SourceAnalyzer:
 
     def _parse_inheritance(self, first_line: str,
                            language: str) -> Optional[str]:
-        """! @brief Parse inheritance info from a class/struct declaration line.
+        """!
+        @brief Parse inheritance info from a class/struct declaration line.
+        @details Implements the _parse_inheritance function behavior with deterministic control flow.
+        @param first_line Input parameter `first_line`.
+        @param language Input parameter `language`.
+        @return {Optional[str]} Function return value.
         """
         if language in ("python", "py"):
             m = re.search(r'class\s+\w+\s*\(([^)]+)\)', first_line)
@@ -1211,8 +1262,13 @@ class SourceAnalyzer:
 
     def _extract_body_annotations(self, elements: list,
                                   language: str, filepath: str):
-        """! @brief Extract comments and exit points from within function/class bodies.
-        @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
+        """!
+        @brief Extract comments and exit points from within function/class bodies.
+                @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
+        @param elements Input parameter `elements`.
+        @param language Input parameter `language`.
+        @param filepath Input parameter `filepath`.
+        @return {None} Function return value.
         """
         spec = self.specs.get(language)
         if not spec:
@@ -1334,8 +1390,11 @@ class SourceAnalyzer:
             elem.exit_points = exit_points
 
     def _extract_doxygen_fields(self, elements: list):
-        """! @brief Extract Doxygen tag fields from associated documentation comments.
-        @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
+        """!
+        @brief Extract Doxygen tag fields from associated documentation comments.
+                @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
+        @param elements Input parameter `elements`.
+        @return {None} Function return value.
         """
         comment_elements = [e for e in elements if e.element_type in
                            (ElementType.COMMENT_SINGLE, ElementType.COMMENT_MULTI)]
@@ -1492,7 +1551,12 @@ class SourceAnalyzer:
 
     @staticmethod
     def _clean_comment_line(text: str, spec) -> str:
-        """! @brief Strip comment markers from a single line of comment text.
+        """!
+        @brief Strip comment markers from a single line of comment text.
+        @details Implements the _clean_comment_line function behavior with deterministic control flow.
+        @param text Input parameter `text`.
+        @param spec Input parameter `spec`.
+        @return {str} Function return value.
         """
         s = text.strip()
         for prefix in ("///", "//!", "//", "#!", "##", "#", "--", ";;"):
@@ -1504,7 +1568,11 @@ class SourceAnalyzer:
 
 
 def _md_loc(elem) -> str:
-    """! @brief Format element location compactly for markdown.
+    """!
+    @brief Format element location compactly for markdown.
+    @details Implements the _md_loc function behavior with deterministic control flow.
+    @param elem Input parameter `elem`.
+    @return {str} Function return value.
     """
     if elem.line_start == elem.line_end:
         return f"L{elem.line_start}"
@@ -1512,7 +1580,11 @@ def _md_loc(elem) -> str:
 
 
 def _md_kind(elem) -> str:
-    """! @brief Short kind label for markdown output.
+    """!
+    @brief Short kind label for markdown output.
+    @details Implements the _md_kind function behavior with deterministic control flow.
+    @param elem Input parameter `elem`.
+    @return {str} Function return value.
     """
     mapping = {
         ElementType.FUNCTION: "fn",
@@ -1540,8 +1612,12 @@ def _md_kind(elem) -> str:
 
 
 def _extract_comment_text(comment_elem, max_length: int = 0) -> str:
-    """! @brief Extract clean text content from a comment element.
-    @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
+    """!
+    @brief Extract clean text content from a comment element.
+        @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
+    @param comment_elem Input parameter `comment_elem`.
+    @param max_length Input parameter `max_length`.
+    @return {str} Function return value.
     """
     lines = comment_elem.extract.split("\n")
     cleaned = []
@@ -1563,7 +1639,11 @@ def _extract_comment_text(comment_elem, max_length: int = 0) -> str:
 
 
 def _extract_comment_lines(comment_elem) -> list:
-    """! @brief Extract clean text lines from a multi-line comment (preserving structure).
+    """!
+    @brief Extract clean text lines from a multi-line comment (preserving structure).
+    @details Implements the _extract_comment_lines function behavior with deterministic control flow.
+    @param comment_elem Input parameter `comment_elem`.
+    @return {list} Function return value.
     """
     lines = comment_elem.extract.split("\n")
     cleaned = []
@@ -1580,8 +1660,11 @@ def _extract_comment_lines(comment_elem) -> list:
 
 
 def _build_comment_maps(elements: list) -> tuple:
-    """! @brief Build maps that associate comments with their adjacent definitions.
-    @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
+    """!
+    @brief Build maps that associate comments with their adjacent definitions.
+        @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
+    @param elements Input parameter `elements`.
+    @return {tuple} Function return value.
     """
     all_sorted = sorted(elements, key=lambda e: e.line_start)
 
@@ -1642,8 +1725,14 @@ def _build_comment_maps(elements: list) -> tuple:
 
 def _render_body_annotations(out: list, elem, indent: str = "",
                              exclude_ranges: Optional[list] = None):
-    """! @brief Render body comments and exit points for a definition element.
-    @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
+    """!
+    @brief Render body comments and exit points for a definition element.
+        @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
+    @param out Input parameter `out`.
+    @param elem Input parameter `elem`.
+    @param indent Input parameter `indent`.
+    @param exclude_ranges Input parameter `exclude_ranges`.
+    @return {None} Function return value.
     """
     # Build maps by line number
     comment_map = {}
@@ -1696,10 +1785,12 @@ def _merge_doxygen_fields(
     base_fields: dict[str, list[str]],
     extra_fields: dict[str, list[str]],
 ) -> dict[str, list[str]]:
-    """! @brief Merge Doxygen field dictionaries preserving per-tag value order.
-    @param base_fields Destination dictionary mutated in place.
-    @param extra_fields Source dictionary containing additional tag values.
-    @return Updated destination dictionary.
+    """!
+    @brief Merge Doxygen field dictionaries preserving per-tag value order.
+        @param base_fields Destination dictionary mutated in place.
+        @param extra_fields Source dictionary containing additional tag values.
+        @return Updated destination dictionary.
+    @details Implements the _merge_doxygen_fields function behavior with deterministic control flow.
     """
     for tag, values in extra_fields.items():
         if tag not in base_fields:
@@ -2058,7 +2149,11 @@ def format_markdown(
 
 
 def main():
-    """! @brief Execute the standalone source analyzer CLI command."""
+    """!
+    @brief Execute the standalone source analyzer CLI command.
+    @details Implements the main function behavior with deterministic control flow.
+    @return {None} Function return value.
+    """
     parser = argparse.ArgumentParser(
         description=(
             "Analyze a source file and extract definitions, comments "

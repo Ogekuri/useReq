@@ -52,10 +52,12 @@ def detect_language(filepath: str) -> str | None:
 
 
 def _format_output_path(filepath: str, output_base: Path | None) -> str:
-    """! @brief Build the markdown-visible path for one source file.
-    @param filepath Absolute or relative source file path.
-    @param output_base Project-home base used to relativize output paths.
-    @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+    """!
+    @brief Build the markdown-visible path for one source file.
+        @param filepath Absolute or relative source file path.
+        @param output_base Project-home base used to relativize output paths.
+        @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
+    @details Implements the _format_output_path function behavior with deterministic control flow.
     """
     if output_base is None:
         return filepath
@@ -133,8 +135,10 @@ def generate_markdown(
 
 
 def main():
-    """! @brief Execute the standalone markdown generation CLI command.
-    @details Expects file paths as command-line arguments. Prints generated markdown to stdout.
+    """!
+    @brief Execute the standalone markdown generation CLI command.
+        @details Expects file paths as command-line arguments. Prints generated markdown to stdout.
+    @return {None} Function return value.
     """
     if len(sys.argv) < 2:
         print("Usage: python generate_markdown.py file1 [file2 ...]",

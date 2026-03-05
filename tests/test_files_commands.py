@@ -862,9 +862,9 @@ class TestFilesReferencesCommand:
         captured = capsys.readouterr()
         output = captured.out
 
-        block = _extract_reference_definition_block(
+        block = _extract_reference_definition_block_by_signature(
             output=output,
-            header="### fn `def log(msg: str) -> None` (L73-79)",
+            signature="log(msg: str) -> None",
         )
         assert "- @brief Prints an informational message." in block
         assert "- @param msg The message string to print." in block
@@ -1201,9 +1201,9 @@ class TestReferencesCommand:
         captured = capsys.readouterr()
         output = captured.out
 
-        block = _extract_reference_definition_block(
+        block = _extract_reference_definition_block_by_signature(
             output=output,
-            header="### fn `def log(msg: str) -> None` (L73-79)",
+            signature="log(msg: str) -> None",
         )
         assert "- @brief Prints an informational message." in block
         assert "- @param msg The message string to print." in block

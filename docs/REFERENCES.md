@@ -173,7 +173,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3286L | 103 symbols | 28 imports | 168 comments
+# cli.py | Python | 3552L | 103 symbols | 28 imports | 168 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -225,134 +225,162 @@ import traceback
 - @brief Whether debug output is enabled."""
 - var `PERSISTED_UPDATE_FLAG_KEYS = (` (L40)
 - @brief Name of the packaged requirements template file."""
-### class `class ReqError(Exception)` : Exception (L58-72)
+### class `class ReqError(Exception)` : Exception (L58-75)
 - @brief Config keys persisted for install/update boolean flags."""
 - @brief Dedicated exception for expected CLI errors.
 - @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
-- fn `def __init__(self, message: str, code: int = 1) -> None` `priv` (L62-72)
+- fn `def __init__(self, message: str, code: int = 1) -> None` `priv` (L62-75)
   - @brief Dedicated exception for expected CLI errors.
   - @brief Initialize an expected CLI failure payload.
   - @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
+  - @details Implements the __init__ function behavior with deterministic control flow.
   - @param message Human-readable error message.
   - @param code Process exit code bound to the failure category.
+  - @return {None} Function return value.
 
-### fn `def log(msg: str) -> None` (L73-79)
+### fn `def log(msg: str) -> None` (L76-85)
 - @brief Prints an informational message.
+- @details Implements the log function behavior with deterministic control flow.
 - @param msg The message string to print.
+- @return {None} Function return value.
 
-### fn `def dlog(msg: str) -> None` (L80-87)
+### fn `def dlog(msg: str) -> None` (L86-96)
 - @brief Prints a debug message if debugging is active.
+- @details Implements the dlog function behavior with deterministic control flow.
 - @param msg The debug message string to print.
+- @return {None} Function return value.
 
-### fn `def vlog(msg: str) -> None` (L88-95)
+### fn `def vlog(msg: str) -> None` (L97-107)
 - @brief Prints a verbose message if verbose mode is active.
+- @details Implements the vlog function behavior with deterministic control flow.
 - @param msg The verbose message string to print.
+- @return {None} Function return value.
 
-### fn `def _get_available_tags_help() -> str` `priv` (L96-107)
+### fn `def _get_available_tags_help() -> str` `priv` (L108-119)
 - @brief Generate available TAGs help text for argument parser.
 - @details Imports format_available_tags from find_constructs module to generate dynamic TAG listing for CLI help display.
 - @return Formatted multi-line string listing TAGs by language.
 
-### fn `def build_parser() -> argparse.ArgumentParser` (L108-307)
+### fn `def build_parser() -> argparse.ArgumentParser` (L120-319)
 - @brief Builds the CLI argument parser.
 - @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --disable-skills).
 - @return Configured ArgumentParser instance.
 
-### fn `def parse_args(argv: Optional[list[str]] = None) -> Namespace` (L364-371)
+### fn `def parse_args(argv: Optional[list[str]] = None) -> Namespace` (L376-385)
 - @brief Parses command-line arguments into a namespace.
+- @details Implements the parse_args function behavior with deterministic control flow.
 - @param argv List of arguments (defaults to sys.argv).
 - @return Namespace containing parsed arguments.
 
-### fn `def load_package_version() -> str` (L372-384)
+### fn `def load_package_version() -> str` (L386-400)
 - @brief Reads the package version from __init__.py.
+- @details Implements the load_package_version function behavior with deterministic control flow.
 - @return Version string extracted from the package.
 - @throws ReqError If version cannot be determined.
 
-### fn `def maybe_print_version(argv: list[str]) -> bool` (L385-395)
+### fn `def maybe_print_version(argv: list[str]) -> bool` (L401-413)
 - @brief Handles --ver/--version by printing the version.
+- @details Implements the maybe_print_version function behavior with deterministic control flow.
 - @param argv Command line arguments to check.
 - @return True if version was printed, False otherwise.
 
-### fn `def run_upgrade() -> None` (L396-419)
+### fn `def run_upgrade() -> None` (L414-440)
 - @brief Executes the upgrade using uv.
+- @details Implements the run_upgrade function behavior with deterministic control flow.
+- @return {None} Function return value.
 - @throws ReqError If upgrade fails.
 
-### fn `def run_uninstall() -> None` (L420-440)
+### fn `def run_uninstall() -> None` (L441-464)
 - @brief Executes the uninstallation using uv.
+- @details Implements the run_uninstall function behavior with deterministic control flow.
+- @return {None} Function return value.
 - @throws ReqError If uninstall fails.
 
-### fn `def normalize_release_tag(tag: str) -> str` (L441-451)
+### fn `def normalize_release_tag(tag: str) -> str` (L465-477)
 - @brief Normalizes the release tag by removing a 'v' prefix if present.
+- @details Implements the normalize_release_tag function behavior with deterministic control flow.
 - @param tag The raw tag string.
 - @return The normalized version string.
 
-### fn `def parse_version_tuple(version: str) -> tuple[int, ...] | None` (L452-476)
+### fn `def parse_version_tuple(version: str) -> tuple[int, ...] | None` (L478-502)
 - @brief Converts a version into a numeric tuple for comparison.
 - @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
 - @param version The version string to parse.
 - @return Tuple of integers or None if parsing fails.
 
-### fn `def is_newer_version(current: str, latest: str) -> bool` (L477-493)
+### fn `def is_newer_version(current: str, latest: str) -> bool` (L503-521)
 - @brief Returns True if latest is greater than current.
+- @details Implements the is_newer_version function behavior with deterministic control flow.
 - @param current The current installed version string.
 - @param latest The latest available version string.
 - @return True if update is available, False otherwise.
 
-### fn `def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None` (L494-535)
+### fn `def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None` (L522-565)
 - @brief Checks online for a new version and prints a warning.
 - @details If the call fails or the response is invalid, it prints nothing and proceeds.
 - @param timeout_seconds Time to wait for the version check response.
+- @return {None} Function return value.
 
-### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L536-555)
+### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L566-588)
 - @brief Ensures the documentation directory exists under the project base.
+- @details Implements the ensure_doc_directory function behavior with deterministic control flow.
 - @param path The relative path to the documentation directory.
 - @param project_base The project root path.
+- @return {None} Function return value.
 - @throws ReqError If path is invalid, absolute, or not a directory.
 
-### fn `def ensure_test_directory(path: str, project_base: Path) -> None` (L556-575)
+### fn `def ensure_test_directory(path: str, project_base: Path) -> None` (L589-611)
 - @brief Ensures the test directory exists under the project base.
+- @details Implements the ensure_test_directory function behavior with deterministic control flow.
 - @param path The relative path to the test directory.
 - @param project_base The project root path.
+- @return {None} Function return value.
 - @throws ReqError If path is invalid, absolute, or not a directory.
 
-### fn `def ensure_src_directory(path: str, project_base: Path) -> None` (L576-595)
+### fn `def ensure_src_directory(path: str, project_base: Path) -> None` (L612-634)
 - @brief Ensures the source directory exists under the project base.
+- @details Implements the ensure_src_directory function behavior with deterministic control flow.
 - @param path The relative path to the source directory.
 - @param project_base The project root path.
+- @return {None} Function return value.
 - @throws ReqError If path is invalid, absolute, or not a directory.
 
-### fn `def make_relative_if_contains_project(path_value: str, project_base: Path) -> str` (L596-635)
+### fn `def make_relative_if_contains_project(path_value: str, project_base: Path) -> str` (L635-674)
 - @brief Normalizes the path relative to the project root when possible.
 - @details Handles cases where the path includes the project directory name redundantly.
 - @param path_value The input path string.
 - @param project_base The base path of the project.
 - @return The normalized relative path string.
 
-### fn `def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]` (L636-649)
+### fn `def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]` (L675-690)
 - @brief Resolves the absolute path starting from a normalized value.
+- @details Implements the resolve_absolute function behavior with deterministic control flow.
 - @param normalized The normalized relative path string.
 - @param project_base The project root path.
 - @return Absolute Path object or None if normalized is empty.
 
-### fn `def format_substituted_path(value: str) -> str` (L650-659)
+### fn `def format_substituted_path(value: str) -> str` (L691-702)
 - @brief Uniforms path separators for substitutions.
+- @details Implements the format_substituted_path function behavior with deterministic control flow.
 - @param value The path string to format.
 - @return Path string with forward slashes.
 
-### fn `def compute_sub_path(` (L660-661)
+### fn `def compute_sub_path(` (L703-704)
 
-### fn `def save_config(` (L680-687)
+### fn `def save_config(` (L725-732)
 - @brief Calculates the relative path to use in tokens.
+- @details Implements the compute_sub_path function behavior with deterministic control flow.
 - @param normalized The normalized relative path.
 - @param absolute The absolute path object (can be None).
 - @param project_base The project root path.
 - @return Relative path string formatted with forward slashes.
 
-### fn `def load_config(project_base: Path) -> dict[str, str | list[str]]` (L718-758)
+### fn `def load_config(project_base: Path) -> dict[str, str | list[str]]` (L765-807)
 - @brief Saves normalized parameters to .req/config.json.
 - @brief Loads parameters saved in .req/config.json.
 - @details Writes full config payload to `.req/config.json`. When `static_check_config`
 is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
+- @details Implements the load_config function behavior with deterministic control flow.
 - @param project_base The project root path.
 - @param guidelines_dir_value Relative path to guidelines directory.
 - @param doc_dir_value Relative path to docs directory.
@@ -362,164 +390,299 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 `"static-check"`; omitted from JSON when None or empty.
 - @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
 - @param project_base The project root path.
+- @return {None} Function return value.
 - @return Dictionary containing configuration values.
 - @throws ReqError If config file is missing or invalid.
 
-### fn `def load_static_check_from_config(project_base: Path) -> dict` (L759-790)
+### fn `def load_static_check_from_config(project_base: Path) -> dict` (L808-839)
 - @brief Load the `"static-check"` section from `.req/config.json` without validation errors.
 - @details Reads config.json silently; returns `{}` on any read or parse error. Does NOT raise `ReqError`; caller decides whether absence is an error.
 - @param project_base The project root path.
 - @return Dict of static-check config (canonical-lang -> list[config-dict]); empty dict if absent or if config.json is missing/invalid.
 - @see SRS-252, SRS-253, SRS-256
 
-### fn `def build_persisted_update_flags(args: Namespace) -> dict[str, bool]` (L791-813)
+### fn `def build_persisted_update_flags(args: Namespace) -> dict[str, bool]` (L840-864)
 - @brief Build persistent update flags from parsed CLI arguments.
+- @details Implements the build_persisted_update_flags function behavior with deterministic control flow.
 - @param args Parsed CLI namespace.
 - @return Mapping of config key -> boolean value for install/update persistence.
 
-### fn `def load_persisted_update_flags(project_base: Path) -> dict[str, bool]` (L814-860)
+### fn `def load_persisted_update_flags(project_base: Path) -> dict[str, bool]` (L865-913)
 - @brief Load persisted install/update boolean flags from `.req/config.json`.
+- @details Implements the load_persisted_update_flags function behavior with deterministic control flow.
 - @param project_base The project root path.
 - @return Mapping of persisted config key -> boolean value.
 - @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
 
-### fn `def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str` (L861-888)
+### fn `def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str` (L914-946)
 - @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
+- @details Implements the generate_guidelines_file_list function behavior with deterministic control flow.
+- @param guidelines_dir Input parameter `guidelines_dir`.
+- @param project_base Input parameter `project_base`.
+- @return {str} Function return value.
 
-### fn `def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]` (L889-917)
+### fn `def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]` (L947-979)
 - @brief Generates a list of relative file paths (no formatting) for printing.
 - @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
+- @param guidelines_dir Input parameter `guidelines_dir`.
+- @param project_base Input parameter `project_base`.
+- @return {list[str]} Function return value.
 
-### fn `def upgrade_guidelines_templates(` (L918-919)
+### fn `def upgrade_guidelines_templates(` (L980-981)
 
-### fn `def make_relative_token(raw: str, keep_trailing: bool = False) -> str` (L951-962)
+### fn `def make_relative_token(raw: str, keep_trailing: bool = False) -> str` (L1017-1033)
 - @brief Copies guidelines templates from resources/guidelines/ to the target directory.
 - @brief Normalizes the path token optionally preserving the trailing slash.
 - @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of non-hidden files copied; returns 0 when the source directory is empty.
+- @details Implements the make_relative_token function behavior with deterministic control flow.
+- @param guidelines_dest Input parameter `guidelines_dest`.
+- @param overwrite Input parameter `overwrite`.
+- @param raw Input parameter `raw`.
+- @param keep_trailing Input parameter `keep_trailing`.
+- @return {int} Function return value.
+- @return {str} Function return value.
 
-### fn `def ensure_relative(value: str, name: str, code: int) -> None` (L963-972)
+### fn `def ensure_relative(value: str, name: str, code: int) -> None` (L1034-1049)
 - @brief Validates that the path is not absolute and raises an error otherwise.
+- @details Implements the ensure_relative function behavior with deterministic control flow.
+- @param value Input parameter `value`.
+- @param name Input parameter `name`.
+- @param code Input parameter `code`.
+- @return {None} Function return value.
 
-### fn `def apply_replacements(text: str, replacements: Mapping[str, str]) -> str` (L973-980)
+### fn `def apply_replacements(text: str, replacements: Mapping[str, str]) -> str` (L1050-1062)
 - @brief Returns text with token replacements applied.
+- @details Implements the apply_replacements function behavior with deterministic control flow.
+- @param text Input parameter `text`.
+- @param replacements Input parameter `replacements`.
+- @return {str} Function return value.
 
-### fn `def write_text_file(dst: Path, text: str) -> None` (L981-987)
+### fn `def write_text_file(dst: Path, text: str) -> None` (L1063-1074)
 - @brief Writes text to disk, ensuring the destination folder exists.
+- @details Implements the write_text_file function behavior with deterministic control flow.
+- @param dst Input parameter `dst`.
+- @param text Input parameter `text`.
+- @return {None} Function return value.
 
-### fn `def copy_with_replacements(` (L988-989)
+### fn `def copy_with_replacements(` (L1075-1076)
 
-### fn `def normalize_description(value: str) -> str` (L998-1008)
+### fn `def normalize_description(value: str) -> str` (L1091-1105)
 - @brief Copies a file substituting the indicated tokens with their values.
 - @brief Normalizes a description by removing superfluous quotes and escapes.
+- @details Implements the copy_with_replacements function behavior with deterministic control flow.
+- @details Implements the normalize_description function behavior with deterministic control flow.
+- @param src Input parameter `src`.
+- @param dst Input parameter `dst`.
+- @param replacements Input parameter `replacements`.
+- @param value Input parameter `value`.
+- @return {None} Function return value.
+- @return {str} Function return value.
 
-### fn `def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None` (L1009-1037)
+### fn `def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None` (L1106-1140)
 - @brief Converts a Markdown prompt to TOML for Gemini.
+- @details Implements the md_to_toml function behavior with deterministic control flow.
+- @param md_path Input parameter `md_path`.
+- @param toml_path Input parameter `toml_path`.
+- @param force Input parameter `force`.
+- @return {None} Function return value.
 
-### fn `def extract_frontmatter(content: str) -> tuple[str, str]` (L1038-1047)
+### fn `def extract_frontmatter(content: str) -> tuple[str, str]` (L1141-1154)
 - @brief Extracts front matter and body from Markdown.
+- @details Implements the extract_frontmatter function behavior with deterministic control flow.
+- @param content Input parameter `content`.
+- @return {tuple[str, str]} Function return value.
 
-### fn `def extract_description(frontmatter: str) -> str` (L1048-1056)
+### fn `def extract_description(frontmatter: str) -> str` (L1155-1167)
 - @brief Extracts the description from front matter.
+- @details Implements the extract_description function behavior with deterministic control flow.
+- @param frontmatter Input parameter `frontmatter`.
+- @return {str} Function return value.
 
-### fn `def extract_argument_hint(frontmatter: str) -> str` (L1057-1065)
+### fn `def extract_argument_hint(frontmatter: str) -> str` (L1168-1180)
 - @brief Extracts the argument-hint from front matter, if present.
+- @details Implements the extract_argument_hint function behavior with deterministic control flow.
+- @param frontmatter Input parameter `frontmatter`.
+- @return {str} Function return value.
 
-### fn `def extract_purpose_first_bullet(body: str) -> str` (L1066-1086)
+### fn `def extract_purpose_first_bullet(body: str) -> str` (L1181-1205)
 - @brief Returns the first bullet of the Purpose section.
+- @details Implements the extract_purpose_first_bullet function behavior with deterministic control flow.
+- @param body Input parameter `body`.
+- @return {str} Function return value.
 
-### fn `def _extract_section_text(body: str, section_name: str) -> str` `priv` (L1087-1114)
+### fn `def _extract_section_text(body: str, section_name: str) -> str` `priv` (L1206-1233)
 - @brief Extracts and collapses the text content of a named ## section.
 - @details Scans `body` line by line for a heading matching `## <section_name>` (case-insensitive). Collects all subsequent non-empty lines until the next `##`-level heading (or end of string). Strips each line, joins with a single space, and returns the collapsed single-line result.
 - @param[in] body str -- Full prompt body text (after front matter removal).
 - @param[in] section_name str -- Target section name without `##` prefix (case-insensitive match).
 - @return str -- Single-line collapsed text of the section; empty string if section absent or empty.
 
-### fn `def extract_skill_description(frontmatter: str) -> str` (L1115-1133)
+### fn `def extract_skill_description(frontmatter: str) -> str` (L1234-1252)
 - @brief Extracts the usage field from YAML front matter as a single YAML-safe line.
 - @details Parses the YAML front matter and returns the `usage` field value with all whitespace normalized to a single line. Returns an empty string if the field is absent.
 - @param[in] frontmatter str -- YAML front matter text (without the leading/trailing `---` delimiters).
 - @return str -- Single-line text of the usage field; empty string if absent.
 
-### fn `def json_escape(value: str) -> str` (L1134-1139)
+### fn `def json_escape(value: str) -> str` (L1253-1262)
 - @brief Escapes a string for JSON without external delimiters.
+- @details Implements the json_escape function behavior with deterministic control flow.
+- @param value Input parameter `value`.
+- @return {str} Function return value.
 
-### fn `def generate_kiro_resources(` (L1140-1143)
+### fn `def generate_kiro_resources(` (L1263-1266)
 
-### fn `def render_kiro_agent(` (L1163-1172)
+### fn `def render_kiro_agent(` (L1292-1301)
 - @brief Generates the resource list for the Kiro agent.
+- @details Implements the generate_kiro_resources function behavior with deterministic control flow.
+- @param req_dir Input parameter `req_dir`.
+- @param project_base Input parameter `project_base`.
+- @param prompt_rel_path Input parameter `prompt_rel_path`.
+- @return {list[str]} Function return value.
 
-### fn `def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None` (L1206-1214)
+### fn `def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None` (L1347-1360)
 - @brief Renders the Kiro agent JSON and populates main fields.
 - @brief Replaces tokens in the specified file.
+- @details Implements the render_kiro_agent function behavior with deterministic control flow.
+- @details Implements the replace_tokens function behavior with deterministic control flow.
+- @param template Input parameter `template`.
+- @param name Input parameter `name`.
+- @param description Input parameter `description`.
+- @param prompt Input parameter `prompt`.
+- @param resources Input parameter `resources`.
+- @param tools Input parameter `tools`.
+- @param model Input parameter `model`.
+- @param include_tools Input parameter `include_tools`.
+- @param include_model Input parameter `include_model`.
+- @param path Input parameter `path`.
+- @param replacements Input parameter `replacements`.
+- @return {str} Function return value.
+- @return {None} Function return value.
 
-### fn `def yaml_double_quote_escape(value: str) -> str` (L1215-1220)
+### fn `def yaml_double_quote_escape(value: str) -> str` (L1361-1370)
 - @brief Minimal escape for a double-quoted string in YAML.
+- @details Implements the yaml_double_quote_escape function behavior with deterministic control flow.
+- @param value Input parameter `value`.
+- @return {str} Function return value.
 
-### fn `def list_docs_templates() -> list[Path]` (L1221-1236)
+### fn `def list_docs_templates() -> list[Path]` (L1371-1388)
 - @brief Returns non-hidden files available in resources/docs.
+- @details Implements the list_docs_templates function behavior with deterministic control flow.
 - @return Sorted list of file paths under resources/docs.
 - @throws ReqError If resources/docs does not exist or has no non-hidden files.
 
-### fn `def find_requirements_template(docs_templates: list[Path]) -> Path` (L1237-1251)
+### fn `def find_requirements_template(docs_templates: list[Path]) -> Path` (L1389-1405)
 - @brief Returns the packaged Requirements template file.
+- @details Implements the find_requirements_template function behavior with deterministic control flow.
 - @param docs_templates Runtime docs template file list from resources/docs.
 - @return Path to `Requirements_Template.md`.
 - @throws ReqError If `Requirements_Template.md` is not present.
 
-### fn `def load_kiro_template() -> tuple[str, dict[str, Any]]` (L1252-1286)
+### fn `def load_kiro_template() -> tuple[str, dict[str, Any]]` (L1406-1443)
 - @brief Loads the Kiro template from centralized models configuration.
+- @details Implements the load_kiro_template function behavior with deterministic control flow.
+- @return {tuple[str, dict[str, Any]]} Function return value.
 
-### fn `def strip_json_comments(text: str) -> str` (L1287-1307)
+### fn `def strip_json_comments(text: str) -> str` (L1444-1468)
 - @brief Removes // and /* */ comments to allow JSONC parsing.
+- @details Implements the strip_json_comments function behavior with deterministic control flow.
+- @param text Input parameter `text`.
+- @return {str} Function return value.
 
-### fn `def load_settings(path: Path) -> dict[str, Any]` (L1308-1319)
+### fn `def load_settings(path: Path) -> dict[str, Any]` (L1469-1484)
 - @brief Loads JSON/JSONC settings, removing comments when necessary.
+- @details Implements the load_settings function behavior with deterministic control flow.
+- @param path Input parameter `path`.
+- @return {dict[str, Any]} Function return value.
 
-### fn `def load_centralized_models(` (L1320-1323)
+### fn `def load_centralized_models(` (L1485-1488)
 
-### fn `def get_model_tools_for_prompt(` (L1367-1368)
+### fn `def get_model_tools_for_prompt(` (L1537-1538)
 - @brief Loads centralized models configuration from common/models.json.
 - @details Returns a map cli_name -> parsed_json or None if not present. When preserve_models_path is provided and exists, loads from that file, ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to load models-legacy.json first, falling back to models.json if not found.
+- @param resource_root Input parameter `resource_root`.
+- @param legacy_mode Input parameter `legacy_mode`.
+- @param preserve_models_path Input parameter `preserve_models_path`.
+- @return {dict[str, dict[str, Any] | None]} Function return value.
 
-### fn `def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any` (L1403-1420)
+### fn `def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any` (L1578-1599)
 - @brief Extracts model and tools for the prompt from the CLI config.
 - @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
 - @details Returns (model, tools) where each value can be None if not available.
 - @details Can return a list of strings, a string, or None depending on how it is defined in `config.json`. Does not perform CSV parsing: returns the value exactly as present in the configuration file.
+- @param config Input parameter `config`.
+- @param prompt_name Input parameter `prompt_name`.
+- @param source_name Input parameter `source_name`.
+- @param config Input parameter `config`.
+- @param prompt_name Input parameter `prompt_name`.
+- @return {tuple[Optional[str], Optional[list[str]]]} Function return value.
+- @return {Any} Function return value.
 
-### fn `def format_tools_inline_list(tools: list[str]) -> str` (L1421-1428)
+### fn `def format_tools_inline_list(tools: list[str]) -> str` (L1600-1611)
 - @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
+- @details Implements the format_tools_inline_list function behavior with deterministic control flow.
+- @param tools Input parameter `tools`.
+- @return {str} Function return value.
 
-### fn `def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]` (L1429-1439)
+### fn `def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]` (L1612-1627)
 - @brief Recursively merges dictionaries, prioritizing incoming values.
+- @details Implements the deep_merge_dict function behavior with deterministic control flow.
+- @param base Input parameter `base`.
+- @param incoming Input parameter `incoming`.
+- @return {dict[str, Any]} Function return value.
 
-### fn `def find_vscode_settings_source() -> Optional[Path]` (L1440-1448)
+### fn `def find_vscode_settings_source() -> Optional[Path]` (L1628-1639)
 - @brief Finds the VS Code settings template if available.
+- @details Implements the find_vscode_settings_source function behavior with deterministic control flow.
+- @return {Optional[Path]} Function return value.
 
-### fn `def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]` (L1449-1459)
+### fn `def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]` (L1640-1654)
 - @brief Generates chat.promptFilesRecommendations from available prompts.
+- @details Implements the build_prompt_recommendations function behavior with deterministic control flow.
+- @param prompts_dir Input parameter `prompts_dir`.
+- @return {dict[str, bool]} Function return value.
 
-### fn `def ensure_wrapped(target: Path, project_base: Path, code: int) -> None` (L1460-1469)
+### fn `def ensure_wrapped(target: Path, project_base: Path, code: int) -> None` (L1655-1670)
 - @brief Verifies that the path is under the project root.
+- @details Implements the ensure_wrapped function behavior with deterministic control flow.
+- @param target Input parameter `target`.
+- @param project_base Input parameter `project_base`.
+- @param code Input parameter `code`.
+- @return {None} Function return value.
 
-### fn `def save_vscode_backup(req_root: Path, settings_path: Path) -> None` (L1470-1479)
+### fn `def save_vscode_backup(req_root: Path, settings_path: Path) -> None` (L1671-1685)
 - @brief Saves a backup of VS Code settings if the file exists.
+- @details Implements the save_vscode_backup function behavior with deterministic control flow.
+- @param req_root Input parameter `req_root`.
+- @param settings_path Input parameter `settings_path`.
+- @return {None} Function return value.
 
-### fn `def restore_vscode_settings(project_base: Path) -> None` (L1480-1491)
+### fn `def restore_vscode_settings(project_base: Path) -> None` (L1686-1701)
 - @brief Restores VS Code settings from backup, if present.
+- @details Implements the restore_vscode_settings function behavior with deterministic control flow.
+- @param project_base Input parameter `project_base`.
+- @return {None} Function return value.
 
-### fn `def prune_empty_dirs(root: Path) -> None` (L1492-1505)
+### fn `def prune_empty_dirs(root: Path) -> None` (L1702-1719)
 - @brief Removes empty directories under the specified root.
+- @details Implements the prune_empty_dirs function behavior with deterministic control flow.
+- @param root Input parameter `root`.
+- @return {None} Function return value.
 
-### fn `def remove_generated_resources(project_base: Path) -> None` (L1506-1552)
+### fn `def remove_generated_resources(project_base: Path) -> None` (L1720-1770)
 - @brief Removes resources generated by the tool in the project root.
+- @details Implements the remove_generated_resources function behavior with deterministic control flow.
+- @param project_base Input parameter `project_base`.
+- @return {None} Function return value.
 
-### fn `def run_remove(args: Namespace) -> None` (L1553-1599)
+### fn `def run_remove(args: Namespace) -> None` (L1771-1821)
 - @brief Handles the removal of generated resources.
+- @details Implements the run_remove function behavior with deterministic control flow.
+- @param args Input parameter `args`.
+- @return {None} Function return value.
 
-### fn `def _validate_enable_static_check_command_executables(` `priv` (L1600-1603)
+### fn `def _validate_enable_static_check_command_executables(` `priv` (L1822-1825)
 
-### fn `def run(args: Namespace) -> None` (L1631-1830)
+### fn `def run(args: Namespace) -> None` (L1854-2053)
 - @brief Validate Command-module executables in `--enable-static-check` parsed entries.
 - @brief Handles the main initialization flow.
 - @details Validation scope is limited to Command entries coming from CLI specs.
@@ -529,18 +692,21 @@ before any configuration persistence.
 - @param static_check_config Parsed static-check entries grouped by canonical language.
 - @param enforce When false, skip validation and return immediately.
 - @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
+- @return {None} Function return value.
+- @return {None} Function return value.
 - @throws ReqError If a Command entry references a non-executable `cmd` on this system.
 - @see SRS-250
 
-- var `VERBOSE = args.verbose` (L1637)
+- var `VERBOSE = args.verbose` (L1862)
 - @brief Handles the main initialization flow.
 - @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
 - @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
-- var `DEBUG = args.debug` (L1638)
-- var `PROMPT = prompt_path.stem` (L2054)
-### fn `def _format_install_table(` `priv` (L2638-2640)
+- @return {None} Function return value.
+- var `DEBUG = args.debug` (L1863)
+- var `PROMPT = prompt_path.stem` (L2279)
+### fn `def _format_install_table(` `priv` (L2863-2865)
 
-### fn `def fmt(row: tuple[str, ...]) -> str` (L2671-2678)
+### fn `def fmt(row: tuple[str, ...]) -> str` (L2896-2903)
 - @brief Format the ASCII installation summary table.
 - @brief Format one fixed-width ASCII table row.
 - @details Builds a deterministic fixed-column table with columns: CLI, Prompts Installed, Modules Installed.
@@ -556,81 +722,104 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @note Complexity: O(C * (P log P + M log M)) where C is CLI count, P is prompts per CLI, M is modules per CLI.
 - @note Side effects: None (pure formatting).
 
-- var `SUPPORTED_EXTENSIONS = frozenset({` (L2701)
-### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2709-2757)
+- var `SUPPORTED_EXTENSIONS = frozenset({` (L2926)
+### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2934-2986)
 - @brief Collect source files from git-indexed project paths.
 - @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
+- @param src_dirs Input parameter `src_dirs`.
+- @param project_base Input parameter `project_base`.
+- @return {list[str]} Function return value.
 
-### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2758-2801)
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2987-3032)
 - @brief Build a deterministic tree string from project-relative paths.
+- @details Implements the _build_ascii_tree function behavior with deterministic control flow.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _emit(` `priv` (L2780-2782)
+### fn `def _emit(` `priv` (L3011-3013)
 - @brief Build a deterministic tree string from project-relative paths.
+- @details Implements the _build_ascii_tree function behavior with deterministic control flow.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L2802-2812)
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L3033-3045)
 - @brief Format markdown section containing the scanned files tree.
+- @details Implements the _format_files_structure_markdown function behavior with deterministic control flow.
 - @param files Absolute file paths selected for --references processing.
 - @param project_base Project root used to normalize relative paths.
 - @return Markdown section with heading and fenced tree.
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L2813-2831)
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L3046-3064)
 - @brief Check if the parsed args contain a standalone file command.
 - @details Standalone commands require no `--base`/`--here`: `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--test-static-check`, and `--files-static-check`. SRS-253 adds `--files-static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any file-scope standalone flag is present.
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L2832-2848)
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L3065-3081)
 - @brief Check if the parsed args contain a project-scan command.
 - @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`, and `--static-check`. SRS-257 adds `--static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any project-scan flag is present.
 
-### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L2849-2863)
+### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L3082-3097)
 - @brief Check if args request a project-scan command restricted to `--here` mode.
+- @details Implements the _is_here_only_project_scan_command function behavior with deterministic control flow.
 - @param args Parsed CLI namespace.
 - @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L2864-2882)
+### fn `def run_files_tokens(files: list[str]) -> None` (L3098-3120)
 - @brief Execute --files-tokens: count tokens for arbitrary files.
+- @details Implements the run_files_tokens function behavior with deterministic control flow.
+- @param files Input parameter `files`.
+- @return {None} Function return value.
 
-### fn `def run_files_references(files: list[str]) -> None` (L2883-2895)
+### fn `def run_files_references(files: list[str]) -> None` (L3121-3137)
 - @brief Execute --files-references: generate markdown for arbitrary files.
+- @details Implements the run_files_references function behavior with deterministic control flow.
+- @param files Input parameter `files`.
+- @return {None} Function return value.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L2896-2912)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L3138-3156)
 - @brief Execute --files-compress: compress arbitrary files.
 - @details Renders output header paths relative to current working directory.
 - @param files List of source file paths to compress.
 - @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
+- @return {None} Function return value.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L2913-2938)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L3157-3185)
 - @brief Execute --files-find: find constructs in arbitrary files.
+- @details Implements the run_files_find function behavior with deterministic control flow.
 - @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
 - @param enable_line_numbers If True, emits <n>: prefixes in output.
+- @return {None} Function return value.
 
-### fn `def run_references(args: Namespace) -> None` (L2939-2952)
+### fn `def run_references(args: Namespace) -> None` (L3186-3203)
 - @brief Execute --references: generate markdown for project source files.
+- @details Implements the run_references function behavior with deterministic control flow.
+- @param args Input parameter `args`.
+- @return {None} Function return value.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L2953-2971)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L3204-3225)
 - @brief Execute --compress: compress project source files.
+- @details Implements the run_compress_cmd function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
+- @return {None} Function return value.
 
-### fn `def run_find(args: Namespace) -> None` (L2972-2998)
+### fn `def run_find(args: Namespace) -> None` (L3226-3255)
 - @brief Execute --find: find constructs in project source files.
+- @details Implements the run_find function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
+- @return {None} Function return value.
 - @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L2999-3024)
+### fn `def run_tokens(args: Namespace) -> None` (L3256-3281)
 - @brief Execute --tokens on the canonical documentation files in --docs-dir.
 - @details Uses docs-dir from .req/config.json in here-only mode, ignores explicit --docs-dir, selects only REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md as direct regular files in fixed order, and delegates summary rendering to run_files_tokens.
 - @param args Parsed CLI arguments namespace.
 - @return None.
 - @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3025-3091)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3282-3348)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
 - @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
@@ -638,7 +827,7 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3092-3137)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3349-3394)
 - @brief Execute `--static-check`: run static analysis on all project source files.
 - @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
@@ -646,23 +835,31 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3138-3156)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3395-3415)
 - @brief Resolve project base path for project-level commands.
+- @details Implements the _resolve_project_base function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3157-3203)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3416-3466)
 - @brief Resolve project base and src-dirs for project source commands.
+- @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
+- @param args Input parameter `args`.
+- @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L3204-3286)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L3467-3552)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
+- @param argv Input parameter `argv`.
+- @return {int} Function return value.
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L3223)
+- var `VERBOSE = getattr(args, "verbose", False)` (L3489)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
-- var `DEBUG = getattr(args, "debug", False)` (L3224)
+- @param argv Input parameter `argv`.
+- @return {int} Function return value.
+- var `DEBUG = getattr(args, "debug", False)` (L3490)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -672,108 +869,108 @@ sorted set of artifact category labels installed for a CLI during the current in
 |`DEBUG`|var|pub|34||
 |`REQUIREMENTS_TEMPLATE_NAME`|var|pub|37||
 |`PERSISTED_UPDATE_FLAG_KEYS`|var|pub|40||
-|`ReqError`|class|pub|58-72|class ReqError(Exception)|
-|`ReqError.__init__`|fn|priv|62-72|def __init__(self, message: str, code: int = 1) -> None|
-|`log`|fn|pub|73-79|def log(msg: str) -> None|
-|`dlog`|fn|pub|80-87|def dlog(msg: str) -> None|
-|`vlog`|fn|pub|88-95|def vlog(msg: str) -> None|
-|`_get_available_tags_help`|fn|priv|96-107|def _get_available_tags_help() -> str|
-|`build_parser`|fn|pub|108-307|def build_parser() -> argparse.ArgumentParser|
-|`parse_args`|fn|pub|364-371|def parse_args(argv: Optional[list[str]] = None) -> Names...|
-|`load_package_version`|fn|pub|372-384|def load_package_version() -> str|
-|`maybe_print_version`|fn|pub|385-395|def maybe_print_version(argv: list[str]) -> bool|
-|`run_upgrade`|fn|pub|396-419|def run_upgrade() -> None|
-|`run_uninstall`|fn|pub|420-440|def run_uninstall() -> None|
-|`normalize_release_tag`|fn|pub|441-451|def normalize_release_tag(tag: str) -> str|
-|`parse_version_tuple`|fn|pub|452-476|def parse_version_tuple(version: str) -> tuple[int, ...] ...|
-|`is_newer_version`|fn|pub|477-493|def is_newer_version(current: str, latest: str) -> bool|
-|`maybe_notify_newer_version`|fn|pub|494-535|def maybe_notify_newer_version(timeout_seconds: float = 1...|
-|`ensure_doc_directory`|fn|pub|536-555|def ensure_doc_directory(path: str, project_base: Path) -...|
-|`ensure_test_directory`|fn|pub|556-575|def ensure_test_directory(path: str, project_base: Path) ...|
-|`ensure_src_directory`|fn|pub|576-595|def ensure_src_directory(path: str, project_base: Path) -...|
-|`make_relative_if_contains_project`|fn|pub|596-635|def make_relative_if_contains_project(path_value: str, pr...|
-|`resolve_absolute`|fn|pub|636-649|def resolve_absolute(normalized: str, project_base: Path)...|
-|`format_substituted_path`|fn|pub|650-659|def format_substituted_path(value: str) -> str|
-|`compute_sub_path`|fn|pub|660-661|def compute_sub_path(|
-|`save_config`|fn|pub|680-687|def save_config(|
-|`load_config`|fn|pub|718-758|def load_config(project_base: Path) -> dict[str, str | li...|
-|`load_static_check_from_config`|fn|pub|759-790|def load_static_check_from_config(project_base: Path) -> ...|
-|`build_persisted_update_flags`|fn|pub|791-813|def build_persisted_update_flags(args: Namespace) -> dict...|
-|`load_persisted_update_flags`|fn|pub|814-860|def load_persisted_update_flags(project_base: Path) -> di...|
-|`generate_guidelines_file_list`|fn|pub|861-888|def generate_guidelines_file_list(guidelines_dir: Path, p...|
-|`generate_guidelines_file_items`|fn|pub|889-917|def generate_guidelines_file_items(guidelines_dir: Path, ...|
-|`upgrade_guidelines_templates`|fn|pub|918-919|def upgrade_guidelines_templates(|
-|`make_relative_token`|fn|pub|951-962|def make_relative_token(raw: str, keep_trailing: bool = F...|
-|`ensure_relative`|fn|pub|963-972|def ensure_relative(value: str, name: str, code: int) -> ...|
-|`apply_replacements`|fn|pub|973-980|def apply_replacements(text: str, replacements: Mapping[s...|
-|`write_text_file`|fn|pub|981-987|def write_text_file(dst: Path, text: str) -> None|
-|`copy_with_replacements`|fn|pub|988-989|def copy_with_replacements(|
-|`normalize_description`|fn|pub|998-1008|def normalize_description(value: str) -> str|
-|`md_to_toml`|fn|pub|1009-1037|def md_to_toml(md_path: Path, toml_path: Path, force: boo...|
-|`extract_frontmatter`|fn|pub|1038-1047|def extract_frontmatter(content: str) -> tuple[str, str]|
-|`extract_description`|fn|pub|1048-1056|def extract_description(frontmatter: str) -> str|
-|`extract_argument_hint`|fn|pub|1057-1065|def extract_argument_hint(frontmatter: str) -> str|
-|`extract_purpose_first_bullet`|fn|pub|1066-1086|def extract_purpose_first_bullet(body: str) -> str|
-|`_extract_section_text`|fn|priv|1087-1114|def _extract_section_text(body: str, section_name: str) -...|
-|`extract_skill_description`|fn|pub|1115-1133|def extract_skill_description(frontmatter: str) -> str|
-|`json_escape`|fn|pub|1134-1139|def json_escape(value: str) -> str|
-|`generate_kiro_resources`|fn|pub|1140-1143|def generate_kiro_resources(|
-|`render_kiro_agent`|fn|pub|1163-1172|def render_kiro_agent(|
-|`replace_tokens`|fn|pub|1206-1214|def replace_tokens(path: Path, replacements: Mapping[str,...|
-|`yaml_double_quote_escape`|fn|pub|1215-1220|def yaml_double_quote_escape(value: str) -> str|
-|`list_docs_templates`|fn|pub|1221-1236|def list_docs_templates() -> list[Path]|
-|`find_requirements_template`|fn|pub|1237-1251|def find_requirements_template(docs_templates: list[Path]...|
-|`load_kiro_template`|fn|pub|1252-1286|def load_kiro_template() -> tuple[str, dict[str, Any]]|
-|`strip_json_comments`|fn|pub|1287-1307|def strip_json_comments(text: str) -> str|
-|`load_settings`|fn|pub|1308-1319|def load_settings(path: Path) -> dict[str, Any]|
-|`load_centralized_models`|fn|pub|1320-1323|def load_centralized_models(|
-|`get_model_tools_for_prompt`|fn|pub|1367-1368|def get_model_tools_for_prompt(|
-|`get_raw_tools_for_prompt`|fn|pub|1403-1420|def get_raw_tools_for_prompt(config: dict[str, Any] | Non...|
-|`format_tools_inline_list`|fn|pub|1421-1428|def format_tools_inline_list(tools: list[str]) -> str|
-|`deep_merge_dict`|fn|pub|1429-1439|def deep_merge_dict(base: dict[str, Any], incoming: dict[...|
-|`find_vscode_settings_source`|fn|pub|1440-1448|def find_vscode_settings_source() -> Optional[Path]|
-|`build_prompt_recommendations`|fn|pub|1449-1459|def build_prompt_recommendations(prompts_dir: Path) -> di...|
-|`ensure_wrapped`|fn|pub|1460-1469|def ensure_wrapped(target: Path, project_base: Path, code...|
-|`save_vscode_backup`|fn|pub|1470-1479|def save_vscode_backup(req_root: Path, settings_path: Pat...|
-|`restore_vscode_settings`|fn|pub|1480-1491|def restore_vscode_settings(project_base: Path) -> None|
-|`prune_empty_dirs`|fn|pub|1492-1505|def prune_empty_dirs(root: Path) -> None|
-|`remove_generated_resources`|fn|pub|1506-1552|def remove_generated_resources(project_base: Path) -> None|
-|`run_remove`|fn|pub|1553-1599|def run_remove(args: Namespace) -> None|
-|`_validate_enable_static_check_command_executables`|fn|priv|1600-1603|def _validate_enable_static_check_command_executables(|
-|`run`|fn|pub|1631-1830|def run(args: Namespace) -> None|
-|`VERBOSE`|var|pub|1637||
-|`DEBUG`|var|pub|1638||
-|`PROMPT`|var|pub|2054||
-|`_format_install_table`|fn|priv|2638-2640|def _format_install_table(|
-|`fmt`|fn|pub|2671-2678|def fmt(row: tuple[str, ...]) -> str|
-|`SUPPORTED_EXTENSIONS`|var|pub|2701||
-|`_collect_source_files`|fn|priv|2709-2757|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_build_ascii_tree`|fn|priv|2758-2801|def _build_ascii_tree(paths: list[str]) -> str|
-|`_emit`|fn|priv|2780-2782|def _emit(|
-|`_format_files_structure_markdown`|fn|priv|2802-2812|def _format_files_structure_markdown(files: list[str], pr...|
-|`_is_standalone_command`|fn|priv|2813-2831|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|2832-2848|def _is_project_scan_command(args: Namespace) -> bool|
-|`_is_here_only_project_scan_command`|fn|priv|2849-2863|def _is_here_only_project_scan_command(args: Namespace) -...|
-|`run_files_tokens`|fn|pub|2864-2882|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|2883-2895|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|2896-2912|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|2913-2938|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|2939-2952|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|2953-2971|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|2972-2998|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|2999-3024|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|3025-3091|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|3092-3137|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|3138-3156|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|3157-3203|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|3204-3286|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|3223||
-|`DEBUG`|var|pub|3224||
+|`ReqError`|class|pub|58-75|class ReqError(Exception)|
+|`ReqError.__init__`|fn|priv|62-75|def __init__(self, message: str, code: int = 1) -> None|
+|`log`|fn|pub|76-85|def log(msg: str) -> None|
+|`dlog`|fn|pub|86-96|def dlog(msg: str) -> None|
+|`vlog`|fn|pub|97-107|def vlog(msg: str) -> None|
+|`_get_available_tags_help`|fn|priv|108-119|def _get_available_tags_help() -> str|
+|`build_parser`|fn|pub|120-319|def build_parser() -> argparse.ArgumentParser|
+|`parse_args`|fn|pub|376-385|def parse_args(argv: Optional[list[str]] = None) -> Names...|
+|`load_package_version`|fn|pub|386-400|def load_package_version() -> str|
+|`maybe_print_version`|fn|pub|401-413|def maybe_print_version(argv: list[str]) -> bool|
+|`run_upgrade`|fn|pub|414-440|def run_upgrade() -> None|
+|`run_uninstall`|fn|pub|441-464|def run_uninstall() -> None|
+|`normalize_release_tag`|fn|pub|465-477|def normalize_release_tag(tag: str) -> str|
+|`parse_version_tuple`|fn|pub|478-502|def parse_version_tuple(version: str) -> tuple[int, ...] ...|
+|`is_newer_version`|fn|pub|503-521|def is_newer_version(current: str, latest: str) -> bool|
+|`maybe_notify_newer_version`|fn|pub|522-565|def maybe_notify_newer_version(timeout_seconds: float = 1...|
+|`ensure_doc_directory`|fn|pub|566-588|def ensure_doc_directory(path: str, project_base: Path) -...|
+|`ensure_test_directory`|fn|pub|589-611|def ensure_test_directory(path: str, project_base: Path) ...|
+|`ensure_src_directory`|fn|pub|612-634|def ensure_src_directory(path: str, project_base: Path) -...|
+|`make_relative_if_contains_project`|fn|pub|635-674|def make_relative_if_contains_project(path_value: str, pr...|
+|`resolve_absolute`|fn|pub|675-690|def resolve_absolute(normalized: str, project_base: Path)...|
+|`format_substituted_path`|fn|pub|691-702|def format_substituted_path(value: str) -> str|
+|`compute_sub_path`|fn|pub|703-704|def compute_sub_path(|
+|`save_config`|fn|pub|725-732|def save_config(|
+|`load_config`|fn|pub|765-807|def load_config(project_base: Path) -> dict[str, str | li...|
+|`load_static_check_from_config`|fn|pub|808-839|def load_static_check_from_config(project_base: Path) -> ...|
+|`build_persisted_update_flags`|fn|pub|840-864|def build_persisted_update_flags(args: Namespace) -> dict...|
+|`load_persisted_update_flags`|fn|pub|865-913|def load_persisted_update_flags(project_base: Path) -> di...|
+|`generate_guidelines_file_list`|fn|pub|914-946|def generate_guidelines_file_list(guidelines_dir: Path, p...|
+|`generate_guidelines_file_items`|fn|pub|947-979|def generate_guidelines_file_items(guidelines_dir: Path, ...|
+|`upgrade_guidelines_templates`|fn|pub|980-981|def upgrade_guidelines_templates(|
+|`make_relative_token`|fn|pub|1017-1033|def make_relative_token(raw: str, keep_trailing: bool = F...|
+|`ensure_relative`|fn|pub|1034-1049|def ensure_relative(value: str, name: str, code: int) -> ...|
+|`apply_replacements`|fn|pub|1050-1062|def apply_replacements(text: str, replacements: Mapping[s...|
+|`write_text_file`|fn|pub|1063-1074|def write_text_file(dst: Path, text: str) -> None|
+|`copy_with_replacements`|fn|pub|1075-1076|def copy_with_replacements(|
+|`normalize_description`|fn|pub|1091-1105|def normalize_description(value: str) -> str|
+|`md_to_toml`|fn|pub|1106-1140|def md_to_toml(md_path: Path, toml_path: Path, force: boo...|
+|`extract_frontmatter`|fn|pub|1141-1154|def extract_frontmatter(content: str) -> tuple[str, str]|
+|`extract_description`|fn|pub|1155-1167|def extract_description(frontmatter: str) -> str|
+|`extract_argument_hint`|fn|pub|1168-1180|def extract_argument_hint(frontmatter: str) -> str|
+|`extract_purpose_first_bullet`|fn|pub|1181-1205|def extract_purpose_first_bullet(body: str) -> str|
+|`_extract_section_text`|fn|priv|1206-1233|def _extract_section_text(body: str, section_name: str) -...|
+|`extract_skill_description`|fn|pub|1234-1252|def extract_skill_description(frontmatter: str) -> str|
+|`json_escape`|fn|pub|1253-1262|def json_escape(value: str) -> str|
+|`generate_kiro_resources`|fn|pub|1263-1266|def generate_kiro_resources(|
+|`render_kiro_agent`|fn|pub|1292-1301|def render_kiro_agent(|
+|`replace_tokens`|fn|pub|1347-1360|def replace_tokens(path: Path, replacements: Mapping[str,...|
+|`yaml_double_quote_escape`|fn|pub|1361-1370|def yaml_double_quote_escape(value: str) -> str|
+|`list_docs_templates`|fn|pub|1371-1388|def list_docs_templates() -> list[Path]|
+|`find_requirements_template`|fn|pub|1389-1405|def find_requirements_template(docs_templates: list[Path]...|
+|`load_kiro_template`|fn|pub|1406-1443|def load_kiro_template() -> tuple[str, dict[str, Any]]|
+|`strip_json_comments`|fn|pub|1444-1468|def strip_json_comments(text: str) -> str|
+|`load_settings`|fn|pub|1469-1484|def load_settings(path: Path) -> dict[str, Any]|
+|`load_centralized_models`|fn|pub|1485-1488|def load_centralized_models(|
+|`get_model_tools_for_prompt`|fn|pub|1537-1538|def get_model_tools_for_prompt(|
+|`get_raw_tools_for_prompt`|fn|pub|1578-1599|def get_raw_tools_for_prompt(config: dict[str, Any] | Non...|
+|`format_tools_inline_list`|fn|pub|1600-1611|def format_tools_inline_list(tools: list[str]) -> str|
+|`deep_merge_dict`|fn|pub|1612-1627|def deep_merge_dict(base: dict[str, Any], incoming: dict[...|
+|`find_vscode_settings_source`|fn|pub|1628-1639|def find_vscode_settings_source() -> Optional[Path]|
+|`build_prompt_recommendations`|fn|pub|1640-1654|def build_prompt_recommendations(prompts_dir: Path) -> di...|
+|`ensure_wrapped`|fn|pub|1655-1670|def ensure_wrapped(target: Path, project_base: Path, code...|
+|`save_vscode_backup`|fn|pub|1671-1685|def save_vscode_backup(req_root: Path, settings_path: Pat...|
+|`restore_vscode_settings`|fn|pub|1686-1701|def restore_vscode_settings(project_base: Path) -> None|
+|`prune_empty_dirs`|fn|pub|1702-1719|def prune_empty_dirs(root: Path) -> None|
+|`remove_generated_resources`|fn|pub|1720-1770|def remove_generated_resources(project_base: Path) -> None|
+|`run_remove`|fn|pub|1771-1821|def run_remove(args: Namespace) -> None|
+|`_validate_enable_static_check_command_executables`|fn|priv|1822-1825|def _validate_enable_static_check_command_executables(|
+|`run`|fn|pub|1854-2053|def run(args: Namespace) -> None|
+|`VERBOSE`|var|pub|1862||
+|`DEBUG`|var|pub|1863||
+|`PROMPT`|var|pub|2279||
+|`_format_install_table`|fn|priv|2863-2865|def _format_install_table(|
+|`fmt`|fn|pub|2896-2903|def fmt(row: tuple[str, ...]) -> str|
+|`SUPPORTED_EXTENSIONS`|var|pub|2926||
+|`_collect_source_files`|fn|priv|2934-2986|def _collect_source_files(src_dirs: list[str], project_ba...|
+|`_build_ascii_tree`|fn|priv|2987-3032|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|3011-3013|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|3033-3045|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|3046-3064|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|3065-3081|def _is_project_scan_command(args: Namespace) -> bool|
+|`_is_here_only_project_scan_command`|fn|priv|3082-3097|def _is_here_only_project_scan_command(args: Namespace) -...|
+|`run_files_tokens`|fn|pub|3098-3120|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|3121-3137|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|3138-3156|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|3157-3185|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|3186-3203|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|3204-3225|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|3226-3255|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|3256-3281|def run_tokens(args: Namespace) -> None|
+|`run_files_static_check_cmd`|fn|pub|3282-3348|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|3349-3394|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|3395-3415|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|3416-3466|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|3467-3552|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|3489||
+|`DEBUG`|var|pub|3490||
 
 
 ---
 
-# compress.py | Python | 385L | 11 symbols | 4 imports | 41 comments
+# compress.py | Python | 393L | 11 symbols | 4 imports | 41 comments
 > Path: `src/usereq/compress.py`
 - @brief Source code compressor for LLM context optimization.
 - @details Parses a source file and removes all comments (inline, single-line, multi-line), blank lines, trailing whitespace, and redundant spacing while preserving language semantics (e.g. Python indentation). Leverages LanguageSpec from source_analyzer to correctly identify comment syntax for each supported language.
@@ -820,18 +1017,20 @@ import argparse
 - @param string_delimiters Tuple of string delimiters to respect.
 - @return The line content before the comment starts.
 
-### fn `def _is_python_docstring_line(line: str) -> bool` `priv` (L142-153)
+### fn `def _is_python_docstring_line(line: str) -> bool` `priv` (L142-155)
 - @brief Check if a line is a standalone Python docstring (triple-quote only).
+- @details Implements the _is_python_docstring_line function behavior with deterministic control flow.
 - @param line The code line string.
 - @return True if the line appears to be a standalone triple-quoted string.
 
-### fn `def _format_result(entries: list[tuple[int, str]],` `priv` (L154-165)
+### fn `def _format_result(entries: list[tuple[int, str]],` `priv` (L156-169)
 - @brief Format compressed entries, optionally prefixing original line numbers.
+- @details Implements the _format_result function behavior with deterministic control flow.
 - @param entries List of tuples (line_number, text).
 - @param include_line_numbers Boolean flag to enable line prefixes.
 - @return Formatted string.
 
-### fn `def compress_source(source: str, language: str,` (L166-333)
+### fn `def compress_source(source: str, language: str,` (L170-337)
 - @brief Compress source code by removing comments, blank lines, and extra whitespace.
 - @details Preserves indentation for indent-significant languages (Python, Haskell, Elixir).
 - @param source The source code string.
@@ -840,17 +1039,19 @@ import argparse
 - @return Compressed source code string.
 - @throws ValueError If language is unsupported.
 
-### fn `def compress_file(filepath: str, language: str | None = None,` (L334-355)
+### fn `def compress_file(filepath: str, language: str | None = None,` (L338-361)
 - @brief Compress a source file by removing comments and extra whitespace.
+- @details Implements the compress_file function behavior with deterministic control flow.
 - @param filepath Path to the source file.
 - @param language Optional language override. Auto-detected if None.
 - @param include_line_numbers If True (default), prefix each line with <n>: format.
 - @return Compressed source code string.
 - @throws ValueError If language cannot be detected.
 
-### fn `def main()` (L356-383)
+### fn `def main()` (L362-391)
 - @brief Execute the standalone compression CLI.
 - @details Parses command-line arguments and invokes `compress_file`, printing the result to stdout or errors to stderr.
+- @return {None} Function return value.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -861,16 +1062,16 @@ import argparse
 |`detect_language`|fn|pub|46-55|def detect_language(filepath: str) -> str | None|
 |`_is_in_string`|fn|priv|56-97|def _is_in_string(line: str, pos: int, string_delimiters:...|
 |`_remove_inline_comment`|fn|priv|98-141|def _remove_inline_comment(line: str, single_comment: str,|
-|`_is_python_docstring_line`|fn|priv|142-153|def _is_python_docstring_line(line: str) -> bool|
-|`_format_result`|fn|priv|154-165|def _format_result(entries: list[tuple[int, str]],|
-|`compress_source`|fn|pub|166-333|def compress_source(source: str, language: str,|
-|`compress_file`|fn|pub|334-355|def compress_file(filepath: str, language: str | None = N...|
-|`main`|fn|pub|356-383|def main()|
+|`_is_python_docstring_line`|fn|priv|142-155|def _is_python_docstring_line(line: str) -> bool|
+|`_format_result`|fn|priv|156-169|def _format_result(entries: list[tuple[int, str]],|
+|`compress_source`|fn|pub|170-337|def compress_source(source: str, language: str,|
+|`compress_file`|fn|pub|338-361|def compress_file(filepath: str, language: str | None = N...|
+|`main`|fn|pub|362-391|def main()|
 
 
 ---
 
-# compress_files.py | Python | 130L | 4 symbols | 5 imports | 6 comments
+# compress_files.py | Python | 134L | 4 symbols | 5 imports | 6 comments
 > Path: `src/usereq/compress_files.py`
 - @brief Compress and concatenate multiple source files.
 - @details Uses the compress module to strip comments and whitespace from each input file, then concatenates results with a compact header per file for unique identification by an LLM agent.
@@ -894,25 +1095,27 @@ import argparse
 - @param compressed_with_line_numbers Compressed payload generated with include_line_numbers=True.
 - @return Tuple (line_start, line_end) derived from preserved <n>: prefixes; returns (0, 0) when no prefixed lines exist.
 
-### fn `def _format_output_path(filepath: str, output_base: Path | None) -> str` `priv` (L35-46)
+### fn `def _format_output_path(filepath: str, output_base: Path | None) -> str` `priv` (L35-48)
 - @brief Build the header-visible path for one compressed source file.
+- @details Implements the _format_output_path function behavior with deterministic control flow.
 - @param filepath Absolute or relative source file path.
 - @param output_base Project-home base used to relativize output paths.
 - @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
 
-### fn `def compress_files(filepaths: list[str],` (L47-107)
+### fn `def compress_files(filepaths: list[str],` (L49-109)
 
-### fn `def main()` (L108-128)
+### fn `def main()` (L110-132)
 - @brief Execute the multi-file compression CLI command.
 - @details Parses command-line arguments, calls `compress_files`, and prints output or errors.
+- @return {None} Function return value.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
 |`_extract_line_range`|fn|priv|17-34|def _extract_line_range(compressed_with_line_numbers: str...|
-|`_format_output_path`|fn|priv|35-46|def _format_output_path(filepath: str, output_base: Path ...|
-|`compress_files`|fn|pub|47-107|def compress_files(filepaths: list[str],|
-|`main`|fn|pub|108-128|def main()|
+|`_format_output_path`|fn|priv|35-48|def _format_output_path(filepath: str, output_base: Path ...|
+|`compress_files`|fn|pub|49-109|def compress_files(filepaths: list[str],|
+|`main`|fn|pub|110-132|def main()|
 
 
 ---
@@ -979,7 +1182,7 @@ from typing import Dict, List
 
 ---
 
-# find_constructs.py | Python | 392L | 12 symbols | 7 imports | 19 comments
+# find_constructs.py | Python | 394L | 12 symbols | 7 imports | 19 comments
 > Path: `src/usereq/find_constructs.py`
 - @brief Find and extract specific constructs from source files.
 - @details Filters source code constructs (CLASS, FUNCTION, etc.) by type tag and name regex pattern, generating markdown output with complete code extracts.
@@ -1065,7 +1268,7 @@ import argparse
 - @param language Normalized source language key used for comment stripping.
 - @return Formatted markdown block for the construct with complete code from line_start to line_end.
 
-### fn `def main()` (L355-390)
+### fn `def main()` (L355-392)
 - @brief Find and extract constructs matching tag filter and regex pattern from multiple files.
 - @brief Execute the construct finding CLI command.
 - @details Analyzes each file with SourceAnalyzer, filters elements by tag and name pattern, formats results as markdown with file headers.
@@ -1076,6 +1279,7 @@ import argparse
 - @param include_line_numbers If True (default), prefix code lines with <n>: format.
 - @param verbose If True, emits progress status messages on stderr.
 - @return Concatenated markdown output string.
+- @return {None} Function return value.
 - @throws ValueError If no files could be processed or no constructs found.
 
 ## Symbol Index
@@ -1092,12 +1296,12 @@ import argparse
 |`_strip_construct_comments`|fn|priv|162-166|def _strip_construct_comments(|
 |`format_construct`|fn|pub|202-206|def format_construct(|
 |`find_constructs_in_files`|fn|pub|244-249|def find_constructs_in_files(|
-|`main`|fn|pub|355-390|def main()|
+|`main`|fn|pub|355-392|def main()|
 
 
 ---
 
-# generate_markdown.py | Python | 153L | 5 symbols | 4 imports | 8 comments
+# generate_markdown.py | Python | 157L | 5 symbols | 4 imports | 8 comments
 > Path: `src/usereq/generate_markdown.py`
 - @brief Generate concatenated markdown from arbitrary source files.
 - @details Analyzes each input file with source_analyzer and produces a single markdown output concatenating all results. Prints pack summary to stderr.
@@ -1122,15 +1326,16 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 - @param filepath Path to the source file.
 - @return Language identifier string or None if unknown.
 
-### fn `def _format_output_path(filepath: str, output_base: Path | None) -> str` `priv` (L54-65)
+### fn `def _format_output_path(filepath: str, output_base: Path | None) -> str` `priv` (L54-67)
 - @brief Build the markdown-visible path for one source file.
+- @details Implements the _format_output_path function behavior with deterministic control flow.
 - @param filepath Absolute or relative source file path.
 - @param output_base Project-home base used to relativize output paths.
 - @return Original filepath when output_base is None; otherwise POSIX relative path from output_base.
 
-### fn `def generate_markdown(` (L66-69)
+### fn `def generate_markdown(` (L68-71)
 
-### fn `def main()` (L135-151)
+### fn `def main()` (L137-155)
 - @brief Analyze source files and return concatenated markdown.
 - @brief Execute the standalone markdown generation CLI command.
 - @details Iterates through files, detecting language, analyzing constructs, and formatting output. Disables legacy comment/exit annotation traces in rendered markdown, emitting only construct references plus Doxygen field bullets when available.
@@ -1139,6 +1344,7 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 - @param verbose If True, emits progress status messages on stderr.
 - @param output_base Project-home base used to render file paths in markdown as relative paths.
 - @return Concatenated markdown string with all file analyses.
+- @return {None} Function return value.
 - @throws ValueError If no valid source files are found.
 
 ## Symbol Index
@@ -1146,14 +1352,14 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 |---|---|---|---|---|
 |`EXT_LANG_MAP`|var|pub|17||
 |`detect_language`|fn|pub|44-53|def detect_language(filepath: str) -> str | None|
-|`_format_output_path`|fn|priv|54-65|def _format_output_path(filepath: str, output_base: Path ...|
-|`generate_markdown`|fn|pub|66-69|def generate_markdown(|
-|`main`|fn|pub|135-151|def main()|
+|`_format_output_path`|fn|priv|54-67|def _format_output_path(filepath: str, output_base: Path ...|
+|`generate_markdown`|fn|pub|68-71|def generate_markdown(|
+|`main`|fn|pub|137-155|def main()|
 
 
 ---
 
-# source_analyzer.py | Python | 2185L | 62 symbols | 11 imports | 135 comments
+# source_analyzer.py | Python | 2280L | 62 symbols | 11 imports | 135 comments
 > Path: `src/usereq/source_analyzer.py`
 - @brief Multi-language source code analyzer.
 - @details Inspired by tree-sitter, this module analyzes source files across multiple programming languages, extracting: - Definitions of functions, methods, classes, structs, enums, traits, interfaces, modules, components and other constructs - Comments (single-line and multi-line) in language-specific syntax - A structured listing of the entire file with line number prefixes
@@ -1222,18 +1428,23 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 
 ### fn `def build_language_specs() -> dict` (L130-329)
 - @brief Build specifications for all supported languages.
+- @details Implements the build_language_specs function behavior with deterministic control flow.
+- @return {dict} Function return value.
 
-### class `class SourceAnalyzer` (L683-882)
+### class `class SourceAnalyzer` (L686-885)
 - @brief Multi-language source file analyzer.
 - @details Analyzes a source file identifying definitions, comments and constructs for the specified language. Produces structured output with line numbers, inspired by tree-sitter tags functionality.
-- fn `def __init__(self)` `priv` (L688-691)
+- fn `def __init__(self)` `priv` (L691-698)
   - @brief Multi-language source file analyzer.
   - @brief Initialize analyzer state with language specifications.
   - @details Analyzes a source file identifying definitions, comments and constructs for the specified language. Produces structured output with line numbers, inspired by tree-sitter tags functionality.
-- fn `def get_supported_languages(self) -> list` (L692-703)
+  - @details Implements the __init__ function behavior with deterministic control flow.
+  - @return {None} Function return value.
+- fn `def get_supported_languages(self) -> list` (L699-712)
   - @brief Return list of supported languages (without aliases).
+  - @details Implements the get_supported_languages function behavior with deterministic control flow.
   - @return Sorted list of unique language identifiers.
-- fn `def analyze(self, filepath: str, language: str) -> list` (L704-859)
+- fn `def analyze(self, filepath: str, language: str) -> list` (L713-868)
   - @brief Analyze a source file and return the list of SourceElement found.
   - @details Reads file content, detects single/multi-line comments, and matches regex patterns for definitions.
   - @param filepath Path to the source file.
@@ -1241,20 +1452,22 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
   - @return List of SourceElement instances.
   - @throws ValueError If language is not supported.
 
-### fn `def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool` `priv` (L860-893)
+### fn `def _in_string_context(self, line: str, pos: int, spec: LanguageSpec) -> bool` `priv` (L869-904)
 - @brief Check if position pos is inside a string literal.
+- @details Implements the _in_string_context function behavior with deterministic control flow.
 - @param line The line of code.
 - @param pos The column index.
 - @param spec The LanguageSpec instance.
 - @return True if pos is within a string.
 
-### fn `def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]` `priv` (L894-931)
+### fn `def _find_comment(self, line: str, spec: LanguageSpec) -> Optional[int]` `priv` (L905-944)
 - @brief Find position of single-line comment, ignoring strings.
+- @details Implements the _find_comment function behavior with deterministic control flow.
 - @param line The line of code.
 - @param spec The LanguageSpec instance.
 - @return Column index of comment start, or None.
 
-### fn `def _find_block_end(self, lines: list, start_idx: int,` `priv` (L932-1010)
+### fn `def _find_block_end(self, lines: list, start_idx: int,` `priv` (L945-1023)
 - @brief Find the end of a block (function, class, struct, etc.).
 - @details Returns the index (1-based) of the final line of the block. Limits search for performance.
 - @param lines List of all file lines.
@@ -1263,90 +1476,152 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 - @param first_line Content of the start line.
 - @return 1-based index of the end line.
 
-### fn `def enrich(self, elements: list, language: str,` (L1013-1028)
+### fn `def enrich(self, elements: list, language: str,` (L1026-1046)
 - @brief Enrich elements with signatures, hierarchy, visibility, inheritance.
 - @details Call after analyze() to add metadata for LLM-optimized markdown output. Modifies elements in-place and returns them. If filepath is provided, also extracts body comments and exit points.
+- @param elements Input parameter `elements`.
+- @param language Input parameter `language`.
+- @param filepath Input parameter `filepath`.
+- @return {list} Function return value.
 
-### fn `def _clean_names(self, elements: list, language: str)` `priv` (L1029-1053)
+### fn `def _clean_names(self, elements: list, language: str)` `priv` (L1047-1075)
 - @brief Extract clean identifiers from name fields.
 - @details Due to regex group nesting, name may contain the full match expression (e.g. 'class MyClass:' instead of 'MyClass'). This method extracts the actual identifier.
+- @param elements Input parameter `elements`.
+- @param language Input parameter `language`.
+- @return {None} Function return value.
 
-### fn `def _extract_signatures(self, elements: list, language: str)` `priv` (L1054-1069)
+### fn `def _extract_signatures(self, elements: list, language: str)` `priv` (L1076-1096)
 - @brief Extract clean signatures from element extracts.
+- @details Implements the _extract_signatures function behavior with deterministic control flow.
+- @param elements Input parameter `elements`.
+- @param language Input parameter `language`.
+- @return {None} Function return value.
 
-### fn `def _detect_hierarchy(self, elements: list)` `priv` (L1070-1103)
+### fn `def _detect_hierarchy(self, elements: list)` `priv` (L1097-1133)
 - @brief Detect parent-child relationships between elements.
 - @details Containers (class, struct, module, etc.) remain at depth=0. Non-container elements inside containers get depth=1 and parent_name set.
+- @param elements Input parameter `elements`.
+- @return {None} Function return value.
 
-### fn `def _extract_visibility(self, elements: list, language: str)` `priv` (L1104-1116)
+### fn `def _extract_visibility(self, elements: list, language: str)` `priv` (L1134-1151)
 - @brief Extract visibility/access modifiers from elements.
+- @details Implements the _extract_visibility function behavior with deterministic control flow.
+- @param elements Input parameter `elements`.
+- @param language Input parameter `language`.
+- @return {None} Function return value.
 
-### fn `def _parse_visibility(self, sig: str, name: Optional[str],` `priv` (L1117-1162)
+### fn `def _parse_visibility(self, sig: str, name: Optional[str],` `priv` (L1152-1203)
 - @brief Parse visibility modifier from a signature line.
+- @details Implements the _parse_visibility function behavior with deterministic control flow.
+- @param sig Input parameter `sig`.
+- @param name Input parameter `name`.
+- @param language Input parameter `language`.
+- @return {Optional[str]} Function return value.
 
-### fn `def _extract_inheritance(self, elements: list, language: str)` `priv` (L1163-1174)
+### fn `def _extract_inheritance(self, elements: list, language: str)` `priv` (L1204-1220)
 - @brief Extract inheritance/implementation info from class-like elements.
+- @details Implements the _extract_inheritance function behavior with deterministic control flow.
+- @param elements Input parameter `elements`.
+- @param language Input parameter `language`.
+- @return {None} Function return value.
 
-### fn `def _parse_inheritance(self, first_line: str,` `priv` (L1175-1204)
+### fn `def _parse_inheritance(self, first_line: str,` `priv` (L1221-1255)
 - @brief Parse inheritance info from a class/struct declaration line.
+- @details Implements the _parse_inheritance function behavior with deterministic control flow.
+- @param first_line Input parameter `first_line`.
+- @param language Input parameter `language`.
+- @return {Optional[str]} Function return value.
 
-### fn `def _extract_body_annotations(self, elements: list,` `priv` (L1212-1335)
+### fn `def _extract_body_annotations(self, elements: list,` `priv` (L1263-1391)
 - @brief Extract comments and exit points from within function/class bodies.
 - @details Reads the source file and scans each definition's line range for: - Single-line comments (# or // etc.) - Multi-line comments (docstrings, /* */ blocks) - Exit points (return, yield, raise, throw, panic!, sys.exit) Populates body_comments and exit_points on each element.
+- @param elements Input parameter `elements`.
+- @param language Input parameter `language`.
+- @param filepath Input parameter `filepath`.
+- @return {None} Function return value.
 
-### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1336-1481)
+### fn `def _extract_doxygen_fields(self, elements: list)` `priv` (L1392-1540)
 - @brief Extract Doxygen tag fields from associated documentation comments.
 - @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
+- @param elements Input parameter `elements`.
+- @return {None} Function return value.
 
-### fn `def _is_file_level_comment(comment) -> bool` `priv` (L1354-1364)
+### fn `def _is_file_level_comment(comment) -> bool` `priv` (L1413-1423)
 - @brief Extract Doxygen tag fields from associated documentation comments.
 - @brief Detect whether a comment block is file-scoped Doxygen metadata.
 - @details For each non-comment element, resolves the nearest associated documentation comment using language-agnostic adjacency rules: same-line postfix comment (`//!<`, `#!<`, `/**<`), nearest preceding standalone comment block within two lines, or nearest following postfix standalone comment within two lines. When the nearest preceding match is a standalone comment, contiguous preceding standalone comments are merged into one logical block before parsing so multi-line tag sets split across `#`/`//` lines are preserved. Parsed fields are stored in element.doxygen_fields.
 - @details Resolves canonical text from `comment_source` or fallback `extract` and checks for a standalone `@file` or `\\file` tag token; empty comment payloads are treated as non file-level.
+- @param elements Input parameter `elements`.
 - @param comment {SourceElement} Candidate comment element.
+- @return {None} Function return value.
 - @return {bool} True when the comment declares file-level metadata and must not be bound to a symbol.
 
-### fn `def _has_blocking_element(comment) -> bool` `priv` (L1388-1409)
+### fn `def _has_blocking_element(comment) -> bool` `priv` (L1447-1468)
 - @brief Validate that no non-comment construct exists between comment and target symbol.
 - @details Evaluates direct-span and overlap-span blockers in `non_comment_elements`; returns True when any unrelated construct occupies the interval between `comment.line_end` and `elem.line_start`.
 - @param comment {SourceElement} Candidate preceding comment element.
 - @return {bool} True when association must be rejected due to an intervening non-comment element.
 
-### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1483-1492)
+### fn `def _is_postfix_doxygen_comment(comment_text: str) -> bool` `priv` `@staticmethod` (L1542-1551)
 - @brief Detect whether a comment uses postfix Doxygen association markers.
 - @details Returns True for comment prefixes that explicitly bind documentation to a preceding construct, including variants like `#!<`, `//!<`, `///<`, `/*!<`, and `/**<`.
 - @param comment_text Raw extracted comment text.
 - @return True when the comment text starts with a supported postfix marker; otherwise False.
 
-### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1494-1505)
+### fn `def _clean_comment_line(text: str, spec) -> str` `priv` `@staticmethod` (L1553-1569)
 - @brief Strip comment markers from a single line of comment text.
+- @details Implements the _clean_comment_line function behavior with deterministic control flow.
+- @param text Input parameter `text`.
+- @param spec Input parameter `spec`.
+- @return {str} Function return value.
 
-### fn `def _md_loc(elem) -> str` `priv` (L1506-1513)
+### fn `def _md_loc(elem) -> str` `priv` (L1570-1581)
 - @brief Format element location compactly for markdown.
+- @details Implements the _md_loc function behavior with deterministic control flow.
+- @param elem Input parameter `elem`.
+- @return {str} Function return value.
 
-### fn `def _md_kind(elem) -> str` `priv` (L1514-1541)
+### fn `def _md_kind(elem) -> str` `priv` (L1582-1613)
 - @brief Short kind label for markdown output.
+- @details Implements the _md_kind function behavior with deterministic control flow.
+- @param elem Input parameter `elem`.
+- @return {str} Function return value.
 
-### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1542-1564)
+### fn `def _extract_comment_text(comment_elem, max_length: int = 0) -> str` `priv` (L1614-1640)
 - @brief Extract clean text content from a comment element.
 - @details Args: comment_elem: SourceElement with comment content max_length: if >0, truncate to this length. 0 = no truncation.
+- @param comment_elem Input parameter `comment_elem`.
+- @param max_length Input parameter `max_length`.
+- @return {str} Function return value.
 
-### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1565-1581)
+### fn `def _extract_comment_lines(comment_elem) -> list` `priv` (L1641-1661)
 - @brief Extract clean text lines from a multi-line comment (preserving structure).
+- @details Implements the _extract_comment_lines function behavior with deterministic control flow.
+- @param comment_elem Input parameter `comment_elem`.
+- @return {list} Function return value.
 
-### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1582-1642)
+### fn `def _build_comment_maps(elements: list) -> tuple` `priv` (L1662-1725)
 - @brief Build maps that associate comments with their adjacent definitions.
 - @details Returns: - doc_for_def: dict mapping def line_start -> list of comment texts (comments immediately preceding a definition) - standalone_comments: list of comment elements not attached to defs - file_description: text from the first comment block (file-level docs)
+- @param elements Input parameter `elements`.
+- @return {tuple} Function return value.
 
-### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1643-1694)
+### fn `def _render_body_annotations(out: list, elem, indent: str = "",` `priv` (L1726-1783)
 - @brief Render body comments and exit points for a definition element.
 - @details Merges body_comments and exit_points in line-number order, outputting each as L<N>> text. When both a comment and exit point exist on the same line, merges them as: L<N>> `return` — comment text. Skips annotations within exclude_ranges.
+- @param out Input parameter `out`.
+- @param elem Input parameter `elem`.
+- @param indent Input parameter `indent`.
+- @param exclude_ranges Input parameter `exclude_ranges`.
+- @return {None} Function return value.
 
-### fn `def _merge_doxygen_fields(` `priv` (L1695-1697)
+### fn `def _merge_doxygen_fields(` `priv` (L1784-1786)
 
-### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1711-1734)
+### fn `def _collect_element_doxygen_fields(elem) -> dict[str, list[str]]` `priv` (L1802-1825)
 - @brief Merge Doxygen field dictionaries preserving per-tag value order.
 - @brief Aggregate construct Doxygen fields from associated and body comments.
+- @details Implements the _merge_doxygen_fields function behavior with deterministic control flow.
 - @details Uses canonical `elem.doxygen_fields` from `SourceAnalyzer.enrich()` and merges only body comments located at construct start (first 3 lines) to retain docstring-style Doxygen blocks while avoiding internal-body duplication.
 - @param base_fields Destination dictionary mutated in place.
 - @param extra_fields Source dictionary containing additional tag values.
@@ -1354,16 +1629,18 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 - @return Updated destination dictionary.
 - @return Dictionary of normalized Doxygen tags to ordered value lists.
 
-### fn `def _collect_file_level_doxygen_fields(elements: list) -> dict[str, list[str]]` `priv` (L1735-1759)
+### fn `def _collect_file_level_doxygen_fields(elements: list) -> dict[str, list[str]]` `priv` (L1826-1850)
 - @brief Extract file-level Doxygen fields from the first `@file` documentation block.
 - @details Scans non-inline comment elements in source order and selects the first comment containing `@file` or `\\file`, then parses the full comment text through `parse_doxygen_comment()`.
 - @param elements Parsed SourceElement list for one source file.
 - @return Parsed Doxygen fields from the file-level documentation block; empty dictionary if not found.
 
-### fn `def format_markdown(` (L1760-1766)
+### fn `def format_markdown(` (L1851-1857)
 
-### fn `def main()` (L2060-2183)
+### fn `def main()` (L2151-2278)
 - @brief Execute the standalone source analyzer CLI command.
+- @details Implements the main function behavior with deterministic control flow.
+- @return {None} Function return value.
 
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
@@ -1398,43 +1675,43 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 |`SourceElement.type_label`|fn|pub|82-116|def type_label(self) -> str|
 |`LanguageSpec`|class|pub|118-129|class LanguageSpec|
 |`build_language_specs`|fn|pub|130-329|def build_language_specs() -> dict|
-|`SourceAnalyzer`|class|pub|683-882|class SourceAnalyzer|
-|`SourceAnalyzer.__init__`|fn|priv|688-691|def __init__(self)|
-|`SourceAnalyzer.get_supported_languages`|fn|pub|692-703|def get_supported_languages(self) -> list|
-|`SourceAnalyzer.analyze`|fn|pub|704-859|def analyze(self, filepath: str, language: str) -> list|
-|`_in_string_context`|fn|priv|860-893|def _in_string_context(self, line: str, pos: int, spec: L...|
-|`_find_comment`|fn|priv|894-931|def _find_comment(self, line: str, spec: LanguageSpec) ->...|
-|`_find_block_end`|fn|priv|932-1010|def _find_block_end(self, lines: list, start_idx: int,|
-|`enrich`|fn|pub|1013-1028|def enrich(self, elements: list, language: str,|
-|`_clean_names`|fn|priv|1029-1053|def _clean_names(self, elements: list, language: str)|
-|`_extract_signatures`|fn|priv|1054-1069|def _extract_signatures(self, elements: list, language: str)|
-|`_detect_hierarchy`|fn|priv|1070-1103|def _detect_hierarchy(self, elements: list)|
-|`_extract_visibility`|fn|priv|1104-1116|def _extract_visibility(self, elements: list, language: str)|
-|`_parse_visibility`|fn|priv|1117-1162|def _parse_visibility(self, sig: str, name: Optional[str],|
-|`_extract_inheritance`|fn|priv|1163-1174|def _extract_inheritance(self, elements: list, language: ...|
-|`_parse_inheritance`|fn|priv|1175-1204|def _parse_inheritance(self, first_line: str,|
-|`_extract_body_annotations`|fn|priv|1212-1335|def _extract_body_annotations(self, elements: list,|
-|`_extract_doxygen_fields`|fn|priv|1336-1481|def _extract_doxygen_fields(self, elements: list)|
-|`_is_file_level_comment`|fn|priv|1354-1364|def _is_file_level_comment(comment) -> bool|
-|`_has_blocking_element`|fn|priv|1388-1409|def _has_blocking_element(comment) -> bool|
-|`_is_postfix_doxygen_comment`|fn|priv|1483-1492|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
-|`_clean_comment_line`|fn|priv|1494-1505|def _clean_comment_line(text: str, spec) -> str|
-|`_md_loc`|fn|priv|1506-1513|def _md_loc(elem) -> str|
-|`_md_kind`|fn|priv|1514-1541|def _md_kind(elem) -> str|
-|`_extract_comment_text`|fn|priv|1542-1564|def _extract_comment_text(comment_elem, max_length: int =...|
-|`_extract_comment_lines`|fn|priv|1565-1581|def _extract_comment_lines(comment_elem) -> list|
-|`_build_comment_maps`|fn|priv|1582-1642|def _build_comment_maps(elements: list) -> tuple|
-|`_render_body_annotations`|fn|priv|1643-1694|def _render_body_annotations(out: list, elem, indent: str...|
-|`_merge_doxygen_fields`|fn|priv|1695-1697|def _merge_doxygen_fields(|
-|`_collect_element_doxygen_fields`|fn|priv|1711-1734|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
-|`_collect_file_level_doxygen_fields`|fn|priv|1735-1759|def _collect_file_level_doxygen_fields(elements: list) ->...|
-|`format_markdown`|fn|pub|1760-1766|def format_markdown(|
-|`main`|fn|pub|2060-2183|def main()|
+|`SourceAnalyzer`|class|pub|686-885|class SourceAnalyzer|
+|`SourceAnalyzer.__init__`|fn|priv|691-698|def __init__(self)|
+|`SourceAnalyzer.get_supported_languages`|fn|pub|699-712|def get_supported_languages(self) -> list|
+|`SourceAnalyzer.analyze`|fn|pub|713-868|def analyze(self, filepath: str, language: str) -> list|
+|`_in_string_context`|fn|priv|869-904|def _in_string_context(self, line: str, pos: int, spec: L...|
+|`_find_comment`|fn|priv|905-944|def _find_comment(self, line: str, spec: LanguageSpec) ->...|
+|`_find_block_end`|fn|priv|945-1023|def _find_block_end(self, lines: list, start_idx: int,|
+|`enrich`|fn|pub|1026-1046|def enrich(self, elements: list, language: str,|
+|`_clean_names`|fn|priv|1047-1075|def _clean_names(self, elements: list, language: str)|
+|`_extract_signatures`|fn|priv|1076-1096|def _extract_signatures(self, elements: list, language: str)|
+|`_detect_hierarchy`|fn|priv|1097-1133|def _detect_hierarchy(self, elements: list)|
+|`_extract_visibility`|fn|priv|1134-1151|def _extract_visibility(self, elements: list, language: str)|
+|`_parse_visibility`|fn|priv|1152-1203|def _parse_visibility(self, sig: str, name: Optional[str],|
+|`_extract_inheritance`|fn|priv|1204-1220|def _extract_inheritance(self, elements: list, language: ...|
+|`_parse_inheritance`|fn|priv|1221-1255|def _parse_inheritance(self, first_line: str,|
+|`_extract_body_annotations`|fn|priv|1263-1391|def _extract_body_annotations(self, elements: list,|
+|`_extract_doxygen_fields`|fn|priv|1392-1540|def _extract_doxygen_fields(self, elements: list)|
+|`_is_file_level_comment`|fn|priv|1413-1423|def _is_file_level_comment(comment) -> bool|
+|`_has_blocking_element`|fn|priv|1447-1468|def _has_blocking_element(comment) -> bool|
+|`_is_postfix_doxygen_comment`|fn|priv|1542-1551|def _is_postfix_doxygen_comment(comment_text: str) -> bool|
+|`_clean_comment_line`|fn|priv|1553-1569|def _clean_comment_line(text: str, spec) -> str|
+|`_md_loc`|fn|priv|1570-1581|def _md_loc(elem) -> str|
+|`_md_kind`|fn|priv|1582-1613|def _md_kind(elem) -> str|
+|`_extract_comment_text`|fn|priv|1614-1640|def _extract_comment_text(comment_elem, max_length: int =...|
+|`_extract_comment_lines`|fn|priv|1641-1661|def _extract_comment_lines(comment_elem) -> list|
+|`_build_comment_maps`|fn|priv|1662-1725|def _build_comment_maps(elements: list) -> tuple|
+|`_render_body_annotations`|fn|priv|1726-1783|def _render_body_annotations(out: list, elem, indent: str...|
+|`_merge_doxygen_fields`|fn|priv|1784-1786|def _merge_doxygen_fields(|
+|`_collect_element_doxygen_fields`|fn|priv|1802-1825|def _collect_element_doxygen_fields(elem) -> dict[str, li...|
+|`_collect_file_level_doxygen_fields`|fn|priv|1826-1850|def _collect_file_level_doxygen_fields(elements: list) ->...|
+|`format_markdown`|fn|pub|1851-1857|def format_markdown(|
+|`main`|fn|pub|2151-2278|def main()|
 
 
 ---
 
-# static_check.py | Python | 663L | 20 symbols | 8 imports | 58 comments
+# static_check.py | Python | 666L | 20 symbols | 8 imports | 58 comments
 > Path: `src/usereq/static_check.py`
 - @brief Static code analysis dispatch module implementing Dummy/Pylance/Ruff/Command check classes.
 - @details Provides a class hierarchy for running static analysis tools against resolved file lists.
@@ -1493,7 +1770,7 @@ from .cli import ReqError
 - @param inputs Sequence of raw path strings (file, directory, or glob pattern).
 - @return Sorted deduplicated list of resolved absolute file paths (regular files only).
 
-### class `class StaticCheckBase` (L324-414)
+### class `class StaticCheckBase` (L324-416)
 - @brief Dummy static-check class; base of the static analysis class hierarchy.
 - @details Iterates over resolved input files and emits a per-file header line plus `Result: OK`. Subclasses override `_check_file` to provide tool-specific logic. File resolution is delegated to `_resolve_files`.
 - fn `def __init__(` `priv` (L335-338)
@@ -1501,66 +1778,67 @@ from .cli import ReqError
   - @details Iterates over resolved input files and emits a per-file header line plus `Result: OK`.
 Subclasses override `_check_file` to provide tool-specific logic.
 File resolution is delegated to `_resolve_files`.
-- fn `def run(self) -> int` (L355-378)
+- fn `def run(self) -> int` (L356-379)
   - @brief Execute the static check for all resolved files.
   - @details If the resolved file list is empty a warning is printed to stderr and 0 is returned. For each file `_check_file` is called; the overall return code is the maximum of all per-file return codes (0 = all OK, 1 = at least one FAIL).
   - @return Exit code: 0 if all files pass (or file list is empty), 1 if any file fails.
-- fn `def _header_line(self, filepath: str) -> str` `priv` (L383-393)
+- fn `def _header_line(self, filepath: str) -> str` `priv` (L384-394)
   - @brief Build the per-file header line for output.
   - @details Format: `# Static-Check(<LABEL>): <filepath> [<extra_args>]`. When `extra_args` is empty the bracket section is omitted.
   - @param filepath Absolute path of the file being checked.
   - @return Formatted header string including label, filename, and extra args.
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L394-405)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L395-406)
   - @brief Perform the static analysis for a single file.
   - @details Base implementation (Dummy): always prints the header and `Result: OK`. Subclasses override this method to invoke external tools.
   - @param filepath Absolute path of the file to check.
   - @return 0 on pass, non-zero on failure.
-- fn `def _emit_line(self, line: str) -> None` `priv` (L406-414)
+- fn `def _emit_line(self, line: str) -> None` `priv` (L407-416)
   - @brief Emit one markdown output line.
   - @details Emits `line` followed by a newline.
   - @param line Line content to emit on stdout.
+  - @return {None} Function return value.
 
-### class `class StaticCheckPylance(StaticCheckBase)` : StaticCheckBase (L419-467)
+### class `class StaticCheckPylance(StaticCheckBase)` : StaticCheckBase (L421-469)
 - @brief Pylance static-check class; runs pyright on each resolved file.
 - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright` as a subprocess and parse its exit code. Header label: `Pylance`. Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
 - @see StaticCheckBase
-- var `LABEL = "Pylance"` (L429)
+- var `LABEL = "Pylance"` (L431)
   - @brief Pylance static-check class; runs pyright on each resolved file.
   - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright`
 as a subprocess and parse its exit code.
 Header label: `Pylance`.
 Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L431-467)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L433-469)
   - @brief Run pyright on `filepath` and emit OK or FAIL with evidence.
   - @details Invokes `pyright <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
   - @param filepath Absolute path of the file to analyse with pyright.
   - @return 0 when pyright exits 0, 1 otherwise.
   - @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 
-### class `class StaticCheckRuff(StaticCheckBase)` : StaticCheckBase (L472-520)
+### class `class StaticCheckRuff(StaticCheckBase)` : StaticCheckBase (L474-522)
 - @brief Ruff static-check class; runs `ruff check` on each resolved file.
 - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check` as a subprocess and parse its exit code. Header label: `Ruff`. Evidence block is emitted on failure by concatenating stdout and stderr from ruff.
 - @see StaticCheckBase
-- var `LABEL = "Ruff"` (L482)
+- var `LABEL = "Ruff"` (L484)
   - @brief Ruff static-check class; runs `ruff check` on each resolved file.
   - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check`
 as a subprocess and parse its exit code.
 Header label: `Ruff`.
 Evidence block is emitted on failure by concatenating stdout and stderr from ruff.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L484-520)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L486-522)
   - @brief Run `ruff check` on `filepath` and emit OK or FAIL with evidence.
   - @details Invokes `ruff check <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
   - @param filepath Absolute path of the file to analyse with ruff.
   - @return 0 when ruff exits 0, 1 otherwise.
   - @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 
-### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L525-594)
+### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L527-597)
 - @brief Command static-check class; runs an arbitrary external command on each resolved file.
 - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied `cmd` as a subprocess. Header label: `Command[<cmd>]`. Before processing files the constructor verifies that `cmd` is available on PATH via `shutil.which`; raises `ReqError(code=1)` if the command is not found.
 - @see StaticCheckBase
-- fn `def __init__(` `priv` (L536-540)
+- fn `def __init__(` `priv` (L538-542)
   - @brief Command static-check class; runs an arbitrary external command on each resolved file.
   - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied
 `cmd` as a subprocess.
@@ -1568,7 +1846,7 @@ Header label: `Command[<cmd>]`.
 Before processing files the constructor verifies that `cmd` is available on PATH via
 `shutil.which`; raises `ReqError(code=1)` if the command is not found.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L559-594)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L562-597)
   - @brief Initialize the command checker and verify tool availability.
   - @brief Run the external command on `filepath` and emit OK or FAIL with evidence.
   - @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
@@ -1578,10 +1856,11 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
   - @param inputs Raw path/pattern/directory entries from CLI.
   - @param extra_args Additional CLI arguments forwarded to the external command.
   - @param filepath Absolute path of the file to analyse.
+  - @return {None} Function return value.
   - @return 0 when the command exits 0, 1 otherwise.
   - @throws ReqError If `cmd` is not found on PATH (exit code 1).
 
-### fn `def run_static_check(argv: Sequence[str]) -> int` (L599-663)
+### fn `def run_static_check(argv: Sequence[str]) -> int` (L602-666)
 - @brief Parse `--test-static-check` sub-argv and dispatch to the appropriate checker class.
 - @details Expected argument format: - `dummy [FILES...]` - `pylance [FILES...]` - `ruff [FILES...]` - `command <cmd> [FILES...]` No custom `--recursive` flag is parsed; recursive traversal is expressed via `**` glob patterns in `[FILES]` (e.g., `src/**/*.py`). For `command`, the first token after `command` is treated as `<cmd>`. All remaining tokens (after subcommand and optional cmd) are treated as FILES. Dispatches to: - `dummy` -> `StaticCheckBase` - `pylance` -> `StaticCheckPylance` - `ruff` -> `StaticCheckRuff` - `command` -> `StaticCheckCommand`
 - @param argv Remaining argument tokens after `--test-static-check` (i.e. [subcommand, ...]).
@@ -1595,27 +1874,27 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
 |`parse_enable_static_check`|fn|pub|146-222|def parse_enable_static_check(spec: str) -> tuple[str, dict]|
 |`dispatch_static_check_for_file`|fn|pub|227-272|def dispatch_static_check_for_file(filepath: str, lang_co...|
 |`_resolve_files`|fn|priv|277-319|def _resolve_files(inputs: Sequence[str]) -> List[str]|
-|`StaticCheckBase`|class|pub|324-414|class StaticCheckBase|
+|`StaticCheckBase`|class|pub|324-416|class StaticCheckBase|
 |`StaticCheckBase.__init__`|fn|priv|335-338|def __init__(|
-|`StaticCheckBase.run`|fn|pub|355-378|def run(self) -> int|
-|`StaticCheckBase._header_line`|fn|priv|383-393|def _header_line(self, filepath: str) -> str|
-|`StaticCheckBase._check_file`|fn|priv|394-405|def _check_file(self, filepath: str) -> int|
-|`StaticCheckBase._emit_line`|fn|priv|406-414|def _emit_line(self, line: str) -> None|
-|`StaticCheckPylance`|class|pub|419-467|class StaticCheckPylance(StaticCheckBase)|
-|`StaticCheckPylance.LABEL`|var|pub|429||
-|`StaticCheckPylance._check_file`|fn|priv|431-467|def _check_file(self, filepath: str) -> int|
-|`StaticCheckRuff`|class|pub|472-520|class StaticCheckRuff(StaticCheckBase)|
-|`StaticCheckRuff.LABEL`|var|pub|482||
-|`StaticCheckRuff._check_file`|fn|priv|484-520|def _check_file(self, filepath: str) -> int|
-|`StaticCheckCommand`|class|pub|525-594|class StaticCheckCommand(StaticCheckBase)|
-|`StaticCheckCommand.__init__`|fn|priv|536-540|def __init__(|
-|`StaticCheckCommand._check_file`|fn|priv|559-594|def _check_file(self, filepath: str) -> int|
-|`run_static_check`|fn|pub|599-663|def run_static_check(argv: Sequence[str]) -> int|
+|`StaticCheckBase.run`|fn|pub|356-379|def run(self) -> int|
+|`StaticCheckBase._header_line`|fn|priv|384-394|def _header_line(self, filepath: str) -> str|
+|`StaticCheckBase._check_file`|fn|priv|395-406|def _check_file(self, filepath: str) -> int|
+|`StaticCheckBase._emit_line`|fn|priv|407-416|def _emit_line(self, line: str) -> None|
+|`StaticCheckPylance`|class|pub|421-469|class StaticCheckPylance(StaticCheckBase)|
+|`StaticCheckPylance.LABEL`|var|pub|431||
+|`StaticCheckPylance._check_file`|fn|priv|433-469|def _check_file(self, filepath: str) -> int|
+|`StaticCheckRuff`|class|pub|474-522|class StaticCheckRuff(StaticCheckBase)|
+|`StaticCheckRuff.LABEL`|var|pub|484||
+|`StaticCheckRuff._check_file`|fn|priv|486-522|def _check_file(self, filepath: str) -> int|
+|`StaticCheckCommand`|class|pub|527-597|class StaticCheckCommand(StaticCheckBase)|
+|`StaticCheckCommand.__init__`|fn|priv|538-542|def __init__(|
+|`StaticCheckCommand._check_file`|fn|priv|562-597|def _check_file(self, filepath: str) -> int|
+|`run_static_check`|fn|pub|602-666|def run_static_check(argv: Sequence[str]) -> int|
 
 
 ---
 
-# token_counter.py | Python | 116L | 7 symbols | 2 imports | 8 comments
+# token_counter.py | Python | 123L | 7 symbols | 2 imports | 8 comments
 > Path: `src/usereq/token_counter.py`
 - @brief Token and character counting for generated output.
 - @details Uses tiktoken for accurate token counting compatible with OpenAI/Claude models.
@@ -1625,43 +1904,47 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
 ## Imports
 ```
 import os
-import tiktoken
+import tiktoken  # pyright: ignore[reportMissingImports]
 ```
 
 ## Definitions
 
-### class `class TokenCounter` (L14-44)
+### class `class TokenCounter` (L14-49)
 - @brief Count tokens using tiktoken encoding (cl100k_base by default).
 - @details Wrapper around tiktoken encoding to simplify token counting operations.
-- fn `def __init__(self, encoding_name: str = "cl100k_base")` `priv` (L19-24)
+- fn `def __init__(self, encoding_name: str = "cl100k_base")` `priv` (L19-27)
   - @brief Count tokens using tiktoken encoding (cl100k_base by default).
   - @brief Initialize token counter with a specific tiktoken encoding.
   - @details Wrapper around tiktoken encoding to simplify token counting operations.
+  - @details Implements the __init__ function behavior with deterministic control flow.
   - @param encoding_name Name of tiktoken encoding used for tokenization.
-- fn `def count_tokens(self, content: str) -> int` (L25-35)
+  - @return {None} Function return value.
+- fn `def count_tokens(self, content: str) -> int` (L28-38)
   - @brief Count tokens in content string.
   - @details Uses `disallowed_special=()` to allow special tokens in input without raising errors. Returns 0 on failure.
   - @param content The text content to tokenize.
   - @return Integer count of tokens.
-- fn `def count_chars(content: str) -> int` (L37-44)
+- fn `def count_chars(content: str) -> int` (L40-49)
   - @brief Count characters in content string.
+  - @details Implements the count_chars function behavior with deterministic control flow.
   - @param content The text string.
   - @return Integer count of characters.
 
-### fn `def count_file_metrics(content: str,` (L45-58)
+### fn `def count_file_metrics(content: str,` (L50-65)
 - @brief Count tokens and chars for a content string.
+- @details Implements the count_file_metrics function behavior with deterministic control flow.
 - @param content The text content to measure.
 - @param encoding_name The tiktoken encoding name (default: "cl100k_base").
 - @return Dictionary with keys 'tokens' (int) and 'chars' (int).
 
-### fn `def count_files_metrics(file_paths: list,` (L59-87)
+### fn `def count_files_metrics(file_paths: list,` (L66-94)
 - @brief Count tokens and chars for a list of files.
 - @details Iterates through files, reading content and counting metrics. Gracefully handles read errors.
 - @param file_paths List of file paths to process.
 - @param encoding_name The tiktoken encoding name.
 - @return List of dictionaries, each containing 'file', 'tokens', 'chars', and optionally 'error'.
 
-### fn `def format_pack_summary(results: list) -> str` (L88-116)
+### fn `def format_pack_summary(results: list) -> str` (L95-123)
 - @brief Format a pack summary string from a list of file metrics.
 - @details Generates a human-readable report including icons, per-file stats, and aggregate totals.
 - @param results List of metrics dictionaries from count_files_metrics().
@@ -1670,11 +1953,11 @@ import tiktoken
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`TokenCounter`|class|pub|14-44|class TokenCounter|
-|`TokenCounter.__init__`|fn|priv|19-24|def __init__(self, encoding_name: str = "cl100k_base")|
-|`TokenCounter.count_tokens`|fn|pub|25-35|def count_tokens(self, content: str) -> int|
-|`TokenCounter.count_chars`|fn|pub|37-44|def count_chars(content: str) -> int|
-|`count_file_metrics`|fn|pub|45-58|def count_file_metrics(content: str,|
-|`count_files_metrics`|fn|pub|59-87|def count_files_metrics(file_paths: list,|
-|`format_pack_summary`|fn|pub|88-116|def format_pack_summary(results: list) -> str|
+|`TokenCounter`|class|pub|14-49|class TokenCounter|
+|`TokenCounter.__init__`|fn|priv|19-27|def __init__(self, encoding_name: str = "cl100k_base")|
+|`TokenCounter.count_tokens`|fn|pub|28-38|def count_tokens(self, content: str) -> int|
+|`TokenCounter.count_chars`|fn|pub|40-49|def count_chars(content: str) -> int|
+|`count_file_metrics`|fn|pub|50-65|def count_file_metrics(content: str,|
+|`count_files_metrics`|fn|pub|66-94|def count_files_metrics(file_paths: list,|
+|`format_pack_summary`|fn|pub|95-123|def format_pack_summary(results: list) -> str|
 

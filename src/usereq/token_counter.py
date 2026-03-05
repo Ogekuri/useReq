@@ -8,7 +8,7 @@
 
 import os
 
-import tiktoken
+import tiktoken  # pyright: ignore[reportMissingImports]
 
 
 class TokenCounter:
@@ -17,8 +17,11 @@ class TokenCounter:
     """
 
     def __init__(self, encoding_name: str = "cl100k_base"):
-        """! @brief Initialize token counter with a specific tiktoken encoding.
-        @param encoding_name Name of tiktoken encoding used for tokenization.
+        """!
+        @brief Initialize token counter with a specific tiktoken encoding.
+                @param encoding_name Name of tiktoken encoding used for tokenization.
+        @details Implements the __init__ function behavior with deterministic control flow.
+        @return {None} Function return value.
         """
         self.encoding = tiktoken.get_encoding(encoding_name)
 
@@ -35,19 +38,23 @@ class TokenCounter:
 
     @staticmethod
     def count_chars(content: str) -> int:
-        """! @brief Count characters in content string.
-        @param content The text string.
-        @return Integer count of characters.
+        """!
+        @brief Count characters in content string.
+                @param content The text string.
+                @return Integer count of characters.
+        @details Implements the count_chars function behavior with deterministic control flow.
         """
         return len(content)
 
 
 def count_file_metrics(content: str,
                        encoding_name: str = "cl100k_base") -> dict:
-    """! @brief Count tokens and chars for a content string.
-    @param content The text content to measure.
-    @param encoding_name The tiktoken encoding name (default: "cl100k_base").
-    @return Dictionary with keys 'tokens' (int) and 'chars' (int).
+    """!
+    @brief Count tokens and chars for a content string.
+        @param content The text content to measure.
+        @param encoding_name The tiktoken encoding name (default: "cl100k_base").
+        @return Dictionary with keys 'tokens' (int) and 'chars' (int).
+    @details Implements the count_file_metrics function behavior with deterministic control flow.
     """
     counter = TokenCounter(encoding_name)
     return {

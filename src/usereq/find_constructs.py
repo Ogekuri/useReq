@@ -353,8 +353,10 @@ def find_constructs_in_files(
 
 
 def main():
-    """! @brief Execute the construct finding CLI command.
-    @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
+    """!
+    @brief Execute the construct finding CLI command.
+        @details Parses arguments and calls find_constructs_in_files. Handles exceptions by printing errors to stderr.
+    @return {None} Function return value.
     """
     import argparse
 

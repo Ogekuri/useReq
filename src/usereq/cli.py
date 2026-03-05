@@ -60,9 +60,12 @@ class ReqError(Exception):
     @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
     """
     def __init__(self, message: str, code: int = 1) -> None:
-        """! @brief Initialize an expected CLI failure payload.
-        @param message Human-readable error message.
-        @param code Process exit code bound to the failure category.
+        """!
+        @brief Initialize an expected CLI failure payload.
+                @param message Human-readable error message.
+                @param code Process exit code bound to the failure category.
+        @details Implements the __init__ function behavior with deterministic control flow.
+        @return {None} Function return value.
         """
         super().__init__(message)
         self.message = message
@@ -71,23 +74,32 @@ class ReqError(Exception):
 
 
 def log(msg: str) -> None:
-    """! @brief Prints an informational message.
-    @param msg The message string to print.
+    """!
+    @brief Prints an informational message.
+        @param msg The message string to print.
+    @details Implements the log function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     print(msg)
 
 
 def dlog(msg: str) -> None:
-    """! @brief Prints a debug message if debugging is active.
-    @param msg The debug message string to print.
+    """!
+    @brief Prints a debug message if debugging is active.
+        @param msg The debug message string to print.
+    @details Implements the dlog function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     if DEBUG:
         print("DEBUG:", msg)
 
 
 def vlog(msg: str) -> None:
-    """! @brief Prints a verbose message if verbose mode is active.
-    @param msg The verbose message string to print.
+    """!
+    @brief Prints a verbose message if verbose mode is active.
+        @param msg The verbose message string to print.
+    @details Implements the vlog function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     if VERBOSE:
         print(msg)
@@ -362,17 +374,21 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_args(argv: Optional[list[str]] = None) -> Namespace:
-    """! @brief Parses command-line arguments into a namespace.
-    @param argv List of arguments (defaults to sys.argv).
-    @return Namespace containing parsed arguments.
+    """!
+    @brief Parses command-line arguments into a namespace.
+        @param argv List of arguments (defaults to sys.argv).
+        @return Namespace containing parsed arguments.
+    @details Implements the parse_args function behavior with deterministic control flow.
     """
     return build_parser().parse_args(argv)
 
 
 def load_package_version() -> str:
-    """! @brief Reads the package version from __init__.py.
-    @return Version string extracted from the package.
-    @throws ReqError If version cannot be determined.
+    """!
+    @brief Reads the package version from __init__.py.
+        @return Version string extracted from the package.
+        @throws ReqError If version cannot be determined.
+    @details Implements the load_package_version function behavior with deterministic control flow.
     """
     init_path = Path(__file__).resolve().parent / "__init__.py"
     text = init_path.read_text(encoding="utf-8")
@@ -383,9 +399,11 @@ def load_package_version() -> str:
 
 
 def maybe_print_version(argv: list[str]) -> bool:
-    """! @brief Handles --ver/--version by printing the version.
-    @param argv Command line arguments to check.
-    @return True if version was printed, False otherwise.
+    """!
+    @brief Handles --ver/--version by printing the version.
+        @param argv Command line arguments to check.
+        @return True if version was printed, False otherwise.
+    @details Implements the maybe_print_version function behavior with deterministic control flow.
     """
     if "--ver" in argv or "--version" in argv:
         print(load_package_version())
@@ -394,8 +412,11 @@ def maybe_print_version(argv: list[str]) -> bool:
 
 
 def run_upgrade() -> None:
-    """! @brief Executes the upgrade using uv.
-    @throws ReqError If upgrade fails.
+    """!
+    @brief Executes the upgrade using uv.
+        @throws ReqError If upgrade fails.
+    @details Implements the run_upgrade function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     command = [
         "uv",
@@ -418,8 +439,11 @@ def run_upgrade() -> None:
 
 
 def run_uninstall() -> None:
-    """! @brief Executes the uninstallation using uv.
-    @throws ReqError If uninstall fails.
+    """!
+    @brief Executes the uninstallation using uv.
+        @throws ReqError If uninstall fails.
+    @details Implements the run_uninstall function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     command = [
         "uv",
@@ -439,9 +463,11 @@ def run_uninstall() -> None:
 
 
 def normalize_release_tag(tag: str) -> str:
-    """! @brief Normalizes the release tag by removing a 'v' prefix if present.
-    @param tag The raw tag string.
-    @return The normalized version string.
+    """!
+    @brief Normalizes the release tag by removing a 'v' prefix if present.
+        @param tag The raw tag string.
+        @return The normalized version string.
+    @details Implements the normalize_release_tag function behavior with deterministic control flow.
     """
     value = (tag or "").strip()
     if value.lower().startswith("v") and len(value) > 1:
@@ -475,10 +501,12 @@ def parse_version_tuple(version: str) -> tuple[int, ...] | None:
 
 
 def is_newer_version(current: str, latest: str) -> bool:
-    """! @brief Returns True if latest is greater than current.
-    @param current The current installed version string.
-    @param latest The latest available version string.
-    @return True if update is available, False otherwise.
+    """!
+    @brief Returns True if latest is greater than current.
+        @param current The current installed version string.
+        @param latest The latest available version string.
+        @return True if update is available, False otherwise.
+    @details Implements the is_newer_version function behavior with deterministic control flow.
     """
     current_tuple = parse_version_tuple(current)
     latest_tuple = parse_version_tuple(latest)
@@ -492,9 +520,11 @@ def is_newer_version(current: str, latest: str) -> bool:
 
 
 def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
-    """! @brief Checks online for a new version and prints a warning.
-    @param timeout_seconds Time to wait for the version check response.
-    @details If the call fails or the response is invalid, it prints nothing and proceeds.
+    """!
+    @brief Checks online for a new version and prints a warning.
+        @param timeout_seconds Time to wait for the version check response.
+        @details If the call fails or the response is invalid, it prints nothing and proceeds.
+    @return {None} Function return value.
     """
 
     current_version = load_package_version()
@@ -534,10 +564,13 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
 
 
 def ensure_doc_directory(path: str, project_base: Path) -> None:
-    """! @brief Ensures the documentation directory exists under the project base.
-    @param path The relative path to the documentation directory.
-    @param project_base The project root path.
-    @throws ReqError If path is invalid, absolute, or not a directory.
+    """!
+    @brief Ensures the documentation directory exists under the project base.
+        @param path The relative path to the documentation directory.
+        @param project_base The project root path.
+        @throws ReqError If path is invalid, absolute, or not a directory.
+    @details Implements the ensure_doc_directory function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     normalized = make_relative_if_contains_project(path, project_base)
     doc_path = project_base / normalized
@@ -554,10 +587,13 @@ def ensure_doc_directory(path: str, project_base: Path) -> None:
 
 
 def ensure_test_directory(path: str, project_base: Path) -> None:
-    """! @brief Ensures the test directory exists under the project base.
-    @param path The relative path to the test directory.
-    @param project_base The project root path.
-    @throws ReqError If path is invalid, absolute, or not a directory.
+    """!
+    @brief Ensures the test directory exists under the project base.
+        @param path The relative path to the test directory.
+        @param project_base The project root path.
+        @throws ReqError If path is invalid, absolute, or not a directory.
+    @details Implements the ensure_test_directory function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     normalized = make_relative_if_contains_project(path, project_base)
     test_path = project_base / normalized
@@ -574,10 +610,13 @@ def ensure_test_directory(path: str, project_base: Path) -> None:
 
 
 def ensure_src_directory(path: str, project_base: Path) -> None:
-    """! @brief Ensures the source directory exists under the project base.
-    @param path The relative path to the source directory.
-    @param project_base The project root path.
-    @throws ReqError If path is invalid, absolute, or not a directory.
+    """!
+    @brief Ensures the source directory exists under the project base.
+        @param path The relative path to the source directory.
+        @param project_base The project root path.
+        @throws ReqError If path is invalid, absolute, or not a directory.
+    @details Implements the ensure_src_directory function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     normalized = make_relative_if_contains_project(path, project_base)
     src_path = project_base / normalized
@@ -634,10 +673,12 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
 
 
 def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
-    """! @brief Resolves the absolute path starting from a normalized value.
-    @param normalized The normalized relative path string.
-    @param project_base The project root path.
-    @return Absolute Path object or None if normalized is empty.
+    """!
+    @brief Resolves the absolute path starting from a normalized value.
+        @param normalized The normalized relative path string.
+        @param project_base The project root path.
+        @return Absolute Path object or None if normalized is empty.
+    @details Implements the resolve_absolute function behavior with deterministic control flow.
     """
     if not normalized:
         return None
@@ -648,9 +689,11 @@ def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]:
 
 
 def format_substituted_path(value: str) -> str:
-    """! @brief Uniforms path separators for substitutions.
-    @param value The path string to format.
-    @return Path string with forward slashes.
+    """!
+    @brief Uniforms path separators for substitutions.
+        @param value The path string to format.
+        @return Path string with forward slashes.
+    @details Implements the format_substituted_path function behavior with deterministic control flow.
     """
     if not value:
         return ""
@@ -660,11 +703,13 @@ def format_substituted_path(value: str) -> str:
 def compute_sub_path(
     normalized: str, absolute: Optional[Path], project_base: Path
 ) -> str:
-    """! @brief Calculates the relative path to use in tokens.
-    @param normalized The normalized relative path.
-    @param absolute The absolute path object (can be None).
-    @param project_base The project root path.
-    @return Relative path string formatted with forward slashes.
+    """!
+    @brief Calculates the relative path to use in tokens.
+        @param normalized The normalized relative path.
+        @param absolute The absolute path object (can be None).
+        @param project_base The project root path.
+        @return Relative path string formatted with forward slashes.
+    @details Implements the compute_sub_path function behavior with deterministic control flow.
     """
     if not normalized:
         return ""
@@ -686,17 +731,19 @@ def save_config(
     static_check_config: Optional[dict] = None,
     persisted_flags: Optional[dict[str, bool]] = None,
 ) -> None:
-    """! @brief Saves normalized parameters to .req/config.json.
-    @param project_base The project root path.
-    @param guidelines_dir_value Relative path to guidelines directory.
-    @param doc_dir_value Relative path to docs directory.
-    @param test_dir_value Relative path to tests directory.
-    @param src_dir_values List of relative paths to source directories.
-    @param static_check_config Optional dict of static-check config to persist under key
-      `"static-check"`; omitted from JSON when None or empty.
-    @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
-    @details Writes full config payload to `.req/config.json`. When `static_check_config`
-    is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
+    """!
+    @brief Saves normalized parameters to .req/config.json.
+        @param project_base The project root path.
+        @param guidelines_dir_value Relative path to guidelines directory.
+        @param doc_dir_value Relative path to docs directory.
+        @param test_dir_value Relative path to tests directory.
+        @param src_dir_values List of relative paths to source directories.
+        @param static_check_config Optional dict of static-check config to persist under key
+          `"static-check"`; omitted from JSON when None or empty.
+        @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
+        @details Writes full config payload to `.req/config.json`. When `static_check_config`
+        is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
+    @return {None} Function return value.
     """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -716,10 +763,12 @@ def save_config(
 
 
 def load_config(project_base: Path) -> dict[str, str | list[str]]:
-    """! @brief Loads parameters saved in .req/config.json.
-    @param project_base The project root path.
-    @return Dictionary containing configuration values.
-    @throws ReqError If config file is missing or invalid.
+    """!
+    @brief Loads parameters saved in .req/config.json.
+        @param project_base The project root path.
+        @return Dictionary containing configuration values.
+        @throws ReqError If config file is missing or invalid.
+    @details Implements the load_config function behavior with deterministic control flow.
     """
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
@@ -789,9 +838,11 @@ def load_static_check_from_config(project_base: Path) -> dict:
 
 
 def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
-    """! @brief Build persistent update flags from parsed CLI arguments.
-    @param args Parsed CLI namespace.
-    @return Mapping of config key -> boolean value for install/update persistence.
+    """!
+    @brief Build persistent update flags from parsed CLI arguments.
+        @param args Parsed CLI namespace.
+        @return Mapping of config key -> boolean value for install/update persistence.
+    @details Implements the build_persisted_update_flags function behavior with deterministic control flow.
     """
     return {
         "enable-models": bool(args.enable_models),
@@ -812,10 +863,12 @@ def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
 
 
 def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
-    """! @brief Load persisted install/update boolean flags from `.req/config.json`.
-    @param project_base The project root path.
-    @return Mapping of persisted config key -> boolean value.
-    @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
+    """!
+    @brief Load persisted install/update boolean flags from `.req/config.json`.
+        @param project_base The project root path.
+        @return Mapping of persisted config key -> boolean value.
+        @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
+    @details Implements the load_persisted_update_flags function behavior with deterministic control flow.
     """
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
@@ -859,7 +912,12 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
-    """! @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
+    """!
+    @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
+    @details Implements the generate_guidelines_file_list function behavior with deterministic control flow.
+    @param guidelines_dir Input parameter `guidelines_dir`.
+    @param project_base Input parameter `project_base`.
+    @return {str} Function return value.
     """
     if not guidelines_dir.is_dir():
         return ""
@@ -887,8 +945,12 @@ def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> s
 
 
 def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]:
-    """! @brief Generates a list of relative file paths (no formatting) for printing.
-    @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
+    """!
+    @brief Generates a list of relative file paths (no formatting) for printing.
+        @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
+    @param guidelines_dir Input parameter `guidelines_dir`.
+    @param project_base Input parameter `project_base`.
+    @return {list[str]} Function return value.
     """
     if not guidelines_dir.is_dir():
         return []
@@ -918,8 +980,12 @@ def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> 
 def upgrade_guidelines_templates(
     guidelines_dest: Path, overwrite: bool = False
 ) -> int:
-    """! @brief Copies guidelines templates from resources/guidelines/ to the target directory.
-    @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of non-hidden files copied; returns 0 when the source directory is empty.
+    """!
+    @brief Copies guidelines templates from resources/guidelines/ to the target directory.
+        @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of non-hidden files copied; returns 0 when the source directory is empty.
+    @param guidelines_dest Input parameter `guidelines_dest`.
+    @param overwrite Input parameter `overwrite`.
+    @return {int} Function return value.
     """
     guidelines_src = RESOURCE_ROOT / "guidelines"
     if not guidelines_src.is_dir():
@@ -949,7 +1015,12 @@ def upgrade_guidelines_templates(
 
 
 def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
-    """! @brief Normalizes the path token optionally preserving the trailing slash.
+    """!
+    @brief Normalizes the path token optionally preserving the trailing slash.
+    @details Implements the make_relative_token function behavior with deterministic control flow.
+    @param raw Input parameter `raw`.
+    @param keep_trailing Input parameter `keep_trailing`.
+    @return {str} Function return value.
     """
     if not raw:
         return ""
@@ -961,7 +1032,13 @@ def make_relative_token(raw: str, keep_trailing: bool = False) -> str:
 
 
 def ensure_relative(value: str, name: str, code: int) -> None:
-    """! @brief Validates that the path is not absolute and raises an error otherwise.
+    """!
+    @brief Validates that the path is not absolute and raises an error otherwise.
+    @details Implements the ensure_relative function behavior with deterministic control flow.
+    @param value Input parameter `value`.
+    @param name Input parameter `name`.
+    @param code Input parameter `code`.
+    @return {None} Function return value.
     """
     if Path(value).is_absolute():
         raise ReqError(
@@ -971,7 +1048,12 @@ def ensure_relative(value: str, name: str, code: int) -> None:
 
 
 def apply_replacements(text: str, replacements: Mapping[str, str]) -> str:
-    """! @brief Returns text with token replacements applied.
+    """!
+    @brief Returns text with token replacements applied.
+    @details Implements the apply_replacements function behavior with deterministic control flow.
+    @param text Input parameter `text`.
+    @param replacements Input parameter `replacements`.
+    @return {str} Function return value.
     """
     for token, replacement in replacements.items():
         text = text.replace(token, replacement)
@@ -979,7 +1061,12 @@ def apply_replacements(text: str, replacements: Mapping[str, str]) -> str:
 
 
 def write_text_file(dst: Path, text: str) -> None:
-    """! @brief Writes text to disk, ensuring the destination folder exists.
+    """!
+    @brief Writes text to disk, ensuring the destination folder exists.
+    @details Implements the write_text_file function behavior with deterministic control flow.
+    @param dst Input parameter `dst`.
+    @param text Input parameter `text`.
+    @return {None} Function return value.
     """
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(text, encoding="utf-8")
@@ -988,7 +1075,13 @@ def write_text_file(dst: Path, text: str) -> None:
 def copy_with_replacements(
     src: Path, dst: Path, replacements: Mapping[str, str]
 ) -> None:
-    """! @brief Copies a file substituting the indicated tokens with their values.
+    """!
+    @brief Copies a file substituting the indicated tokens with their values.
+    @details Implements the copy_with_replacements function behavior with deterministic control flow.
+    @param src Input parameter `src`.
+    @param dst Input parameter `dst`.
+    @param replacements Input parameter `replacements`.
+    @return {None} Function return value.
     """
     text = src.read_text(encoding="utf-8")
     updated = apply_replacements(text, replacements)
@@ -996,7 +1089,11 @@ def copy_with_replacements(
 
 
 def normalize_description(value: str) -> str:
-    """! @brief Normalizes a description by removing superfluous quotes and escapes.
+    """!
+    @brief Normalizes a description by removing superfluous quotes and escapes.
+    @details Implements the normalize_description function behavior with deterministic control flow.
+    @param value Input parameter `value`.
+    @return {str} Function return value.
     """
     trimmed = value.strip()
     if len(trimmed) >= 2 and trimmed.startswith('"') and trimmed.endswith('"'):
@@ -1007,7 +1104,13 @@ def normalize_description(value: str) -> str:
 
 
 def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
-    """! @brief Converts a Markdown prompt to TOML for Gemini.
+    """!
+    @brief Converts a Markdown prompt to TOML for Gemini.
+    @details Implements the md_to_toml function behavior with deterministic control flow.
+    @param md_path Input parameter `md_path`.
+    @param toml_path Input parameter `toml_path`.
+    @param force Input parameter `force`.
+    @return {None} Function return value.
     """
     if toml_path.exists() and not force:
         raise ReqError(
@@ -1036,7 +1139,11 @@ def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None:
 
 
 def extract_frontmatter(content: str) -> tuple[str, str]:
-    """! @brief Extracts front matter and body from Markdown.
+    """!
+    @brief Extracts front matter and body from Markdown.
+    @details Implements the extract_frontmatter function behavior with deterministic control flow.
+    @param content Input parameter `content`.
+    @return {tuple[str, str]} Function return value.
     """
     match = re.match(r"^\s*---\s*\n(.*?)\n---\s*\n(.*)$", content, re.S)
     if not match:
@@ -1046,7 +1153,11 @@ def extract_frontmatter(content: str) -> tuple[str, str]:
 
 
 def extract_description(frontmatter: str) -> str:
-    """! @brief Extracts the description from front matter.
+    """!
+    @brief Extracts the description from front matter.
+    @details Implements the extract_description function behavior with deterministic control flow.
+    @param frontmatter Input parameter `frontmatter`.
+    @return {str} Function return value.
     """
     desc_match = re.search(r"^description:\s*(.*)$", frontmatter, re.M)
     if not desc_match:
@@ -1055,7 +1166,11 @@ def extract_description(frontmatter: str) -> str:
 
 
 def extract_argument_hint(frontmatter: str) -> str:
-    """! @brief Extracts the argument-hint from front matter, if present.
+    """!
+    @brief Extracts the argument-hint from front matter, if present.
+    @details Implements the extract_argument_hint function behavior with deterministic control flow.
+    @param frontmatter Input parameter `frontmatter`.
+    @return {str} Function return value.
     """
     match = re.search(r"^argument-hint:\s*(.*)$", frontmatter, re.M)
     if not match:
@@ -1064,7 +1179,11 @@ def extract_argument_hint(frontmatter: str) -> str:
 
 
 def extract_purpose_first_bullet(body: str) -> str:
-    """! @brief Returns the first bullet of the Purpose section.
+    """!
+    @brief Returns the first bullet of the Purpose section.
+    @details Implements the extract_purpose_first_bullet function behavior with deterministic control flow.
+    @param body Input parameter `body`.
+    @return {str} Function return value.
     """
     lines = body.splitlines()
     start_idx = None
@@ -1132,7 +1251,11 @@ def extract_skill_description(frontmatter: str) -> str:
 
 
 def json_escape(value: str) -> str:
-    """! @brief Escapes a string for JSON without external delimiters.
+    """!
+    @brief Escapes a string for JSON without external delimiters.
+    @details Implements the json_escape function behavior with deterministic control flow.
+    @param value Input parameter `value`.
+    @return {str} Function return value.
     """
     return json.dumps(value)[1:-1]
 
@@ -1142,7 +1265,13 @@ def generate_kiro_resources(
     project_base: Path,
     prompt_rel_path: str,
 ) -> list[str]:
-    """! @brief Generates the resource list for the Kiro agent.
+    """!
+    @brief Generates the resource list for the Kiro agent.
+    @details Implements the generate_kiro_resources function behavior with deterministic control flow.
+    @param req_dir Input parameter `req_dir`.
+    @param project_base Input parameter `project_base`.
+    @param prompt_rel_path Input parameter `prompt_rel_path`.
+    @return {list[str]} Function return value.
     """
     resources = [f"file://{prompt_rel_path}"]
     if not req_dir.is_dir():
@@ -1171,7 +1300,19 @@ def render_kiro_agent(
     include_tools: bool = False,
     include_model: bool = False,
 ) -> str:
-    """! @brief Renders the Kiro agent JSON and populates main fields.
+    """!
+    @brief Renders the Kiro agent JSON and populates main fields.
+    @details Implements the render_kiro_agent function behavior with deterministic control flow.
+    @param template Input parameter `template`.
+    @param name Input parameter `name`.
+    @param description Input parameter `description`.
+    @param prompt Input parameter `prompt`.
+    @param resources Input parameter `resources`.
+    @param tools Input parameter `tools`.
+    @param model Input parameter `model`.
+    @param include_tools Input parameter `include_tools`.
+    @param include_model Input parameter `include_model`.
+    @return {str} Function return value.
     """
     replacements = {
         "%%NAME%%": json_escape(name),
@@ -1204,7 +1345,12 @@ def render_kiro_agent(
 
 
 def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
-    """! @brief Replaces tokens in the specified file.
+    """!
+    @brief Replaces tokens in the specified file.
+    @details Implements the replace_tokens function behavior with deterministic control flow.
+    @param path Input parameter `path`.
+    @param replacements Input parameter `replacements`.
+    @return {None} Function return value.
     """
     text = path.read_text(encoding="utf-8")
     for token, replacement in replacements.items():
@@ -1213,15 +1359,21 @@ def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None:
 
 
 def yaml_double_quote_escape(value: str) -> str:
-    """! @brief Minimal escape for a double-quoted string in YAML.
+    """!
+    @brief Minimal escape for a double-quoted string in YAML.
+    @details Implements the yaml_double_quote_escape function behavior with deterministic control flow.
+    @param value Input parameter `value`.
+    @return {str} Function return value.
     """
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def list_docs_templates() -> list[Path]:
-    """! @brief Returns non-hidden files available in resources/docs.
-    @return Sorted list of file paths under resources/docs.
-    @throws ReqError If resources/docs does not exist or has no non-hidden files.
+    """!
+    @brief Returns non-hidden files available in resources/docs.
+        @return Sorted list of file paths under resources/docs.
+        @throws ReqError If resources/docs does not exist or has no non-hidden files.
+    @details Implements the list_docs_templates function behavior with deterministic control flow.
     """
     candidate = RESOURCE_ROOT / "docs"
     if not candidate.is_dir():
@@ -1235,10 +1387,12 @@ def list_docs_templates() -> list[Path]:
 
 
 def find_requirements_template(docs_templates: list[Path]) -> Path:
-    """! @brief Returns the packaged Requirements template file.
-    @param docs_templates Runtime docs template file list from resources/docs.
-    @return Path to `Requirements_Template.md`.
-    @throws ReqError If `Requirements_Template.md` is not present.
+    """!
+    @brief Returns the packaged Requirements template file.
+        @param docs_templates Runtime docs template file list from resources/docs.
+        @return Path to `Requirements_Template.md`.
+        @throws ReqError If `Requirements_Template.md` is not present.
+    @details Implements the find_requirements_template function behavior with deterministic control flow.
     """
     for template_path in docs_templates:
         if template_path.name == REQUIREMENTS_TEMPLATE_NAME:
@@ -1250,7 +1404,10 @@ def find_requirements_template(docs_templates: list[Path]) -> Path:
 
 
 def load_kiro_template() -> tuple[str, dict[str, Any]]:
-    """! @brief Loads the Kiro template from centralized models configuration.
+    """!
+    @brief Loads the Kiro template from centralized models configuration.
+    @details Implements the load_kiro_template function behavior with deterministic control flow.
+    @return {tuple[str, dict[str, Any]]} Function return value.
     """
     common_dir = RESOURCE_ROOT / "common"
     
@@ -1285,7 +1442,11 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
 
 
 def strip_json_comments(text: str) -> str:
-    """! @brief Removes // and /* */ comments to allow JSONC parsing.
+    """!
+    @brief Removes // and /* */ comments to allow JSONC parsing.
+    @details Implements the strip_json_comments function behavior with deterministic control flow.
+    @param text Input parameter `text`.
+    @return {str} Function return value.
     """
     cleaned: list[str] = []
     in_block = False
@@ -1306,7 +1467,11 @@ def strip_json_comments(text: str) -> str:
 
 
 def load_settings(path: Path) -> dict[str, Any]:
-    """! @brief Loads JSON/JSONC settings, removing comments when necessary.
+    """!
+    @brief Loads JSON/JSONC settings, removing comments when necessary.
+    @details Implements the load_settings function behavior with deterministic control flow.
+    @param path Input parameter `path`.
+    @return {dict[str, Any]} Function return value.
     """
     raw = path.read_text(encoding="utf-8")
     try:
@@ -1322,8 +1487,13 @@ def load_centralized_models(
     legacy_mode: bool = False, 
     preserve_models_path: Optional[Path] = None
 ) -> dict[str, dict[str, Any] | None]:
-    """! @brief Loads centralized models configuration from common/models.json.
-    @details Returns a map cli_name -> parsed_json or None if not present. When preserve_models_path is provided and exists, loads from that file, ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to load models-legacy.json first, falling back to models.json if not found.
+    """!
+    @brief Loads centralized models configuration from common/models.json.
+        @details Returns a map cli_name -> parsed_json or None if not present. When preserve_models_path is provided and exists, loads from that file, ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to load models-legacy.json first, falling back to models.json if not found.
+    @param resource_root Input parameter `resource_root`.
+    @param legacy_mode Input parameter `legacy_mode`.
+    @param preserve_models_path Input parameter `preserve_models_path`.
+    @return {dict[str, dict[str, Any] | None]} Function return value.
     """
     common_dir = resource_root / "common"
     config_file = None
@@ -1367,8 +1537,13 @@ def load_centralized_models(
 def get_model_tools_for_prompt(
     config: dict[str, Any] | None, prompt_name: str, source_name: Optional[str] = None
 ) -> tuple[Optional[str], Optional[list[str]]]:
-    """! @brief Extracts model and tools for the prompt from the CLI config.
-    @details Returns (model, tools) where each value can be None if not available.
+    """!
+    @brief Extracts model and tools for the prompt from the CLI config.
+        @details Returns (model, tools) where each value can be None if not available.
+    @param config Input parameter `config`.
+    @param prompt_name Input parameter `prompt_name`.
+    @param source_name Input parameter `source_name`.
+    @return {tuple[Optional[str], Optional[list[str]]]} Function return value.
     """
     if not config:
         return None, None
@@ -1401,8 +1576,12 @@ def get_model_tools_for_prompt(
 
 
 def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any:
-    """! @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
-    @details Can return a list of strings, a string, or None depending on how it is defined in `config.json`. Does not perform CSV parsing: returns the value exactly as present in the configuration file.
+    """!
+    @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
+        @details Can return a list of strings, a string, or None depending on how it is defined in `config.json`. Does not perform CSV parsing: returns the value exactly as present in the configuration file.
+    @param config Input parameter `config`.
+    @param prompt_name Input parameter `prompt_name`.
+    @return {Any} Function return value.
     """
     if not config:
         return None
@@ -1419,7 +1598,11 @@ def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) ->
 
 
 def format_tools_inline_list(tools: list[str]) -> str:
-    """! @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
+    """!
+    @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
+    @details Implements the format_tools_inline_list function behavior with deterministic control flow.
+    @param tools Input parameter `tools`.
+    @return {str} Function return value.
     """
     safe = [t.replace("'", "\\'") for t in tools]
     quoted = ", ".join(f"'{s}'" for s in safe)
@@ -1427,7 +1610,12 @@ def format_tools_inline_list(tools: list[str]) -> str:
 
 
 def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
-    """! @brief Recursively merges dictionaries, prioritizing incoming values.
+    """!
+    @brief Recursively merges dictionaries, prioritizing incoming values.
+    @details Implements the deep_merge_dict function behavior with deterministic control flow.
+    @param base Input parameter `base`.
+    @param incoming Input parameter `incoming`.
+    @return {dict[str, Any]} Function return value.
     """
     for key, value in incoming.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
@@ -1438,7 +1626,10 @@ def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str,
 
 
 def find_vscode_settings_source() -> Optional[Path]:
-    """! @brief Finds the VS Code settings template if available.
+    """!
+    @brief Finds the VS Code settings template if available.
+    @details Implements the find_vscode_settings_source function behavior with deterministic control flow.
+    @return {Optional[Path]} Function return value.
     """
     candidate = RESOURCE_ROOT / "vscode" / "settings.json"
     if candidate.is_file():
@@ -1447,7 +1638,11 @@ def find_vscode_settings_source() -> Optional[Path]:
 
 
 def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
-    """! @brief Generates chat.promptFilesRecommendations from available prompts.
+    """!
+    @brief Generates chat.promptFilesRecommendations from available prompts.
+    @details Implements the build_prompt_recommendations function behavior with deterministic control flow.
+    @param prompts_dir Input parameter `prompts_dir`.
+    @return {dict[str, bool]} Function return value.
     """
     recommendations: dict[str, bool] = {}
     if not prompts_dir.is_dir():
@@ -1458,7 +1653,13 @@ def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]:
 
 
 def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
-    """! @brief Verifies that the path is under the project root.
+    """!
+    @brief Verifies that the path is under the project root.
+    @details Implements the ensure_wrapped function behavior with deterministic control flow.
+    @param target Input parameter `target`.
+    @param project_base Input parameter `project_base`.
+    @param code Input parameter `code`.
+    @return {None} Function return value.
     """
     if not target.resolve().is_relative_to(project_base):
         raise ReqError(
@@ -1468,7 +1669,12 @@ def ensure_wrapped(target: Path, project_base: Path, code: int) -> None:
 
 
 def save_vscode_backup(req_root: Path, settings_path: Path) -> None:
-    """! @brief Saves a backup of VS Code settings if the file exists.
+    """!
+    @brief Saves a backup of VS Code settings if the file exists.
+    @details Implements the save_vscode_backup function behavior with deterministic control flow.
+    @param req_root Input parameter `req_root`.
+    @param settings_path Input parameter `settings_path`.
+    @return {None} Function return value.
     """
     backup_path = req_root / "settings.json.backup"
     # Never create an absence marker. Backup only if the file exists.
@@ -1478,7 +1684,11 @@ def save_vscode_backup(req_root: Path, settings_path: Path) -> None:
 
 
 def restore_vscode_settings(project_base: Path) -> None:
-    """! @brief Restores VS Code settings from backup, if present.
+    """!
+    @brief Restores VS Code settings from backup, if present.
+    @details Implements the restore_vscode_settings function behavior with deterministic control flow.
+    @param project_base Input parameter `project_base`.
+    @return {None} Function return value.
     """
     req_root = project_base / ".req"
     backup_path = req_root / "settings.json.backup"
@@ -1490,7 +1700,11 @@ def restore_vscode_settings(project_base: Path) -> None:
 
 
 def prune_empty_dirs(root: Path) -> None:
-    """! @brief Removes empty directories under the specified root.
+    """!
+    @brief Removes empty directories under the specified root.
+    @details Implements the prune_empty_dirs function behavior with deterministic control flow.
+    @param root Input parameter `root`.
+    @return {None} Function return value.
     """
     if not root.is_dir():
         return
@@ -1504,7 +1718,11 @@ def prune_empty_dirs(root: Path) -> None:
 
 
 def remove_generated_resources(project_base: Path) -> None:
-    """! @brief Removes resources generated by the tool in the project root.
+    """!
+    @brief Removes resources generated by the tool in the project root.
+    @details Implements the remove_generated_resources function behavior with deterministic control flow.
+    @param project_base Input parameter `project_base`.
+    @return {None} Function return value.
     """
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
@@ -1551,7 +1769,11 @@ def remove_generated_resources(project_base: Path) -> None:
 
 
 def run_remove(args: Namespace) -> None:
-    """! @brief Handles the removal of generated resources.
+    """!
+    @brief Handles the removal of generated resources.
+    @details Implements the run_remove function behavior with deterministic control flow.
+    @param args Input parameter `args`.
+    @return {None} Function return value.
     """
     guidelines_dir = getattr(args, 'guidelines_dir', None)
     doc_dir = getattr(args, 'docs_dir', None)
@@ -1603,15 +1825,16 @@ def _validate_enable_static_check_command_executables(
     enforce: bool,
 ) -> None:
     """!
-    @brief Validate Command-module executables in `--enable-static-check` parsed entries.
-    @param static_check_config Parsed static-check entries grouped by canonical language.
-    @param enforce When false, skip validation and return immediately.
-    @throws ReqError If a Command entry references a non-executable `cmd` on this system.
-    @details
-      Validation scope is limited to Command entries coming from CLI specs.
-      Each Command `cmd` is resolved with `shutil.which`; on miss, raises `ReqError(code=1)`
-      before any configuration persistence.
-    @see SRS-250
+        @brief Validate Command-module executables in `--enable-static-check` parsed entries.
+        @param static_check_config Parsed static-check entries grouped by canonical language.
+        @param enforce When false, skip validation and return immediately.
+        @throws ReqError If a Command entry references a non-executable `cmd` on this system.
+        @details
+          Validation scope is limited to Command entries coming from CLI specs.
+          Each Command `cmd` is resolved with `shutil.which`; on miss, raises `ReqError(code=1)`
+          before any configuration persistence.
+        @see SRS-250
+    @return {None} Function return value.
     """
     if not enforce:
         return
@@ -1629,9 +1852,11 @@ def _validate_enable_static_check_command_executables(
 
 
 def run(args: Namespace) -> None:
-    """! @brief Handles the main initialization flow.
-    @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
-    @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
+    """!
+    @brief Handles the main initialization flow.
+        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
+        @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
+    @return {None} Function return value.
     """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
@@ -2707,8 +2932,12 @@ SUPPORTED_EXTENSIONS = frozenset({
 
 
 def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
-    """! @brief Collect source files from git-indexed project paths.
-    @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
+    """!
+    @brief Collect source files from git-indexed project paths.
+        @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
+    @param src_dirs Input parameter `src_dirs`.
+    @param project_base Input parameter `project_base`.
+    @return {list[str]} Function return value.
     """
     cmd = [
         "git", "-C", str(project_base),
@@ -2756,9 +2985,11 @@ def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
 
 
 def _build_ascii_tree(paths: list[str]) -> str:
-    """! @brief Build a deterministic tree string from project-relative paths.
-    @param paths Project-relative file paths.
-    @return Rendered tree rooted at '.'.
+    """!
+    @brief Build a deterministic tree string from project-relative paths.
+        @param paths Project-relative file paths.
+        @return Rendered tree rooted at '.'.
+    @details Implements the _build_ascii_tree function behavior with deterministic control flow.
     """
     tree: dict[str, dict[str, Any] | None] = {}
     for rel_path in sorted(paths):
@@ -2800,10 +3031,12 @@ def _build_ascii_tree(paths: list[str]) -> str:
 
 
 def _format_files_structure_markdown(files: list[str], project_base: Path) -> str:
-    """! @brief Format markdown section containing the scanned files tree.
-    @param files Absolute file paths selected for --references processing.
-    @param project_base Project root used to normalize relative paths.
-    @return Markdown section with heading and fenced tree.
+    """!
+    @brief Format markdown section containing the scanned files tree.
+        @param files Absolute file paths selected for --references processing.
+        @param project_base Project root used to normalize relative paths.
+        @return Markdown section with heading and fenced tree.
+    @details Implements the _format_files_structure_markdown function behavior with deterministic control flow.
     """
     rel_paths = [Path(path).resolve().relative_to(project_base).as_posix() for path in files]
     tree = _build_ascii_tree(rel_paths)
@@ -2848,9 +3081,10 @@ def _is_project_scan_command(args: Namespace) -> bool:
 
 def _is_here_only_project_scan_command(args: Namespace) -> bool:
     """!
-    @brief Check if args request a project-scan command restricted to `--here` mode.
-    @param args Parsed CLI namespace.
-    @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
+        @brief Check if args request a project-scan command restricted to `--here` mode.
+        @param args Parsed CLI namespace.
+        @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
+    @details Implements the _is_here_only_project_scan_command function behavior with deterministic control flow.
     """
     return bool(
         getattr(args, "references", False)
@@ -2862,7 +3096,11 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
 
 
 def run_files_tokens(files: list[str]) -> None:
-    """! @brief Execute --files-tokens: count tokens for arbitrary files.
+    """!
+    @brief Execute --files-tokens: count tokens for arbitrary files.
+    @details Implements the run_files_tokens function behavior with deterministic control flow.
+    @param files Input parameter `files`.
+    @return {None} Function return value.
     """
     from .token_counter import count_files_metrics, format_pack_summary
 
@@ -2881,7 +3119,11 @@ def run_files_tokens(files: list[str]) -> None:
 
 
 def run_files_references(files: list[str]) -> None:
-    """! @brief Execute --files-references: generate markdown for arbitrary files.
+    """!
+    @brief Execute --files-references: generate markdown for arbitrary files.
+    @details Implements the run_files_references function behavior with deterministic control flow.
+    @param files Input parameter `files`.
+    @return {None} Function return value.
     """
     from .generate_markdown import generate_markdown
 
@@ -2894,10 +3136,12 @@ def run_files_references(files: list[str]) -> None:
 
 
 def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None:
-    """! @brief Execute --files-compress: compress arbitrary files.
-    @param files List of source file paths to compress.
-    @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
-    @details Renders output header paths relative to current working directory.
+    """!
+    @brief Execute --files-compress: compress arbitrary files.
+        @param files List of source file paths to compress.
+        @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
+        @details Renders output header paths relative to current working directory.
+    @return {None} Function return value.
     """
     from .compress_files import compress_files
 
@@ -2911,9 +3155,12 @@ def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> N
 
 
 def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None:
-    """! @brief Execute --files-find: find constructs in arbitrary files.
-    @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
-    @param enable_line_numbers If True, emits <n>: prefixes in output.
+    """!
+    @brief Execute --files-find: find constructs in arbitrary files.
+        @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
+        @param enable_line_numbers If True, emits <n>: prefixes in output.
+    @details Implements the run_files_find function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     from .find_constructs import find_constructs_in_files
 
@@ -2937,7 +3184,11 @@ def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> N
 
 
 def run_references(args: Namespace) -> None:
-    """! @brief Execute --references: generate markdown for project source files.
+    """!
+    @brief Execute --references: generate markdown for project source files.
+    @details Implements the run_references function behavior with deterministic control flow.
+    @param args Input parameter `args`.
+    @return {None} Function return value.
     """
     from .generate_markdown import generate_markdown
 
@@ -2951,8 +3202,11 @@ def run_references(args: Namespace) -> None:
 
 
 def run_compress_cmd(args: Namespace) -> None:
-    """! @brief Execute --compress: compress project source files.
-    @param args Parsed CLI arguments namespace.
+    """!
+    @brief Execute --compress: compress project source files.
+        @param args Parsed CLI arguments namespace.
+    @details Implements the run_compress_cmd function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     from .compress_files import compress_files
 
@@ -2970,9 +3224,12 @@ def run_compress_cmd(args: Namespace) -> None:
 
 
 def run_find(args: Namespace) -> None:
-    """! @brief Execute --find: find constructs in project source files.
-    @param args Parsed CLI arguments namespace.
-    @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
+    """!
+    @brief Execute --find: find constructs in project source files.
+        @param args Parsed CLI arguments namespace.
+        @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
+    @details Implements the run_find function behavior with deterministic control flow.
+    @return {None} Function return value.
     """
     from .find_constructs import find_constructs_in_files
 
@@ -3136,10 +3393,12 @@ def run_project_static_check_cmd(args: Namespace) -> int:
 
 
 def _resolve_project_base(args: Namespace) -> Path:
-    """! @brief Resolve project base path for project-level commands.
-    @param args Parsed CLI arguments namespace.
-    @return Absolute path of project base.
-    @throws ReqError If --base/--here is missing or the resolved path does not exist.
+    """!
+    @brief Resolve project base path for project-level commands.
+        @param args Parsed CLI arguments namespace.
+        @return Absolute path of project base.
+        @throws ReqError If --base/--here is missing or the resolved path does not exist.
+    @details Implements the _resolve_project_base function behavior with deterministic control flow.
     """
     if not getattr(args, "base", None) and not getattr(args, "here", False):
         raise ReqError("Error: --base or --here is required for this command.", 1)
@@ -3155,7 +3414,11 @@ def _resolve_project_base(args: Namespace) -> Path:
 
 
 def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
-    """! @brief Resolve project base and src-dirs for project source commands.
+    """!
+    @brief Resolve project base and src-dirs for project source commands.
+    @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
+    @param args Input parameter `args`.
+    @return {tuple[Path, list[str]]} Function return value.
     """
     project_base = _resolve_project_base(args)
 
@@ -3202,8 +3465,11 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    """! @brief CLI entry point for console_scripts and `-m` execution.
-    @details Returns an exit code (0 success, non-zero on error).
+    """!
+    @brief CLI entry point for console_scripts and `-m` execution.
+        @details Returns an exit code (0 success, non-zero on error).
+    @param argv Input parameter `argv`.
+    @return {int} Function return value.
     """
     try:
         global VERBOSE, DEBUG

@@ -338,12 +338,13 @@ class StaticCheckBase:
         extra_args: Optional[Sequence[str]] = None,
     ) -> None:
         """!
-        @brief Initialize the static checker with resolved inputs and options.
-        @param inputs Raw path/pattern/directory entries from CLI.
-        @param extra_args Additional CLI arguments forwarded to the external tool (may be None).
-        @details Resolves `inputs` immediately into `self._files` via `_resolve_files`.
-          Recursive traversal is expressed via `**` glob patterns in `inputs` (e.g., `src/**/*.py`);
-          no separate recursive flag exists (SRS-240, SRS-245).
+                @brief Initialize the static checker with resolved inputs and options.
+                @param inputs Raw path/pattern/directory entries from CLI.
+                @param extra_args Additional CLI arguments forwarded to the external tool (may be None).
+                @details Resolves `inputs` immediately into `self._files` via `_resolve_files`.
+                  Recursive traversal is expressed via `**` glob patterns in `inputs` (e.g., `src/**/*.py`);
+                  no separate recursive flag exists (SRS-240, SRS-245).
+        @return {None} Function return value.
         """
         self._extra_args: List[str] = list(extra_args) if extra_args else []
         self._files = _resolve_files(inputs)
@@ -405,9 +406,10 @@ class StaticCheckBase:
 
     def _emit_line(self, line: str) -> None:
         """!
-        @brief Emit one markdown output line.
-        @param line Line content to emit on stdout.
-        @details Emits `line` followed by a newline.
+                @brief Emit one markdown output line.
+                @param line Line content to emit on stdout.
+                @details Emits `line` followed by a newline.
+        @return {None} Function return value.
         """
         print(line)
 
@@ -540,13 +542,14 @@ class StaticCheckCommand(StaticCheckBase):
         extra_args: Optional[Sequence[str]] = None,
     ) -> None:
         """!
-        @brief Initialize the command checker and verify tool availability.
-        @param cmd External command name (must be available on PATH).
-        @param inputs Raw path/pattern/directory entries from CLI.
-        @param extra_args Additional CLI arguments forwarded to the external command.
-        @throws ReqError If `cmd` is not found on PATH (exit code 1).
-        @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
-          Sets `LABEL` dynamically to `Command[<cmd>]`.
+                @brief Initialize the command checker and verify tool availability.
+                @param cmd External command name (must be available on PATH).
+                @param inputs Raw path/pattern/directory entries from CLI.
+                @param extra_args Additional CLI arguments forwarded to the external command.
+                @throws ReqError If `cmd` is not found on PATH (exit code 1).
+                @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
+                  Sets `LABEL` dynamically to `Command[<cmd>]`.
+        @return {None} Function return value.
         """
         if not shutil.which(cmd):
             raise ReqError(

@@ -140,9 +140,11 @@ def _remove_inline_comment(line: str, single_comment: str,
 
 
 def _is_python_docstring_line(line: str) -> bool:
-    """! @brief Check if a line is a standalone Python docstring (triple-quote only).
-    @param line The code line string.
-    @return True if the line appears to be a standalone triple-quoted string.
+    """!
+    @brief Check if a line is a standalone Python docstring (triple-quote only).
+        @param line The code line string.
+        @return True if the line appears to be a standalone triple-quoted string.
+    @details Implements the _is_python_docstring_line function behavior with deterministic control flow.
     """
     stripped = line.strip()
     for q in ('"""', "'''"):
@@ -153,10 +155,12 @@ def _is_python_docstring_line(line: str) -> bool:
 
 def _format_result(entries: list[tuple[int, str]],
                    include_line_numbers: bool) -> str:
-    """! @brief Format compressed entries, optionally prefixing original line numbers.
-    @param entries List of tuples (line_number, text).
-    @param include_line_numbers Boolean flag to enable line prefixes.
-    @return Formatted string.
+    """!
+    @brief Format compressed entries, optionally prefixing original line numbers.
+        @param entries List of tuples (line_number, text).
+        @param include_line_numbers Boolean flag to enable line prefixes.
+        @return Formatted string.
+    @details Implements the _format_result function behavior with deterministic control flow.
     """
     if not include_line_numbers:
         return '\n'.join(text for _, text in entries)
@@ -333,12 +337,14 @@ def compress_source(source: str, language: str,
 
 def compress_file(filepath: str, language: str | None = None,
                   include_line_numbers: bool = True) -> str:
-    """! @brief Compress a source file by removing comments and extra whitespace.
-    @param filepath Path to the source file.
-    @param language Optional language override. Auto-detected if None.
-    @param include_line_numbers If True (default), prefix each line with <n>: format.
-    @return Compressed source code string.
-    @throws ValueError If language cannot be detected.
+    """!
+    @brief Compress a source file by removing comments and extra whitespace.
+        @param filepath Path to the source file.
+        @param language Optional language override. Auto-detected if None.
+        @param include_line_numbers If True (default), prefix each line with <n>: format.
+        @return Compressed source code string.
+        @throws ValueError If language cannot be detected.
+    @details Implements the compress_file function behavior with deterministic control flow.
     """
     if language is None:
         language = detect_language(filepath)
@@ -354,8 +360,10 @@ def compress_file(filepath: str, language: str | None = None,
 
 
 def main():
-    """! @brief Execute the standalone compression CLI.
-    @details Parses command-line arguments and invokes `compress_file`, printing the result to stdout or errors to stderr.
+    """!
+    @brief Execute the standalone compression CLI.
+        @details Parses command-line arguments and invokes `compress_file`, printing the result to stdout or errors to stderr.
+    @return {None} Function return value.
     """
     import argparse
     parser = argparse.ArgumentParser(
