@@ -6,6 +6,27 @@
   - `entrypoints`: `main(argv: Optional[list[str]] = None) -> int`
   - `defining_files`: `src/usereq/cli.py`
   - `threads`: `no explicit threads detected`
+- `PROC:req-sh`
+  - `type`: `Process`
+  - `parent_process`: `-`
+  - `role`: `Repository runner bootstrap with requirements-hash venv refresh before launching CLI`
+  - `entrypoints`: `scripts/req.sh`
+  - `defining_files`: `scripts/req.sh`
+  - `threads`: `no explicit threads detected`
+- `PROC:ruff-sh`
+  - `type`: `Process`
+  - `parent_process`: `-`
+  - `role`: `Repository Ruff runner bootstrap with requirements-hash venv refresh before launching Ruff`
+  - `entrypoints`: `scripts/ruff.sh`
+  - `defining_files`: `scripts/ruff.sh`
+  - `threads`: `no explicit threads detected`
+- `PROC:pyright-sh`
+  - `type`: `Process`
+  - `parent_process`: `-`
+  - `role`: `Repository Pyright runner bootstrap with requirements-hash venv refresh before launching Pyright`
+  - `entrypoints`: `scripts/pyright.sh`
+  - `defining_files`: `scripts/pyright.sh`
+  - `threads`: `no explicit threads detected`
 
 ## Execution Units
 ### `PROC:main`
@@ -82,6 +103,36 @@
   - Filesystem read/write boundaries: `.req/config.json`, project docs directories, selected source files [`src/usereq/cli.py`, `src/usereq/token_counter.py`, `src/usereq/compress_files.py`]
   - Standard stream I/O boundaries: stdout/stderr reporting for command outputs and status [`src/usereq/cli.py`, `src/usereq/static_check.py`, `src/usereq/token_counter.py`]
 
+### `PROC:req-sh`
+- **Type**: Process
+- **Parent Process**: `-`
+- **Entrypoint(s)**: `scripts/req.sh` [`scripts/req.sh`]
+- **Lifecycle/Trigger**: starts on shell invocation and ensures `.venv` hash state matches `requirements.txt` before replacing process image with repository CLI execution.
+- **Internal Call-Trace Tree**
+  - `req.sh(...)`: shell bootstrap for virtualenv hash synchronization and CLI dispatch [`scripts/req.sh`]
+    - external boundaries: `sha256sum`, `virtualenv`, `pip install -r`, `exec .../python3`
+
+### `PROC:ruff-sh`
+- **Type**: Process
+- **Parent Process**: `-`
+- **Entrypoint(s)**: `scripts/ruff.sh` [`scripts/ruff.sh`]
+- **Lifecycle/Trigger**: starts on shell invocation and ensures `.venv` hash state matches `requirements.txt` before replacing process image with Ruff execution.
+- **Internal Call-Trace Tree**
+  - `ruff.sh(...)`: shell bootstrap for virtualenv hash synchronization and Ruff dispatch [`scripts/ruff.sh`]
+    - external boundaries: `sha256sum`, `virtualenv`, `pip install -r`, `exec .../ruff`
+
+### `PROC:pyright-sh`
+- **Type**: Process
+- **Parent Process**: `-`
+- **Entrypoint(s)**: `scripts/pyright.sh` [`scripts/pyright.sh`]
+- **Lifecycle/Trigger**: starts on shell invocation and ensures `.venv` hash state matches `requirements.txt` before replacing process image with Pyright execution.
+- **Internal Call-Trace Tree**
+  - `pyright.sh(...)`: shell bootstrap for virtualenv hash synchronization and Pyright dispatch [`scripts/pyright.sh`]
+    - external boundaries: `sha256sum`, `virtualenv`, `pip install -r`, `exec .../pyright`
+
 ## Communication Edges
-- No explicit `Communication Edge` detected between execution units.
-- Evidence: only one execution unit (`PROC:main`) is present and no explicit thread/process creation API is used by runtime code under `src/`.
+- `PROC:req-sh -> PROC:main`
+  - `mechanism`: `OS exec handoff`
+  - `endpoint/channel`: ``.venv/bin/python3 -c 'from usereq.cli import main; raise SystemExit(main())'``
+  - `payload`: `argv passthrough from shell process to Python CLI main entrypoint`
+- No additional explicit `Communication Edge` detected between execution units.

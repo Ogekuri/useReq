@@ -2,8 +2,5 @@
 build
 setuptools
 wheel
-pytest
 tiktoken
 pyyaml
-ruff
-pyright
