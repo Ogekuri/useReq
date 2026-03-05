@@ -3495,6 +3495,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                     1,
                 )
             args.here = True
+        if _is_standalone_command(args) or _is_project_scan_command(args):
+            maybe_notify_newer_version(timeout_seconds=1.0)
         # Standalone file commands (no --base/--here required)
         if _is_standalone_command(args):
             if getattr(args, "files_tokens", None):

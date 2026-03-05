@@ -179,7 +179,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3552L | 103 symbols | 28 imports | 168 comments
+# cli.py | Python | 3554L | 103 symbols | 28 imports | 168 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -854,7 +854,7 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L3467-3552)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L3467-3554)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
@@ -969,7 +969,7 @@ sorted set of artifact category labels installed for a CLI during the current in
 |`run_project_static_check_cmd`|fn|pub|3349-3394|def run_project_static_check_cmd(args: Namespace) -> int|
 |`_resolve_project_base`|fn|priv|3395-3415|def _resolve_project_base(args: Namespace) -> Path|
 |`_resolve_project_src_dirs`|fn|priv|3416-3466|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|3467-3552|def main(argv: Optional[list[str]] = None) -> int|
+|`main`|fn|pub|3467-3554|def main(argv: Optional[list[str]] = None) -> int|
 |`VERBOSE`|var|pub|3489||
 |`DEBUG`|var|pub|3490||
 
