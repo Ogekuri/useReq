@@ -87,7 +87,7 @@ else
 --upgrade-guidelines \
 --enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode \
 --enable-models --enable-tools \
---enable-prompts --enable-agents \
+--install-prompts --install-agents --install-skills \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
 --enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \

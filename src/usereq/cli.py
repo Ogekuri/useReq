@@ -48,9 +48,9 @@ PERSISTED_UPDATE_FLAG_KEYS = (
     "enable-github",
     "enable-kiro",
     "enable-opencode",
-    "enable-prompts",
-    "enable-agents",
-    "disable-skills",
+    "install-prompts",
+    "install-agents",
+    "install-skills",
     "prompts-use-agents",
     "legacy",
     "preserve-models",
@@ -151,7 +151,7 @@ def _get_available_tags_help() -> str:
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
     @return Configured ArgumentParser instance.
-    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --disable-skills).
+    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--install-prompts, --install-agents, --install-skills).
     """
     version = load_package_version()
     usage = (
@@ -159,7 +159,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
-        "[--enable-prompts] [--enable-agents] [--disable-skills] "
+        "[--install-prompts] [--install-agents] [--install-skills] "
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
@@ -255,21 +255,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable generation of OpenCode prompts and agents for this run.",
     )
     parser.add_argument(
-        "--enable-prompts",
+        "--install-prompts",
+        dest="enable_prompts",
         action="store_true",
-        help="Enable generation of prompt/command artifact files for each enabled provider.",
+        help="Install prompt/command artifact files for each enabled provider.",
     )
     parser.add_argument(
-        "--enable-agents",
+        "--install-agents",
+        dest="enable_agents",
         action="store_true",
-        help="Enable generation of agent artifact files for each enabled provider.",
+        help="Install agent artifact files for each enabled provider.",
     )
     parser.add_argument(
-        "--disable-skills",
+        "--install-skills",
         dest="enable_skills",
-        action="store_false",
-        default=True,
-        help="Disable generation of skill artifact files for each enabled provider.",
+        action="store_true",
+        default=False,
+        help="Install skill artifact files for each enabled provider.",
     )
     parser.add_argument(
         "--prompts-use-agents",
@@ -1182,9 +1184,9 @@ def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
         "enable-github": bool(args.enable_github),
         "enable-kiro": bool(args.enable_kiro),
         "enable-opencode": bool(args.enable_opencode),
-        "enable-prompts": bool(args.enable_prompts),
-        "enable-agents": bool(args.enable_agents),
-        "disable-skills": not bool(args.enable_skills),
+        "install-prompts": bool(args.enable_prompts),
+        "install-agents": bool(args.enable_agents),
+        "install-skills": bool(args.enable_skills),
         "prompts-use-agents": bool(args.prompts_use_agents),
         "legacy": bool(args.legacy),
         "preserve-models": bool(args.preserve_models),
@@ -1227,9 +1229,9 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
     )
     has_artifact_type = any(
         (
-            flags["enable-prompts"],
-            flags["enable-agents"],
-            not flags["disable-skills"],
+            flags["install-prompts"],
+            flags["install-agents"],
+            flags["install-skills"],
         )
     )
     if not has_provider or not has_artifact_type:
@@ -2180,8 +2182,8 @@ def _validate_enable_static_check_command_executables(
 def run(args: Namespace) -> None:
     """!
     @brief Handles the main initialization flow.
-        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
-        @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
+        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills.
+        @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills toggled by --install-prompts/--install-agents/--install-skills).
     @return {None} Function return value.
     """
     global VERBOSE, DEBUG
@@ -2239,9 +2241,9 @@ def run(args: Namespace) -> None:
         args.enable_github = bool(args.enable_github) or persisted_flags["enable-github"]
         args.enable_kiro = bool(args.enable_kiro) or persisted_flags["enable-kiro"]
         args.enable_opencode = bool(args.enable_opencode) or persisted_flags["enable-opencode"]
-        args.enable_prompts = bool(args.enable_prompts) or persisted_flags["enable-prompts"]
-        args.enable_agents = bool(args.enable_agents) or persisted_flags["enable-agents"]
-        args.enable_skills = not ((not bool(args.enable_skills)) or persisted_flags["disable-skills"])
+        args.enable_prompts = bool(args.enable_prompts) or persisted_flags["install-prompts"]
+        args.enable_agents = bool(args.enable_agents) or persisted_flags["install-agents"]
+        args.enable_skills = bool(args.enable_skills) or persisted_flags["install-skills"]
         args.prompts_use_agents = bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
         args.legacy = bool(args.legacy) or persisted_flags["legacy"]
         args.preserve_models = bool(args.preserve_models) or persisted_flags["preserve-models"]
@@ -2386,7 +2388,7 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one active artifact type is required (--enable-prompts, --enable-agents, or omit --disable-skills)",
+            "Error: at least one artifact install flag is required (--install-prompts, --install-agents, or --install-skills)",
             4,
         )
 
