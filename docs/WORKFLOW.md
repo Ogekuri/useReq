@@ -43,9 +43,14 @@
 - **Lifecycle/Trigger**: starts on OS process invocation (`req`, `use-req`, `usereq`), executes argument parsing and one command path, exits with integer status code.
 - **Internal Call-Trace Tree**
   - `main(...)`: command router and execution coordinator [`src/usereq/cli.py`]
-    - `maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)`: perform startup online release-check before argument parsing and validation using remotes-derived GitHub API endpoint [`src/usereq/cli.py`]
+    - `maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)`: perform startup idle-gated online release-check before argument parsing and validation [`src/usereq/cli.py`]
+      - `get_release_check_idle_file_path(...)`: resolve `$HOME/.github_api_idle-time.<program_name>` target path [`src/usereq/cli.py`]
+      - `read_release_check_idle_state(...)`: parse and validate persisted idle-state JSON fields [`src/usereq/cli.py`]
+      - `should_execute_release_check(...)`: decide whether remote check is due using idle-until timestamp [`src/usereq/cli.py`]
       - `resolve_latest_release_api_url()`: resolve `https://api.github.com/repos/<owner>/<repository>/releases/latest` from active git remotes [`src/usereq/cli.py`]
         - `parse_github_owner_repository(...)`: parse owner/repository tuple from github.com remote URL formats [`src/usereq/cli.py`]
+      - `write_release_check_idle_state(...)`: persist successful-check timestamp and idle-until timestamp [`src/usereq/cli.py`]
+        - `format_unix_timestamp_utc(...)`: serialize Unix timestamps as UTC human-readable strings [`src/usereq/cli.py`]
     - `parse_args(...)`: parse argv into `Namespace` [`src/usereq/cli.py`]
     - `_is_here_only_project_scan_command(...)`: enforce implicit `--here` and reject `--base` for here-only project-scan commands [`src/usereq/cli.py`]
     - `_is_standalone_command(...)`: detect standalone command path [`src/usereq/cli.py`]

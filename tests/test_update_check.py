@@ -2,6 +2,7 @@
 
 import io
 import json
+import tempfile
 import urllib.error
 import unittest
 from pathlib import Path
@@ -64,16 +65,26 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         urlopen_cm.__enter__.return_value = response_mock
         urlopen_cm.__exit__.return_value = None
 
-        with patch("usereq.cli.load_package_version", return_value="0.0.1"):
-            with patch(
-                "usereq.cli.resolve_latest_release_api_url",
-                return_value=(
-                    "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
-                ),
-            ):
-                with patch("usereq.cli.urllib.request.urlopen", return_value=urlopen_cm):
-                    with patch("sys.stderr") as fake_stderr:
-                        cli.maybe_notify_newer_version(timeout_seconds=2.0)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=1700000000):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                return_value=urlopen_cm,
+                            ):
+                                with patch("sys.stderr") as fake_stderr:
+                                    cli.maybe_notify_newer_version(timeout_seconds=2.0)
 
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(cli.ANSI_BRIGHT_GREEN, written)
@@ -90,16 +101,26 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             fp=io.BytesIO(b'{"message":"API rate limit exceeded"}'),
         )
 
-        with patch("usereq.cli.load_package_version", return_value="0.0.1"):
-            with patch(
-                "usereq.cli.resolve_latest_release_api_url",
-                return_value=(
-                    "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
-                ),
-            ):
-                with patch("usereq.cli.urllib.request.urlopen", side_effect=http_error):
-                    with patch("sys.stderr") as fake_stderr:
-                        cli.maybe_notify_newer_version(timeout_seconds=2.0)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=1700000000):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                side_effect=http_error,
+                            ):
+                                with patch("sys.stderr") as fake_stderr:
+                                    cli.maybe_notify_newer_version(timeout_seconds=2.0)
 
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(cli.ANSI_BRIGHT_RED, written)
@@ -115,20 +136,100 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         urlopen_cm.__enter__.return_value = response_mock
         urlopen_cm.__exit__.return_value = None
 
-        with patch("usereq.cli.load_package_version", return_value="0.0.1"):
-            with patch(
-                "usereq.cli.urllib.request.urlopen",
-                return_value=urlopen_cm,
-            ) as urlopen_mock:
-                with patch("usereq.cli.subprocess.check_output") as check_output_mock:
-                    check_output_mock.return_value = (
-                        "origin\thttps://github.com/ExampleOrg/ExampleRepo.git (fetch)\n"
-                    )
-                    cli.maybe_notify_newer_version(timeout_seconds=2.0)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=1700000000):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.urllib.request.urlopen",
+                            return_value=urlopen_cm,
+                        ) as urlopen_mock:
+                            with patch(
+                                "usereq.cli.subprocess.check_output",
+                            ) as check_output_mock:
+                                check_output_mock.return_value = (
+                                    "origin\thttps://github.com/ExampleOrg/ExampleRepo.git (fetch)\n"
+                                )
+                                cli.maybe_notify_newer_version(timeout_seconds=2.0)
 
         urlopen_call = urlopen_mock.call_args
         request_object = urlopen_call.args[0]
         self.assertEqual(
             request_object.full_url,
             "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+        )
+
+    def test_release_check_skips_network_when_idle_window_active(self) -> None:
+        """Active idle-until state must skip remote HTTP calls."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            now_timestamp = 1700000000
+            idle_state = {
+                "last_success_timestamp": now_timestamp - 10,
+                "last_success_datetime": "2023-11-14T22:13:10Z",
+                "idle_until_timestamp": now_timestamp + 3600,
+                "idle_until_datetime": "2023-11-15T00:13:20Z",
+            }
+            idle_path.write_text(json.dumps(idle_state), encoding="utf-8")
+
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch("usereq.cli.urllib.request.urlopen") as urlopen_mock:
+                            cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+        urlopen_mock.assert_not_called()
+
+    def test_successful_release_check_writes_idle_state_file(self) -> None:
+        """Successful release check must persist timestamps and human-readable fields."""
+        response_mock = MagicMock()
+        response_mock.read.return_value = json.dumps({"tag_name": "v0.0.1"}).encode("utf-8")
+        urlopen_cm = MagicMock()
+        urlopen_cm.__enter__.return_value = response_mock
+        urlopen_cm.__exit__.return_value = None
+        now_timestamp = 1700000000
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                return_value=urlopen_cm,
+                            ):
+                                cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload["last_success_timestamp"], now_timestamp)
+        self.assertEqual(
+            payload["last_success_datetime"],
+            cli.format_unix_timestamp_utc(now_timestamp),
+        )
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS,
+        )
+        self.assertEqual(
+            payload["idle_until_datetime"],
+            cli.format_unix_timestamp_utc(
+                now_timestamp + cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS
+            ),
         )

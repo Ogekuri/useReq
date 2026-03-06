@@ -9,12 +9,14 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 import os
 import re
 import shutil
 import sys
 import subprocess
+import time
 import urllib.error
 import urllib.request
 import yaml
@@ -66,6 +68,15 @@ ANSI_RESET = "\033[0m"
 
 RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
 """! @brief Hardcoded default timeout for startup release-check HTTP calls."""
+
+RELEASE_CHECK_IDLE_WINDOW_SECONDS = 86400
+"""! @brief Hardcoded default idle window in seconds between release checks."""
+
+RELEASE_CHECK_PROGRAM_NAME = "usereq"
+"""! @brief Program identifier used in release-check idle-state filename."""
+
+RELEASE_CHECK_IDLE_FILENAME_TEMPLATE = ".github_api_idle-time.{program_name}"
+"""! @brief Filename template for release-check idle-state JSON in `$HOME`."""
 
 GITHUB_RELEASES_LATEST_URL_TEMPLATE = (
     "https://api.github.com/repos/{owner}/{repository}/releases/latest"
@@ -608,17 +619,151 @@ def resolve_latest_release_api_url() -> str:
     raise ValueError("unable to resolve GitHub owner/repository from active git remotes")
 
 
+def format_unix_timestamp_utc(timestamp_seconds: int) -> str:
+    """!
+    @brief Convert a Unix timestamp into a UTC human-readable string.
+        @param timestamp_seconds Unix timestamp in seconds.
+        @return UTC datetime string in ISO-like `YYYY-MM-DDTHH:MM:SSZ` format.
+    @details Implements deterministic UTC conversion for release-check idle-state persistence.
+    """
+    return datetime.fromtimestamp(
+        timestamp_seconds,
+        tz=timezone.utc,
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def get_release_check_idle_file_path(
+    program_name: str = RELEASE_CHECK_PROGRAM_NAME,
+) -> Path:
+    """!
+    @brief Resolve idle-state file path for startup release-check throttling.
+        @param program_name Program identifier appended to the filename suffix.
+        @return Absolute path `$HOME/.github_api_idle-time.<program_name>`.
+    @details Builds the path using the effective home directory returned by `Path.home()`.
+    """
+    filename = RELEASE_CHECK_IDLE_FILENAME_TEMPLATE.format(program_name=program_name)
+    return Path.home() / filename
+
+
+def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | None:
+    """!
+    @brief Read and validate release-check idle-state JSON.
+        @param file_path Absolute idle-state JSON path under `$HOME`.
+        @return Normalized idle-state dictionary or None when file does not exist.
+        @throws OSError If file read fails.
+        @throws json.JSONDecodeError If file content is not valid JSON.
+        @throws ValueError If required keys are missing or value types are invalid.
+    @details Validates required keys `last_success_timestamp`, `last_success_datetime`, `idle_until_timestamp`, and `idle_until_datetime`; timestamps are normalized to integers.
+    """
+    if not file_path.exists():
+        return None
+
+    payload = json.loads(file_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("idle-state JSON root must be an object")
+
+    required_keys = (
+        "last_success_timestamp",
+        "last_success_datetime",
+        "idle_until_timestamp",
+        "idle_until_datetime",
+    )
+    for key in required_keys:
+        if key not in payload:
+            raise ValueError(f"idle-state JSON missing key '{key}'")
+
+    last_success_timestamp = payload["last_success_timestamp"]
+    idle_until_timestamp = payload["idle_until_timestamp"]
+    last_success_datetime = payload["last_success_datetime"]
+    idle_until_datetime = payload["idle_until_datetime"]
+
+    if not isinstance(last_success_timestamp, (int, float)):
+        raise ValueError("idle-state key 'last_success_timestamp' must be numeric")
+    if not isinstance(idle_until_timestamp, (int, float)):
+        raise ValueError("idle-state key 'idle_until_timestamp' must be numeric")
+    if not isinstance(last_success_datetime, str) or not last_success_datetime.strip():
+        raise ValueError("idle-state key 'last_success_datetime' must be a non-empty string")
+    if not isinstance(idle_until_datetime, str) or not idle_until_datetime.strip():
+        raise ValueError("idle-state key 'idle_until_datetime' must be a non-empty string")
+
+    return {
+        "last_success_timestamp": int(last_success_timestamp),
+        "last_success_datetime": last_success_datetime.strip(),
+        "idle_until_timestamp": int(idle_until_timestamp),
+        "idle_until_datetime": idle_until_datetime.strip(),
+    }
+
+
+def should_execute_release_check(
+    idle_state: Mapping[str, Any] | None,
+    now_timestamp: int,
+) -> bool:
+    """!
+    @brief Decide whether startup release-check should execute in current invocation.
+        @param idle_state Parsed idle-state payload or None when unavailable.
+        @param now_timestamp Current Unix timestamp in seconds.
+        @return True when release-check must execute; False when still in idle window.
+    @details Executes release-check when state is missing or invalid timestamp type; skips only when `idle_until_timestamp` is greater than current time.
+    """
+    if idle_state is None:
+        return True
+    idle_until_timestamp = idle_state.get("idle_until_timestamp")
+    if not isinstance(idle_until_timestamp, (int, float)):
+        return True
+    return now_timestamp >= int(idle_until_timestamp)
+
+
+def write_release_check_idle_state(
+    file_path: Path,
+    now_timestamp: int,
+    idle_window_seconds: int = RELEASE_CHECK_IDLE_WINDOW_SECONDS,
+) -> None:
+    """!
+    @brief Persist release-check idle-state after a successful remote check.
+        @param file_path Absolute idle-state JSON path.
+        @param now_timestamp Successful check timestamp in seconds.
+        @param idle_window_seconds Idle window length in seconds.
+        @throws OSError If file write fails.
+    @details Serializes timestamps and human-readable UTC datetimes for both the successful check instant and the idle-until instant.
+    """
+    idle_until_timestamp = now_timestamp + idle_window_seconds
+    payload = {
+        "last_success_timestamp": now_timestamp,
+        "last_success_datetime": format_unix_timestamp_utc(now_timestamp),
+        "idle_until_timestamp": idle_until_timestamp,
+        "idle_until_datetime": format_unix_timestamp_utc(idle_until_timestamp),
+    }
+    file_path.write_text(
+        f"{json.dumps(payload, indent=2, sort_keys=True)}\n",
+        encoding="utf-8",
+    )
+
+
 def maybe_notify_newer_version(
     timeout_seconds: float = RELEASE_CHECK_TIMEOUT_SECONDS,
 ) -> None:
     """!
-    @brief Checks online for a new version and prints bright colored status messages.
+    @brief Executes idle-gated online version check and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details Resolves latest-release URL from active git remotes, requests GitHub API, compares remote version with local package version, prints bright-green message on update availability, and prints bright-red error message on any check failure. Always preserves fail-open command execution.
+        @details Reads idle-state from `$HOME/.github_api_idle-time.<program_name>`, skips remote requests when idle window is active, resolves latest-release URL from active git remotes when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, and writes idle-state only after successful HTTP/JSON validation.
     @return {None} Function return value.
     """
 
     current_version = load_package_version()
+    idle_state_path = get_release_check_idle_file_path()
+    now_timestamp = int(time.time())
+
+    idle_state: Mapping[str, Any] | None = None
+    try:
+        idle_state = read_release_check_idle_state(idle_state_path)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: invalid idle-state ({exc}){ANSI_RESET}",
+            file=sys.stderr,
+        )
+    if not should_execute_release_check(idle_state, now_timestamp):
+        return
+
     try:
         url = resolve_latest_release_api_url()
     except (ReqError, ValueError) as exc:
@@ -660,6 +805,13 @@ def maybe_notify_newer_version(
                     f"installed {current_version}, latest {latest_version}."
                     f"{ANSI_RESET}"
                 ),
+                file=sys.stderr,
+            )
+        try:
+            write_release_check_idle_state(idle_state_path, now_timestamp)
+        except OSError as exc:
+            print(
+                f"{ANSI_BRIGHT_RED}Release-check error: idle-state write failure ({exc}){ANSI_RESET}",
                 file=sys.stderr,
             )
     except urllib.error.HTTPError as exc:
