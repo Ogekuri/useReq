@@ -72,7 +72,10 @@ RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
 RELEASE_CHECK_IDLE_WINDOW_SECONDS = 86400
 """! @brief Hardcoded default idle window in seconds between release checks."""
 
-RELEASE_CHECK_PROGRAM_NAME = "usereq"
+TOOL_PROGRAM_NAME = "usereq"
+"""! @brief Hardcoded configurable tool identifier used by uv install/uninstall commands."""
+
+RELEASE_CHECK_PROGRAM_NAME = TOOL_PROGRAM_NAME
 """! @brief Program identifier used in release-check idle-state filename."""
 
 RELEASE_CHECK_IDLE_FILENAME_TEMPLATE = ".github_api_idle-time.{program_name}"
@@ -446,14 +449,19 @@ def run_upgrade() -> None:
     @details Implements the run_upgrade function behavior with deterministic control flow.
     @return {None} Function return value.
     """
+    try:
+        owner, repository = resolve_github_owner_repository_from_active_remotes()
+    except (ReqError, ValueError) as exc:
+        raise ReqError(f"Error: unable to resolve upgrade source from git remotes ({exc})", 1) from exc
+
     command = [
         "uv",
         "tool",
         "install",
-        "usereq",
+        TOOL_PROGRAM_NAME,
         "--force",
         "--from",
-        "git+https://github.com/Ogekuri/useReq.git",
+        f"git+https://github.com/{owner}/{repository}.git",
     ]
     try:
         result = subprocess.run(command, check=False)
@@ -477,7 +485,7 @@ def run_uninstall() -> None:
         "uv",
         "tool",
         "uninstall",
-        "usereq",
+        TOOL_PROGRAM_NAME,
     ]
     try:
         result = subprocess.run(command, check=False)
@@ -574,13 +582,13 @@ def parse_github_owner_repository(remote_url: str) -> tuple[str, str] | None:
     return None
 
 
-def resolve_latest_release_api_url() -> str:
+def resolve_github_owner_repository_from_active_remotes() -> tuple[str, str]:
     """!
-    @brief Resolve latest-release GitHub API URL from active repository remotes.
-        @return Fully-qualified URL `https://api.github.com/repos/<owner>/<repository>/releases/latest`.
+    @brief Resolve GitHub owner/repository from active repository remotes.
+        @return Tuple `(owner, repository)` resolved from active remotes.
         @throws ValueError If no github.com remote URL can be parsed from `git remote -v`.
         @throws ReqError If git remote inspection cannot execute successfully.
-    @details Reads `git remote -v`, prioritizes `origin` fetch URL, then other fetch remotes, then non-fetch entries. Converts first parseable github.com remote into the API endpoint.
+    @details Reads `git remote -v`, prioritizes `origin` fetch URL, then other fetch remotes, then non-fetch entries, and returns the first parseable github.com owner/repository pair.
     """
     try:
         output = subprocess.check_output(
@@ -589,7 +597,10 @@ def resolve_latest_release_api_url() -> str:
             text=True,
         )
     except subprocess.CalledProcessError as exc:
-        raise ReqError("Error: unable to inspect git remotes for release-check URL", 1) from exc
+        raise ReqError(
+            "Error: unable to inspect git remotes for GitHub owner/repository",
+            1,
+        ) from exc
 
     ranked_remotes: list[tuple[int, str]] = []
     fallback_remotes: list[str] = []
@@ -608,15 +619,25 @@ def resolve_latest_release_api_url() -> str:
     candidate_urls = [url for _, url in ranked_remotes] + fallback_remotes
     for candidate_url in candidate_urls:
         parsed = parse_github_owner_repository(candidate_url)
-        if not parsed:
-            continue
-        owner, repository = parsed
-        return GITHUB_RELEASES_LATEST_URL_TEMPLATE.format(
-            owner=owner,
-            repository=repository,
-        )
+        if parsed:
+            return parsed
 
     raise ValueError("unable to resolve GitHub owner/repository from active git remotes")
+
+
+def resolve_latest_release_api_url() -> str:
+    """!
+    @brief Resolve latest-release GitHub API URL from active repository remotes.
+        @return Fully-qualified URL `https://api.github.com/repos/<owner>/<repository>/releases/latest`.
+        @throws ValueError If no github.com remote URL can be parsed from `git remote -v`.
+        @throws ReqError If git remote inspection cannot execute successfully.
+    @details Reads `git remote -v`, prioritizes `origin` fetch URL, then other fetch remotes, then non-fetch entries. Converts first parseable github.com remote into the API endpoint.
+    """
+    owner, repository = resolve_github_owner_repository_from_active_remotes()
+    return GITHUB_RELEASES_LATEST_URL_TEMPLATE.format(
+        owner=owner,
+        repository=repository,
+    )
 
 
 def format_unix_timestamp_utc(timestamp_seconds: int) -> str:
@@ -653,7 +674,7 @@ def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | Non
         @throws OSError If file read fails.
         @throws json.JSONDecodeError If file content is not valid JSON.
         @throws ValueError If required keys are missing or value types are invalid.
-    @details Validates required keys `last_success_timestamp`, `last_success_datetime`, `idle_until_timestamp`, and `idle_until_datetime`; timestamps are normalized to integers.
+    @details Validates required keys `last_success_timestamp`, `last_success_human_readable_timestamp`, `idle_until_timestamp`, and `idle_until_human_readable_timestamp`; timestamps are normalized to integers.
     """
     if not file_path.exists():
         return None
@@ -664,9 +685,9 @@ def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | Non
 
     required_keys = (
         "last_success_timestamp",
-        "last_success_datetime",
+        "last_success_human_readable_timestamp",
         "idle_until_timestamp",
-        "idle_until_datetime",
+        "idle_until_human_readable_timestamp",
     )
     for key in required_keys:
         if key not in payload:
@@ -674,23 +695,41 @@ def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | Non
 
     last_success_timestamp = payload["last_success_timestamp"]
     idle_until_timestamp = payload["idle_until_timestamp"]
-    last_success_datetime = payload["last_success_datetime"]
-    idle_until_datetime = payload["idle_until_datetime"]
+    last_success_human_readable_timestamp = payload[
+        "last_success_human_readable_timestamp"
+    ]
+    idle_until_human_readable_timestamp = payload[
+        "idle_until_human_readable_timestamp"
+    ]
 
     if not isinstance(last_success_timestamp, (int, float)):
         raise ValueError("idle-state key 'last_success_timestamp' must be numeric")
     if not isinstance(idle_until_timestamp, (int, float)):
         raise ValueError("idle-state key 'idle_until_timestamp' must be numeric")
-    if not isinstance(last_success_datetime, str) or not last_success_datetime.strip():
-        raise ValueError("idle-state key 'last_success_datetime' must be a non-empty string")
-    if not isinstance(idle_until_datetime, str) or not idle_until_datetime.strip():
-        raise ValueError("idle-state key 'idle_until_datetime' must be a non-empty string")
+    if (
+        not isinstance(last_success_human_readable_timestamp, str)
+        or not last_success_human_readable_timestamp.strip()
+    ):
+        raise ValueError(
+            "idle-state key 'last_success_human_readable_timestamp' must be a non-empty string"
+        )
+    if (
+        not isinstance(idle_until_human_readable_timestamp, str)
+        or not idle_until_human_readable_timestamp.strip()
+    ):
+        raise ValueError(
+            "idle-state key 'idle_until_human_readable_timestamp' must be a non-empty string"
+        )
 
     return {
         "last_success_timestamp": int(last_success_timestamp),
-        "last_success_datetime": last_success_datetime.strip(),
+        "last_success_human_readable_timestamp": (
+            last_success_human_readable_timestamp.strip()
+        ),
         "idle_until_timestamp": int(idle_until_timestamp),
-        "idle_until_datetime": idle_until_datetime.strip(),
+        "idle_until_human_readable_timestamp": (
+            idle_until_human_readable_timestamp.strip()
+        ),
     }
 
 
@@ -729,9 +768,13 @@ def write_release_check_idle_state(
     idle_until_timestamp = now_timestamp + idle_window_seconds
     payload = {
         "last_success_timestamp": now_timestamp,
-        "last_success_datetime": format_unix_timestamp_utc(now_timestamp),
+        "last_success_human_readable_timestamp": format_unix_timestamp_utc(
+            now_timestamp
+        ),
         "idle_until_timestamp": idle_until_timestamp,
-        "idle_until_datetime": format_unix_timestamp_utc(idle_until_timestamp),
+        "idle_until_human_readable_timestamp": format_unix_timestamp_utc(
+            idle_until_timestamp
+        ),
     }
     file_path.write_text(
         f"{json.dumps(payload, indent=2, sort_keys=True)}\n",

@@ -170,9 +170,9 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             now_timestamp = 1700000000
             idle_state = {
                 "last_success_timestamp": now_timestamp - 10,
-                "last_success_datetime": "2023-11-14T22:13:10Z",
+                "last_success_human_readable_timestamp": "2023-11-14T22:13:10Z",
                 "idle_until_timestamp": now_timestamp + 3600,
-                "idle_until_datetime": "2023-11-15T00:13:20Z",
+                "idle_until_human_readable_timestamp": "2023-11-15T00:13:20Z",
             }
             idle_path.write_text(json.dumps(idle_state), encoding="utf-8")
 
@@ -220,7 +220,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         self.assertEqual(payload["last_success_timestamp"], now_timestamp)
         self.assertEqual(
-            payload["last_success_datetime"],
+            payload["last_success_human_readable_timestamp"],
             cli.format_unix_timestamp_utc(now_timestamp),
         )
         self.assertEqual(
@@ -228,8 +228,57 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             now_timestamp + cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS,
         )
         self.assertEqual(
-            payload["idle_until_datetime"],
+            payload["idle_until_human_readable_timestamp"],
             cli.format_unix_timestamp_utc(
                 now_timestamp + cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS
             ),
+        )
+
+    def test_upgrade_command_uses_remote_owner_repository(self) -> None:
+        """Upgrade command must use git remote owner/repository in uv source URL."""
+        remote_output = "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (fetch)\n"
+        result_mock = MagicMock(returncode=0)
+
+        with patch("usereq.cli.subprocess.check_output", return_value=remote_output):
+            with patch("usereq.cli.subprocess.run", return_value=result_mock) as run_mock:
+                cli.run_upgrade()
+
+        run_mock.assert_called_once_with(
+            [
+                "uv",
+                "tool",
+                "install",
+                cli.TOOL_PROGRAM_NAME,
+                "--force",
+                "--from",
+                "git+https://github.com/ExampleOrg/ExampleRepo.git",
+            ],
+            check=False,
+        )
+
+    def test_upgrade_command_errors_when_remote_is_not_github(self) -> None:
+        """Upgrade command must fail when GitHub owner/repository cannot be resolved."""
+        remote_output = "origin\thttps://example.com/org/repo.git (fetch)\n"
+        with patch("usereq.cli.subprocess.check_output", return_value=remote_output):
+            with self.assertRaises(cli.ReqError) as context:
+                cli.run_upgrade()
+        self.assertIn(
+            "unable to resolve upgrade source from git remotes",
+            context.exception.message,
+        )
+
+    def test_uninstall_command_uses_tool_program_name(self) -> None:
+        """Uninstall command must target configured tool program name."""
+        result_mock = MagicMock(returncode=0)
+        with patch("usereq.cli.subprocess.run", return_value=result_mock) as run_mock:
+            cli.run_uninstall()
+
+        run_mock.assert_called_once_with(
+            [
+                "uv",
+                "tool",
+                "uninstall",
+                cli.TOOL_PROGRAM_NAME,
+            ],
+            check=False,
         )

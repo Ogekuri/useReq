@@ -128,9 +128,9 @@ No explicit performance optimizations identified.
 - **SRS-040**: The implementation MUST preserve this behavior exactly: The `--add-guidelines` and `--upgrade-guidelines` flags are mutually exclusive: if both are provided at the same time, the command MUST end with error.
 - **SRS-041**: The implementation MUST preserve this behavior exactly: The copy of technical templates MUST only occur when at least one of the two flags (`--add-guidelines` or `--upgrade-guidelines`) is active. If neither flag is provided, the copying operation MUST NOT be performed.
 - **SRS-042**: `--uninstall` and `--upgrade` dispatch MUST execute before argparse parsing and before regular initialization flow; `--uninstall` has precedence when both flags are present in argv order handling.
-- **SRS-043**: The implementation MUST preserve this behavior exactly: The `--upgrade` option MUST run the `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` command and terminate with error if it fails.
+- **SRS-043**: The `--upgrade` option MUST run `uv tool install <program_name> --force --from git+https://github.com/<owner>/<repository>.git`, where `<owner>/<repository>` is resolved from active git remotes, and MUST fail on non-zero exit.
 - **SRS-044**: The implementation MUST preserve this behavior exactly: The help string MUST include `--upgrade` as an option available.
-- **SRS-045**: The implementation MUST preserve this behavior exactly: The `--uninstall` option MUST run `uv tool uninstall usereq` and end with error if it fails.
+- **SRS-045**: The `--uninstall` option MUST run `uv tool uninstall <program_name>` using the same hardcoded configurable program identifier used by the CLI and MUST fail on non-zero exit.
 - **SRS-046**: The implementation MUST preserve this behavior exactly: The help string MUST include `--uninstall` as an option available.
 - **SRS-047**: The implementation MUST preserve this behavior exactly: After successful installation or update, the CLI MUST print a single English line reporting success and including the resolved project root path.
 - **SRS-048**: The implementation MUST preserve this behavior exactly: Immediately after the successful message, the CLI MUST print a list of the discovered directories for replacing the `%%GUIDELINES_FILES%%` token, prefixed by `- `.
@@ -139,7 +139,7 @@ No explicit performance optimizations identified.
 - **SRS-051**: The startup release-check MUST execute only when `$HOME/.github_api_idle-time.<program_name>` is missing or its stored idle-until timestamp is expired; otherwise the command MUST skip remote version checks for that invocation.
 - **SRS-052**: When a release-check is executed, it MUST use a hardcoded configurable timeout with default value `2` seconds; if remote version is greater than `__version__`, it MUST print a bright-green English message with installed and latest versions.
 - **SRS-269**: If a release-check attempt fails, the command MUST print a bright-red English error message with an explicit failure reason (for example HTTP `403` rate-limit exceeded) and MUST NOT abort command execution.
-- **SRS-270**: The idle-state file MUST be `$HOME/.github_api_idle-time.<program_name>` in JSON format and MUST contain keys `last_success_timestamp`, `last_success_datetime`, `idle_until_timestamp`, and `idle_until_datetime`.
+- **SRS-270**: The idle-state file MUST be `$HOME/.github_api_idle-time.<program_name>` in JSON format and MUST contain keys `last_success_timestamp`, `last_success_human_readable_timestamp`, `idle_until_timestamp`, and `idle_until_human_readable_timestamp`.
 - **SRS-271**: After each successful release-check HTTP/JSON flow, the command MUST write or update idle-state keys and MUST set `idle_until_timestamp` to `now + idle_window_seconds`, with hardcoded configurable default `idle_window_seconds=86400`.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
 - **SRS-054**: The repository MUST include `scripts/req.sh` as the development launcher wrapper for the CLI.
