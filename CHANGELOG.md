@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.0](https://github.com/Ogekuri/useReq/compare/v0.23.0..v0.24.0) - 2026-03-06
+### 🐛  Bug Fixes
+- retry upgrade remote inspection from repo root [useReq] *(cli)*
+  - retry git remote inspection in REPO_ROOT when cwd is outside repository
+  - preserve upgrade source resolution contract and uv install command
+  - add deterministic reproducer unit test for non-repo cwd failure
+  - update WORKFLOW and regenerate REFERENCES docs
+
 ## [0.23.0](https://github.com/Ogekuri/useReq/compare/v0.22.0..v0.23.0) - 2026-03-06
 ### 🚜  Changes
 - support .mjs extension [useReq] *(parser)*
@@ -664,6 +672,7 @@
 - \[0.21.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.21.0
 - \[0.22.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.22.0
 - \[0.23.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.23.0
+- \[0.24.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.24.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -688,3 +697,4 @@
 [0.21.0]: https://github.com/Ogekuri/useReq/compare/v0.20.0..v0.21.0
 [0.22.0]: https://github.com/Ogekuri/useReq/compare/v0.21.0..v0.22.0
 [0.23.0]: https://github.com/Ogekuri/useReq/compare/v0.22.0..v0.23.0
+[0.24.0]: https://github.com/Ogekuri/useReq/compare/v0.23.0..v0.24.0
