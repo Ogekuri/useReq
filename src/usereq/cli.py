@@ -55,6 +55,12 @@ PERSISTED_UPDATE_FLAG_KEYS = (
 )
 """! @brief Config keys persisted for install/update boolean flags."""
 
+ANSI_BRIGHT_RED = "\033[91m"
+"""! @brief ANSI escape prefix for bright red terminal output."""
+
+ANSI_RESET = "\033[0m"
+"""! @brief ANSI escape sequence that resets terminal style."""
+
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
     @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
@@ -521,9 +527,10 @@ def is_newer_version(current: str, latest: str) -> bool:
 
 def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
     """!
-    @brief Checks online for a new version and prints a warning.
+    @brief Checks online for a new version and prints a bright-red warning.
         @param timeout_seconds Time to wait for the version check response.
         @details If the call fails or the response is invalid, it prints nothing and proceeds.
+                 On newer-version detection, emits current and latest versions plus upgrade hint using ANSI bright-red styling.
     @return {None} Function return value.
     """
 
@@ -549,9 +556,10 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
         latest_version = normalize_release_tag(tag)
         if is_newer_version(current_version, latest_version):
             print(
-                "A new version of usereq is available: "
+                f"{ANSI_BRIGHT_RED}A new version of usereq is available: "
                 f"current {current_version}, latest {latest_version}. "
-                "To upgrade, run: req --upgrade"
+                f"To upgrade, run: req --upgrade{ANSI_RESET}",
+                file=sys.stderr,
             )
     except (
         urllib.error.URLError,
@@ -1802,9 +1810,6 @@ def run_remove(args: Namespace) -> None:
             11,
         )
 
-    # After validation and before any removal, check for a new version.
-    maybe_notify_newer_version(timeout_seconds=1.0)
-
     # Do not perform any restore or removal of .vscode/settings.json during removal.
     remove_generated_resources(project_base)
     for root_name in (
@@ -2063,9 +2068,6 @@ def run(args: Namespace) -> None:
             "Error: at least one active artifact type is required (--enable-prompts, --enable-agents, or omit --disable-skills)",
             4,
         )
-
-    # After validation and before any operation that modifies the filesystem, check for a new version.
-    maybe_notify_newer_version(timeout_seconds=1.0)
 
     # Parse --enable-static-check specs and compute merged static-check config (SRS-248..SRS-252).
     new_static_check: dict = {}
@@ -3474,6 +3476,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     try:
         global VERBOSE, DEBUG
         argv_list = sys.argv[1:] if argv is None else argv
+        # Run release-check at startup before argument parsing/validation.
+        maybe_notify_newer_version(timeout_seconds=1.0)
         if not argv_list:
             build_parser().print_help()
             return 0
@@ -3495,8 +3499,6 @@ def main(argv: Optional[list[str]] = None) -> int:
                     1,
                 )
             args.here = True
-        if _is_standalone_command(args) or _is_project_scan_command(args):
-            maybe_notify_newer_version(timeout_seconds=1.0)
         # Standalone file commands (no --base/--here required)
         if _is_standalone_command(args):
             if getattr(args, "files_tokens", None):

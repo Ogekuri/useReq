@@ -43,9 +43,9 @@
 - **Lifecycle/Trigger**: starts on OS process invocation (`req`, `use-req`, `usereq`), executes argument parsing and one command path, exits with integer status code.
 - **Internal Call-Trace Tree**
   - `main(...)`: command router and execution coordinator [`src/usereq/cli.py`]
+    - `maybe_notify_newer_version(timeout_seconds=1.0)`: perform startup online release-check before argument parsing and validation [`src/usereq/cli.py`]
     - `parse_args(...)`: parse argv into `Namespace` [`src/usereq/cli.py`]
     - `_is_here_only_project_scan_command(...)`: enforce implicit `--here` and reject `--base` for here-only project-scan commands [`src/usereq/cli.py`]
-    - `maybe_notify_newer_version(timeout_seconds=1.0)`: perform online release-check before standalone/project-scan command execution [`src/usereq/cli.py`]
     - `_is_standalone_command(...)`: detect standalone command path [`src/usereq/cli.py`]
       - `run_files_tokens(...)`: process explicit file list for token counting [`src/usereq/cli.py`]
         - `count_files_metrics(...)`: compute token and char metrics per file [`src/usereq/token_counter.py`]

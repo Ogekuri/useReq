@@ -179,7 +179,7 @@ import sys
 
 ---
 
-# cli.py | Python | 3554L | 103 symbols | 28 imports | 168 comments
+# cli.py | Python | 3556L | 105 symbols | 28 imports | 169 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -231,11 +231,15 @@ import traceback
 - @brief Whether debug output is enabled."""
 - var `PERSISTED_UPDATE_FLAG_KEYS = (` (L40)
 - @brief Name of the packaged requirements template file."""
-### class `class ReqError(Exception)` : Exception (L58-75)
+- var `ANSI_BRIGHT_RED = "\033[91m"` (L58)
 - @brief Config keys persisted for install/update boolean flags."""
+- var `ANSI_RESET = "\033[0m"` (L61)
+- @brief ANSI escape prefix for bright red terminal output."""
+### class `class ReqError(Exception)` : Exception (L64-81)
+- @brief ANSI escape sequence that resets terminal style."""
 - @brief Dedicated exception for expected CLI errors.
 - @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
-- fn `def __init__(self, message: str, code: int = 1) -> None` `priv` (L62-75)
+- fn `def __init__(self, message: str, code: int = 1) -> None` `priv` (L68-81)
   - @brief Dedicated exception for expected CLI errors.
   - @brief Initialize an expected CLI failure payload.
   - @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
@@ -244,90 +248,90 @@ import traceback
   - @param code Process exit code bound to the failure category.
   - @return {None} Function return value.
 
-### fn `def log(msg: str) -> None` (L76-85)
+### fn `def log(msg: str) -> None` (L82-91)
 - @brief Prints an informational message.
 - @details Implements the log function behavior with deterministic control flow.
 - @param msg The message string to print.
 - @return {None} Function return value.
 
-### fn `def dlog(msg: str) -> None` (L86-96)
+### fn `def dlog(msg: str) -> None` (L92-102)
 - @brief Prints a debug message if debugging is active.
 - @details Implements the dlog function behavior with deterministic control flow.
 - @param msg The debug message string to print.
 - @return {None} Function return value.
 
-### fn `def vlog(msg: str) -> None` (L97-107)
+### fn `def vlog(msg: str) -> None` (L103-113)
 - @brief Prints a verbose message if verbose mode is active.
 - @details Implements the vlog function behavior with deterministic control flow.
 - @param msg The verbose message string to print.
 - @return {None} Function return value.
 
-### fn `def _get_available_tags_help() -> str` `priv` (L108-119)
+### fn `def _get_available_tags_help() -> str` `priv` (L114-125)
 - @brief Generate available TAGs help text for argument parser.
 - @details Imports format_available_tags from find_constructs module to generate dynamic TAG listing for CLI help display.
 - @return Formatted multi-line string listing TAGs by language.
 
-### fn `def build_parser() -> argparse.ArgumentParser` (L120-319)
+### fn `def build_parser() -> argparse.ArgumentParser` (L126-325)
 - @brief Builds the CLI argument parser.
 - @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--enable-prompts, --enable-agents, --disable-skills).
 - @return Configured ArgumentParser instance.
 
-### fn `def parse_args(argv: Optional[list[str]] = None) -> Namespace` (L376-385)
+### fn `def parse_args(argv: Optional[list[str]] = None) -> Namespace` (L382-391)
 - @brief Parses command-line arguments into a namespace.
 - @details Implements the parse_args function behavior with deterministic control flow.
 - @param argv List of arguments (defaults to sys.argv).
 - @return Namespace containing parsed arguments.
 
-### fn `def load_package_version() -> str` (L386-400)
+### fn `def load_package_version() -> str` (L392-406)
 - @brief Reads the package version from __init__.py.
 - @details Implements the load_package_version function behavior with deterministic control flow.
 - @return Version string extracted from the package.
 - @throws ReqError If version cannot be determined.
 
-### fn `def maybe_print_version(argv: list[str]) -> bool` (L401-413)
+### fn `def maybe_print_version(argv: list[str]) -> bool` (L407-419)
 - @brief Handles --ver/--version by printing the version.
 - @details Implements the maybe_print_version function behavior with deterministic control flow.
 - @param argv Command line arguments to check.
 - @return True if version was printed, False otherwise.
 
-### fn `def run_upgrade() -> None` (L414-440)
+### fn `def run_upgrade() -> None` (L420-446)
 - @brief Executes the upgrade using uv.
 - @details Implements the run_upgrade function behavior with deterministic control flow.
 - @return {None} Function return value.
 - @throws ReqError If upgrade fails.
 
-### fn `def run_uninstall() -> None` (L441-464)
+### fn `def run_uninstall() -> None` (L447-470)
 - @brief Executes the uninstallation using uv.
 - @details Implements the run_uninstall function behavior with deterministic control flow.
 - @return {None} Function return value.
 - @throws ReqError If uninstall fails.
 
-### fn `def normalize_release_tag(tag: str) -> str` (L465-477)
+### fn `def normalize_release_tag(tag: str) -> str` (L471-483)
 - @brief Normalizes the release tag by removing a 'v' prefix if present.
 - @details Implements the normalize_release_tag function behavior with deterministic control flow.
 - @param tag The raw tag string.
 - @return The normalized version string.
 
-### fn `def parse_version_tuple(version: str) -> tuple[int, ...] | None` (L478-502)
+### fn `def parse_version_tuple(version: str) -> tuple[int, ...] | None` (L484-508)
 - @brief Converts a version into a numeric tuple for comparison.
 - @details Accepts versions in 'X.Y.Z' format (ignoring any non-numeric suffixes).
 - @param version The version string to parse.
 - @return Tuple of integers or None if parsing fails.
 
-### fn `def is_newer_version(current: str, latest: str) -> bool` (L503-521)
+### fn `def is_newer_version(current: str, latest: str) -> bool` (L509-527)
 - @brief Returns True if latest is greater than current.
 - @details Implements the is_newer_version function behavior with deterministic control flow.
 - @param current The current installed version string.
 - @param latest The latest available version string.
 - @return True if update is available, False otherwise.
 
-### fn `def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None` (L522-565)
-- @brief Checks online for a new version and prints a warning.
-- @details If the call fails or the response is invalid, it prints nothing and proceeds.
+### fn `def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None` (L528-573)
+- @brief Checks online for a new version and prints a bright-red warning.
+- @details If the call fails or the response is invalid, it prints nothing and proceeds. On newer-version detection, emits current and latest versions plus upgrade hint using ANSI bright-red styling.
 - @param timeout_seconds Time to wait for the version check response.
 - @return {None} Function return value.
 
-### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L566-588)
+### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L574-596)
 - @brief Ensures the documentation directory exists under the project base.
 - @details Implements the ensure_doc_directory function behavior with deterministic control flow.
 - @param path The relative path to the documentation directory.
@@ -335,7 +339,7 @@ import traceback
 - @return {None} Function return value.
 - @throws ReqError If path is invalid, absolute, or not a directory.
 
-### fn `def ensure_test_directory(path: str, project_base: Path) -> None` (L589-611)
+### fn `def ensure_test_directory(path: str, project_base: Path) -> None` (L597-619)
 - @brief Ensures the test directory exists under the project base.
 - @details Implements the ensure_test_directory function behavior with deterministic control flow.
 - @param path The relative path to the test directory.
@@ -343,7 +347,7 @@ import traceback
 - @return {None} Function return value.
 - @throws ReqError If path is invalid, absolute, or not a directory.
 
-### fn `def ensure_src_directory(path: str, project_base: Path) -> None` (L612-634)
+### fn `def ensure_src_directory(path: str, project_base: Path) -> None` (L620-642)
 - @brief Ensures the source directory exists under the project base.
 - @details Implements the ensure_src_directory function behavior with deterministic control flow.
 - @param path The relative path to the source directory.
@@ -351,29 +355,29 @@ import traceback
 - @return {None} Function return value.
 - @throws ReqError If path is invalid, absolute, or not a directory.
 
-### fn `def make_relative_if_contains_project(path_value: str, project_base: Path) -> str` (L635-674)
+### fn `def make_relative_if_contains_project(path_value: str, project_base: Path) -> str` (L643-682)
 - @brief Normalizes the path relative to the project root when possible.
 - @details Handles cases where the path includes the project directory name redundantly.
 - @param path_value The input path string.
 - @param project_base The base path of the project.
 - @return The normalized relative path string.
 
-### fn `def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]` (L675-690)
+### fn `def resolve_absolute(normalized: str, project_base: Path) -> Optional[Path]` (L683-698)
 - @brief Resolves the absolute path starting from a normalized value.
 - @details Implements the resolve_absolute function behavior with deterministic control flow.
 - @param normalized The normalized relative path string.
 - @param project_base The project root path.
 - @return Absolute Path object or None if normalized is empty.
 
-### fn `def format_substituted_path(value: str) -> str` (L691-702)
+### fn `def format_substituted_path(value: str) -> str` (L699-710)
 - @brief Uniforms path separators for substitutions.
 - @details Implements the format_substituted_path function behavior with deterministic control flow.
 - @param value The path string to format.
 - @return Path string with forward slashes.
 
-### fn `def compute_sub_path(` (L703-704)
+### fn `def compute_sub_path(` (L711-712)
 
-### fn `def save_config(` (L725-732)
+### fn `def save_config(` (L733-740)
 - @brief Calculates the relative path to use in tokens.
 - @details Implements the compute_sub_path function behavior with deterministic control flow.
 - @param normalized The normalized relative path.
@@ -381,7 +385,7 @@ import traceback
 - @param project_base The project root path.
 - @return Relative path string formatted with forward slashes.
 
-### fn `def load_config(project_base: Path) -> dict[str, str | list[str]]` (L765-807)
+### fn `def load_config(project_base: Path) -> dict[str, str | list[str]]` (L773-815)
 - @brief Saves normalized parameters to .req/config.json.
 - @brief Loads parameters saved in .req/config.json.
 - @details Writes full config payload to `.req/config.json`. When `static_check_config`
@@ -400,43 +404,43 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @return Dictionary containing configuration values.
 - @throws ReqError If config file is missing or invalid.
 
-### fn `def load_static_check_from_config(project_base: Path) -> dict` (L808-839)
+### fn `def load_static_check_from_config(project_base: Path) -> dict` (L816-847)
 - @brief Load the `"static-check"` section from `.req/config.json` without validation errors.
 - @details Reads config.json silently; returns `{}` on any read or parse error. Does NOT raise `ReqError`; caller decides whether absence is an error.
 - @param project_base The project root path.
 - @return Dict of static-check config (canonical-lang -> list[config-dict]); empty dict if absent or if config.json is missing/invalid.
 - @see SRS-252, SRS-253, SRS-256
 
-### fn `def build_persisted_update_flags(args: Namespace) -> dict[str, bool]` (L840-864)
+### fn `def build_persisted_update_flags(args: Namespace) -> dict[str, bool]` (L848-872)
 - @brief Build persistent update flags from parsed CLI arguments.
 - @details Implements the build_persisted_update_flags function behavior with deterministic control flow.
 - @param args Parsed CLI namespace.
 - @return Mapping of config key -> boolean value for install/update persistence.
 
-### fn `def load_persisted_update_flags(project_base: Path) -> dict[str, bool]` (L865-913)
+### fn `def load_persisted_update_flags(project_base: Path) -> dict[str, bool]` (L873-921)
 - @brief Load persisted install/update boolean flags from `.req/config.json`.
 - @details Implements the load_persisted_update_flags function behavior with deterministic control flow.
 - @param project_base The project root path.
 - @return Mapping of persisted config key -> boolean value.
 - @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
 
-### fn `def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str` (L914-946)
+### fn `def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str` (L922-954)
 - @brief Generates the markdown file list for %%GUIDELINES_FILES%% replacement.
 - @details Implements the generate_guidelines_file_list function behavior with deterministic control flow.
 - @param guidelines_dir Input parameter `guidelines_dir`.
 - @param project_base Input parameter `project_base`.
 - @return {str} Function return value.
 
-### fn `def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]` (L947-979)
+### fn `def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]` (L955-987)
 - @brief Generates a list of relative file paths (no formatting) for printing.
 - @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
 - @param guidelines_dir Input parameter `guidelines_dir`.
 - @param project_base Input parameter `project_base`.
 - @return {list[str]} Function return value.
 
-### fn `def upgrade_guidelines_templates(` (L980-981)
+### fn `def upgrade_guidelines_templates(` (L988-989)
 
-### fn `def make_relative_token(raw: str, keep_trailing: bool = False) -> str` (L1017-1033)
+### fn `def make_relative_token(raw: str, keep_trailing: bool = False) -> str` (L1025-1041)
 - @brief Copies guidelines templates from resources/guidelines/ to the target directory.
 - @brief Normalizes the path token optionally preserving the trailing slash.
 - @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of non-hidden files copied; returns 0 when the source directory is empty.
@@ -448,7 +452,7 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @return {int} Function return value.
 - @return {str} Function return value.
 
-### fn `def ensure_relative(value: str, name: str, code: int) -> None` (L1034-1049)
+### fn `def ensure_relative(value: str, name: str, code: int) -> None` (L1042-1057)
 - @brief Validates that the path is not absolute and raises an error otherwise.
 - @details Implements the ensure_relative function behavior with deterministic control flow.
 - @param value Input parameter `value`.
@@ -456,23 +460,23 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @param code Input parameter `code`.
 - @return {None} Function return value.
 
-### fn `def apply_replacements(text: str, replacements: Mapping[str, str]) -> str` (L1050-1062)
+### fn `def apply_replacements(text: str, replacements: Mapping[str, str]) -> str` (L1058-1070)
 - @brief Returns text with token replacements applied.
 - @details Implements the apply_replacements function behavior with deterministic control flow.
 - @param text Input parameter `text`.
 - @param replacements Input parameter `replacements`.
 - @return {str} Function return value.
 
-### fn `def write_text_file(dst: Path, text: str) -> None` (L1063-1074)
+### fn `def write_text_file(dst: Path, text: str) -> None` (L1071-1082)
 - @brief Writes text to disk, ensuring the destination folder exists.
 - @details Implements the write_text_file function behavior with deterministic control flow.
 - @param dst Input parameter `dst`.
 - @param text Input parameter `text`.
 - @return {None} Function return value.
 
-### fn `def copy_with_replacements(` (L1075-1076)
+### fn `def copy_with_replacements(` (L1083-1084)
 
-### fn `def normalize_description(value: str) -> str` (L1091-1105)
+### fn `def normalize_description(value: str) -> str` (L1099-1113)
 - @brief Copies a file substituting the indicated tokens with their values.
 - @brief Normalizes a description by removing superfluous quotes and escapes.
 - @details Implements the copy_with_replacements function behavior with deterministic control flow.
@@ -484,7 +488,7 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @return {None} Function return value.
 - @return {str} Function return value.
 
-### fn `def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None` (L1106-1140)
+### fn `def md_to_toml(md_path: Path, toml_path: Path, force: bool) -> None` (L1114-1148)
 - @brief Converts a Markdown prompt to TOML for Gemini.
 - @details Implements the md_to_toml function behavior with deterministic control flow.
 - @param md_path Input parameter `md_path`.
@@ -492,52 +496,52 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @param force Input parameter `force`.
 - @return {None} Function return value.
 
-### fn `def extract_frontmatter(content: str) -> tuple[str, str]` (L1141-1154)
+### fn `def extract_frontmatter(content: str) -> tuple[str, str]` (L1149-1162)
 - @brief Extracts front matter and body from Markdown.
 - @details Implements the extract_frontmatter function behavior with deterministic control flow.
 - @param content Input parameter `content`.
 - @return {tuple[str, str]} Function return value.
 
-### fn `def extract_description(frontmatter: str) -> str` (L1155-1167)
+### fn `def extract_description(frontmatter: str) -> str` (L1163-1175)
 - @brief Extracts the description from front matter.
 - @details Implements the extract_description function behavior with deterministic control flow.
 - @param frontmatter Input parameter `frontmatter`.
 - @return {str} Function return value.
 
-### fn `def extract_argument_hint(frontmatter: str) -> str` (L1168-1180)
+### fn `def extract_argument_hint(frontmatter: str) -> str` (L1176-1188)
 - @brief Extracts the argument-hint from front matter, if present.
 - @details Implements the extract_argument_hint function behavior with deterministic control flow.
 - @param frontmatter Input parameter `frontmatter`.
 - @return {str} Function return value.
 
-### fn `def extract_purpose_first_bullet(body: str) -> str` (L1181-1205)
+### fn `def extract_purpose_first_bullet(body: str) -> str` (L1189-1213)
 - @brief Returns the first bullet of the Purpose section.
 - @details Implements the extract_purpose_first_bullet function behavior with deterministic control flow.
 - @param body Input parameter `body`.
 - @return {str} Function return value.
 
-### fn `def _extract_section_text(body: str, section_name: str) -> str` `priv` (L1206-1233)
+### fn `def _extract_section_text(body: str, section_name: str) -> str` `priv` (L1214-1241)
 - @brief Extracts and collapses the text content of a named ## section.
 - @details Scans `body` line by line for a heading matching `## <section_name>` (case-insensitive). Collects all subsequent non-empty lines until the next `##`-level heading (or end of string). Strips each line, joins with a single space, and returns the collapsed single-line result.
 - @param[in] body str -- Full prompt body text (after front matter removal).
 - @param[in] section_name str -- Target section name without `##` prefix (case-insensitive match).
 - @return str -- Single-line collapsed text of the section; empty string if section absent or empty.
 
-### fn `def extract_skill_description(frontmatter: str) -> str` (L1234-1252)
+### fn `def extract_skill_description(frontmatter: str) -> str` (L1242-1260)
 - @brief Extracts the usage field from YAML front matter as a single YAML-safe line.
 - @details Parses the YAML front matter and returns the `usage` field value with all whitespace normalized to a single line. Returns an empty string if the field is absent.
 - @param[in] frontmatter str -- YAML front matter text (without the leading/trailing `---` delimiters).
 - @return str -- Single-line text of the usage field; empty string if absent.
 
-### fn `def json_escape(value: str) -> str` (L1253-1262)
+### fn `def json_escape(value: str) -> str` (L1261-1270)
 - @brief Escapes a string for JSON without external delimiters.
 - @details Implements the json_escape function behavior with deterministic control flow.
 - @param value Input parameter `value`.
 - @return {str} Function return value.
 
-### fn `def generate_kiro_resources(` (L1263-1266)
+### fn `def generate_kiro_resources(` (L1271-1274)
 
-### fn `def render_kiro_agent(` (L1292-1301)
+### fn `def render_kiro_agent(` (L1300-1309)
 - @brief Generates the resource list for the Kiro agent.
 - @details Implements the generate_kiro_resources function behavior with deterministic control flow.
 - @param req_dir Input parameter `req_dir`.
@@ -545,7 +549,7 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @param prompt_rel_path Input parameter `prompt_rel_path`.
 - @return {list[str]} Function return value.
 
-### fn `def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None` (L1347-1360)
+### fn `def replace_tokens(path: Path, replacements: Mapping[str, str]) -> None` (L1355-1368)
 - @brief Renders the Kiro agent JSON and populates main fields.
 - @brief Replaces tokens in the specified file.
 - @details Implements the render_kiro_agent function behavior with deterministic control flow.
@@ -564,45 +568,45 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @return {str} Function return value.
 - @return {None} Function return value.
 
-### fn `def yaml_double_quote_escape(value: str) -> str` (L1361-1370)
+### fn `def yaml_double_quote_escape(value: str) -> str` (L1369-1378)
 - @brief Minimal escape for a double-quoted string in YAML.
 - @details Implements the yaml_double_quote_escape function behavior with deterministic control flow.
 - @param value Input parameter `value`.
 - @return {str} Function return value.
 
-### fn `def list_docs_templates() -> list[Path]` (L1371-1388)
+### fn `def list_docs_templates() -> list[Path]` (L1379-1396)
 - @brief Returns non-hidden files available in resources/docs.
 - @details Implements the list_docs_templates function behavior with deterministic control flow.
 - @return Sorted list of file paths under resources/docs.
 - @throws ReqError If resources/docs does not exist or has no non-hidden files.
 
-### fn `def find_requirements_template(docs_templates: list[Path]) -> Path` (L1389-1405)
+### fn `def find_requirements_template(docs_templates: list[Path]) -> Path` (L1397-1413)
 - @brief Returns the packaged Requirements template file.
 - @details Implements the find_requirements_template function behavior with deterministic control flow.
 - @param docs_templates Runtime docs template file list from resources/docs.
 - @return Path to `Requirements_Template.md`.
 - @throws ReqError If `Requirements_Template.md` is not present.
 
-### fn `def load_kiro_template() -> tuple[str, dict[str, Any]]` (L1406-1443)
+### fn `def load_kiro_template() -> tuple[str, dict[str, Any]]` (L1414-1451)
 - @brief Loads the Kiro template from centralized models configuration.
 - @details Implements the load_kiro_template function behavior with deterministic control flow.
 - @return {tuple[str, dict[str, Any]]} Function return value.
 
-### fn `def strip_json_comments(text: str) -> str` (L1444-1468)
+### fn `def strip_json_comments(text: str) -> str` (L1452-1476)
 - @brief Removes // and /* */ comments to allow JSONC parsing.
 - @details Implements the strip_json_comments function behavior with deterministic control flow.
 - @param text Input parameter `text`.
 - @return {str} Function return value.
 
-### fn `def load_settings(path: Path) -> dict[str, Any]` (L1469-1484)
+### fn `def load_settings(path: Path) -> dict[str, Any]` (L1477-1492)
 - @brief Loads JSON/JSONC settings, removing comments when necessary.
 - @details Implements the load_settings function behavior with deterministic control flow.
 - @param path Input parameter `path`.
 - @return {dict[str, Any]} Function return value.
 
-### fn `def load_centralized_models(` (L1485-1488)
+### fn `def load_centralized_models(` (L1493-1496)
 
-### fn `def get_model_tools_for_prompt(` (L1537-1538)
+### fn `def get_model_tools_for_prompt(` (L1545-1546)
 - @brief Loads centralized models configuration from common/models.json.
 - @details Returns a map cli_name -> parsed_json or None if not present. When preserve_models_path is provided and exists, loads from that file, ignoring legacy_mode. Otherwise, when legacy_mode is True, attempts to load models-legacy.json first, falling back to models.json if not found.
 - @param resource_root Input parameter `resource_root`.
@@ -610,7 +614,7 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @param preserve_models_path Input parameter `preserve_models_path`.
 - @return {dict[str, dict[str, Any] | None]} Function return value.
 
-### fn `def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any` (L1578-1599)
+### fn `def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) -> Any` (L1586-1607)
 - @brief Extracts model and tools for the prompt from the CLI config.
 - @brief Returns the raw value of `usage_modes[mode]['tools']` for the prompt.
 - @details Returns (model, tools) where each value can be None if not available.
@@ -623,31 +627,31 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @return {tuple[Optional[str], Optional[list[str]]]} Function return value.
 - @return {Any} Function return value.
 
-### fn `def format_tools_inline_list(tools: list[str]) -> str` (L1600-1611)
+### fn `def format_tools_inline_list(tools: list[str]) -> str` (L1608-1619)
 - @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
 - @details Implements the format_tools_inline_list function behavior with deterministic control flow.
 - @param tools Input parameter `tools`.
 - @return {str} Function return value.
 
-### fn `def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]` (L1612-1627)
+### fn `def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]` (L1620-1635)
 - @brief Recursively merges dictionaries, prioritizing incoming values.
 - @details Implements the deep_merge_dict function behavior with deterministic control flow.
 - @param base Input parameter `base`.
 - @param incoming Input parameter `incoming`.
 - @return {dict[str, Any]} Function return value.
 
-### fn `def find_vscode_settings_source() -> Optional[Path]` (L1628-1639)
+### fn `def find_vscode_settings_source() -> Optional[Path]` (L1636-1647)
 - @brief Finds the VS Code settings template if available.
 - @details Implements the find_vscode_settings_source function behavior with deterministic control flow.
 - @return {Optional[Path]} Function return value.
 
-### fn `def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]` (L1640-1654)
+### fn `def build_prompt_recommendations(prompts_dir: Path) -> dict[str, bool]` (L1648-1662)
 - @brief Generates chat.promptFilesRecommendations from available prompts.
 - @details Implements the build_prompt_recommendations function behavior with deterministic control flow.
 - @param prompts_dir Input parameter `prompts_dir`.
 - @return {dict[str, bool]} Function return value.
 
-### fn `def ensure_wrapped(target: Path, project_base: Path, code: int) -> None` (L1655-1670)
+### fn `def ensure_wrapped(target: Path, project_base: Path, code: int) -> None` (L1663-1678)
 - @brief Verifies that the path is under the project root.
 - @details Implements the ensure_wrapped function behavior with deterministic control flow.
 - @param target Input parameter `target`.
@@ -655,40 +659,40 @@ is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
 - @param code Input parameter `code`.
 - @return {None} Function return value.
 
-### fn `def save_vscode_backup(req_root: Path, settings_path: Path) -> None` (L1671-1685)
+### fn `def save_vscode_backup(req_root: Path, settings_path: Path) -> None` (L1679-1693)
 - @brief Saves a backup of VS Code settings if the file exists.
 - @details Implements the save_vscode_backup function behavior with deterministic control flow.
 - @param req_root Input parameter `req_root`.
 - @param settings_path Input parameter `settings_path`.
 - @return {None} Function return value.
 
-### fn `def restore_vscode_settings(project_base: Path) -> None` (L1686-1701)
+### fn `def restore_vscode_settings(project_base: Path) -> None` (L1694-1709)
 - @brief Restores VS Code settings from backup, if present.
 - @details Implements the restore_vscode_settings function behavior with deterministic control flow.
 - @param project_base Input parameter `project_base`.
 - @return {None} Function return value.
 
-### fn `def prune_empty_dirs(root: Path) -> None` (L1702-1719)
+### fn `def prune_empty_dirs(root: Path) -> None` (L1710-1727)
 - @brief Removes empty directories under the specified root.
 - @details Implements the prune_empty_dirs function behavior with deterministic control flow.
 - @param root Input parameter `root`.
 - @return {None} Function return value.
 
-### fn `def remove_generated_resources(project_base: Path) -> None` (L1720-1770)
+### fn `def remove_generated_resources(project_base: Path) -> None` (L1728-1778)
 - @brief Removes resources generated by the tool in the project root.
 - @details Implements the remove_generated_resources function behavior with deterministic control flow.
 - @param project_base Input parameter `project_base`.
 - @return {None} Function return value.
 
-### fn `def run_remove(args: Namespace) -> None` (L1771-1821)
+### fn `def run_remove(args: Namespace) -> None` (L1779-1826)
 - @brief Handles the removal of generated resources.
 - @details Implements the run_remove function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {None} Function return value.
 
-### fn `def _validate_enable_static_check_command_executables(` `priv` (L1822-1825)
+### fn `def _validate_enable_static_check_command_executables(` `priv` (L1827-1830)
 
-### fn `def run(args: Namespace) -> None` (L1854-2053)
+### fn `def run(args: Namespace) -> None` (L1859-2058)
 - @brief Validate Command-module executables in `--enable-static-check` parsed entries.
 - @brief Handles the main initialization flow.
 - @details Validation scope is limited to Command entries coming from CLI specs.
@@ -703,16 +707,16 @@ before any configuration persistence.
 - @throws ReqError If a Command entry references a non-executable `cmd` on this system.
 - @see SRS-250
 
-- var `VERBOSE = args.verbose` (L1862)
+- var `VERBOSE = args.verbose` (L1867)
 - @brief Handles the main initialization flow.
 - @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills (skills are active unless --disable-skills is provided).
 - @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills where enable_skills is toggled by --disable-skills).
 - @return {None} Function return value.
-- var `DEBUG = args.debug` (L1863)
-- var `PROMPT = prompt_path.stem` (L2279)
-### fn `def _format_install_table(` `priv` (L2863-2865)
+- var `DEBUG = args.debug` (L1868)
+- var `PROMPT = prompt_path.stem` (L2281)
+### fn `def _format_install_table(` `priv` (L2865-2867)
 
-### fn `def fmt(row: tuple[str, ...]) -> str` (L2896-2903)
+### fn `def fmt(row: tuple[str, ...]) -> str` (L2898-2905)
 - @brief Format the ASCII installation summary table.
 - @brief Format one fixed-width ASCII table row.
 - @details Builds a deterministic fixed-column table with columns: CLI, Prompts Installed, Modules Installed.
@@ -728,104 +732,104 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @note Complexity: O(C * (P log P + M log M)) where C is CLI count, P is prompts per CLI, M is modules per CLI.
 - @note Side effects: None (pure formatting).
 
-- var `SUPPORTED_EXTENSIONS = frozenset({` (L2926)
-### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2934-2986)
+- var `SUPPORTED_EXTENSIONS = frozenset({` (L2928)
+### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L2936-2988)
 - @brief Collect source files from git-indexed project paths.
 - @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
 - @param src_dirs Input parameter `src_dirs`.
 - @param project_base Input parameter `project_base`.
 - @return {list[str]} Function return value.
 
-### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2987-3032)
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L2989-3034)
 - @brief Build a deterministic tree string from project-relative paths.
 - @details Implements the _build_ascii_tree function behavior with deterministic control flow.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _emit(` `priv` (L3011-3013)
+### fn `def _emit(` `priv` (L3013-3015)
 - @brief Build a deterministic tree string from project-relative paths.
 - @details Implements the _build_ascii_tree function behavior with deterministic control flow.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L3033-3045)
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L3035-3047)
 - @brief Format markdown section containing the scanned files tree.
 - @details Implements the _format_files_structure_markdown function behavior with deterministic control flow.
 - @param files Absolute file paths selected for --references processing.
 - @param project_base Project root used to normalize relative paths.
 - @return Markdown section with heading and fenced tree.
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L3046-3064)
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L3048-3066)
 - @brief Check if the parsed args contain a standalone file command.
 - @details Standalone commands require no `--base`/`--here`: `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--test-static-check`, and `--files-static-check`. SRS-253 adds `--files-static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any file-scope standalone flag is present.
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L3065-3081)
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L3067-3083)
 - @brief Check if the parsed args contain a project-scan command.
 - @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`, and `--static-check`. SRS-257 adds `--static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any project-scan flag is present.
 
-### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L3082-3097)
+### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L3084-3099)
 - @brief Check if args request a project-scan command restricted to `--here` mode.
 - @details Implements the _is_here_only_project_scan_command function behavior with deterministic control flow.
 - @param args Parsed CLI namespace.
 - @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L3098-3120)
+### fn `def run_files_tokens(files: list[str]) -> None` (L3100-3122)
 - @brief Execute --files-tokens: count tokens for arbitrary files.
 - @details Implements the run_files_tokens function behavior with deterministic control flow.
 - @param files Input parameter `files`.
 - @return {None} Function return value.
 
-### fn `def run_files_references(files: list[str]) -> None` (L3121-3137)
+### fn `def run_files_references(files: list[str]) -> None` (L3123-3139)
 - @brief Execute --files-references: generate markdown for arbitrary files.
 - @details Implements the run_files_references function behavior with deterministic control flow.
 - @param files Input parameter `files`.
 - @return {None} Function return value.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L3138-3156)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L3140-3158)
 - @brief Execute --files-compress: compress arbitrary files.
 - @details Renders output header paths relative to current working directory.
 - @param files List of source file paths to compress.
 - @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 - @return {None} Function return value.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L3157-3185)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L3159-3187)
 - @brief Execute --files-find: find constructs in arbitrary files.
 - @details Implements the run_files_find function behavior with deterministic control flow.
 - @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
 - @param enable_line_numbers If True, emits <n>: prefixes in output.
 - @return {None} Function return value.
 
-### fn `def run_references(args: Namespace) -> None` (L3186-3203)
+### fn `def run_references(args: Namespace) -> None` (L3188-3205)
 - @brief Execute --references: generate markdown for project source files.
 - @details Implements the run_references function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {None} Function return value.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L3204-3225)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L3206-3227)
 - @brief Execute --compress: compress project source files.
 - @details Implements the run_compress_cmd function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return {None} Function return value.
 
-### fn `def run_find(args: Namespace) -> None` (L3226-3255)
+### fn `def run_find(args: Namespace) -> None` (L3228-3257)
 - @brief Execute --find: find constructs in project source files.
 - @details Implements the run_find function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return {None} Function return value.
 - @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L3256-3281)
+### fn `def run_tokens(args: Namespace) -> None` (L3258-3283)
 - @brief Execute --tokens on the canonical documentation files in --docs-dir.
 - @details Uses docs-dir from .req/config.json in here-only mode, ignores explicit --docs-dir, selects only REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md as direct regular files in fixed order, and delegates summary rendering to run_files_tokens.
 - @param args Parsed CLI arguments namespace.
 - @return None.
 - @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3282-3348)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L3284-3350)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
 - @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
@@ -833,7 +837,7 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3349-3394)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L3351-3396)
 - @brief Execute `--static-check`: run static analysis on all project source files.
 - @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
@@ -841,31 +845,31 @@ sorted set of artifact category labels installed for a CLI during the current in
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3395-3415)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L3397-3417)
 - @brief Resolve project base path for project-level commands.
 - @details Implements the _resolve_project_base function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3416-3466)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L3418-3468)
 - @brief Resolve project base and src-dirs for project source commands.
 - @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L3467-3554)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L3469-3556)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L3489)
+- var `VERBOSE = getattr(args, "verbose", False)` (L3493)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
-- var `DEBUG = getattr(args, "debug", False)` (L3490)
+- var `DEBUG = getattr(args, "debug", False)` (L3494)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -875,103 +879,105 @@ sorted set of artifact category labels installed for a CLI during the current in
 |`DEBUG`|var|pub|34||
 |`REQUIREMENTS_TEMPLATE_NAME`|var|pub|37||
 |`PERSISTED_UPDATE_FLAG_KEYS`|var|pub|40||
-|`ReqError`|class|pub|58-75|class ReqError(Exception)|
-|`ReqError.__init__`|fn|priv|62-75|def __init__(self, message: str, code: int = 1) -> None|
-|`log`|fn|pub|76-85|def log(msg: str) -> None|
-|`dlog`|fn|pub|86-96|def dlog(msg: str) -> None|
-|`vlog`|fn|pub|97-107|def vlog(msg: str) -> None|
-|`_get_available_tags_help`|fn|priv|108-119|def _get_available_tags_help() -> str|
-|`build_parser`|fn|pub|120-319|def build_parser() -> argparse.ArgumentParser|
-|`parse_args`|fn|pub|376-385|def parse_args(argv: Optional[list[str]] = None) -> Names...|
-|`load_package_version`|fn|pub|386-400|def load_package_version() -> str|
-|`maybe_print_version`|fn|pub|401-413|def maybe_print_version(argv: list[str]) -> bool|
-|`run_upgrade`|fn|pub|414-440|def run_upgrade() -> None|
-|`run_uninstall`|fn|pub|441-464|def run_uninstall() -> None|
-|`normalize_release_tag`|fn|pub|465-477|def normalize_release_tag(tag: str) -> str|
-|`parse_version_tuple`|fn|pub|478-502|def parse_version_tuple(version: str) -> tuple[int, ...] ...|
-|`is_newer_version`|fn|pub|503-521|def is_newer_version(current: str, latest: str) -> bool|
-|`maybe_notify_newer_version`|fn|pub|522-565|def maybe_notify_newer_version(timeout_seconds: float = 1...|
-|`ensure_doc_directory`|fn|pub|566-588|def ensure_doc_directory(path: str, project_base: Path) -...|
-|`ensure_test_directory`|fn|pub|589-611|def ensure_test_directory(path: str, project_base: Path) ...|
-|`ensure_src_directory`|fn|pub|612-634|def ensure_src_directory(path: str, project_base: Path) -...|
-|`make_relative_if_contains_project`|fn|pub|635-674|def make_relative_if_contains_project(path_value: str, pr...|
-|`resolve_absolute`|fn|pub|675-690|def resolve_absolute(normalized: str, project_base: Path)...|
-|`format_substituted_path`|fn|pub|691-702|def format_substituted_path(value: str) -> str|
-|`compute_sub_path`|fn|pub|703-704|def compute_sub_path(|
-|`save_config`|fn|pub|725-732|def save_config(|
-|`load_config`|fn|pub|765-807|def load_config(project_base: Path) -> dict[str, str | li...|
-|`load_static_check_from_config`|fn|pub|808-839|def load_static_check_from_config(project_base: Path) -> ...|
-|`build_persisted_update_flags`|fn|pub|840-864|def build_persisted_update_flags(args: Namespace) -> dict...|
-|`load_persisted_update_flags`|fn|pub|865-913|def load_persisted_update_flags(project_base: Path) -> di...|
-|`generate_guidelines_file_list`|fn|pub|914-946|def generate_guidelines_file_list(guidelines_dir: Path, p...|
-|`generate_guidelines_file_items`|fn|pub|947-979|def generate_guidelines_file_items(guidelines_dir: Path, ...|
-|`upgrade_guidelines_templates`|fn|pub|980-981|def upgrade_guidelines_templates(|
-|`make_relative_token`|fn|pub|1017-1033|def make_relative_token(raw: str, keep_trailing: bool = F...|
-|`ensure_relative`|fn|pub|1034-1049|def ensure_relative(value: str, name: str, code: int) -> ...|
-|`apply_replacements`|fn|pub|1050-1062|def apply_replacements(text: str, replacements: Mapping[s...|
-|`write_text_file`|fn|pub|1063-1074|def write_text_file(dst: Path, text: str) -> None|
-|`copy_with_replacements`|fn|pub|1075-1076|def copy_with_replacements(|
-|`normalize_description`|fn|pub|1091-1105|def normalize_description(value: str) -> str|
-|`md_to_toml`|fn|pub|1106-1140|def md_to_toml(md_path: Path, toml_path: Path, force: boo...|
-|`extract_frontmatter`|fn|pub|1141-1154|def extract_frontmatter(content: str) -> tuple[str, str]|
-|`extract_description`|fn|pub|1155-1167|def extract_description(frontmatter: str) -> str|
-|`extract_argument_hint`|fn|pub|1168-1180|def extract_argument_hint(frontmatter: str) -> str|
-|`extract_purpose_first_bullet`|fn|pub|1181-1205|def extract_purpose_first_bullet(body: str) -> str|
-|`_extract_section_text`|fn|priv|1206-1233|def _extract_section_text(body: str, section_name: str) -...|
-|`extract_skill_description`|fn|pub|1234-1252|def extract_skill_description(frontmatter: str) -> str|
-|`json_escape`|fn|pub|1253-1262|def json_escape(value: str) -> str|
-|`generate_kiro_resources`|fn|pub|1263-1266|def generate_kiro_resources(|
-|`render_kiro_agent`|fn|pub|1292-1301|def render_kiro_agent(|
-|`replace_tokens`|fn|pub|1347-1360|def replace_tokens(path: Path, replacements: Mapping[str,...|
-|`yaml_double_quote_escape`|fn|pub|1361-1370|def yaml_double_quote_escape(value: str) -> str|
-|`list_docs_templates`|fn|pub|1371-1388|def list_docs_templates() -> list[Path]|
-|`find_requirements_template`|fn|pub|1389-1405|def find_requirements_template(docs_templates: list[Path]...|
-|`load_kiro_template`|fn|pub|1406-1443|def load_kiro_template() -> tuple[str, dict[str, Any]]|
-|`strip_json_comments`|fn|pub|1444-1468|def strip_json_comments(text: str) -> str|
-|`load_settings`|fn|pub|1469-1484|def load_settings(path: Path) -> dict[str, Any]|
-|`load_centralized_models`|fn|pub|1485-1488|def load_centralized_models(|
-|`get_model_tools_for_prompt`|fn|pub|1537-1538|def get_model_tools_for_prompt(|
-|`get_raw_tools_for_prompt`|fn|pub|1578-1599|def get_raw_tools_for_prompt(config: dict[str, Any] | Non...|
-|`format_tools_inline_list`|fn|pub|1600-1611|def format_tools_inline_list(tools: list[str]) -> str|
-|`deep_merge_dict`|fn|pub|1612-1627|def deep_merge_dict(base: dict[str, Any], incoming: dict[...|
-|`find_vscode_settings_source`|fn|pub|1628-1639|def find_vscode_settings_source() -> Optional[Path]|
-|`build_prompt_recommendations`|fn|pub|1640-1654|def build_prompt_recommendations(prompts_dir: Path) -> di...|
-|`ensure_wrapped`|fn|pub|1655-1670|def ensure_wrapped(target: Path, project_base: Path, code...|
-|`save_vscode_backup`|fn|pub|1671-1685|def save_vscode_backup(req_root: Path, settings_path: Pat...|
-|`restore_vscode_settings`|fn|pub|1686-1701|def restore_vscode_settings(project_base: Path) -> None|
-|`prune_empty_dirs`|fn|pub|1702-1719|def prune_empty_dirs(root: Path) -> None|
-|`remove_generated_resources`|fn|pub|1720-1770|def remove_generated_resources(project_base: Path) -> None|
-|`run_remove`|fn|pub|1771-1821|def run_remove(args: Namespace) -> None|
-|`_validate_enable_static_check_command_executables`|fn|priv|1822-1825|def _validate_enable_static_check_command_executables(|
-|`run`|fn|pub|1854-2053|def run(args: Namespace) -> None|
-|`VERBOSE`|var|pub|1862||
-|`DEBUG`|var|pub|1863||
-|`PROMPT`|var|pub|2279||
-|`_format_install_table`|fn|priv|2863-2865|def _format_install_table(|
-|`fmt`|fn|pub|2896-2903|def fmt(row: tuple[str, ...]) -> str|
-|`SUPPORTED_EXTENSIONS`|var|pub|2926||
-|`_collect_source_files`|fn|priv|2934-2986|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_build_ascii_tree`|fn|priv|2987-3032|def _build_ascii_tree(paths: list[str]) -> str|
-|`_emit`|fn|priv|3011-3013|def _emit(|
-|`_format_files_structure_markdown`|fn|priv|3033-3045|def _format_files_structure_markdown(files: list[str], pr...|
-|`_is_standalone_command`|fn|priv|3046-3064|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|3065-3081|def _is_project_scan_command(args: Namespace) -> bool|
-|`_is_here_only_project_scan_command`|fn|priv|3082-3097|def _is_here_only_project_scan_command(args: Namespace) -...|
-|`run_files_tokens`|fn|pub|3098-3120|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|3121-3137|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|3138-3156|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|3157-3185|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|3186-3203|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|3204-3225|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|3226-3255|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|3256-3281|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|3282-3348|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|3349-3394|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|3395-3415|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|3416-3466|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|3467-3554|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|3489||
-|`DEBUG`|var|pub|3490||
+|`ANSI_BRIGHT_RED`|var|pub|58||
+|`ANSI_RESET`|var|pub|61||
+|`ReqError`|class|pub|64-81|class ReqError(Exception)|
+|`ReqError.__init__`|fn|priv|68-81|def __init__(self, message: str, code: int = 1) -> None|
+|`log`|fn|pub|82-91|def log(msg: str) -> None|
+|`dlog`|fn|pub|92-102|def dlog(msg: str) -> None|
+|`vlog`|fn|pub|103-113|def vlog(msg: str) -> None|
+|`_get_available_tags_help`|fn|priv|114-125|def _get_available_tags_help() -> str|
+|`build_parser`|fn|pub|126-325|def build_parser() -> argparse.ArgumentParser|
+|`parse_args`|fn|pub|382-391|def parse_args(argv: Optional[list[str]] = None) -> Names...|
+|`load_package_version`|fn|pub|392-406|def load_package_version() -> str|
+|`maybe_print_version`|fn|pub|407-419|def maybe_print_version(argv: list[str]) -> bool|
+|`run_upgrade`|fn|pub|420-446|def run_upgrade() -> None|
+|`run_uninstall`|fn|pub|447-470|def run_uninstall() -> None|
+|`normalize_release_tag`|fn|pub|471-483|def normalize_release_tag(tag: str) -> str|
+|`parse_version_tuple`|fn|pub|484-508|def parse_version_tuple(version: str) -> tuple[int, ...] ...|
+|`is_newer_version`|fn|pub|509-527|def is_newer_version(current: str, latest: str) -> bool|
+|`maybe_notify_newer_version`|fn|pub|528-573|def maybe_notify_newer_version(timeout_seconds: float = 1...|
+|`ensure_doc_directory`|fn|pub|574-596|def ensure_doc_directory(path: str, project_base: Path) -...|
+|`ensure_test_directory`|fn|pub|597-619|def ensure_test_directory(path: str, project_base: Path) ...|
+|`ensure_src_directory`|fn|pub|620-642|def ensure_src_directory(path: str, project_base: Path) -...|
+|`make_relative_if_contains_project`|fn|pub|643-682|def make_relative_if_contains_project(path_value: str, pr...|
+|`resolve_absolute`|fn|pub|683-698|def resolve_absolute(normalized: str, project_base: Path)...|
+|`format_substituted_path`|fn|pub|699-710|def format_substituted_path(value: str) -> str|
+|`compute_sub_path`|fn|pub|711-712|def compute_sub_path(|
+|`save_config`|fn|pub|733-740|def save_config(|
+|`load_config`|fn|pub|773-815|def load_config(project_base: Path) -> dict[str, str | li...|
+|`load_static_check_from_config`|fn|pub|816-847|def load_static_check_from_config(project_base: Path) -> ...|
+|`build_persisted_update_flags`|fn|pub|848-872|def build_persisted_update_flags(args: Namespace) -> dict...|
+|`load_persisted_update_flags`|fn|pub|873-921|def load_persisted_update_flags(project_base: Path) -> di...|
+|`generate_guidelines_file_list`|fn|pub|922-954|def generate_guidelines_file_list(guidelines_dir: Path, p...|
+|`generate_guidelines_file_items`|fn|pub|955-987|def generate_guidelines_file_items(guidelines_dir: Path, ...|
+|`upgrade_guidelines_templates`|fn|pub|988-989|def upgrade_guidelines_templates(|
+|`make_relative_token`|fn|pub|1025-1041|def make_relative_token(raw: str, keep_trailing: bool = F...|
+|`ensure_relative`|fn|pub|1042-1057|def ensure_relative(value: str, name: str, code: int) -> ...|
+|`apply_replacements`|fn|pub|1058-1070|def apply_replacements(text: str, replacements: Mapping[s...|
+|`write_text_file`|fn|pub|1071-1082|def write_text_file(dst: Path, text: str) -> None|
+|`copy_with_replacements`|fn|pub|1083-1084|def copy_with_replacements(|
+|`normalize_description`|fn|pub|1099-1113|def normalize_description(value: str) -> str|
+|`md_to_toml`|fn|pub|1114-1148|def md_to_toml(md_path: Path, toml_path: Path, force: boo...|
+|`extract_frontmatter`|fn|pub|1149-1162|def extract_frontmatter(content: str) -> tuple[str, str]|
+|`extract_description`|fn|pub|1163-1175|def extract_description(frontmatter: str) -> str|
+|`extract_argument_hint`|fn|pub|1176-1188|def extract_argument_hint(frontmatter: str) -> str|
+|`extract_purpose_first_bullet`|fn|pub|1189-1213|def extract_purpose_first_bullet(body: str) -> str|
+|`_extract_section_text`|fn|priv|1214-1241|def _extract_section_text(body: str, section_name: str) -...|
+|`extract_skill_description`|fn|pub|1242-1260|def extract_skill_description(frontmatter: str) -> str|
+|`json_escape`|fn|pub|1261-1270|def json_escape(value: str) -> str|
+|`generate_kiro_resources`|fn|pub|1271-1274|def generate_kiro_resources(|
+|`render_kiro_agent`|fn|pub|1300-1309|def render_kiro_agent(|
+|`replace_tokens`|fn|pub|1355-1368|def replace_tokens(path: Path, replacements: Mapping[str,...|
+|`yaml_double_quote_escape`|fn|pub|1369-1378|def yaml_double_quote_escape(value: str) -> str|
+|`list_docs_templates`|fn|pub|1379-1396|def list_docs_templates() -> list[Path]|
+|`find_requirements_template`|fn|pub|1397-1413|def find_requirements_template(docs_templates: list[Path]...|
+|`load_kiro_template`|fn|pub|1414-1451|def load_kiro_template() -> tuple[str, dict[str, Any]]|
+|`strip_json_comments`|fn|pub|1452-1476|def strip_json_comments(text: str) -> str|
+|`load_settings`|fn|pub|1477-1492|def load_settings(path: Path) -> dict[str, Any]|
+|`load_centralized_models`|fn|pub|1493-1496|def load_centralized_models(|
+|`get_model_tools_for_prompt`|fn|pub|1545-1546|def get_model_tools_for_prompt(|
+|`get_raw_tools_for_prompt`|fn|pub|1586-1607|def get_raw_tools_for_prompt(config: dict[str, Any] | Non...|
+|`format_tools_inline_list`|fn|pub|1608-1619|def format_tools_inline_list(tools: list[str]) -> str|
+|`deep_merge_dict`|fn|pub|1620-1635|def deep_merge_dict(base: dict[str, Any], incoming: dict[...|
+|`find_vscode_settings_source`|fn|pub|1636-1647|def find_vscode_settings_source() -> Optional[Path]|
+|`build_prompt_recommendations`|fn|pub|1648-1662|def build_prompt_recommendations(prompts_dir: Path) -> di...|
+|`ensure_wrapped`|fn|pub|1663-1678|def ensure_wrapped(target: Path, project_base: Path, code...|
+|`save_vscode_backup`|fn|pub|1679-1693|def save_vscode_backup(req_root: Path, settings_path: Pat...|
+|`restore_vscode_settings`|fn|pub|1694-1709|def restore_vscode_settings(project_base: Path) -> None|
+|`prune_empty_dirs`|fn|pub|1710-1727|def prune_empty_dirs(root: Path) -> None|
+|`remove_generated_resources`|fn|pub|1728-1778|def remove_generated_resources(project_base: Path) -> None|
+|`run_remove`|fn|pub|1779-1826|def run_remove(args: Namespace) -> None|
+|`_validate_enable_static_check_command_executables`|fn|priv|1827-1830|def _validate_enable_static_check_command_executables(|
+|`run`|fn|pub|1859-2058|def run(args: Namespace) -> None|
+|`VERBOSE`|var|pub|1867||
+|`DEBUG`|var|pub|1868||
+|`PROMPT`|var|pub|2281||
+|`_format_install_table`|fn|priv|2865-2867|def _format_install_table(|
+|`fmt`|fn|pub|2898-2905|def fmt(row: tuple[str, ...]) -> str|
+|`SUPPORTED_EXTENSIONS`|var|pub|2928||
+|`_collect_source_files`|fn|priv|2936-2988|def _collect_source_files(src_dirs: list[str], project_ba...|
+|`_build_ascii_tree`|fn|priv|2989-3034|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|3013-3015|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|3035-3047|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|3048-3066|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|3067-3083|def _is_project_scan_command(args: Namespace) -> bool|
+|`_is_here_only_project_scan_command`|fn|priv|3084-3099|def _is_here_only_project_scan_command(args: Namespace) -...|
+|`run_files_tokens`|fn|pub|3100-3122|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|3123-3139|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|3140-3158|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|3159-3187|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|3188-3205|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|3206-3227|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|3228-3257|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|3258-3283|def run_tokens(args: Namespace) -> None|
+|`run_files_static_check_cmd`|fn|pub|3284-3350|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|3351-3396|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|3397-3417|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|3418-3468|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|3469-3556|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|3493||
+|`DEBUG`|var|pub|3494||
 
 
 ---
