@@ -654,6 +654,7 @@
 - \[0.19.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.19.0
 - \[0.20.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.20.0
 - \[0.21.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.21.0
+- \[0.22.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.22.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -676,3 +677,4 @@
 [0.19.0]: https://github.com/Ogekuri/useReq/compare/v0.18.0..v0.19.0
 [0.20.0]: https://github.com/Ogekuri/useReq/compare/v0.19.0..v0.20.0
 [0.21.0]: https://github.com/Ogekuri/useReq/compare/v0.20.0..v0.21.0
+[0.22.0]: https://github.com/Ogekuri/useReq/compare/v0.21.0..v0.22.0
