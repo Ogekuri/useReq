@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.21.0](https://github.com/Ogekuri/useReq/compare/v0.20.0..v0.21.0) - 2026-03-06
+### 🚜  Changes
+- derive upgrade source from remotes [useReq] *(cli)*
+  - Update SRS for dynamic --upgrade source and program-name-based --uninstall.
+  - Align idle-state JSON keys to explicit human-readable timestamp field names.
+  - Implement remote owner/repository resolver shared by release check and upgrade path.
+  - Keep startup idle-gated check before argv parsing with 2s timeout and 24h idle window.
+  - Extend tests for upgrade command source URL, uninstall target, and idle JSON schema fields.
+- add idle-gated release checks [useReq] *(cli)*
+  - Update release-check requirements to run at most once per idle window.
+  - Persist startup check state in /home/ogekuri/.github_api_idle-time.<program_name>.
+  - Keep dynamic GitHub endpoint resolution from active git remotes.
+  - Retain 2-second timeout and bright green/red output semantics.
+  - Add tests for idle skip and successful idle-state persistence.
+- align version-warning color semantics [useReq] *(requirements)*
+  - Update SRS-029 from bright-red to bright-green to match new startup release-check behavior.
+- derive release-check URL from git remotes [useReq] *(cli)*
+  - Update SRS-050/SRS-051/SRS-052 and add SRS-269 for startup release-check behavior.
+  - Resolve latest-release API URL from active git remotes instead of fixed owner/repo.
+  - Set hardcoded default timeout to 2 seconds and keep pre-parse execution order.
+  - Emit bright-green message for newer version with installed/latest values.
+  - Emit bright-red diagnostic messages for release-check failures (including HTTP 403 details).
+  - Adjust and extend tests for timeout, URL resolution, color output, and failure diagnostics.
+
 ## [0.19.0](https://github.com/Ogekuri/useReq/compare/v0.18.0..v0.19.0) - 2026-03-06
 ### 🚜  Changes
 - move update check before argument parsing and color warning [useReq] *(cli)*
@@ -629,6 +653,7 @@
 - \[0.18.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.18.0
 - \[0.19.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.19.0
 - \[0.20.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.20.0
+- \[0.21.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.21.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -650,3 +675,4 @@
 [0.18.0]: https://github.com/Ogekuri/useReq/compare/v0.17.0..v0.18.0
 [0.19.0]: https://github.com/Ogekuri/useReq/compare/v0.18.0..v0.19.0
 [0.20.0]: https://github.com/Ogekuri/useReq/compare/v0.19.0..v0.20.0
+[0.21.0]: https://github.com/Ogekuri/useReq/compare/v0.20.0..v0.21.0
