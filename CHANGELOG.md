@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.19.0](https://github.com/Ogekuri/useReq/compare/v0.18.0..v0.19.0) - 2026-03-06
+### 🚜  Changes
+- move update check before argument parsing and color warning [useReq] *(cli)*
+  - Update SRS-050/SRS-052 and align SRS-029 with startup check behavior.
+  - Run release-check at program startup before parse/validation.
+  - Emit newer-version warning in bright red on stderr with ANSI reset.
+  - Refresh update-check tests for startup-order and red warning output.
+  - Update WORKFLOW runtime call-trace and regenerate REFERENCES index.
+
 ## [0.17.0](https://github.com/Ogekuri/useReq/compare/v0.16.0..v0.17.0) - 2026-03-06
 ### ⛰️  Features
 - add manual dispatch trigger [useReq] *(release-workflow)*
@@ -618,6 +627,7 @@
 - \[0.16.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.16.0
 - \[0.17.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.17.0
 - \[0.18.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.18.0
+- \[0.19.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.19.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -637,3 +647,4 @@
 [0.16.0]: https://github.com/Ogekuri/useReq/compare/v0.15.0..v0.16.0
 [0.17.0]: https://github.com/Ogekuri/useReq/compare/v0.16.0..v0.17.0
 [0.18.0]: https://github.com/Ogekuri/useReq/compare/v0.17.0..v0.18.0
+[0.19.0]: https://github.com/Ogekuri/useReq/compare/v0.18.0..v0.19.0
