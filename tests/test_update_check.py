@@ -2,6 +2,7 @@
 
 import io
 import json
+import subprocess
 import tempfile
 import urllib.error
 import unittest
@@ -265,6 +266,44 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         self.assertIn(
             "unable to resolve upgrade source from git remotes",
             context.exception.message,
+        )
+
+    def test_upgrade_command_retries_remote_inspection_in_repo_root(self) -> None:
+        """Upgrade command must retry git remotes from repository root on first failure."""
+        remote_output = "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (fetch)\n"
+        result_mock = MagicMock(returncode=0)
+
+        with patch(
+            "usereq.cli.subprocess.check_output",
+            side_effect=[
+                subprocess.CalledProcessError(
+                    returncode=128,
+                    cmd=["git", "remote", "-v"],
+                    stderr="fatal: not a git repository",
+                ),
+                remote_output,
+            ],
+        ) as check_output_mock:
+            with patch("usereq.cli.Path.cwd", return_value=Path("/tmp/non-repo-cwd")):
+                with patch("usereq.cli.subprocess.run", return_value=result_mock) as run_mock:
+                    cli.run_upgrade()
+
+        self.assertEqual(check_output_mock.call_count, 2)
+        first_call_kwargs = check_output_mock.call_args_list[0].kwargs
+        second_call_kwargs = check_output_mock.call_args_list[1].kwargs
+        self.assertNotIn("cwd", first_call_kwargs)
+        self.assertEqual(second_call_kwargs.get("cwd"), str(cli.REPO_ROOT))
+        run_mock.assert_called_once_with(
+            [
+                "uv",
+                "tool",
+                "install",
+                cli.TOOL_PROGRAM_NAME,
+                "--force",
+                "--from",
+                "git+https://github.com/ExampleOrg/ExampleRepo.git",
+            ],
+            check=False,
         )
 
     def test_uninstall_command_uses_tool_program_name(self) -> None:
