@@ -135,9 +135,10 @@ No explicit performance optimizations identified.
 - **SRS-047**: The implementation MUST preserve this behavior exactly: After successful installation or update, the CLI MUST print a single English line reporting success and including the resolved project root path.
 - **SRS-048**: The implementation MUST preserve this behavior exactly: Immediately after the successful message, the CLI MUST print a list of the discovered directories for replacing the `%%GUIDELINES_FILES%%` token, prefixed by `- `.
 - **SRS-049**: The implementation MUST preserve this behavior exactly: Immediately after the file list, CLI MUST print a readable ASCII table describing which prompts and modules have been installed for each CLI target.
-- **SRS-050**: The command MUST perform the online release-availability HTTP GET check to GitHub API at program start, before any input-parameter parsing or validation, using a 1-second timeout.
-- **SRS-051**: The online release-check path MUST be fail-open: network errors, HTTP errors, timeout errors, JSON parse errors, and invalid payload values are swallowed and MUST NOT abort command execution.
-- **SRS-052**: If the release-check succeeds and the remote version is greater than `__version__`, the command MUST print a bright-red English warning showing current version, latest version, and upgrade command.
+- **SRS-050**: At program start, before any input-parameter parsing or validation, the command MUST resolve the GitHub releases endpoint from active git remotes as `https://api.github.com/repos/<owner>/<repository>/releases/latest`.
+- **SRS-051**: The startup release-check MUST use a hardcoded configurable timeout with default value `2` seconds and MUST be fail-open, continuing execution after network, HTTP, timeout, JSON, payload, or remote-resolution errors.
+- **SRS-052**: If release-check succeeds and the remote version is greater than `__version__`, the command MUST print a bright-green English message including the installed version and the latest available version.
+- **SRS-269**: If release-check fails for any reason, the command MUST print a bright-red English error message including an explicit failure reason (for example, HTTP `403` rate-limit exceeded) and MUST NOT abort execution.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
 - **SRS-054**: The repository MUST include `scripts/req.sh` as the development launcher wrapper for the CLI.
 - **SRS-055**: The repository MUST keep `requirements.txt` as the canonical runtime/build dependency list containing all and only packages required to execute or build the application.

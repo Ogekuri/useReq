@@ -1,6 +1,8 @@
 """Unit tests for online update-check dispatch in CLI command flows."""
 
+import io
 import json
+import urllib.error
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -20,7 +22,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                 exit_code = cli.main(["--files-references", str(fixture)])
 
         self.assertEqual(exit_code, 0)
-        notify_mock.assert_called_once_with(timeout_seconds=1.0)
+        notify_mock.assert_called_once_with(timeout_seconds=2.0)
 
     def test_version_triggers_online_update_check(self) -> None:
         """Version-only command must still execute startup release-check."""
@@ -29,7 +31,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                 exit_code = cli.main(["--version"])
 
         self.assertEqual(exit_code, 0)
-        notify_mock.assert_called_once_with(timeout_seconds=1.0)
+        notify_mock.assert_called_once_with(timeout_seconds=2.0)
 
     def test_update_check_runs_before_argument_parsing(self) -> None:
         """Release-check must run before parse_args is executed."""
@@ -39,10 +41,23 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                     exit_code = cli.main(["--files-references", "missing.py"])
 
         self.assertEqual(exit_code, 1)
-        notify_mock.assert_called_once_with(timeout_seconds=1.0)
+        notify_mock.assert_called_once_with(timeout_seconds=2.0)
 
-    def test_newer_version_warning_is_bright_red(self) -> None:
-        """Remote-newer detection must print a bright-red warning payload."""
+    def test_release_api_url_is_resolved_from_git_remote(self) -> None:
+        """Git remotes must resolve to GitHub latest-release endpoint."""
+        remote_output = (
+            "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (fetch)\n"
+            "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (push)\n"
+        )
+        with patch("usereq.cli.subprocess.check_output", return_value=remote_output):
+            resolved_url = cli.resolve_latest_release_api_url()
+        self.assertEqual(
+            resolved_url,
+            "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+        )
+
+    def test_newer_version_warning_is_bright_green(self) -> None:
+        """Remote-newer detection must print a bright-green availability payload."""
         response_mock = MagicMock()
         response_mock.read.return_value = json.dumps({"tag_name": "v9.9.9"}).encode("utf-8")
         urlopen_cm = MagicMock()
@@ -50,11 +65,70 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         urlopen_cm.__exit__.return_value = None
 
         with patch("usereq.cli.load_package_version", return_value="0.0.1"):
-            with patch("usereq.cli.urllib.request.urlopen", return_value=urlopen_cm):
-                with patch("sys.stderr") as fake_stderr:
-                    cli.maybe_notify_newer_version(timeout_seconds=1.0)
+            with patch(
+                "usereq.cli.resolve_latest_release_api_url",
+                return_value=(
+                    "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                ),
+            ):
+                with patch("usereq.cli.urllib.request.urlopen", return_value=urlopen_cm):
+                    with patch("sys.stderr") as fake_stderr:
+                        cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(cli.ANSI_BRIGHT_GREEN, written)
+        self.assertIn("installed 0.0.1, latest 9.9.9.", written)
+        self.assertIn(cli.ANSI_RESET, written)
+
+    def test_release_check_http_403_prints_bright_red_error(self) -> None:
+        """HTTP errors must print bright-red diagnostics without aborting execution."""
+        http_error = urllib.error.HTTPError(
+            url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+            code=403,
+            msg="Forbidden",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"API rate limit exceeded"}'),
+        )
+
+        with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+            with patch(
+                "usereq.cli.resolve_latest_release_api_url",
+                return_value=(
+                    "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                ),
+            ):
+                with patch("usereq.cli.urllib.request.urlopen", side_effect=http_error):
+                    with patch("sys.stderr") as fake_stderr:
+                        cli.maybe_notify_newer_version(timeout_seconds=2.0)
 
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(cli.ANSI_BRIGHT_RED, written)
-        self.assertIn("current 0.0.1, latest 9.9.9.", written)
+        self.assertIn("HTTP 403", written)
+        self.assertIn("API rate limit exceeded", written)
         self.assertIn(cli.ANSI_RESET, written)
+
+    def test_release_check_uses_remote_resolved_url(self) -> None:
+        """Release-check request must target URL built from git remote mapping."""
+        response_mock = MagicMock()
+        response_mock.read.return_value = json.dumps({"tag_name": "v0.0.1"}).encode("utf-8")
+        urlopen_cm = MagicMock()
+        urlopen_cm.__enter__.return_value = response_mock
+        urlopen_cm.__exit__.return_value = None
+
+        with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+            with patch(
+                "usereq.cli.urllib.request.urlopen",
+                return_value=urlopen_cm,
+            ) as urlopen_mock:
+                with patch("usereq.cli.subprocess.check_output") as check_output_mock:
+                    check_output_mock.return_value = (
+                        "origin\thttps://github.com/ExampleOrg/ExampleRepo.git (fetch)\n"
+                    )
+                    cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+        urlopen_call = urlopen_mock.call_args
+        request_object = urlopen_call.args[0]
+        self.assertEqual(
+            request_object.full_url,
+            "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+        )

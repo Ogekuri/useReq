@@ -15,6 +15,7 @@ from typing import Dict, List
 
 import pytest
 
+import usereq.cli as cli_module
 from usereq.cli import (
     main,
     EXCLUDED_DIRS,
@@ -773,8 +774,13 @@ class TestFilesTokensCommand:
 class TestFilesReferencesCommand:
     """CMD-004, CMD-005: --files-references tests."""
 
-    def test_files_references_basic(self, capsys):
+    def test_files_references_basic(self, capsys, monkeypatch):
         """CMD-004: Must output markdown."""
+        monkeypatch.setattr(
+            cli_module,
+            "maybe_notify_newer_version",
+            lambda timeout_seconds=2.0: None,
+        )
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py",
                                          delete=False) as f:
             f.write("class Foo:\n    pass\n")
@@ -916,8 +922,13 @@ class TestFilesReferencesCommand:
 class TestFilesCompressCommand:
     """CMD-006, CMD-007, CMD-017: --files-compress tests."""
 
-    def test_files_compress_basic(self, capsys):
+    def test_files_compress_basic(self, capsys, monkeypatch):
         """CMD-006: Must output compressed content."""
+        monkeypatch.setattr(
+            cli_module,
+            "maybe_notify_newer_version",
+            lambda timeout_seconds=2.0: None,
+        )
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py",
                                          delete=False) as f:
             f.write("# comment\nx = 1\n")
@@ -1367,7 +1378,12 @@ class TestTokensCommand:
 class TestFindCommandVerbose:
     """CMD-029: Verbose-gated progress output for --files-find and --find."""
 
-    def test_files_find_default_suppresses_progress(self, capsys, repo_temp_dir):
+    def test_files_find_default_suppresses_progress(self, capsys, repo_temp_dir, monkeypatch):
+        monkeypatch.setattr(
+            cli_module,
+            "maybe_notify_newer_version",
+            lambda timeout_seconds=2.0: None,
+        )
         src = repo_temp_dir / "a.py"
         src.write_text("def foo():\n    return 1\n", encoding="utf-8")
         rc = main(["--files-find", "FUNCTION", "foo", str(src)])

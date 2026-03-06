@@ -58,8 +58,19 @@ PERSISTED_UPDATE_FLAG_KEYS = (
 ANSI_BRIGHT_RED = "\033[91m"
 """! @brief ANSI escape prefix for bright red terminal output."""
 
+ANSI_BRIGHT_GREEN = "\033[92m"
+"""! @brief ANSI escape prefix for bright green terminal output."""
+
 ANSI_RESET = "\033[0m"
 """! @brief ANSI escape sequence that resets terminal style."""
+
+RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
+"""! @brief Hardcoded default timeout for startup release-check HTTP calls."""
+
+GITHUB_RELEASES_LATEST_URL_TEMPLATE = (
+    "https://api.github.com/repos/{owner}/{repository}/releases/latest"
+)
+"""! @brief GitHub API template for latest-release endpoint resolution."""
 
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
@@ -525,17 +536,97 @@ def is_newer_version(current: str, latest: str) -> bool:
     return latest_norm > current_norm
 
 
-def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
+def parse_github_owner_repository(remote_url: str) -> tuple[str, str] | None:
     """!
-    @brief Checks online for a new version and prints a bright-red warning.
+    @brief Extract GitHub owner/repository from a git remote URL.
+        @param remote_url Remote URL string from `git remote -v`.
+        @return Tuple `(owner, repository)` when URL targets github.com; otherwise None.
+    @details Supports SSH (`git@github.com:owner/repo.git`), HTTPS (`https://github.com/owner/repo.git`), and SSH-scheme (`ssh://git@github.com/owner/repo.git`) forms. Removes optional `.git` suffix.
+    """
+    value = (remote_url or "").strip()
+    if not value:
+        return None
+
+    patterns = (
+        r"^git@github\.com:(?P<owner>[^/\s]+)/(?P<repository>[^/\s]+?)(?:\.git)?$",
+        r"^https?://github\.com/(?P<owner>[^/\s]+)/(?P<repository>[^/\s]+?)(?:\.git)?/?$",
+        r"^ssh://git@github\.com/(?P<owner>[^/\s]+)/(?P<repository>[^/\s]+?)(?:\.git)?/?$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, value)
+        if not match:
+            continue
+        owner = match.group("owner").strip()
+        repository = match.group("repository").strip()
+        if owner and repository:
+            return owner, repository
+    return None
+
+
+def resolve_latest_release_api_url() -> str:
+    """!
+    @brief Resolve latest-release GitHub API URL from active repository remotes.
+        @return Fully-qualified URL `https://api.github.com/repos/<owner>/<repository>/releases/latest`.
+        @throws ValueError If no github.com remote URL can be parsed from `git remote -v`.
+        @throws ReqError If git remote inspection cannot execute successfully.
+    @details Reads `git remote -v`, prioritizes `origin` fetch URL, then other fetch remotes, then non-fetch entries. Converts first parseable github.com remote into the API endpoint.
+    """
+    try:
+        output = subprocess.check_output(
+            ["git", "remote", "-v"],
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise ReqError("Error: unable to inspect git remotes for release-check URL", 1) from exc
+
+    ranked_remotes: list[tuple[int, str]] = []
+    fallback_remotes: list[str] = []
+    for raw_line in output.splitlines():
+        parts = raw_line.strip().split()
+        if len(parts) < 3:
+            continue
+        remote_name, remote_url, remote_kind = parts[0], parts[1], parts[2]
+        if remote_kind == "(fetch)":
+            rank = 0 if remote_name == "origin" else 1
+            ranked_remotes.append((rank, remote_url))
+        else:
+            fallback_remotes.append(remote_url)
+
+    ranked_remotes.sort(key=lambda item: item[0])
+    candidate_urls = [url for _, url in ranked_remotes] + fallback_remotes
+    for candidate_url in candidate_urls:
+        parsed = parse_github_owner_repository(candidate_url)
+        if not parsed:
+            continue
+        owner, repository = parsed
+        return GITHUB_RELEASES_LATEST_URL_TEMPLATE.format(
+            owner=owner,
+            repository=repository,
+        )
+
+    raise ValueError("unable to resolve GitHub owner/repository from active git remotes")
+
+
+def maybe_notify_newer_version(
+    timeout_seconds: float = RELEASE_CHECK_TIMEOUT_SECONDS,
+) -> None:
+    """!
+    @brief Checks online for a new version and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details If the call fails or the response is invalid, it prints nothing and proceeds.
-                 On newer-version detection, emits current and latest versions plus upgrade hint using ANSI bright-red styling.
+        @details Resolves latest-release URL from active git remotes, requests GitHub API, compares remote version with local package version, prints bright-green message on update availability, and prints bright-red error message on any check failure. Always preserves fail-open command execution.
     @return {None} Function return value.
     """
 
     current_version = load_package_version()
-    url = "https://api.github.com/repos/Ogekuri/useReq/releases/latest"
+    try:
+        url = resolve_latest_release_api_url()
+    except (ReqError, ValueError) as exc:
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: {exc}{ANSI_RESET}",
+            file=sys.stderr,
+        )
+        return
 
     try:
         request = urllib.request.Request(
@@ -551,23 +642,58 @@ def maybe_notify_newer_version(timeout_seconds: float = 1.0) -> None:
         payload = json.loads(body)
         tag = payload.get("tag_name")
         if not isinstance(tag, str) or not tag.strip():
+            print(
+                (
+                    f"{ANSI_BRIGHT_RED}Release-check error: invalid response payload "
+                    "(missing 'tag_name')."
+                    f"{ANSI_RESET}"
+                ),
+                file=sys.stderr,
+            )
             return
 
         latest_version = normalize_release_tag(tag)
         if is_newer_version(current_version, latest_version):
             print(
-                f"{ANSI_BRIGHT_RED}A new version of usereq is available: "
-                f"current {current_version}, latest {latest_version}. "
-                f"To upgrade, run: req --upgrade{ANSI_RESET}",
+                (
+                    f"{ANSI_BRIGHT_GREEN}New version available: "
+                    f"installed {current_version}, latest {latest_version}."
+                    f"{ANSI_RESET}"
+                ),
                 file=sys.stderr,
             )
-    except (
-        urllib.error.URLError,
-        urllib.error.HTTPError,
-        TimeoutError,
-        json.JSONDecodeError,
-        ValueError,
-    ):
+    except urllib.error.HTTPError as exc:
+        error_details = f"HTTP {exc.code}"
+        try:
+            payload = json.loads(exc.read().decode("utf-8", errors="replace"))
+        except json.JSONDecodeError:
+            payload = None
+        if isinstance(payload, dict):
+            message = payload.get("message")
+            if isinstance(message, str) and message.strip():
+                error_details = f"{error_details}: {message.strip()}"
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: {error_details}{ANSI_RESET}",
+            file=sys.stderr,
+        )
+        return
+    except urllib.error.URLError as exc:
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: network failure ({exc.reason}){ANSI_RESET}",
+            file=sys.stderr,
+        )
+        return
+    except TimeoutError:
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: timeout exceeded{ANSI_RESET}",
+            file=sys.stderr,
+        )
+        return
+    except (json.JSONDecodeError, ValueError) as exc:
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: invalid release payload ({exc}){ANSI_RESET}",
+            file=sys.stderr,
+        )
         return
 
 
@@ -3477,7 +3603,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         global VERBOSE, DEBUG
         argv_list = sys.argv[1:] if argv is None else argv
         # Run release-check at startup before argument parsing/validation.
-        maybe_notify_newer_version(timeout_seconds=1.0)
+        maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)
         if not argv_list:
             build_parser().print_help()
             return 0
