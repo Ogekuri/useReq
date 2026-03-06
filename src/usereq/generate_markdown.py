@@ -17,6 +17,7 @@ from .source_analyzer import SourceAnalyzer, format_markdown
 EXT_LANG_MAP = {
     ".py": "python",
     ".js": "javascript",
+    ".mjs": "javascript",
     ".ts": "typescript",
     ".rs": "rust",
     ".go": "go",

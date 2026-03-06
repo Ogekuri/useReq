@@ -73,6 +73,7 @@ STATIC_CHECK_EXT_TO_LANG: dict[str, str] = {
     ".cs": "C#",
     ".rs": "Rust",
     ".js": "JavaScript",
+    ".mjs": "JavaScript",
     ".ts": "TypeScript",
     ".java": "Java",
     ".go": "Go",
@@ -90,7 +91,7 @@ STATIC_CHECK_EXT_TO_LANG: dict[str, str] = {
 }
 """!
 @brief Maps file extensions (lowercase, dot-prefixed) to canonical language names.
-@details Uses the same 20-language extension set as SRS-131 (one primary extension per language).
+@details Uses the extension set defined by SRS-131 language coverage, including both `.js` and `.mjs` for JavaScript.
   Lookup MUST be performed on `Path(filepath).suffix.lower()`.
 @see SRS-259, SRS-131
 """

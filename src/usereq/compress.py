@@ -14,7 +14,7 @@ from .source_analyzer import build_language_specs
 
 # Extension-to-language map (mirrors generate_markdown.py)
 EXT_LANG_MAP = {
-    ".py": "python", ".js": "javascript", ".ts": "typescript",
+    ".py": "python", ".js": "javascript", ".mjs": "javascript", ".ts": "typescript",
     ".rs": "rust", ".go": "go", ".c": "c", ".cpp": "cpp",
     ".h": "c", ".hpp": "cpp", ".java": "java", ".rb": "ruby",
     ".php": "php", ".swift": "swift", ".kt": "kotlin",

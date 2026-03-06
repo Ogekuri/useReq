@@ -21,6 +21,9 @@ class TestDetectLanguage:
     def test_javascript(self):
         assert detect_language("test.js") == "javascript"
 
+    def test_javascript_module(self):
+        assert detect_language("test.mjs") == "javascript"
+
     def test_unknown(self):
         assert detect_language("test.txt") is None
 
@@ -109,6 +112,18 @@ class TestCompressFile:
     def test_auto_detect_language(self):
         """Must auto-detect language from extension."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".js",
+                                         delete=False) as f:
+            f.write("// comment\nvar x = 1;\n")
+            path = f.name
+        try:
+            result = compress_file(path)
+            assert "var x = 1;" in result
+        finally:
+            os.unlink(path)
+
+    def test_auto_detect_language_mjs(self):
+        """Must auto-detect JavaScript module language from .mjs extension."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".mjs",
                                          delete=False) as f:
             f.write("// comment\nvar x = 1;\n")
             path = f.name

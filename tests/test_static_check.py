@@ -804,6 +804,9 @@ class TestStaticCheckExtToLang(unittest.TestCase):
     def test_js_maps_to_javascript(self) -> None:
         self.assertEqual(STATIC_CHECK_EXT_TO_LANG.get(".js"), "JavaScript")
 
+    def test_mjs_maps_to_javascript(self) -> None:
+        self.assertEqual(STATIC_CHECK_EXT_TO_LANG.get(".mjs"), "JavaScript")
+
     def test_ts_maps_to_typescript(self) -> None:
         self.assertEqual(STATIC_CHECK_EXT_TO_LANG.get(".ts"), "TypeScript")
 
@@ -825,9 +828,9 @@ class TestStaticCheckExtToLang(unittest.TestCase):
     def test_unknown_ext_returns_none(self) -> None:
         self.assertIsNone(STATIC_CHECK_EXT_TO_LANG.get(".xyz"))
 
-    def test_covers_20_languages(self) -> None:
-        """Exactly 20 extensions are mapped (one per language from SRS-131)."""
-        self.assertEqual(len(STATIC_CHECK_EXT_TO_LANG), 20)
+    def test_covers_21_extensions(self) -> None:
+        """Exactly 21 extensions are mapped with JavaScript supporting .js and .mjs."""
+        self.assertEqual(len(STATIC_CHECK_EXT_TO_LANG), 21)
 
 
 # ---------------------------------------------------------------------------

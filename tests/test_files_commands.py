@@ -1012,12 +1012,14 @@ class TestCollectSourceFiles:
         src.mkdir()
         (src / "main.py").write_text("x = 1\n")
         (src / "main.js").write_text("var x = 1;\n")
+        (src / "main.mjs").write_text("export const x = 1;\n")
         (src / "readme.txt").write_text("not source\n")
         files = _collect_source_files(["src"], repo_temp_dir)
-        assert len(files) == 2
+        assert len(files) == 3
         extensions = {os.path.splitext(f)[1] for f in files}
         assert ".py" in extensions
         assert ".js" in extensions
+        assert ".mjs" in extensions
         assert ".txt" not in extensions
 
     def test_excludes_dirs(self, repo_temp_dir):
@@ -2075,10 +2077,10 @@ class TestProjectExamplesFindDoxygenParity:
 class TestSupportedExtensions:
     """CMD-012: Verify supported extensions constant."""
 
-    def test_all_20_extensions_present(self):
-        """All 20 language extensions must be in SUPPORTED_EXTENSIONS."""
+    def test_all_21_extensions_present(self):
+        """All supported source extensions must be in SUPPORTED_EXTENSIONS."""
         expected = {
-            ".c", ".cpp", ".cs", ".ex", ".go", ".hs", ".java", ".js",
+            ".c", ".cpp", ".cs", ".ex", ".go", ".hs", ".java", ".js", ".mjs",
             ".kt", ".lua", ".pl", ".php", ".py", ".rb", ".rs", ".scala",
             ".sh", ".swift", ".ts", ".zig",
         }

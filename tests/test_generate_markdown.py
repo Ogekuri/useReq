@@ -20,6 +20,9 @@ class TestDetectLanguage:
     def test_javascript_extension(self):
         assert detect_language("test.js") == "javascript"
 
+    def test_javascript_module_extension(self):
+        assert detect_language("test.mjs") == "javascript"
+
     def test_unknown_extension(self):
         assert detect_language("test.txt") is None
 

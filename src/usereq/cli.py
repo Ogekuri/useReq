@@ -3247,7 +3247,7 @@ EXCLUDED_DIRS: frozenset[str] = frozenset()
 # ── Supported source file extensions ──────────────────────────────────────
 
 SUPPORTED_EXTENSIONS = frozenset({
-    ".c", ".cpp", ".cs", ".ex", ".go", ".hs", ".java", ".js",
+    ".c", ".cpp", ".cs", ".ex", ".go", ".hs", ".java", ".js", ".mjs",
     ".kt", ".lua", ".pl", ".php", ".py", ".rb", ".rs", ".scala",
     ".sh", ".swift", ".ts", ".zig",
 })
