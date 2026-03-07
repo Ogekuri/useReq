@@ -2,7 +2,6 @@
 
 import io
 import json
-import subprocess
 import tempfile
 import urllib.error
 import unittest
@@ -45,17 +44,12 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         self.assertEqual(exit_code, 1)
         notify_mock.assert_called_once_with(timeout_seconds=2.0)
 
-    def test_release_api_url_is_resolved_from_git_remote(self) -> None:
-        """Git remotes must resolve to GitHub latest-release endpoint."""
-        remote_output = (
-            "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (fetch)\n"
-            "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (push)\n"
-        )
-        with patch("usereq.cli.subprocess.check_output", return_value=remote_output):
-            resolved_url = cli.resolve_latest_release_api_url()
+    def test_release_api_url_is_hardcoded(self) -> None:
+        """Release-check URL must resolve to the hardcoded repository endpoint."""
+        resolved_url = cli.resolve_latest_release_api_url()
         self.assertEqual(
             resolved_url,
-            "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+            "https://api.github.com/repos/Ogekuri/useReq/releases/latest",
         )
 
     def test_newer_version_warning_is_bright_green(self) -> None:
@@ -129,8 +123,8 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         self.assertIn("API rate limit exceeded", written)
         self.assertIn(cli.ANSI_RESET, written)
 
-    def test_release_check_uses_remote_resolved_url(self) -> None:
-        """Release-check request must target URL built from git remote mapping."""
+    def test_release_check_uses_hardcoded_url(self) -> None:
+        """Release-check request must target the hardcoded GitHub endpoint URL."""
         response_mock = MagicMock()
         response_mock.read.return_value = json.dumps({"tag_name": "v0.0.1"}).encode("utf-8")
         urlopen_cm = MagicMock()
@@ -149,19 +143,13 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                             "usereq.cli.urllib.request.urlopen",
                             return_value=urlopen_cm,
                         ) as urlopen_mock:
-                            with patch(
-                                "usereq.cli.subprocess.check_output",
-                            ) as check_output_mock:
-                                check_output_mock.return_value = (
-                                    "origin\thttps://github.com/ExampleOrg/ExampleRepo.git (fetch)\n"
-                                )
-                                cli.maybe_notify_newer_version(timeout_seconds=2.0)
+                            cli.maybe_notify_newer_version(timeout_seconds=2.0)
 
         urlopen_call = urlopen_mock.call_args
         request_object = urlopen_call.args[0]
         self.assertEqual(
             request_object.full_url,
-            "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+            "https://api.github.com/repos/Ogekuri/useReq/releases/latest",
         )
 
     def test_release_check_skips_network_when_idle_window_active(self) -> None:
@@ -188,9 +176,37 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         urlopen_mock.assert_not_called()
 
-    def test_release_check_idle_window_default_is_300_seconds(self) -> None:
-        """Default idle window constant must match five-minute cadence."""
-        self.assertEqual(cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS, 300)
+    def test_release_check_idle_window_default_is_86400_seconds(self) -> None:
+        """Default idle window constant must match 24-hour successful-check lockout."""
+        self.assertEqual(cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS, 86400)
+
+    def test_release_check_min_interval_default_is_300_seconds(self) -> None:
+        """Default minimum release-check cadence must match five minutes."""
+        self.assertEqual(cli.RELEASE_CHECK_MIN_INTERVAL_SECONDS, 300)
+
+    def test_release_check_skips_when_min_interval_not_elapsed(self) -> None:
+        """Lower-bound cadence must skip remote checks before min interval expires."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            now_timestamp = 1700000000
+            idle_state = {
+                "last_success_timestamp": now_timestamp - 30,
+                "last_success_human_readable_timestamp": "2023-11-14T22:13:10Z",
+                "idle_until_timestamp": now_timestamp - 1,
+                "idle_until_human_readable_timestamp": "2023-11-14T22:13:19Z",
+            }
+            idle_path.write_text(json.dumps(idle_state), encoding="utf-8")
+
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch("usereq.cli.urllib.request.urlopen") as urlopen_mock:
+                            cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+        urlopen_mock.assert_not_called()
 
     def test_successful_release_check_writes_idle_state_file(self) -> None:
         """Successful release check must persist timestamps and human-readable fields."""
@@ -239,14 +255,12 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             ),
         )
 
-    def test_upgrade_command_uses_remote_owner_repository(self) -> None:
-        """Upgrade command must use git remote owner/repository in uv source URL."""
-        remote_output = "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (fetch)\n"
+    def test_upgrade_command_uses_hardcoded_owner_repository(self) -> None:
+        """Upgrade command must use hardcoded owner/repository uv source URL."""
         result_mock = MagicMock(returncode=0)
 
-        with patch("usereq.cli.subprocess.check_output", return_value=remote_output):
-            with patch("usereq.cli.subprocess.run", return_value=result_mock) as run_mock:
-                cli.run_upgrade()
+        with patch("usereq.cli.subprocess.run", return_value=result_mock) as run_mock:
+            cli.run_upgrade()
 
         run_mock.assert_called_once_with(
             [
@@ -256,59 +270,19 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                 cli.TOOL_PROGRAM_NAME,
                 "--force",
                 "--from",
-                "git+https://github.com/ExampleOrg/ExampleRepo.git",
+                "git+https://github.com/Ogekuri/useReq.git",
             ],
             check=False,
         )
 
-    def test_upgrade_command_errors_when_remote_is_not_github(self) -> None:
-        """Upgrade command must fail when GitHub owner/repository cannot be resolved."""
-        remote_output = "origin\thttps://example.com/org/repo.git (fetch)\n"
-        with patch("usereq.cli.subprocess.check_output", return_value=remote_output):
+    def test_upgrade_command_fails_on_nonzero_exit(self) -> None:
+        """Upgrade command must raise ReqError when uv exits with non-zero status."""
+        result_mock = MagicMock(returncode=7)
+        with patch("usereq.cli.subprocess.run", return_value=result_mock):
             with self.assertRaises(cli.ReqError) as context:
                 cli.run_upgrade()
-        self.assertIn(
-            "unable to resolve upgrade source from git remotes",
-            context.exception.message,
-        )
-
-    def test_upgrade_command_retries_remote_inspection_in_repo_root(self) -> None:
-        """Upgrade command must retry git remotes from repository root on first failure."""
-        remote_output = "origin\tgit@github.com:ExampleOrg/ExampleRepo.git (fetch)\n"
-        result_mock = MagicMock(returncode=0)
-
-        with patch(
-            "usereq.cli.subprocess.check_output",
-            side_effect=[
-                subprocess.CalledProcessError(
-                    returncode=128,
-                    cmd=["git", "remote", "-v"],
-                    stderr="fatal: not a git repository",
-                ),
-                remote_output,
-            ],
-        ) as check_output_mock:
-            with patch("usereq.cli.Path.cwd", return_value=Path("/tmp/non-repo-cwd")):
-                with patch("usereq.cli.subprocess.run", return_value=result_mock) as run_mock:
-                    cli.run_upgrade()
-
-        self.assertEqual(check_output_mock.call_count, 2)
-        first_call_kwargs = check_output_mock.call_args_list[0].kwargs
-        second_call_kwargs = check_output_mock.call_args_list[1].kwargs
-        self.assertNotIn("cwd", first_call_kwargs)
-        self.assertEqual(second_call_kwargs.get("cwd"), str(cli.REPO_ROOT))
-        run_mock.assert_called_once_with(
-            [
-                "uv",
-                "tool",
-                "install",
-                cli.TOOL_PROGRAM_NAME,
-                "--force",
-                "--from",
-                "git+https://github.com/ExampleOrg/ExampleRepo.git",
-            ],
-            check=False,
-        )
+        self.assertIn("auto-upgrade failed", context.exception.message)
+        self.assertEqual(context.exception.code, 7)
 
     def test_uninstall_command_uses_tool_program_name(self) -> None:
         """Uninstall command must target configured tool program name."""

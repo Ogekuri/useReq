@@ -171,8 +171,11 @@ ANSI_RESET = "\033[0m"
 RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
 """! @brief Hardcoded default timeout for startup release-check HTTP calls."""
 
-RELEASE_CHECK_IDLE_WINDOW_SECONDS = 300
-"""! @brief Hardcoded default idle window in seconds between release checks."""
+RELEASE_CHECK_IDLE_WINDOW_SECONDS = 86400
+"""! @brief Hardcoded default idle window in seconds after successful release checks."""
+
+RELEASE_CHECK_MIN_INTERVAL_SECONDS = 300
+"""! @brief Hardcoded lower-bound cadence in seconds for startup release checks."""
 
 TOOL_PROGRAM_NAME = "usereq"
 """! @brief Hardcoded configurable tool identifier used by uv install/uninstall commands."""
@@ -180,13 +183,25 @@ TOOL_PROGRAM_NAME = "usereq"
 RELEASE_CHECK_PROGRAM_NAME = TOOL_PROGRAM_NAME
 """! @brief Program identifier used in release-check idle-state filename."""
 
+GITHUB_REPOSITORY_OWNER = "Ogekuri"
+"""! @brief Hardcoded GitHub owner used by upgrade and release-check endpoints."""
+
+GITHUB_REPOSITORY_NAME = "useReq"
+"""! @brief Hardcoded GitHub repository used by upgrade and release-check endpoints."""
+
 RELEASE_CHECK_IDLE_FILENAME_TEMPLATE = ".github_api_idle-time.{program_name}"
 """! @brief Filename template for release-check idle-state JSON in `$HOME`."""
 
-GITHUB_RELEASES_LATEST_URL_TEMPLATE = (
-    "https://api.github.com/repos/{owner}/{repository}/releases/latest"
+GITHUB_RELEASES_LATEST_URL = (
+    f"https://api.github.com/repos/{GITHUB_REPOSITORY_OWNER}/"
+    f"{GITHUB_REPOSITORY_NAME}/releases/latest"
 )
-"""! @brief GitHub API template for latest-release endpoint resolution."""
+"""! @brief Hardcoded GitHub API endpoint for latest-release resolution."""
+
+GITHUB_UPGRADE_SOURCE = (
+    f"git+https://github.com/{GITHUB_REPOSITORY_OWNER}/{GITHUB_REPOSITORY_NAME}.git"
+)
+"""! @brief Hardcoded git source used by uv self-upgrade command."""
 
 
 class ReqError(Exception):
@@ -499,13 +514,6 @@ def run_upgrade() -> None:
     @details Implements the run_upgrade function behavior with deterministic control flow.
     @return {None} Function return value.
     """
-    try:
-        owner, repository = resolve_github_owner_repository_from_active_remotes()
-    except (ReqError, ValueError) as exc:
-        raise ReqError(
-            f"Error: unable to resolve upgrade source from git remotes ({exc})", 1
-        ) from exc
-
     command = [
         "uv",
         "tool",
@@ -513,7 +521,7 @@ def run_upgrade() -> None:
         TOOL_PROGRAM_NAME,
         "--force",
         "--from",
-        f"git+https://github.com/{owner}/{repository}.git",
+        GITHUB_UPGRADE_SOURCE,
     ]
     try:
         result = subprocess.run(command, check=False)
@@ -717,17 +725,11 @@ def resolve_github_owner_repository_from_active_remotes() -> tuple[str, str]:
 
 def resolve_latest_release_api_url() -> str:
     """!
-    @brief Resolve latest-release GitHub API URL from active repository remotes.
-        @return Fully-qualified URL `https://api.github.com/repos/<owner>/<repository>/releases/latest`.
-        @throws ValueError If no github.com remote URL can be parsed from `git remote -v`.
-        @throws ReqError If git remote inspection cannot execute successfully.
-    @details Reads `git remote -v`, prioritizes `origin` fetch URL, then other fetch remotes, then non-fetch entries. Converts first parseable github.com remote into the API endpoint.
+    @brief Resolve latest-release GitHub API URL from hardcoded repository settings.
+        @return Fully-qualified URL `https://api.github.com/repos/Ogekuri/useReq/releases/latest`.
+    @details Returns the static endpoint derived from `GITHUB_REPOSITORY_OWNER` and `GITHUB_REPOSITORY_NAME`.
     """
-    owner, repository = resolve_github_owner_repository_from_active_remotes()
-    return GITHUB_RELEASES_LATEST_URL_TEMPLATE.format(
-        owner=owner,
-        repository=repository,
-    )
+    return GITHUB_RELEASES_LATEST_URL
 
 
 def format_unix_timestamp_utc(timestamp_seconds: int) -> str:
@@ -824,16 +826,24 @@ def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | Non
 def should_execute_release_check(
     idle_state: Mapping[str, Any] | None,
     now_timestamp: int,
+    min_interval_seconds: int = RELEASE_CHECK_MIN_INTERVAL_SECONDS,
 ) -> bool:
     """!
     @brief Decide whether startup release-check should execute in current invocation.
         @param idle_state Parsed idle-state payload or None when unavailable.
         @param now_timestamp Current Unix timestamp in seconds.
+        @param min_interval_seconds Lower-bound cadence in seconds from last successful check.
         @return True when release-check must execute; False when still in idle window.
-    @details Executes release-check when state is missing or invalid timestamp type; skips only when `idle_until_timestamp` is greater than current time.
+    @details Executes release-check when state is missing. If `last_success_timestamp` is valid, applies lower-bound cadence `last_success_timestamp + min_interval_seconds`; then skips when `idle_until_timestamp` remains greater than current time.
     """
     if idle_state is None:
         return True
+
+    last_success_timestamp = idle_state.get("last_success_timestamp")
+    if isinstance(last_success_timestamp, (int, float)):
+        if now_timestamp < int(last_success_timestamp) + int(min_interval_seconds):
+            return False
+
     idle_until_timestamp = idle_state.get("idle_until_timestamp")
     if not isinstance(idle_until_timestamp, (int, float)):
         return True
