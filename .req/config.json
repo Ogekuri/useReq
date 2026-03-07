@@ -66,11 +66,11 @@
   },
   "providers": [
     "claude:prompts",
+    "github:skills",
     "codex:prompts",
+    "opencode:agents",
     "gemini:prompts",
-    "github:agents",
-    "kiro:agents",
-    "opencode:agents"
+    "kiro:agents"
   ],
   "preserve-models": false
 }
