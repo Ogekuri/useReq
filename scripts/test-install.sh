@@ -73,7 +73,7 @@ else
     mkdir -p "${FOLDER_PATH}/src"
     mkdir -p "${FOLDER_PATH}/.github/workflows"
 
-echo    req \
+echo    ${SCRIPT_PATH}/req.sh \
 --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" \
 --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \
 --tests-dir "${FOLDER_PATH}/tests" \
@@ -88,7 +88,7 @@ echo    req \
 --enable-static-check Python=Pylance \
 --enable-static-check Python=Ruff
 
-    req \
+    ${SCRIPT_PATH}/req.sh \
 --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" \
 --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \
 --tests-dir "${FOLDER_PATH}/tests" \
