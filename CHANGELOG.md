@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.30.0](https://github.com/Ogekuri/useReq/compare/v0.29.0..v0.30.0) - 2026-03-07
+### ⛰️  Features
+- Remove bell from prompts.
+
+### 🚜  Changes
+- enforce 300s update-check throttle [useReq] *(cli)*
+  - Update SRS for usereq startup release-check, idle-state path, and 429 Retry-After behavior.
+  - Implement fixed 300-second idle-delay gating and HTTP 429 idle-state backoff handling.
+  - Keep --upgrade/--uninstall uv commands bound to usereq and repository constants.
+  - Extend update-check tests for idle-delay semantics and rate-limit handling.
+  - Regenerate WORKFLOW.md and REFERENCES.md for runtime and symbol traceability.
+- hardcode release checks and upgrade source [useReq] *(cli)*
+  - Update requirements SRS-043/SRS-050/SRS-271 and add SRS-299.
+  - Hardcode release API endpoint and uv upgrade source for Ogekuri/useReq.
+  - Set successful-check idle window default to 86400 seconds.
+  - Add lower-bound startup release-check cadence default to 300 seconds.
+  - Align update-check tests with hardcoded URL/source and timing semantics.
+  - Refresh WORKFLOW and REFERENCES docs from updated implementation.
+
 ## [0.29.0](https://github.com/Ogekuri/useReq/compare/v0.28.0..v0.29.0) - 2026-03-07
 ### 🚜  Changes
 - reduce release-check idle window to 300s [useReq] *(cli)*
@@ -745,6 +764,7 @@
 - \[0.27.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.27.0
 - \[0.28.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.28.0
 - \[0.29.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.29.0
+- \[0.30.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.30.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -775,3 +795,4 @@
 [0.27.0]: https://github.com/Ogekuri/useReq/compare/v0.26.0..v0.27.0
 [0.28.0]: https://github.com/Ogekuri/useReq/compare/v0.27.0..v0.28.0
 [0.29.0]: https://github.com/Ogekuri/useReq/compare/v0.28.0..v0.29.0
+[0.30.0]: https://github.com/Ogekuri/useReq/compare/v0.29.0..v0.30.0
