@@ -57,6 +57,146 @@ PERSISTED_UPDATE_FLAG_KEYS = (
 )
 """! @brief Config keys persisted for install/update boolean flags."""
 
+VALID_PROVIDERS = frozenset({"codex", "claude", "gemini", "github", "kiro", "opencode"})
+"""! @brief Valid provider names accepted by ``--provider`` specs (SRS-275)."""
+
+VALID_ARTIFACTS = frozenset({"prompts", "agents", "skills"})
+"""! @brief Valid artifact type tokens accepted in ``--provider`` specs (SRS-275)."""
+
+VALID_PROVIDER_OPTIONS = frozenset(
+    {"enable-models", "enable-tools", "prompts-use-agents", "legacy"}
+)
+"""! @brief Valid per-provider option tokens accepted in ``--provider`` specs (SRS-275)."""
+
+
+def parse_provider_spec(spec: str) -> tuple[str, set[str], set[str]]:
+    """!
+    @brief Parse a single ``--provider`` SPEC string into its components.
+    @param spec The raw SPEC string in format ``PROVIDER:ARTIFACTS[:OPTIONS]``.
+    @return Tuple of (provider_name, artifacts_set, options_set).
+    @throws ReqError If the SPEC contains unknown provider, artifact, or option tokens (SRS-278).
+    @details Splits on ``:``, validates each component against the known sets,
+    and returns normalized lower-case values.  Commas separate multiple
+    artifacts and options within their respective fields.
+    @see SRS-275, SRS-276, SRS-278
+    """
+    parts = spec.split(":")
+    if len(parts) < 2 or len(parts) > 3:
+        raise ReqError(
+            f"Error: invalid --provider spec '{spec}': expected PROVIDER:ARTIFACTS[:OPTIONS]",
+            1,
+        )
+    provider = parts[0].strip().lower()
+    if provider not in VALID_PROVIDERS:
+        raise ReqError(
+            f"Error: unknown provider '{provider}' in --provider spec '{spec}'; "
+            f"valid providers: {', '.join(sorted(VALID_PROVIDERS))}",
+            1,
+        )
+    raw_artifacts = [a.strip().lower() for a in parts[1].split(",") if a.strip()]
+    if not raw_artifacts:
+        raise ReqError(
+            f"Error: --provider spec '{spec}' must list at least one artifact type",
+            1,
+        )
+    for artifact in raw_artifacts:
+        if artifact not in VALID_ARTIFACTS:
+            raise ReqError(
+                f"Error: unknown artifact '{artifact}' in --provider spec '{spec}'; "
+                f"valid artifacts: {', '.join(sorted(VALID_ARTIFACTS))}",
+                1,
+            )
+    artifacts: set[str] = set(raw_artifacts)
+    options: set[str] = set()
+    if len(parts) == 3:
+        raw_options = [o.strip().lower() for o in parts[2].split(",") if o.strip()]
+        for option in raw_options:
+            if option not in VALID_PROVIDER_OPTIONS:
+                raise ReqError(
+                    f"Error: unknown option '{option}' in --provider spec '{spec}'; "
+                    f"valid options: {', '.join(sorted(VALID_PROVIDER_OPTIONS))}",
+                    1,
+                )
+        options = set(raw_options)
+    return provider, artifacts, options
+
+
+def resolve_provider_configs(
+    args: Namespace,
+    provider_specs: list[str],
+) -> dict[str, dict[str, Any]]:
+    """!
+    @brief Resolve per-provider configurations by merging global flags with ``--provider`` specs.
+    @param args Parsed CLI namespace containing global flags.
+    @param provider_specs List of raw ``--provider`` SPEC strings.
+    @return Dict mapping each of the 6 provider names to a config dict with keys:
+      ``enabled`` (bool), ``prompts`` (bool), ``agents`` (bool), ``skills`` (bool),
+      ``enable-models`` (bool), ``enable-tools`` (bool), ``prompts-use-agents`` (bool),
+      ``legacy`` (bool).
+    @details Global flags provide the baseline for all providers; ``--provider`` specs
+    extend or override per-provider values.  A provider is enabled if its
+    ``--enable-<provider>`` flag is True OR any ``--provider`` spec targets it.
+    Artifact types are the union of global ``--install-<type>`` flags and per-spec
+    artifact lists.  Options from specs override global flags for that provider only
+    (SRS-277, SRS-281, SRS-282, SRS-283).
+    @see SRS-275, SRS-276, SRS-277, SRS-281, SRS-282, SRS-283
+    """
+    global_enable_models = bool(args.enable_models)
+    global_enable_tools = bool(args.enable_tools)
+    global_prompts_use_agents = bool(args.prompts_use_agents)
+    global_legacy = bool(args.legacy)
+    global_prompts = bool(args.enable_prompts)
+    global_agents = bool(args.enable_agents)
+    global_skills = bool(args.enable_skills)
+
+    enable_flags = {
+        "codex": bool(args.enable_codex),
+        "claude": bool(args.enable_claude),
+        "gemini": bool(args.enable_gemini),
+        "github": bool(args.enable_github),
+        "kiro": bool(args.enable_kiro),
+        "opencode": bool(args.enable_opencode),
+    }
+
+    # Initialize per-provider configs from global flags.
+    configs: dict[str, dict[str, Any]] = {}
+    for prov in sorted(VALID_PROVIDERS):
+        configs[prov] = {
+            "enabled": enable_flags[prov],
+            "prompts": global_prompts if enable_flags[prov] else False,
+            "agents": global_agents if enable_flags[prov] else False,
+            "skills": global_skills if enable_flags[prov] else False,
+            "enable-models": global_enable_models,
+            "enable-tools": global_enable_tools,
+            "prompts-use-agents": global_prompts_use_agents,
+            "legacy": global_legacy,
+        }
+
+    # Apply --provider specs on top.
+    for spec_str in provider_specs:
+        provider, artifacts, options = parse_provider_spec(spec_str)
+        cfg = configs[provider]
+        cfg["enabled"] = True
+        # Merge artifact types (union with what global flags already set).
+        if "prompts" in artifacts:
+            cfg["prompts"] = True
+        if "agents" in artifacts:
+            cfg["agents"] = True
+        if "skills" in artifacts:
+            cfg["skills"] = True
+        # Options override globals for this provider.
+        if "enable-models" in options:
+            cfg["enable-models"] = True
+        if "enable-tools" in options:
+            cfg["enable-tools"] = True
+        if "prompts-use-agents" in options:
+            cfg["prompts-use-agents"] = True
+        if "legacy" in options:
+            cfg["legacy"] = True
+
+    return configs
+
+
 ANSI_BRIGHT_RED = "\033[91m"
 """! @brief ANSI escape prefix for bright red terminal output."""
 
@@ -86,10 +226,12 @@ GITHUB_RELEASES_LATEST_URL_TEMPLATE = (
 )
 """! @brief GitHub API template for latest-release endpoint resolution."""
 
+
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
     @details This exception is used to bubble up known error conditions that should be reported to the user without a stack trace.
     """
+
     def __init__(self, message: str, code: int = 1) -> None:
         """!
         @brief Initialize an expected CLI failure payload.
@@ -101,7 +243,6 @@ class ReqError(Exception):
         super().__init__(message)
         self.message = message
         self.code = code
-
 
 
 def log(msg: str) -> None:
@@ -143,6 +284,7 @@ def _get_available_tags_help() -> str:
     """
     try:
         from .find_constructs import format_available_tags
+
         return format_available_tags()
     except ImportError:
         return "(tag list unavailable)"
@@ -160,6 +302,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
         "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
         "[--install-prompts] [--install-agents] [--install-skills] "
+        "[--provider PROVIDER:ARTIFACTS[:OPTIONS]] "
         "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
@@ -287,6 +430,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--preserve-models",
         action="store_true",
         help="When set with --update, preserve existing .req/models.json and bypass --legacy mode.",
+    )
+    parser.add_argument(
+        "--provider",
+        action="append",
+        metavar="SPEC",
+        dest="provider_specs",
+        help=(
+            "Per-provider artifact and option configuration (repeatable). "
+            "Format: PROVIDER:ARTIFACTS[:OPTIONS]. "
+            "PROVIDER: codex|claude|gemini|github|kiro|opencode. "
+            "ARTIFACTS: comma-separated from {prompts,agents,skills}. "
+            "OPTIONS: comma-separated from {enable-models,enable-tools,prompts-use-agents,legacy}."
+        ),
     )
     guidelines_group = parser.add_mutually_exclusive_group()
     guidelines_group.add_argument(
@@ -454,7 +610,9 @@ def run_upgrade() -> None:
     try:
         owner, repository = resolve_github_owner_repository_from_active_remotes()
     except (ReqError, ValueError) as exc:
-        raise ReqError(f"Error: unable to resolve upgrade source from git remotes ({exc})", 1) from exc
+        raise ReqError(
+            f"Error: unable to resolve upgrade source from git remotes ({exc})", 1
+        ) from exc
 
     command = [
         "uv",
@@ -660,7 +818,9 @@ def resolve_github_owner_repository_from_active_remotes() -> tuple[str, str]:
         if parsed:
             return parsed
 
-    raise ValueError("unable to resolve GitHub owner/repository from active git remotes")
+    raise ValueError(
+        "unable to resolve GitHub owner/repository from active git remotes"
+    )
 
 
 def resolve_latest_release_api_url() -> str:
@@ -736,9 +896,7 @@ def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | Non
     last_success_human_readable_timestamp = payload[
         "last_success_human_readable_timestamp"
     ]
-    idle_until_human_readable_timestamp = payload[
-        "idle_until_human_readable_timestamp"
-    ]
+    idle_until_human_readable_timestamp = payload["idle_until_human_readable_timestamp"]
 
     if not isinstance(last_success_timestamp, (int, float)):
         raise ValueError("idle-state key 'last_success_timestamp' must be numeric")
@@ -1019,7 +1177,9 @@ def make_relative_if_contains_project(path_value: str, project_base: Path) -> st
             )
             if project_name_index + 1 < len(parts):
                 suffix_candidate = Path(*parts[project_name_index + 1 :])
-                suffix_resolved = (project_base / suffix_candidate).resolve(strict=False)
+                suffix_resolved = (project_base / suffix_candidate).resolve(
+                    strict=False
+                )
                 if suffix_resolved.exists():
                     candidate = suffix_candidate
     if candidate.is_absolute():
@@ -1097,6 +1257,7 @@ def save_config(
     src_dir_values: list[str],
     static_check_config: Optional[dict] = None,
     persisted_flags: Optional[dict[str, bool]] = None,
+    provider_specs: Optional[list[str]] = None,
 ) -> None:
     """!
     @brief Saves normalized parameters to .req/config.json.
@@ -1108,8 +1269,11 @@ def save_config(
         @param static_check_config Optional dict of static-check config to persist under key
           `"static-check"`; omitted from JSON when None or empty.
         @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
+        @param provider_specs Optional list of raw ``--provider`` SPEC strings to persist
+          under the `"providers"` key (SRS-279).
         @details Writes full config payload to `.req/config.json`. When `static_check_config`
         is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
+        When `provider_specs` is a non-empty list, it is included under the `"providers"` key (SRS-279).
     @return {None} Function return value.
     """
     config_path = project_base / ".req" / "config.json"
@@ -1122,6 +1286,8 @@ def save_config(
     }
     if static_check_config:
         payload["static-check"] = static_check_config
+    if provider_specs:
+        payload["providers"] = provider_specs
     if persisted_flags:
         payload.update(persisted_flags)
     config_path.write_text(
@@ -1153,17 +1319,25 @@ def load_config(project_base: Path) -> dict[str, str | list[str]]:
     test_dir_value = payload.get("tests-dir") or payload.get("test-dir")
     src_dir_value = payload.get("src-dir")
     if not isinstance(guidelines_dir_value, str) or not guidelines_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11)
+        raise ReqError(
+            "Error: missing or invalid 'guidelines-dir' field in .req/config.json", 11
+        )
     if not isinstance(doc_dir_value, str) or not doc_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'docs-dir' field in .req/config.json", 11)
+        raise ReqError(
+            "Error: missing or invalid 'docs-dir' field in .req/config.json", 11
+        )
     if not isinstance(test_dir_value, str) or not test_dir_value.strip():
-        raise ReqError("Error: missing or invalid 'tests-dir' field in .req/config.json", 11)
+        raise ReqError(
+            "Error: missing or invalid 'tests-dir' field in .req/config.json", 11
+        )
     if (
         not isinstance(src_dir_value, list)
         or not src_dir_value
         or not all(isinstance(item, str) and item.strip() for item in src_dir_value)
     ):
-        raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+        raise ReqError(
+            "Error: missing or invalid 'src-dir' field in .req/config.json", 11
+        )
     return {
         "guidelines-dir": guidelines_dir_value,
         "docs-dir": doc_dir_value,
@@ -1210,6 +1384,8 @@ def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
         @param args Parsed CLI namespace.
         @return Mapping of config key -> boolean value for install/update persistence.
     @details Implements the build_persisted_update_flags function behavior with deterministic control flow.
+    Note: ``--provider`` specs are persisted separately via the ``provider_specs`` parameter
+    in ``save_config()`` (SRS-279); this function only handles boolean flags.
     """
     return {
         "enable-models": bool(args.enable_models),
@@ -1236,6 +1412,8 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
         @return Mapping of persisted config key -> boolean value.
         @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
     @details Implements the load_persisted_update_flags function behavior with deterministic control flow.
+    Note: when ``--provider`` specs are persisted, provider/artifact activation may come solely
+    from those specs.  The validation accounts for both global flags and provider specs (SRS-280).
     """
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
@@ -1251,9 +1429,18 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
     for key in PERSISTED_UPDATE_FLAG_KEYS:
         value = payload.get(key)
         if not isinstance(value, bool):
-            raise ReqError(f"Error: missing or invalid '{key}' field in .req/config.json", 11)
+            raise ReqError(
+                f"Error: missing or invalid '{key}' field in .req/config.json", 11
+            )
         flags[key] = value
-    has_provider = any(
+
+    # Check persisted --provider specs for additional provider/artifact activation (SRS-280).
+    persisted_providers = payload.get("providers", [])
+    has_provider_specs = (
+        isinstance(persisted_providers, list) and len(persisted_providers) > 0
+    )
+
+    has_provider = has_provider_specs or any(
         (
             flags["enable-claude"],
             flags["enable-codex"],
@@ -1263,6 +1450,8 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
             flags["enable-opencode"],
         )
     )
+
+    # Determine artifact activation from global flags and provider specs.
     has_artifact_type = any(
         (
             flags["install-prompts"],
@@ -1270,12 +1459,38 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
             flags["install-skills"],
         )
     )
+    if not has_artifact_type and has_provider_specs:
+        # Provider specs implicitly activate artifact types for their providers.
+        has_artifact_type = True
+
     if not has_provider or not has_artifact_type:
         raise ReqError(
             "Error: .req/config.json has an invalid provider/artifact update configuration",
             11,
         )
     return flags
+
+
+def load_persisted_provider_specs(project_base: Path) -> list[str]:
+    """!
+    @brief Load persisted ``--provider`` SPEC strings from `.req/config.json`.
+    @param project_base The project root path.
+    @return List of raw SPEC strings; empty list if key is missing or config is unreadable.
+    @details Reads the ``"providers"`` key from config.json (SRS-280). Returns ``[]``
+    on any read or parse error rather than raising.
+    @see SRS-279, SRS-280
+    """
+    config_path = project_base / ".req" / "config.json"
+    if not config_path.is_file():
+        return []
+    try:
+        payload = json.loads(config_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+    specs = payload.get("providers", [])
+    if isinstance(specs, list) and all(isinstance(s, str) for s in specs):
+        return specs
+    return []
 
 
 def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> str:
@@ -1311,7 +1526,9 @@ def generate_guidelines_file_list(guidelines_dir: Path, project_base: Path) -> s
     return ", ".join(files)
 
 
-def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> list[str]:
+def generate_guidelines_file_items(
+    guidelines_dir: Path, project_base: Path
+) -> list[str]:
     """!
     @brief Generates a list of relative file paths (no formatting) for printing.
         @details Each entry is formatted as `guidelines/file.md` (forward slashes). If there are no files, returns the directory itself with a trailing slash.
@@ -1344,9 +1561,7 @@ def generate_guidelines_file_items(guidelines_dir: Path, project_base: Path) -> 
     return items
 
 
-def upgrade_guidelines_templates(
-    guidelines_dest: Path, overwrite: bool = False
-) -> int:
+def upgrade_guidelines_templates(guidelines_dest: Path, overwrite: bool = False) -> int:
     """!
     @brief Copies guidelines templates from resources/guidelines/ to the target directory.
         @details Args: guidelines_dest: Target directory where templates will be copied overwrite: If True, overwrite existing files; if False, skip existing files Returns: Number of non-hidden files copied; returns 0 when the source directory is empty.
@@ -1746,7 +1961,9 @@ def list_docs_templates() -> list[Path]:
     if not candidate.is_dir():
         raise ReqError("Error: no docs templates directory found in resources", 9)
     templates = sorted(
-        path for path in candidate.iterdir() if path.is_file() and not path.name.startswith(".")
+        path
+        for path in candidate.iterdir()
+        if path.is_file() and not path.name.startswith(".")
     )
     if not templates:
         raise ReqError("Error: no docs templates found in resources/docs", 9)
@@ -1777,7 +1994,7 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
     @return {tuple[str, dict[str, Any]]} Function return value.
     """
     common_dir = RESOURCE_ROOT / "common"
-    
+
     # Try models.json first (this function is called during generation, not with legacy flag check)
     for config_name in ["models.json", "models-legacy.json"]:
         config_file = common_dir / config_name
@@ -1793,7 +2010,9 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
                         if isinstance(agent_template, dict):
                             try:
                                 return (
-                                    json.dumps(agent_template, indent=2, ensure_ascii=False),
+                                    json.dumps(
+                                        agent_template, indent=2, ensure_ascii=False
+                                    ),
                                     kiro_cfg,
                                 )
                             except Exception:
@@ -1801,7 +2020,7 @@ def load_kiro_template() -> tuple[str, dict[str, Any]]:
             except Exception as exc:
                 dlog(f"Failed parsing {config_file}: {exc}")
                 continue
-    
+
     raise ReqError(
         "Error: no Kiro config with 'agent_template' found in centralized models",
         9,
@@ -1850,9 +2069,9 @@ def load_settings(path: Path) -> dict[str, Any]:
 
 
 def load_centralized_models(
-    resource_root: Path, 
-    legacy_mode: bool = False, 
-    preserve_models_path: Optional[Path] = None
+    resource_root: Path,
+    legacy_mode: bool = False,
+    preserve_models_path: Optional[Path] = None,
 ) -> dict[str, dict[str, Any] | None]:
     """!
     @brief Loads centralized models configuration from common/models.json.
@@ -1864,7 +2083,7 @@ def load_centralized_models(
     """
     common_dir = resource_root / "common"
     config_file = None
-    
+
     # Priority 1: preserve_models_path if provided and exists
     if preserve_models_path and preserve_models_path.is_file():
         config_file = preserve_models_path
@@ -1875,29 +2094,35 @@ def load_centralized_models(
         if legacy_candidate.is_file():
             config_file = legacy_candidate
             dlog(f"Using legacy models config: {legacy_candidate}")
-    
+
     # Fallback: standard models.json
     if config_file is None:
         config_file = common_dir / "models.json"
         if not config_file.is_file():
             dlog(f"Models config not found: {config_file}")
-            return {name: None for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")}
-    
+            return {
+                name: None
+                for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")
+            }
+
     # Load the centralized configuration
     try:
         all_models = load_settings(config_file)
         dlog(f"Loaded centralized models from: {config_file}")
     except Exception as exc:
         dlog(f"Failed loading centralized models from {config_file}: {exc}")
-        return {name: None for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")}
-    
+        return {
+            name: None
+            for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")
+        }
+
     # Extract individual CLI configs
     result: dict[str, dict[str, Any] | None] = {}
     for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex"):
         result[name] = all_models.get(name) if isinstance(all_models, dict) else None
         if result[name]:
             dlog(f"Extracted config for {name}")
-    
+
     return result
 
 
@@ -2142,16 +2367,18 @@ def run_remove(args: Namespace) -> None:
     @param args Input parameter `args`.
     @return {None} Function return value.
     """
-    guidelines_dir = getattr(args, 'guidelines_dir', None)
-    doc_dir = getattr(args, 'docs_dir', None)
-    test_dir = getattr(args, 'tests_dir', None)
-    src_dir = getattr(args, 'src_dir', None)
+    guidelines_dir = getattr(args, "guidelines_dir", None)
+    doc_dir = getattr(args, "docs_dir", None)
+    test_dir = getattr(args, "tests_dir", None)
+    src_dir = getattr(args, "src_dir", None)
     if args.update:
         raise ReqError(
             "Error: --remove does not accept --update",
             4,
         )
-    if (not getattr(args, "here", False)) and (guidelines_dir or doc_dir or test_dir or src_dir):
+    if (not getattr(args, "here", False)) and (
+        guidelines_dir or doc_dir or test_dir or src_dir
+    ):
         raise ReqError(
             "Error: --remove does not accept --guidelines-dir, --docs-dir, --tests-dir, or --src-dir without --here",
             4,
@@ -2238,18 +2465,26 @@ def run(args: Namespace) -> None:
     if not project_base.exists():
         raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
 
-    guidelines_dir = getattr(args, 'guidelines_dir', None)
-    doc_dir = getattr(args, 'docs_dir', None)
-    test_dir = getattr(args, 'tests_dir', None)
-    src_dir = getattr(args, 'src_dir', None)
+    guidelines_dir = getattr(args, "guidelines_dir", None)
+    doc_dir = getattr(args, "docs_dir", None)
+    test_dir = getattr(args, "tests_dir", None)
+    src_dir = getattr(args, "src_dir", None)
     use_here_config = bool(getattr(args, "here", False))
 
-    if args.update and (not use_here_config) and (guidelines_dir or doc_dir or test_dir or src_dir):
+    if (
+        args.update
+        and (not use_here_config)
+        and (guidelines_dir or doc_dir or test_dir or src_dir)
+    ):
         raise ReqError(
             "Error: --update does not accept --guidelines-dir, --docs-dir, --tests-dir, or --src-dir",
             4,
         )
-    if (not use_here_config) and (not args.update) and (not guidelines_dir or not doc_dir or not test_dir or not src_dir):
+    if (
+        (not use_here_config)
+        and (not args.update)
+        and (not guidelines_dir or not doc_dir or not test_dir or not src_dir)
+    ):
         raise ReqError(
             "Error: --guidelines-dir, --docs-dir, --tests-dir, and --src-dir are required without --update",
             4,
@@ -2269,20 +2504,40 @@ def run(args: Namespace) -> None:
 
     if args.update:
         persisted_flags = load_persisted_update_flags(project_base)
-        args.enable_models = bool(args.enable_models) or persisted_flags["enable-models"]
+        args.enable_models = (
+            bool(args.enable_models) or persisted_flags["enable-models"]
+        )
         args.enable_tools = bool(args.enable_tools) or persisted_flags["enable-tools"]
-        args.enable_claude = bool(args.enable_claude) or persisted_flags["enable-claude"]
+        args.enable_claude = (
+            bool(args.enable_claude) or persisted_flags["enable-claude"]
+        )
         args.enable_codex = bool(args.enable_codex) or persisted_flags["enable-codex"]
-        args.enable_gemini = bool(args.enable_gemini) or persisted_flags["enable-gemini"]
-        args.enable_github = bool(args.enable_github) or persisted_flags["enable-github"]
+        args.enable_gemini = (
+            bool(args.enable_gemini) or persisted_flags["enable-gemini"]
+        )
+        args.enable_github = (
+            bool(args.enable_github) or persisted_flags["enable-github"]
+        )
         args.enable_kiro = bool(args.enable_kiro) or persisted_flags["enable-kiro"]
-        args.enable_opencode = bool(args.enable_opencode) or persisted_flags["enable-opencode"]
-        args.enable_prompts = bool(args.enable_prompts) or persisted_flags["install-prompts"]
-        args.enable_agents = bool(args.enable_agents) or persisted_flags["install-agents"]
-        args.enable_skills = bool(args.enable_skills) or persisted_flags["install-skills"]
-        args.prompts_use_agents = bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
+        args.enable_opencode = (
+            bool(args.enable_opencode) or persisted_flags["enable-opencode"]
+        )
+        args.enable_prompts = (
+            bool(args.enable_prompts) or persisted_flags["install-prompts"]
+        )
+        args.enable_agents = (
+            bool(args.enable_agents) or persisted_flags["install-agents"]
+        )
+        args.enable_skills = (
+            bool(args.enable_skills) or persisted_flags["install-skills"]
+        )
+        args.prompts_use_agents = (
+            bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
+        )
         args.legacy = bool(args.legacy) or persisted_flags["legacy"]
-        args.preserve_models = bool(args.preserve_models) or persisted_flags["preserve-models"]
+        args.preserve_models = (
+            bool(args.preserve_models) or persisted_flags["preserve-models"]
+        )
 
     if not isinstance(guidelines_dir_value, str) or not isinstance(doc_dir_value, str):
         raise ReqError("Error: invalid docs configuration values", 11)
@@ -2300,15 +2555,21 @@ def run(args: Namespace) -> None:
     for src_dir_value in src_dir_values:
         ensure_src_directory(src_dir_value, project_base)
 
-    normalized_guidelines = make_relative_if_contains_project(guidelines_dir_value, project_base)
+    normalized_guidelines = make_relative_if_contains_project(
+        guidelines_dir_value, project_base
+    )
     normalized_doc = make_relative_if_contains_project(doc_dir_value, project_base)
     normalized_test = make_relative_if_contains_project(test_dir_value, project_base)
     normalized_src_dirs: list[str] = []
     config_src_dirs: list[str] = []
     src_has_trailing_slashes: list[bool] = []
-    guidelines_has_trailing_slash = guidelines_dir_value.endswith("/") or guidelines_dir_value.endswith("\\")
+    guidelines_has_trailing_slash = guidelines_dir_value.endswith(
+        "/"
+    ) or guidelines_dir_value.endswith("\\")
     doc_has_trailing_slash = doc_dir_value.endswith("/") or doc_dir_value.endswith("\\")
-    test_has_trailing_slash = test_dir_value.endswith("/") or test_dir_value.endswith("\\")
+    test_has_trailing_slash = test_dir_value.endswith("/") or test_dir_value.endswith(
+        "\\"
+    )
     normalized_guidelines = normalized_guidelines.rstrip("/\\")
     normalized_doc = normalized_doc.rstrip("/\\")
     normalized_test = normalized_test.rstrip("/\\")
@@ -2360,7 +2621,9 @@ def run(args: Namespace) -> None:
     for normalized_src, has_trailing in zip(
         normalized_src_dirs, src_has_trailing_slashes
     ):
-        config_src = f"{normalized_src}/" if has_trailing and normalized_src else normalized_src
+        config_src = (
+            f"{normalized_src}/" if has_trailing and normalized_src else normalized_src
+        )
         config_src_dirs.append(config_src)
 
     guidelines_dest = project_base / normalized_guidelines
@@ -2383,17 +2646,38 @@ def run(args: Namespace) -> None:
                 log(f"OK: copied {copied} guidelines template(s) to {guidelines_dest}")
         else:
             if VERBOSE:
-                log(f"OK: no guidelines templates found at {guidelines_src}, skipping copy")
+                log(
+                    f"OK: no guidelines templates found at {guidelines_src}, skipping copy"
+                )
 
-    enable_claude = args.enable_claude
-    enable_codex = args.enable_codex
-    enable_gemini = args.enable_gemini
-    enable_github = args.enable_github
-    enable_kiro = args.enable_kiro
-    enable_opencode = args.enable_opencode
-    enable_prompts = args.enable_prompts
-    enable_agents = args.enable_agents
-    enable_skills = args.enable_skills
+    # Resolve --provider specs: load persisted specs on --update, merge with CLI specs (SRS-275..SRS-283).
+    cli_provider_specs: list[str] = getattr(args, "provider_specs", None) or []
+    persisted_provider_specs: list[str] = []
+    if use_here_config or args.update:
+        persisted_provider_specs = load_persisted_provider_specs(project_base)
+    # CLI --provider replaces persisted specs when at least one is given (SRS-280).
+    effective_provider_specs = (
+        cli_provider_specs if cli_provider_specs else persisted_provider_specs
+    )
+    # Validate all specs (will raise ReqError on invalid tokens, SRS-278).
+    for spec_str in effective_provider_specs:
+        parse_provider_spec(spec_str)
+    # Resolve per-provider configs.
+    provider_configs = resolve_provider_configs(args, effective_provider_specs)
+
+    # Derive flat enable_* variables from per-provider configs.
+    enable_claude = provider_configs["claude"]["enabled"]
+    enable_codex = provider_configs["codex"]["enabled"]
+    enable_gemini = provider_configs["gemini"]["enabled"]
+    enable_github = provider_configs["github"]["enabled"]
+    enable_kiro = provider_configs["kiro"]["enabled"]
+    enable_opencode = provider_configs["opencode"]["enabled"]
+
+    # A provider's artifacts are enabled if the global flag OR the per-provider spec sets them.
+    enable_prompts = any(pc["prompts"] for pc in provider_configs.values())
+    enable_agents = any(pc["agents"] for pc in provider_configs.values())
+    enable_skills = any(pc["skills"] for pc in provider_configs.values())
+
     if not any(
         (
             enable_claude,
@@ -2412,7 +2696,7 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one --enable-* provider flag is required to generate prompts",
+            "Error: at least one --enable-* provider flag or --provider spec is required to generate prompts",
             4,
         )
     if not any((enable_prompts, enable_agents, enable_skills)):
@@ -2424,7 +2708,7 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one artifact install flag is required (--install-prompts, --install-agents, or --install-skills)",
+            "Error: at least one artifact install flag is required (--install-prompts, --install-agents, --install-skills, or artifact in --provider spec)",
             4,
         )
 
@@ -2433,6 +2717,7 @@ def run(args: Namespace) -> None:
     enable_static_check_specs = getattr(args, "enable_static_check", None) or []
     if enable_static_check_specs:
         from .static_check import parse_enable_static_check as _parse_sc
+
         for spec in enable_static_check_specs:
             canonical_lang, lang_cfg = _parse_sc(spec)
             new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
@@ -2459,9 +2744,13 @@ def run(args: Namespace) -> None:
             config_src_dirs,
             static_check_config=merged_static_check if merged_static_check else None,
             persisted_flags=build_persisted_update_flags(args),
+            provider_specs=effective_provider_specs
+            if effective_provider_specs
+            else None,
         )
-    elif merged_static_check:
-        # --update path: re-save config.json with merged static-check entries (SRS-252).
+    elif merged_static_check or effective_provider_specs:
+        # --update path: re-save config.json with merged static-check entries (SRS-252)
+        # and/or updated provider specs (SRS-279).
         existing_full_config = load_config(project_base)
         persisted_flags = load_persisted_update_flags(project_base)
         save_config(
@@ -2472,9 +2761,14 @@ def run(args: Namespace) -> None:
             list(existing_full_config["src-dir"]),  # type: ignore[arg-type]
             static_check_config=merged_static_check,
             persisted_flags=persisted_flags,
+            provider_specs=effective_provider_specs
+            if effective_provider_specs
+            else None,
         )
 
-    sub_guidelines_dir = compute_sub_path(normalized_guidelines, abs_guidelines, project_base)
+    sub_guidelines_dir = compute_sub_path(
+        normalized_guidelines, abs_guidelines, project_base
+    )
     sub_test_dir = format_substituted_path(normalized_test).rstrip("/\\")
     token_test_path = f"`{sub_test_dir}/`" if sub_test_dir else ""
     sub_src_paths: list[str] = []
@@ -2483,7 +2777,11 @@ def run(args: Namespace) -> None:
         if sub_src:
             sub_src_paths.append(f"`{sub_src}/`")
     token_src_paths = ", ".join(sub_src_paths)
-    if guidelines_has_trailing_slash and sub_guidelines_dir and not sub_guidelines_dir.endswith("/"):
+    if (
+        guidelines_has_trailing_slash
+        and sub_guidelines_dir
+        and not sub_guidelines_dir.endswith("/")
+    ):
         sub_guidelines_dir += "/"
     token_guidelines_dir = make_relative_token(sub_guidelines_dir, keep_trailing=True)
 
@@ -2504,7 +2802,7 @@ def run(args: Namespace) -> None:
                 models_src = RESOURCE_ROOT / "common" / "models.json"
         else:
             models_src = RESOURCE_ROOT / "common" / "models.json"
-        
+
         if models_src.is_file():
             shutil.copyfile(models_src, models_target)
             if VERBOSE:
@@ -2517,7 +2815,9 @@ def run(args: Namespace) -> None:
     find_requirements_template(docs_templates)
 
     # Generate the file list for the %%GUIDELINES_FILES%% token.
-    guidelines_file_list = generate_guidelines_file_list(project_base / normalized_guidelines, project_base)
+    guidelines_file_list = generate_guidelines_file_list(
+        project_base / normalized_guidelines, project_base
+    )
 
     dlog(f"project_base={project_base}")
     dlog(f"DOCS_DIR={normalized_doc}")
@@ -2535,52 +2835,59 @@ def run(args: Namespace) -> None:
     github_skills_root = None
     kiro_skills_root = None
     target_folders: list[Path] = []
-    if enable_codex and enable_prompts:
+    # Use per-provider configs to determine which directories to create (SRS-276).
+    pc_codex = provider_configs["codex"]
+    pc_github = provider_configs["github"]
+    pc_gemini = provider_configs["gemini"]
+    pc_kiro = provider_configs["kiro"]
+    pc_claude = provider_configs["claude"]
+    pc_opencode = provider_configs["opencode"]
+    if pc_codex["enabled"] and pc_codex["prompts"]:
         target_folders.append(project_base / ".codex" / "prompts")
-    if enable_codex and enable_skills:
+    if pc_codex["enabled"] and pc_codex["skills"]:
         codex_skills_root = project_base / ".codex" / "skills"
         target_folders.append(codex_skills_root)
-    if enable_github and enable_agents:
+    if pc_github["enabled"] and pc_github["agents"]:
         target_folders.append(project_base / ".github" / "agents")
-    if enable_github and enable_prompts:
+    if pc_github["enabled"] and pc_github["prompts"]:
         target_folders.append(project_base / ".github" / "prompts")
-    if enable_github and enable_skills:
+    if pc_github["enabled"] and pc_github["skills"]:
         github_skills_root = project_base / ".github" / "skills"
         target_folders.append(github_skills_root)
-    if enable_gemini and enable_prompts:
+    if pc_gemini["enabled"] and pc_gemini["prompts"]:
         target_folders.extend(
             [
                 project_base / ".gemini" / "commands",
                 project_base / ".gemini" / "commands" / "req",
             ]
         )
-    if enable_gemini and enable_skills:
+    if pc_gemini["enabled"] and pc_gemini["skills"]:
         gemini_skills_root = project_base / ".gemini" / "skills"
         target_folders.append(gemini_skills_root)
-    if enable_kiro and enable_agents:
+    if pc_kiro["enabled"] and pc_kiro["agents"]:
         target_folders.append(project_base / ".kiro" / "agents")
-    if enable_kiro and enable_prompts:
+    if pc_kiro["enabled"] and pc_kiro["prompts"]:
         target_folders.append(project_base / ".kiro" / "prompts")
-    if enable_kiro and enable_skills:
+    if pc_kiro["enabled"] and pc_kiro["skills"]:
         kiro_skills_root = project_base / ".kiro" / "skills"
         target_folders.append(kiro_skills_root)
-    if enable_claude and enable_agents:
+    if pc_claude["enabled"] and pc_claude["agents"]:
         target_folders.append(project_base / ".claude" / "agents")
-    if enable_claude and enable_prompts:
+    if pc_claude["enabled"] and pc_claude["prompts"]:
         target_folders.extend(
             [
                 project_base / ".claude" / "commands",
                 project_base / ".claude" / "commands" / "req",
             ]
         )
-    if enable_claude and enable_skills:
+    if pc_claude["enabled"] and pc_claude["skills"]:
         claude_skills_root = project_base / ".claude" / "skills"
         target_folders.append(claude_skills_root)
-    if enable_opencode and enable_agents:
+    if pc_opencode["enabled"] and pc_opencode["agents"]:
         target_folders.append(project_base / ".opencode" / "agent")
-    if enable_opencode and enable_prompts:
+    if pc_opencode["enabled"] and pc_opencode["prompts"]:
         target_folders.append(project_base / ".opencode" / "command")
-    if enable_opencode and enable_skills:
+    if pc_opencode["enabled"] and pc_opencode["skills"]:
         opencode_skills_root = project_base / ".opencode" / "skill"
         target_folders.append(opencode_skills_root)
     for folder in target_folders:
@@ -2598,16 +2905,20 @@ def run(args: Namespace) -> None:
             9,
         )
     kiro_template, kiro_config = load_kiro_template()
-    # Load CLI configs only if requested to include model/tools
+    # Load CLI configs only if ANY provider requests model/tools (SRS-281).
     configs: dict[str, dict[str, Any] | None] = {}
-    try:
-        include_models = args.enable_models
-        include_tools = args.enable_tools
-        prompts_use_agents = args.prompts_use_agents
-    except Exception:
-        include_models = False
-        include_tools = False
-        prompts_use_agents = False
+    # Global include_models/include_tools determine whether to load centralized models.
+    # Per-provider overrides are applied later in the generation loop.
+    include_models = any(
+        pc["enable-models"] for pc in provider_configs.values() if pc["enabled"]
+    )
+    include_tools = any(
+        pc["enable-tools"] for pc in provider_configs.values() if pc["enabled"]
+    )
+    # Global prompts_use_agents is still used as a fallback; per-provider override applies in loop.
+    prompts_use_agents = any(
+        pc["prompts-use-agents"] for pc in provider_configs.values() if pc["enabled"]
+    )
     if include_models or include_tools:
         # Determine preserve_models_path (REQ-082)
         preserve_models_path = None
@@ -2615,11 +2926,11 @@ def run(args: Namespace) -> None:
             candidate_path = project_base / ".req" / "models.json"
             if candidate_path.is_file():
                 preserve_models_path = candidate_path
-        
+
         configs = load_centralized_models(
-            RESOURCE_ROOT, 
+            RESOURCE_ROOT,
             legacy_mode=args.legacy,
-            preserve_models_path=preserve_models_path
+            preserve_models_path=preserve_models_path,
         )
     prompts_installed: dict[str, set[str]] = {
         "claude": set(),
@@ -2662,7 +2973,9 @@ def run(args: Namespace) -> None:
 
         # Precompute description and Claude metadata so provider blocks can reuse them safely.
         desc_yaml = yaml_double_quote_escape(description)
-        skill_desc_yaml = yaml_double_quote_escape(extract_skill_description(frontmatter))
+        skill_desc_yaml = yaml_double_quote_escape(
+            extract_skill_description(frontmatter)
+        )
         claude_model = None
         claude_tools = None
         if configs:
@@ -2670,7 +2983,7 @@ def run(args: Namespace) -> None:
                 configs.get("claude"), PROMPT, "claude"
             )
 
-        if is_prompt_source and enable_codex and enable_prompts:
+        if is_prompt_source and pc_codex["enabled"] and pc_codex["prompts"]:
             # .codex/prompts
             dst_codex_prompt = project_base / ".codex" / "prompts" / f"req-{PROMPT}.md"
             existed = dst_codex_prompt.exists()
@@ -2680,7 +2993,7 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("prompts")
 
-        if enable_codex and enable_skills and codex_skills_root is not None:
+        if pc_codex["enabled"] and pc_codex["skills"] and codex_skills_root is not None:
             # .codex/skills/req-<prompt>/SKILL.md
             codex_skill_dir = codex_skills_root / f"req-{PROMPT}"
             codex_skill_dir.mkdir(parents=True, exist_ok=True)
@@ -2695,9 +3008,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if include_models and codex_model:
+            if pc_codex["enable-models"] and codex_model:
                 codex_header_lines.append(f"model: {codex_model}")
-            if include_tools and codex_tools:
+            if pc_codex["enable-tools"] and codex_tools:
                 codex_header_lines.append(
                     f"tools: {format_tools_inline_list(codex_tools)}"
                 )
@@ -2710,7 +3023,7 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("skills")
 
-        if is_prompt_source and enable_gemini and enable_prompts:
+        if is_prompt_source and pc_gemini["enabled"] and pc_gemini["prompts"]:
             # Gemini TOML
             dst_toml = project_base / ".gemini" / "commands" / "req" / f"{PROMPT}.toml"
             existed = dst_toml.exists()
@@ -2724,7 +3037,7 @@ def run(args: Namespace) -> None:
                 "%%ARGS%%": "{{args}}",
             }
             replace_tokens(dst_toml, toml_replacements)
-            if configs and (include_models or include_tools):
+            if configs and (pc_gemini["enable-models"] or pc_gemini["enable-tools"]):
                 gem_model, gem_tools = get_model_tools_for_prompt(
                     configs.get("gemini"), PROMPT, "gemini"
                 )
@@ -2734,21 +3047,23 @@ def run(args: Namespace) -> None:
                     if len(parts) == 2:
                         first, rest = parts
                         inject_lines: list[str] = []
-                        if include_models and gem_model:
+                        if pc_gemini["enable-models"] and gem_model:
                             inject_lines.append(f'model = "{gem_model}"')
-                        if include_tools and gem_tools:
+                        if pc_gemini["enable-tools"] and gem_tools:
                             inject_lines.append(
                                 f"tools = {format_tools_inline_list(gem_tools)}"
                             )
                         if inject_lines:
-                            content = first + "\n" + "\n".join(inject_lines) + "\n" + rest
+                            content = (
+                                first + "\n" + "\n".join(inject_lines) + "\n" + rest
+                            )
                             dst_toml.write_text(content, encoding="utf-8")
             if VERBOSE:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_toml}")
             prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("commands")
 
-        if is_prompt_source and enable_kiro and enable_prompts:
+        if is_prompt_source and pc_kiro["enabled"] and pc_kiro["prompts"]:
             # .kiro/prompts
             dst_kiro_prompt = project_base / ".kiro" / "prompts" / f"req-{PROMPT}.md"
             existed = dst_kiro_prompt.exists()
@@ -2758,7 +3073,7 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("prompts")
 
-        if is_prompt_source and enable_claude and enable_agents:
+        if is_prompt_source and pc_claude["enabled"] and pc_claude["agents"]:
             # .claude/agents
             dst_claude_agent = project_base / ".claude" / "agents" / f"req-{PROMPT}.md"
             existed = dst_claude_agent.exists()
@@ -2767,9 +3082,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{desc_yaml}"',
             ]
-            if include_models and claude_model:
+            if pc_claude["enable-models"] and claude_model:
                 claude_header_lines.append(f"model: {claude_model}")
-            if include_tools and claude_tools:
+            if pc_claude["enable-tools"] and claude_tools:
                 claude_header_lines.append(
                     f"tools: {format_tools_inline_list(claude_tools)}"
                 )
@@ -2785,9 +3100,11 @@ def run(args: Namespace) -> None:
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("agents")
 
-        if is_prompt_source and enable_github and enable_agents:
+        if is_prompt_source and pc_github["enabled"] and pc_github["agents"]:
             # .github/agents
-            dst_gh_agent = project_base / ".github" / "agents" / f"req-{PROMPT}.agent.md"
+            dst_gh_agent = (
+                project_base / ".github" / "agents" / f"req-{PROMPT}.agent.md"
+            )
             existed = dst_gh_agent.exists()
             gh_model = None
             gh_tools = None
@@ -2800,9 +3117,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{desc_yaml}"',
             ]
-            if include_models and gh_model:
+            if pc_github["enable-models"] and gh_model:
                 gh_header_lines.append(f"model: {gh_model}")
-            if include_tools and gh_tools:
+            if pc_github["enable-tools"] and gh_tools:
                 gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
             gh_text = "\n".join(gh_header_lines) + "\n---\n\n" + prompt_body_replaced
             dst_gh_agent.parent.mkdir(parents=True, exist_ok=True)
@@ -2814,11 +3131,13 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("agents")
 
-        if is_prompt_source and enable_github and enable_prompts:
+        if is_prompt_source and pc_github["enabled"] and pc_github["prompts"]:
             # .github/prompts
-            dst_gh_prompt = project_base / ".github" / "prompts" / f"req-{PROMPT}.prompt.md"
+            dst_gh_prompt = (
+                project_base / ".github" / "prompts" / f"req-{PROMPT}.prompt.md"
+            )
             existed = dst_gh_prompt.exists()
-            if prompts_use_agents:
+            if pc_github["prompts-use-agents"]:
                 gh_prompt_text = f"---\nagent: req-{PROMPT}\n---\n"
             else:
                 gh_header_lines = [
@@ -2833,10 +3152,12 @@ def run(args: Namespace) -> None:
                     gh_model, gh_tools = get_model_tools_for_prompt(
                         configs.get("copilot"), PROMPT, "copilot"
                     )
-                if include_models and gh_model:
+                if pc_github["enable-models"] and gh_model:
                     gh_header_lines.append(f"model: {gh_model}")
-                if include_tools and gh_tools:
-                    gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
+                if pc_github["enable-tools"] and gh_tools:
+                    gh_header_lines.append(
+                        f"tools: {format_tools_inline_list(gh_tools)}"
+                    )
                 gh_header = "\n".join(gh_header_lines) + "\n---\n\n"
                 gh_prompt_text = gh_header + prompt_body_replaced
             dst_gh_prompt.parent.mkdir(parents=True, exist_ok=True)
@@ -2846,7 +3167,7 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("prompts")
 
-        if is_prompt_source and enable_kiro and enable_agents:
+        if is_prompt_source and pc_kiro["enabled"] and pc_kiro["agents"]:
             # .kiro/agents
             dst_kiro_agent = project_base / ".kiro" / "agents" / f"req-{PROMPT}.json"
             existed = dst_kiro_agent.exists()
@@ -2856,9 +3177,13 @@ def run(args: Namespace) -> None:
                 project_base,
                 kiro_prompt_rel,
             )
-            kiro_model, kiro_tools = get_model_tools_for_prompt(kiro_config, PROMPT, "kiro")
+            kiro_model, kiro_tools = get_model_tools_for_prompt(
+                kiro_config, PROMPT, "kiro"
+            )
             kiro_tools_list = (
-                list(kiro_tools) if include_tools and isinstance(kiro_tools, list) else None
+                list(kiro_tools)
+                if pc_kiro["enable-tools"] and isinstance(kiro_tools, list)
+                else None
             )
             agent_content = render_kiro_agent(
                 kiro_template,
@@ -2868,8 +3193,8 @@ def run(args: Namespace) -> None:
                 resources=kiro_resources,
                 tools=kiro_tools_list,
                 model=kiro_model,
-                include_tools=include_tools,
-                include_model=include_models,
+                include_tools=pc_kiro["enable-tools"],
+                include_model=pc_kiro["enable-models"],
             )
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
@@ -2877,9 +3202,11 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("agents")
 
-        if is_prompt_source and enable_opencode and enable_agents:
+        if is_prompt_source and pc_opencode["enabled"] and pc_opencode["agents"]:
             # .opencode/agent
-            dst_opencode_agent = project_base / ".opencode" / "agent" / f"req-{PROMPT}.md"
+            dst_opencode_agent = (
+                project_base / ".opencode" / "agent" / f"req-{PROMPT}.md"
+            )
             existed = dst_opencode_agent.exists()
             opencode_header_lines = ["---", f'description: "{desc_yaml}"', "mode: all"]
             if configs:
@@ -2887,9 +3214,9 @@ def run(args: Namespace) -> None:
                     configs.get("opencode"), PROMPT, "opencode"
                 )
                 oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
-                if include_models and oc_model:
+                if pc_opencode["enable-models"] and oc_model:
                     opencode_header_lines.append(f"model: {oc_model}")
-                if include_tools and oc_tools_raw is not None:
+                if pc_opencode["enable-tools"] and oc_tools_raw is not None:
                     if isinstance(oc_tools_raw, list):
                         opencode_header_lines.append(
                             f"tools: {format_tools_inline_list(oc_tools_raw)}"
@@ -2910,13 +3237,13 @@ def run(args: Namespace) -> None:
             prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("agent")
 
-        if is_prompt_source and enable_opencode and enable_prompts:
+        if is_prompt_source and pc_opencode["enabled"] and pc_opencode["prompts"]:
             # .opencode/command
             dst_opencode_command = (
                 project_base / ".opencode" / "command" / f"req-{PROMPT}.md"
             )
             existed = dst_opencode_command.exists()
-            if prompts_use_agents:
+            if pc_opencode["prompts-use-agents"]:
                 command_text = f"---\nagent: req-{PROMPT}\n---\n"
             else:
                 command_header_lines = [
@@ -2931,10 +3258,12 @@ def run(args: Namespace) -> None:
                     oc_model, _ = get_model_tools_for_prompt(
                         configs.get("opencode"), PROMPT, "opencode"
                     )
-                    oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
-                    if include_models and oc_model:
+                    oc_tools_raw = get_raw_tools_for_prompt(
+                        configs.get("opencode"), PROMPT
+                    )
+                    if pc_opencode["enable-models"] and oc_model:
                         command_header_lines.append(f"model: {oc_model}")
-                    if include_tools and oc_tools_raw is not None:
+                    if pc_opencode["enable-tools"] and oc_tools_raw is not None:
                         if isinstance(oc_tools_raw, list):
                             command_header_lines.append(
                                 f"tools: {format_tools_inline_list(oc_tools_raw)}"
@@ -2955,13 +3284,13 @@ def run(args: Namespace) -> None:
             prompts_installed["opencode"].add(PROMPT)
             modules_installed["opencode"].add("command")
 
-        if is_prompt_source and enable_claude and enable_prompts:
+        if is_prompt_source and pc_claude["enabled"] and pc_claude["prompts"]:
             # .claude/commands/req
             dst_claude_command = (
                 project_base / ".claude" / "commands" / "req" / f"{PROMPT}.md"
             )
             existed = dst_claude_command.exists()
-            if prompts_use_agents:
+            if pc_claude["prompts-use-agents"]:
                 command_header_lines = ["---", f"agent: req-{PROMPT}"]
                 claude_command_text = "\n".join(command_header_lines) + "\n---\n"
             else:
@@ -2972,11 +3301,11 @@ def run(args: Namespace) -> None:
                     command_header_lines.append(
                         f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
                     )
-                if include_models and claude_model:
+                if pc_claude["enable-models"] and claude_model:
                     command_header_lines.append(
                         f'model: "{yaml_double_quote_escape(str(claude_model))}"'
                     )
-                if include_tools and claude_tools:
+                if pc_claude["enable-tools"] and claude_tools:
                     try:
                         allowed_csv = ", ".join(str(t) for t in claude_tools)
                     except Exception:
@@ -2985,9 +3314,7 @@ def run(args: Namespace) -> None:
                         f'allowed-tools: "{yaml_double_quote_escape(allowed_csv)}"'
                     )
                 claude_command_text = (
-                    "\n".join(command_header_lines)
-                    + "\n---\n\n"
-                    + prompt_body_replaced
+                    "\n".join(command_header_lines) + "\n---\n\n" + prompt_body_replaced
                 )
             dst_claude_command.parent.mkdir(parents=True, exist_ok=True)
             if not claude_command_text.endswith("\n"):
@@ -2998,7 +3325,11 @@ def run(args: Namespace) -> None:
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("commands")
 
-        if enable_claude and enable_skills and claude_skills_root is not None:
+        if (
+            pc_claude["enabled"]
+            and pc_claude["skills"]
+            and claude_skills_root is not None
+        ):
             # .claude/skills/req-<prompt>/SKILL.md
             claude_skill_dir = claude_skills_root / f"req-{PROMPT}"
             claude_skill_dir.mkdir(parents=True, exist_ok=True)
@@ -3007,14 +3338,16 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if include_models and claude_model:
+            if pc_claude["enable-models"] and claude_model:
                 claude_skill_header_lines.append(f"model: {claude_model}")
-            if include_tools and claude_tools:
+            if pc_claude["enable-tools"] and claude_tools:
                 claude_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(claude_tools)}"
                 )
             claude_skill_text = (
-                "\n".join(claude_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+                "\n".join(claude_skill_header_lines)
+                + "\n---\n\n"
+                + prompt_body_replaced
             )
             if not claude_skill_text.endswith("\n"):
                 claude_skill_text += "\n"
@@ -3022,7 +3355,11 @@ def run(args: Namespace) -> None:
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("skills")
 
-        if enable_gemini and enable_skills and gemini_skills_root is not None:
+        if (
+            pc_gemini["enabled"]
+            and pc_gemini["skills"]
+            and gemini_skills_root is not None
+        ):
             # .gemini/skills/req-<prompt>/SKILL.md
             gemini_skill_dir = gemini_skills_root / f"req-{PROMPT}"
             gemini_skill_dir.mkdir(parents=True, exist_ok=True)
@@ -3037,14 +3374,16 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if include_models and gemini_skill_model:
+            if pc_gemini["enable-models"] and gemini_skill_model:
                 gemini_skill_header_lines.append(f"model: {gemini_skill_model}")
-            if include_tools and gemini_skill_tools:
+            if pc_gemini["enable-tools"] and gemini_skill_tools:
                 gemini_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(gemini_skill_tools)}"
                 )
             gemini_skill_text = (
-                "\n".join(gemini_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+                "\n".join(gemini_skill_header_lines)
+                + "\n---\n\n"
+                + prompt_body_replaced
             )
             if not gemini_skill_text.endswith("\n"):
                 gemini_skill_text += "\n"
@@ -3052,7 +3391,11 @@ def run(args: Namespace) -> None:
             prompts_installed["gemini"].add(PROMPT)
             modules_installed["gemini"].add("skills")
 
-        if enable_github and enable_skills and github_skills_root is not None:
+        if (
+            pc_github["enabled"]
+            and pc_github["skills"]
+            and github_skills_root is not None
+        ):
             # .github/skills/req-<prompt>/SKILL.md
             github_skill_dir = github_skills_root / f"req-{PROMPT}"
             github_skill_dir.mkdir(parents=True, exist_ok=True)
@@ -3067,14 +3410,16 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if include_models and github_skill_model:
+            if pc_github["enable-models"] and github_skill_model:
                 github_skill_header_lines.append(f"model: {github_skill_model}")
-            if include_tools and github_skill_tools:
+            if pc_github["enable-tools"] and github_skill_tools:
                 github_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(github_skill_tools)}"
                 )
             github_skill_text = (
-                "\n".join(github_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+                "\n".join(github_skill_header_lines)
+                + "\n---\n\n"
+                + prompt_body_replaced
             )
             if not github_skill_text.endswith("\n"):
                 github_skill_text += "\n"
@@ -3082,7 +3427,7 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("skills")
 
-        if enable_kiro and enable_skills and kiro_skills_root is not None:
+        if pc_kiro["enabled"] and pc_kiro["skills"] and kiro_skills_root is not None:
             # .kiro/skills/req-<prompt>/SKILL.md
             kiro_skill_dir = kiro_skills_root / f"req-{PROMPT}"
             kiro_skill_dir.mkdir(parents=True, exist_ok=True)
@@ -3094,9 +3439,13 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if include_models and kiro_skill_model:
+            if pc_kiro["enable-models"] and kiro_skill_model:
                 kiro_skill_header_lines.append(f"model: {kiro_skill_model}")
-            if include_tools and isinstance(kiro_skill_tools, list) and kiro_skill_tools:
+            if (
+                pc_kiro["enable-tools"]
+                and isinstance(kiro_skill_tools, list)
+                and kiro_skill_tools
+            ):
                 kiro_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(kiro_skill_tools)}"
                 )
@@ -3109,7 +3458,11 @@ def run(args: Namespace) -> None:
             prompts_installed["kiro"].add(PROMPT)
             modules_installed["kiro"].add("skills")
 
-        if enable_opencode and enable_skills and opencode_skills_root is not None:
+        if (
+            pc_opencode["enabled"]
+            and pc_opencode["skills"]
+            and opencode_skills_root is not None
+        ):
             # .opencode/skill/req-<prompt>/SKILL.md
             opencode_skill_dir = opencode_skills_root / f"req-{PROMPT}"
             opencode_skill_dir.mkdir(parents=True, exist_ok=True)
@@ -3125,9 +3478,9 @@ def run(args: Namespace) -> None:
                 oc_skill_tools_raw = get_raw_tools_for_prompt(
                     configs.get("opencode"), PROMPT
                 )
-                if include_models and oc_skill_model:
+                if pc_opencode["enable-models"] and oc_skill_model:
                     opencode_skill_header_lines.append(f"model: {oc_skill_model}")
-                if include_tools and oc_skill_tools_raw is not None:
+                if pc_opencode["enable-tools"] and oc_skill_tools_raw is not None:
                     if isinstance(oc_skill_tools_raw, list):
                         opencode_skill_header_lines.append(
                             f"tools: {format_tools_inline_list(oc_skill_tools_raw)}"
@@ -3137,7 +3490,9 @@ def run(args: Namespace) -> None:
                             f'tools: "{yaml_double_quote_escape(oc_skill_tools_raw)}"'
                         )
             opencode_skill_text = (
-                "\n".join(opencode_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+                "\n".join(opencode_skill_header_lines)
+                + "\n---\n\n"
+                + prompt_body_replaced
             )
             if not opencode_skill_text.endswith("\n"):
                 opencode_skill_text += "\n"
@@ -3210,7 +3565,9 @@ def run(args: Namespace) -> None:
 
     # Print the discovered directories used for token substitutions
     # as required by REQ-078: one item per line prefixed with '- '.
-    guidelines_items = generate_guidelines_file_items(project_base / normalized_guidelines, project_base)
+    guidelines_items = generate_guidelines_file_items(
+        project_base / normalized_guidelines, project_base
+    )
 
     if guidelines_items:
         for entry in guidelines_items:
@@ -3284,11 +3641,31 @@ EXCLUDED_DIRS: frozenset[str] = frozenset()
 
 # ── Supported source file extensions ──────────────────────────────────────
 
-SUPPORTED_EXTENSIONS = frozenset({
-    ".c", ".cpp", ".cs", ".ex", ".go", ".hs", ".java", ".js", ".mjs",
-    ".kt", ".lua", ".pl", ".php", ".py", ".rb", ".rs", ".scala",
-    ".sh", ".swift", ".ts", ".zig",
-})
+SUPPORTED_EXTENSIONS = frozenset(
+    {
+        ".c",
+        ".cpp",
+        ".cs",
+        ".ex",
+        ".go",
+        ".hs",
+        ".java",
+        ".js",
+        ".mjs",
+        ".kt",
+        ".lua",
+        ".pl",
+        ".php",
+        ".py",
+        ".rb",
+        ".rs",
+        ".scala",
+        ".sh",
+        ".swift",
+        ".ts",
+        ".zig",
+    }
+)
 """File extensions considered during source directory scanning."""
 
 
@@ -3301,8 +3678,13 @@ def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]:
     @return {list[str]} Function return value.
     """
     cmd = [
-        "git", "-C", str(project_base),
-        "ls-files", "--cached", "--others", "--exclude-standard",
+        "git",
+        "-C",
+        str(project_base),
+        "ls-files",
+        "--cached",
+        "--others",
+        "--exclude-standard",
     ]
     try:
         output = subprocess.check_output(
@@ -3399,7 +3781,9 @@ def _format_files_structure_markdown(files: list[str], project_base: Path) -> st
         @return Markdown section with heading and fenced tree.
     @details Implements the _format_files_structure_markdown function behavior with deterministic control flow.
     """
-    rel_paths = [Path(path).resolve().relative_to(project_base).as_posix() for path in files]
+    rel_paths = [
+        Path(path).resolve().relative_to(project_base).as_posix() for path in files
+    ]
     tree = _build_ascii_tree(rel_paths)
     return f"# Files Structure\n```\n{tree}\n```"
 
@@ -3627,7 +4011,9 @@ def run_tokens(args: Namespace) -> None:
     config = load_config(project_base)
     docs_dir_value = config["docs-dir"]
     ensure_doc_directory(str(docs_dir_value), project_base)
-    normalized_docs_dir = make_relative_if_contains_project(str(docs_dir_value), project_base)
+    normalized_docs_dir = make_relative_if_contains_project(
+        str(docs_dir_value), project_base
+    )
     docs_dir = project_base / normalized_docs_dir
     canonical_names = ("REQUIREMENTS.md", "WORKFLOW.md", "REFERENCES.md")
     files = [
@@ -3688,7 +4074,10 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
     for raw_path in files:
         p = Path(raw_path)
         if not p.is_file():
-            print(f"  Warning: skipping (not found or not a file): {raw_path}", file=sys.stderr)
+            print(
+                f"  Warning: skipping (not found or not a file): {raw_path}",
+                file=sys.stderr,
+            )
             continue
         filepath = str(p.resolve())
         ext = p.suffix.lower()
@@ -3787,19 +4176,19 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
     if getattr(args, "here", False):
         config = load_config(project_base)
         raw_src_dirs = config.get("src-dir", [])
-        if (
-            not isinstance(raw_src_dirs, list)
-            or not all(isinstance(item, str) for item in raw_src_dirs)
+        if not isinstance(raw_src_dirs, list) or not all(
+            isinstance(item, str) for item in raw_src_dirs
         ):
-            raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+            raise ReqError(
+                "Error: missing or invalid 'src-dir' field in .req/config.json", 11
+            )
         src_dirs = raw_src_dirs
     else:
         # Source dirs can come from args or from config
         src_dirs_arg = getattr(args, "src_dir", None)
         if src_dirs_arg:
-            if (
-                not isinstance(src_dirs_arg, list)
-                or not all(isinstance(item, str) for item in src_dirs_arg)
+            if not isinstance(src_dirs_arg, list) or not all(
+                isinstance(item, str) for item in src_dirs_arg
             ):
                 raise ReqError("Error: invalid --src-dir value.", 1)
             src_dirs = src_dirs_arg
@@ -3808,11 +4197,13 @@ def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]:
             if config_path.is_file():
                 config = load_config(project_base)
                 raw_src_dirs = config.get("src-dir", [])
-                if (
-                    not isinstance(raw_src_dirs, list)
-                    or not all(isinstance(item, str) for item in raw_src_dirs)
+                if not isinstance(raw_src_dirs, list) or not all(
+                    isinstance(item, str) for item in raw_src_dirs
                 ):
-                    raise ReqError("Error: missing or invalid 'src-dir' field in .req/config.json", 11)
+                    raise ReqError(
+                        "Error: missing or invalid 'src-dir' field in .req/config.json",
+                        11,
+                    )
                 src_dirs = raw_src_dirs
             else:
                 raise ReqError(
@@ -3876,6 +4267,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 )
             elif getattr(args, "test_static_check", None) is not None:
                 from .static_check import run_static_check
+
                 rc = run_static_check(args.test_static_check)
                 return rc
             elif getattr(args, "files_static_check", None):
@@ -3898,9 +4290,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):
-            raise ReqError(
-                "Error: --base or --here is required for initialization.", 1
-            )
+            raise ReqError("Error: --base or --here is required for initialization.", 1)
         run(args)
     except ReqError as e:
         print(e.message, file=sys.stderr)

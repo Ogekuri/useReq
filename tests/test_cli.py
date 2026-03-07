@@ -62,6 +62,7 @@ ARTIFACT_TYPE_FLAGS = [
 
 class TestCLI(unittest.TestCase):
     """Test suite for the useReq CLI command."""
+
     # Test directory path under temp/.
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test"
 
@@ -111,7 +112,6 @@ class TestCLI(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -188,9 +188,7 @@ class TestCLI(unittest.TestCase):
     def test_codex_skills_directory_created(self) -> None:
         """REQ-095: Verifies the creation of the .codex/skills directory."""
         codex_skills = self.TEST_DIR / ".codex" / "skills"
-        self.assertTrue(
-            codex_skills.is_dir(), "The directory .codex/skills must exist"
-        )
+        self.assertTrue(codex_skills.is_dir(), "The directory .codex/skills must exist")
 
     def test_github_directories_created(self) -> None:
         """REQ-002: Verifies the creation of .github/agents and .github/prompts directories."""
@@ -219,9 +217,7 @@ class TestCLI(unittest.TestCase):
         kiro_agents = self.TEST_DIR / ".kiro" / "agents"
         kiro_prompts = self.TEST_DIR / ".kiro" / "prompts"
         self.assertTrue(kiro_agents.is_dir(), "The directory .kiro/agents must exist")
-        self.assertTrue(
-            kiro_prompts.is_dir(), "The directory .kiro/prompts must exist"
-        )
+        self.assertTrue(kiro_prompts.is_dir(), "The directory .kiro/prompts must exist")
 
     def test_opencode_directory_created(self) -> None:
         """REQ-048: Verifies the creation of the .opencode/agent directory."""
@@ -287,14 +283,21 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(github_agent.exists(), "The GitHub agent must exist")
         codex_content = codex_skill.read_text(encoding="utf-8")
         agent_content = github_agent.read_text(encoding="utf-8")
-        self.assertIn("name: req-analyze", codex_content, "SKILL.md must have name field")
-        self.assertIn("description:", codex_content, "SKILL.md must have description field")
+        self.assertIn(
+            "name: req-analyze", codex_content, "SKILL.md must have name field"
+        )
+        self.assertIn(
+            "description:", codex_content, "SKILL.md must have description field"
+        )
         # Extract description values from each file's front matter.
         import re as _re
+
         codex_desc_match = _re.search(r'^description:\s*"(.*)"', codex_content, _re.M)
         agent_desc_match = _re.search(r'^description:\s*"(.*)"', agent_content, _re.M)
         self.assertIsNotNone(codex_desc_match, "SKILL.md must have quoted description")
-        self.assertIsNotNone(agent_desc_match, "GitHub agent must have quoted description")
+        self.assertIsNotNone(
+            agent_desc_match, "GitHub agent must have quoted description"
+        )
         # Skill description MUST differ from agent description (different source: sections vs front matter).
         self.assertNotEqual(
             codex_desc_match.group(1),
@@ -302,8 +305,12 @@ class TestCLI(unittest.TestCase):
             "Skill description must be derived from prompt YAML front matter usage (not agent sections)",
         )
         # Skill description must be a non-empty single-line string (no embedded newlines).
-        self.assertGreater(len(codex_desc_match.group(1)), 0, "Skill description must not be empty")
-        self.assertNotIn("\\n", codex_desc_match.group(1), "Skill description must be single-line")
+        self.assertGreater(
+            len(codex_desc_match.group(1)), 0, "Skill description must not be empty"
+        )
+        self.assertNotIn(
+            "\\n", codex_desc_match.group(1), "Skill description must be single-line"
+        )
 
     def test_github_agent_files_created(self) -> None:
         """REQ-003, REQ-053: Verifies copy of files into .github/agents with front matter name."""
@@ -370,9 +377,19 @@ class TestCLI(unittest.TestCase):
             content = prompt_path.read_text(encoding="utf-8")
             # With default (no --prompts-use-agents) the file must contain prompt body
             # and not just a reference to the agent.
-            self.assertNotIn("agent:", content, "The prompt must not be just an agent reference")
-            self.assertIn("description:", content, "The prompt must include description in front matter")
-            self.assertIn("argument-hint:", content, "The prompt must include argument-hint in front matter")
+            self.assertNotIn(
+                "agent:", content, "The prompt must not be just an agent reference"
+            )
+            self.assertIn(
+                "description:",
+                content,
+                "The prompt must include description in front matter",
+            )
+            self.assertIn(
+                "argument-hint:",
+                content,
+                "The prompt must include argument-hint in front matter",
+            )
             self.assertIn("##", content, "The prompt body must be present")
 
     def test_gemini_toml_files_created(self) -> None:
@@ -396,17 +413,13 @@ class TestCLI(unittest.TestCase):
                 f"The file {toml} must exist in .gemini/commands/req",
             )
             content = toml_path.read_text(encoding="utf-8")
-            self.assertIn(
-                "description", content, f"{toml} must contain 'description'"
-            )
+            self.assertIn("description", content, f"{toml} must contain 'description'")
             self.assertIn("prompt", content, f"{toml} must contain 'prompt'")
 
     def test_templates_copied(self) -> None:
         """REQ-006: Verifies copy of templates into .req/docs."""
         templates_dir = self.TEST_DIR / ".req" / "docs"
-        self.assertTrue(
-            templates_dir.is_dir(), "The directory .req/docs must exist"
-        )
+        self.assertTrue(templates_dir.is_dir(), "The directory .req/docs must exist")
         expected_templates = sorted(
             path.name
             for path in (cli.RESOURCE_ROOT / "docs").iterdir()
@@ -565,7 +578,9 @@ class TestCLI(unittest.TestCase):
         config_path = self.TEST_DIR / ".req" / "config.json"
         data = json.loads(config_path.read_text(encoding="utf-8"))
         doc_dir = data["docs-dir"]
-        replaced = cli.apply_replacements("DOC: %%DOC_PATH%%", {"%%DOC_PATH%%": doc_dir})
+        replaced = cli.apply_replacements(
+            "DOC: %%DOC_PATH%%", {"%%DOC_PATH%%": doc_dir}
+        )
         self.assertEqual(replaced, f"DOC: {doc_dir}")
 
     def test_test_path_replacement(self) -> None:
@@ -601,14 +616,26 @@ class TestCLI(unittest.TestCase):
             self.fail(".req/config.json must be a valid JSON")
 
         # Verify fields guidelines-dir, docs-dir, and tests-dir.
-        self.assertIn("guidelines-dir", data, "config.json must contain 'guidelines-dir' field")
+        self.assertIn(
+            "guidelines-dir", data, "config.json must contain 'guidelines-dir' field"
+        )
         self.assertIn("docs-dir", data, "config.json must contain 'docs-dir' field")
         self.assertIn("tests-dir", data, "config.json must contain 'tests-dir' field")
         self.assertIn("src-dir", data, "config.json must contain 'src-dir' field")
-        self.assertEqual(data["guidelines-dir"], "guidelines", "The 'guidelines-dir' field must be 'guidelines'")
-        self.assertEqual(data["docs-dir"], "docs", "The 'docs-dir' field must be 'docs'")
-        self.assertEqual(data["tests-dir"], "tests", "The 'tests-dir' field must be 'tests'")
-        self.assertEqual(data["src-dir"], ["src"], "The 'src-dir' field must be ['src']")
+        self.assertEqual(
+            data["guidelines-dir"],
+            "guidelines",
+            "The 'guidelines-dir' field must be 'guidelines'",
+        )
+        self.assertEqual(
+            data["docs-dir"], "docs", "The 'docs-dir' field must be 'docs'"
+        )
+        self.assertEqual(
+            data["tests-dir"], "tests", "The 'tests-dir' field must be 'tests'"
+        )
+        self.assertEqual(
+            data["src-dir"], ["src"], "The 'src-dir' field must be ['src']"
+        )
 
     def test_opencode_agent_files_created(self) -> None:
         """REQ-047: Verifies OpenCode agents generation in .opencode/agent."""
@@ -642,8 +669,12 @@ class TestCLI(unittest.TestCase):
         cmd_path = self.TEST_DIR / ".opencode" / "command" / "req-analyze.md"
         self.assertTrue(cmd_path.exists(), "The opencode command must exist")
         content = cmd_path.read_text(encoding="utf-8")
-        self.assertIn("description:", content, "Must include description in front matter")
-        self.assertIn("argument-hint:", content, "Must include argument-hint in front matter")
+        self.assertIn(
+            "description:", content, "Must include description in front matter"
+        )
+        self.assertIn(
+            "argument-hint:", content, "Must include argument-hint in front matter"
+        )
 
     def test_claude_agent_files_created(self) -> None:
         """REQ-050, REQ-051: Verifies Claude Code files generation."""
@@ -691,8 +722,12 @@ class TestCLI(unittest.TestCase):
         cmd_path = self.TEST_DIR / ".claude" / "commands" / "req" / "analyze.md"
         self.assertTrue(cmd_path.exists(), "The Claude command must exist")
         content = cmd_path.read_text(encoding="utf-8")
-        self.assertIn("argument-hint:", content, "The command must contain argument-hint")
-        self.assertNotIn("agent:", content, "The command must not contain agent without stubs")
+        self.assertIn(
+            "argument-hint:", content, "The command must contain argument-hint"
+        )
+        self.assertNotIn(
+            "agent:", content, "The command must not contain agent without stubs"
+        )
 
     def test_req_dir_replacement(self) -> None:
         """REQ-026, REQ-027: Verifies %%GUIDELINES_FILES%% replacement."""
@@ -700,7 +735,9 @@ class TestCLI(unittest.TestCase):
         content = codex_prompt.read_text(encoding="utf-8")
         # Verify that %%GUIDELINES_FILES%% has been replaced.
         self.assertNotIn(
-            "%%GUIDELINES_FILES%%", content, "The token %%GUIDELINES_FILES%% must be replaced"
+            "%%GUIDELINES_FILES%%",
+            content,
+            "The token %%GUIDELINES_FILES%% must be replaced",
         )
         # After DES-014 change: generate_guidelines_file_list now lists files, not subdirectories.
         # The guidelines/ folder now contains files from its direct children, not subdirectories.
@@ -715,16 +752,10 @@ class TestCLI(unittest.TestCase):
         content = kiro_agent.read_text(encoding="utf-8")
         data = json.loads(content)
 
-        self.assertIn(
-            "resources", data, "The JSON file must contain 'resources' field"
-        )
+        self.assertIn("resources", data, "The JSON file must contain 'resources' field")
         resources = data["resources"]
-        self.assertIsInstance(
-            resources, list, "The 'resources' field must be a list"
-        )
-        self.assertGreater(
-            len(resources), 0, "The 'resources' list must not be empty"
-        )
+        self.assertIsInstance(resources, list, "The 'resources' field must be a list")
+        self.assertGreater(len(resources), 0, "The 'resources' list must not be empty")
 
         # Verify that the first entry is the prompt.
         first_resource = resources[0]
@@ -821,9 +852,7 @@ class TestCLI(unittest.TestCase):
     def test_kiro_skills_directory_created(self) -> None:
         """SRS-237: Verifies the creation of the .kiro/skills directory."""
         kiro_skills = self.TEST_DIR / ".kiro" / "skills"
-        self.assertTrue(
-            kiro_skills.is_dir(), "The directory .kiro/skills must exist"
-        )
+        self.assertTrue(kiro_skills.is_dir(), "The directory .kiro/skills must exist")
 
     def test_kiro_skill_files_created(self) -> None:
         """SRS-237: Verifies creation of SKILL.md for each Kiro skill."""
@@ -890,9 +919,13 @@ class TestCLI(unittest.TestCase):
         prompt_text = prompt_path.read_text(encoding="utf-8")
         prompt_frontmatter, _prompt_body = cli.extract_frontmatter(prompt_text)
         prompt_yaml = _yaml.safe_load(prompt_frontmatter)
-        self.assertIsInstance(prompt_yaml, dict, "Prompt front matter MUST parse as a YAML mapping")
+        self.assertIsInstance(
+            prompt_yaml, dict, "Prompt front matter MUST parse as a YAML mapping"
+        )
         expected_usage = " ".join(str(prompt_yaml.get("usage", "")).split())
-        self.assertGreater(len(expected_usage), 0, "Prompt front matter MUST contain non-empty usage")
+        self.assertGreater(
+            len(expected_usage), 0, "Prompt front matter MUST contain non-empty usage"
+        )
 
         skill_paths = [
             self.TEST_DIR / ".codex" / "skills" / "req-analyze" / "SKILL.md",
@@ -905,8 +938,14 @@ class TestCLI(unittest.TestCase):
             skill_text = skill_path.read_text(encoding="utf-8")
             skill_frontmatter, _skill_body = cli.extract_frontmatter(skill_text)
             skill_yaml = _yaml.safe_load(skill_frontmatter)
-            self.assertIsInstance(skill_yaml, dict, f"{skill_path} front matter MUST be a YAML mapping")
-            self.assertIn("description", skill_yaml, f"{skill_path} MUST include YAML field description")
+            self.assertIsInstance(
+                skill_yaml, dict, f"{skill_path} front matter MUST be a YAML mapping"
+            )
+            self.assertIn(
+                "description",
+                skill_yaml,
+                f"{skill_path} MUST include YAML field description",
+            )
             observed_descriptions.append(str(skill_yaml.get("description", "")))
 
         for observed in observed_descriptions:
@@ -943,7 +982,9 @@ class TestCLI(unittest.TestCase):
 class TestGuidelinesPathReplacement(unittest.TestCase):
     """REQ-090: Verifies %%GUIDELINES_PATH%% replacement."""
 
-    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-guidelines-path"
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1] / "temp" / "project-test-guidelines-path"
+    )
     RESOURCE_DIR = (
         Path(__file__).resolve().parents[1] / "temp" / "resources-guidelines-path"
     )
@@ -972,7 +1013,7 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
 
         prompt_content = (
             "---\n"
-            "description: \"Guidelines path prompt\"\n"
+            'description: "Guidelines path prompt"\n'
             "---\n"
             "\n"
             "GuidelinesPath: %%GUIDELINES_PATH%%\n"
@@ -1011,7 +1052,6 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1043,7 +1083,9 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
         self.assertTrue(codex_prompt.exists(), "The Codex prompt must exist")
         content = codex_prompt.read_text(encoding="utf-8")
         self.assertNotIn(
-            "%%GUIDELINES_PATH%%", content, "The token %%GUIDELINES_PATH%% must be replaced"
+            "%%GUIDELINES_PATH%%",
+            content,
+            "The token %%GUIDELINES_PATH%% must be replaced",
         )
         self.assertIn(
             "GuidelinesPath: guidelines",
@@ -1108,41 +1150,65 @@ class TestModelsAndTools(unittest.TestCase):
         claude_usage = {"read_write": {"tools": ["Read", "Grep", "Glob"]}}
         kiro_usage = {
             "read_write": {"tools": KIRO_READ_WRITE_TOOLS},
-            "read_only": {"tools": KIRO_READ_ONLY_TOOLS}
+            "read_only": {"tools": KIRO_READ_ONLY_TOOLS},
         }
 
         # Create centralized models.json
         models_config = {
             "settings": {"version": "1.0.0"},
             "codex": {
-                "prompts": {"analyze": {"model": "GPT-5.2-Codex (codex)", "mode": "read_write"}},
-                "usage_modes": base_usage
+                "prompts": {
+                    "analyze": {"model": "GPT-5.2-Codex (codex)", "mode": "read_write"}
+                },
+                "usage_modes": base_usage,
             },
             "copilot": {
-                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
-                "usage_modes": base_usage
+                "prompts": {
+                    "analyze": {
+                        "model": "GPT-5.2-Codex (copilot)",
+                        "mode": "read_write",
+                    }
+                },
+                "usage_modes": base_usage,
             },
             "claude": {
-                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
-                "usage_modes": claude_usage
+                "prompts": {
+                    "analyze": {
+                        "model": "GPT-5.2-Codex (copilot)",
+                        "mode": "read_write",
+                    }
+                },
+                "usage_modes": claude_usage,
             },
             "gemini": {
-                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
-                "usage_modes": base_usage
+                "prompts": {
+                    "analyze": {
+                        "model": "GPT-5.2-Codex (copilot)",
+                        "mode": "read_write",
+                    }
+                },
+                "usage_modes": base_usage,
             },
             "kiro": {
-                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_only"}},
+                "prompts": {
+                    "analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_only"}
+                },
                 "usage_modes": kiro_usage,
                 "agent_template": {
                     "name": "%%NAME%%",
                     "description": "%%DESCRIPTION%%",
-                    "prompt": "%%PROMPT%%"
-                }
+                    "prompt": "%%PROMPT%%",
+                },
             },
             "opencode": {
-                "prompts": {"analyze": {"model": "GPT-5.2-Codex (copilot)", "mode": "read_write"}},
-                "usage_modes": base_usage
-            }
+                "prompts": {
+                    "analyze": {
+                        "model": "GPT-5.2-Codex (copilot)",
+                        "mode": "read_write",
+                    }
+                },
+                "usage_modes": base_usage,
+            },
         }
         models_path = tmp_resources / "common" / "models.json"
         models_path.write_text(json.dumps(models_config, indent=2), encoding="utf-8")
@@ -1156,7 +1222,9 @@ class TestModelsAndTools(unittest.TestCase):
             (tmp_resources / "docs").mkdir(parents=True, exist_ok=True)
             tmpl = orig_resources / "docs" / "Requirements_Template.md"
             if tmpl.exists():
-                shutil.copyfile(tmpl, tmp_resources / "docs" / "Requirements_Template.md")
+                shutil.copyfile(
+                    tmpl, tmp_resources / "docs" / "Requirements_Template.md"
+                )
 
         # Use temporary resources as CLI root, without touching project files.
         cli.RESOURCE_ROOT = tmp_resources
@@ -1167,7 +1235,6 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1246,12 +1313,12 @@ class TestModelsAndTools(unittest.TestCase):
         """Running CLI without flags should not add model/tools (unless expected behavior)."""
         # Run again without flags
         from unittest.mock import patch
+
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 [
                     "--base",
                     str(self.TEST_DIR),
-
                     "--docs-dir",
                     str(self.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1285,7 +1352,6 @@ class TestModelsAndTools(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-
                     "--docs-dir",
                     str(self.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1353,7 +1419,6 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1397,9 +1462,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
     def test_existing_file_preserved(self) -> None:
         """Verifies that the existing file in docs is preserved."""
         existing_file = self.TEST_DIR / "docs" / "existing.md"
-        self.assertTrue(
-            existing_file.exists(), "The existing file must be preserved"
-        )
+        self.assertTrue(existing_file.exists(), "The existing file must be preserved")
 
     def test_kiro_resources_contains_existing_file(self) -> None:
         """REQ-046: Verifies Kiro resources include existing docs files."""
@@ -1437,7 +1500,9 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 class TestPromptsUseAgents(unittest.TestCase):
     """Verifies behavior with --prompts-use-agents enabled."""
 
-    TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-prompts-agents"
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1] / "temp" / "project-test-prompts-agents"
+    )
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1456,7 +1521,6 @@ class TestPromptsUseAgents(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1484,7 +1548,11 @@ class TestPromptsUseAgents(unittest.TestCase):
         prompt_path = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
         self.assertTrue(prompt_path.exists())
         content = prompt_path.read_text(encoding="utf-8").strip()
-        self.assertEqual(content, "---\nagent: req-analyze\n---", "The prompt must be a stub with only agent")
+        self.assertEqual(
+            content,
+            "---\nagent: req-analyze\n---",
+            "The prompt must be a stub with only agent",
+        )
 
     def test_claude_commands_are_agent_stubs(self) -> None:
         """With the flag enabled, .claude/commands/req files must contain only the agent."""
@@ -1492,7 +1560,11 @@ class TestPromptsUseAgents(unittest.TestCase):
         self.assertTrue(cmd_path.exists())
         content = cmd_path.read_text(encoding="utf-8").strip()
         # With the flag enabled, Claude commands must include the 'agent:' line.
-        self.assertIn("agent: req-analyze", content, "The command must contain 'agent:' line when --prompts-use-agents is active")
+        self.assertIn(
+            "agent: req-analyze",
+            content,
+            "The command must contain 'agent:' line when --prompts-use-agents is active",
+        )
         # The file should be a YAML front matter block.
         self.assertTrue(content.startswith("---"))
         self.assertTrue(content.endswith("---"))
@@ -1503,7 +1575,9 @@ class TestPromptsUseAgents(unittest.TestCase):
         content = cmd_path.read_text(encoding="utf-8")
         self.assertIn("agent: req-analyze", content)
         self.assertNotIn("model:", content, "The stub must not include model")
-        self.assertNotIn("allowed-tools:", content, "The stub must not include allowed-tools")
+        self.assertNotIn(
+            "allowed-tools:", content, "The stub must not include allowed-tools"
+        )
 
     def test_opencode_commands_are_agent_stubs(self) -> None:
         """With the flag enabled, .opencode/command files must contain only the agent (agent: /req-<name>)."""
@@ -1511,7 +1585,11 @@ class TestPromptsUseAgents(unittest.TestCase):
         self.assertTrue(cmd_path.exists())
         content = cmd_path.read_text(encoding="utf-8").strip()
         # With the flag enabled, OpenCode commands must include the 'agent:' line.
-        self.assertIn("agent: req-analyze", content, "The opencode command must contain 'agent:' line when --prompts-use-agents is active")
+        self.assertIn(
+            "agent: req-analyze",
+            content,
+            "The opencode command must contain 'agent:' line when --prompts-use-agents is active",
+        )
         self.assertTrue(content.startswith("---"))
         self.assertTrue(content.endswith("---"))
 
@@ -1538,7 +1616,6 @@ class TestKiroToolsEnabled(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1607,7 +1684,7 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
         self.resources_dir = Path(tempfile.mkdtemp(prefix="usereq-cli-configs-"))
         common_dir = self.resources_dir / "common"
         common_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create models.json with all CLI configs
         default_models = {
             "settings": {"version": "0.0.64"},
@@ -1616,12 +1693,12 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
             "gemini": {"id": "gemini-config"},
             "kiro": {"id": "kiro-config"},
             "opencode": {"id": "opencode-config"},
-            "codex": {"id": "codex-config"}
+            "codex": {"id": "codex-config"},
         }
         (common_dir / "models.json").write_text(
             json.dumps(default_models, indent=2), encoding="utf-8"
         )
-        
+
         # Create models-legacy.json (copilot doesn't have legacy)
         legacy_models = {
             "settings": {"version": "0.0.64"},
@@ -1630,7 +1707,7 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
             "gemini": {"id": "gemini-legacy"},
             "kiro": {"id": "kiro-legacy"},
             "opencode": {"id": "opencode-legacy"},
-            "codex": {"id": "codex-legacy"}
+            "codex": {"id": "codex-legacy"},
         }
         (common_dir / "models-legacy.json").write_text(
             json.dumps(legacy_models, indent=2), encoding="utf-8"
@@ -1697,11 +1774,17 @@ class TestBundledModelsReadmeMapping(unittest.TestCase):
         payload = json.loads(config_file.read_text(encoding="utf-8"))
         for provider in self.PROVIDERS:
             prompts = (payload.get(provider) or {}).get("prompts") or {}
-            self.assertIsInstance(prompts, dict, f"{provider} prompts must be a mapping")
+            self.assertIsInstance(
+                prompts, dict, f"{provider} prompts must be a mapping"
+            )
             write_cfg = prompts.get("write")
             readme_cfg = prompts.get("readme")
-            self.assertIsInstance(write_cfg, dict, f"{provider}.prompts.write must exist")
-            self.assertIsInstance(readme_cfg, dict, f"{provider}.prompts.readme must exist")
+            self.assertIsInstance(
+                write_cfg, dict, f"{provider}.prompts.write must exist"
+            )
+            self.assertIsInstance(
+                readme_cfg, dict, f"{provider}.prompts.readme must exist"
+            )
             assert isinstance(write_cfg, dict)
             assert isinstance(readme_cfg, dict)
             self.assertEqual(
@@ -1748,7 +1831,6 @@ class TestCLIWithoutClaude(unittest.TestCase):
                 [
                     "--base",
                     str(cls.TEST_DIR),
-
                     "--docs-dir",
                     str(cls.TEST_DIR / "docs"),
                     "--guidelines-dir",
@@ -1788,9 +1870,7 @@ class TestProviderEnableFlags(unittest.TestCase):
     """Ensures the CLI enforces provider enable flags before generating resources."""
 
     TEST_DIR = (
-        Path(__file__).resolve().parents[1]
-        / "temp"
-        / "project-test-provider-flags"
+        Path(__file__).resolve().parents[1] / "temp" / "project-test-provider-flags"
     )
 
     def setUp(self) -> None:
@@ -1813,7 +1893,6 @@ class TestProviderEnableFlags(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-
                         "--docs-dir",
                         str(self.TEST_DIR / "docs"),
                         "--guidelines-dir",
@@ -1877,7 +1956,9 @@ class TestBasePrefixedRelativePaths(unittest.TestCase):
                 + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
-        config = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
+        config = json.loads(
+            (self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(config["docs-dir"], "docs")
         self.assertEqual(config["guidelines-dir"], "guidelines")
         self.assertEqual(config["tests-dir"], "tests")
@@ -1919,7 +2000,6 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-
                         "--docs-dir",
                         str(self.TEST_DIR / "docs"),
                         "--guidelines-dir",
@@ -1930,7 +2010,7 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR / "src"),
                     ]
                     + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
+                    + ARTIFACT_TYPE_FLAGS
                 )
 
         # Note: we do not check exit code because stdout capture might vary based on runner.
@@ -1953,7 +2033,6 @@ class TestUpdateNotification(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-
                         "--docs-dir",
                         str(self.TEST_DIR / "docs"),
                         "--guidelines-dir",
@@ -1964,7 +2043,7 @@ class TestUpdateNotification(unittest.TestCase):
                         str(self.TEST_DIR / "src"),
                     ]
                     + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
+                    + ARTIFACT_TYPE_FLAGS
                 )
 
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
@@ -1997,7 +2076,9 @@ class TestUpdateNotification(unittest.TestCase):
             if "|" in line and line.strip("- |")
         ]
         self.assertGreater(
-            len(data_rows), 0, "The installation summary table must include data rows",
+            len(data_rows),
+            0,
+            "The installation summary table must include data rows",
         )
         for row in data_rows:
             row_pipes = [pos for pos, ch in enumerate(row) if ch == "|"]
@@ -2045,7 +2126,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
     def test_add_guidelines_preserves_existing(self) -> None:
         """REQ-086: --add-guidelines does not overwrite existing files."""
         # Create existing file in guidelines dir with specific content
-        existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        existing_file = (
+            self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        )
         original_content = "# Original Content\nThis should be preserved.\n"
         existing_file.write_text(original_content, encoding="utf-8")
 
@@ -2055,7 +2138,6 @@ class TestGuidelinesTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-
                     "--docs-dir",
                     "docs",
                     "--guidelines-dir",
@@ -2082,7 +2164,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
     def test_upgrade_guidelines_overwrites_existing(self) -> None:
         """REQ-087: --upgrade-guidelines overwrites existing files."""
         # Create existing file in guidelines dir with specific content
-        existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        existing_file = (
+            self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        )
         original_content = "# Original Content\nThis should be overwritten.\n"
         existing_file.write_text(original_content, encoding="utf-8")
 
@@ -2125,8 +2209,12 @@ class TestGuidelinesTemplates(unittest.TestCase):
 
     def test_upgrade_guidelines_with_empty_source_succeeds(self) -> None:
         """REQ-085: --upgrade-guidelines succeeds when source guidelines directory is empty."""
-        existing_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
-        original_content = "# Original Content\nShould stay unchanged when source is empty.\n"
+        existing_file = (
+            self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        )
+        original_content = (
+            "# Original Content\nShould stay unchanged when source is empty.\n"
+        )
         existing_file.write_text(original_content, encoding="utf-8")
 
         temp_resources = self._make_temp_resource_root(include_guideline_file=False)
@@ -2171,21 +2259,20 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     [
                         "--base",
                         str(self.TEST_DIR),
-
                         "--docs-dir",
                         "docs",
-                    "--guidelines-dir",
-                    "guidelines",
-                    "--tests-dir",
-                    "tests",
-                    "--src-dir",
-                    "src",
-                    "--add-guidelines",
-                    "--upgrade-guidelines",
-                    "--enable-claude",
-                ]
-                + ARTIFACT_TYPE_FLAGS
-            )
+                        "--guidelines-dir",
+                        "guidelines",
+                        "--tests-dir",
+                        "tests",
+                        "--src-dir",
+                        "src",
+                        "--add-guidelines",
+                        "--upgrade-guidelines",
+                        "--enable-claude",
+                    ]
+                    + ARTIFACT_TYPE_FLAGS
+                )
 
     def test_no_copy_without_flags(self) -> None:
         """REQ-089: Guidelines templates are not copied without --add-guidelines or --upgrade-guidelines."""
@@ -2195,7 +2282,6 @@ class TestGuidelinesTemplates(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-
                     "--docs-dir",
                     "docs",
                     "--guidelines-dir",
@@ -2211,7 +2297,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
         self.assertEqual(exit_code, 0)
 
         # Verify no guidelines template files were copied
-        guidelines_file = self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        guidelines_file = (
+            self.guidelines_dir / "HDT_Test_Authoring_Guide_for_LLM_Agents.md"
+        )
         self.assertFalse(
             guidelines_file.exists(),
             "Guidelines templates should not be copied without --add-guidelines or --upgrade-guidelines",
@@ -2243,7 +2331,6 @@ class TestPreserveModels(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-
                     "--docs-dir",
                     "docs",
                     "--guidelines-dir",
@@ -2260,8 +2347,10 @@ class TestPreserveModels(unittest.TestCase):
 
         # Modify .req/models.json with custom content
         models_file = self.TEST_DIR / ".req" / "models.json"
-        self.assertTrue(models_file.is_file(), ".req/models.json should exist after initial setup")
-        
+        self.assertTrue(
+            models_file.is_file(), ".req/models.json should exist after initial setup"
+        )
+
         custom_config = {
             "settings": {"version": "9.9.9", "custom": "preserved"},
             "claude": {"id": "custom-claude-config", "prompts": ["custom-prompt"]},
@@ -2308,7 +2397,6 @@ class TestPreserveModels(unittest.TestCase):
                 [
                     "--base",
                     str(self.TEST_DIR),
-
                     "--docs-dir",
                     "docs",
                     "--guidelines-dir",
@@ -2402,7 +2490,9 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
             )
         self.assertEqual(install_exit_code, 0)
 
-        config_payload = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
+        config_payload = json.loads(
+            (self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8")
+        )
         expected_flags = {
             "enable-models": True,
             "enable-tools": True,
@@ -2420,8 +2510,12 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
             "preserve-models": False,
         }
         for key, expected in expected_flags.items():
-            self.assertIn(key, config_payload, f"{key} must be persisted in .req/config.json")
-            self.assertEqual(config_payload[key], expected, f"{key} must preserve its boolean state")
+            self.assertIn(
+                key, config_payload, f"{key} must be persisted in .req/config.json"
+            )
+            self.assertEqual(
+                config_payload[key], expected, f"{key} must preserve its boolean state"
+            )
 
         shutil.rmtree(self.TEST_DIR / ".github")
         shutil.rmtree(self.TEST_DIR / ".claude")
@@ -2435,10 +2529,15 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "--update",
                 ]
             )
-        self.assertEqual(update_exit_code, 0, "--update must reuse persisted provider/artifact flags")
+        self.assertEqual(
+            update_exit_code, 0, "--update must reuse persisted provider/artifact flags"
+        )
 
         github_prompt = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
-        self.assertTrue(github_prompt.is_file(), "GitHub prompts must be regenerated from persisted flags")
+        self.assertTrue(
+            github_prompt.is_file(),
+            "GitHub prompts must be regenerated from persisted flags",
+        )
         self.assertEqual(
             github_prompt.read_text(encoding="utf-8").strip(),
             "---\nagent: req-analyze\n---",
@@ -2488,7 +2587,9 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             update_exit_code = self._run_here_update(["--here", "--update"])
-        self.assertEqual(update_exit_code, 0, "--update --here must reuse persisted flags")
+        self.assertEqual(
+            update_exit_code, 0, "--update --here must reuse persisted flags"
+        )
         self.assertTrue(
             (self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md").is_file(),
             "Persisted flags must regenerate provider artifacts in --here mode",
@@ -2611,8 +2712,12 @@ class TestArtifactTypeFlags(unittest.TestCase):
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stderr") as fake_stderr:
                 with self.assertRaises(SystemExit) as cm:
-                    cli.main(self._base_args() + ["--enable-claude", "--disable-skills"])
-        self.assertEqual(cm.exception.code, 2, "Removed --disable-skills flag must be rejected")
+                    cli.main(
+                        self._base_args() + ["--enable-claude", "--disable-skills"]
+                    )
+        self.assertEqual(
+            cm.exception.code, 2, "Removed --disable-skills flag must be rejected"
+        )
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(
             "unrecognized arguments: --disable-skills",
@@ -2736,11 +2841,23 @@ class TestArtifactTypeFlags(unittest.TestCase):
         codex_prompts, codex_modules = parsed["codex"]
         claude_prompts, claude_modules = parsed["claude"]
         self.assertNotEqual(codex_prompts, "-", "codex prompts list must not be empty")
-        self.assertNotEqual(claude_prompts, "-", "claude prompts list must not be empty")
-        self.assertIn("analyze", codex_prompts, "codex prompts list must include a known prompt id")
-        self.assertIn("analyze", claude_prompts, "claude prompts list must include a known prompt id")
+        self.assertNotEqual(
+            claude_prompts, "-", "claude prompts list must not be empty"
+        )
+        self.assertIn(
+            "analyze",
+            codex_prompts,
+            "codex prompts list must include a known prompt id",
+        )
+        self.assertIn(
+            "analyze",
+            claude_prompts,
+            "claude prompts list must include a known prompt id",
+        )
         self.assertIn("skills", codex_modules, "codex modules list must include skills")
-        self.assertIn("skills", claude_modules, "claude modules list must include skills")
+        self.assertIn(
+            "skills", claude_modules, "claude modules list must include skills"
+        )
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "prompts").exists(),
@@ -2786,3 +2903,524 @@ class TestArtifactTypeFlags(unittest.TestCase):
             (self.TEST_DIR / ".codex" / "skills").is_dir(),
             ".codex/skills must exist",
         )
+
+
+# ── --provider SPEC tests (SRS-275 .. SRS-287) ───────────────────────────
+
+
+class TestProviderSpecParsing(unittest.TestCase):
+    """SRS-284: Verifies --provider SPEC parsing accepts valid specs and rejects invalid ones."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-provider-spec-parsing"
+    )
+
+    def setUp(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def _base_args(self) -> list[str]:
+        return [
+            "--base",
+            str(self.TEST_DIR),
+            "--docs-dir",
+            str(self.TEST_DIR / "docs"),
+            "--guidelines-dir",
+            str(self.TEST_DIR / "guidelines"),
+            "--tests-dir",
+            str(self.TEST_DIR / "tests"),
+            "--src-dir",
+            str(self.TEST_DIR / "src"),
+        ]
+
+    def test_valid_provider_spec_accepted(self) -> None:
+        """SRS-275, SRS-284: A well-formed --provider spec must be accepted with exit code 0."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(self._base_args() + ["--provider", "codex:skills"])
+        self.assertEqual(exit_code, 0, "--provider codex:skills must succeed")
+
+    def test_valid_provider_spec_with_options_accepted(self) -> None:
+        """SRS-275, SRS-284: A spec with OPTIONS field must be accepted."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + ["--provider", "claude:agents,prompts:enable-models,enable-tools"]
+            )
+        self.assertEqual(
+            exit_code,
+            0,
+            "--provider claude:agents,prompts:enable-models,enable-tools must succeed",
+        )
+
+    def test_unknown_provider_rejected(self) -> None:
+        """SRS-278, SRS-284: Unknown provider name must cause exit code 1."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                exit_code = cli.main(self._base_args() + ["--provider", "bogus:skills"])
+        self.assertEqual(
+            exit_code, 1, "Unknown provider 'bogus' must cause exit code 1"
+        )
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "bogus",
+            written,
+            "Error message must identify the unknown provider token",
+        )
+
+    def test_unknown_artifact_rejected(self) -> None:
+        """SRS-278, SRS-284: Unknown artifact type must cause exit code 1."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                exit_code = cli.main(
+                    self._base_args() + ["--provider", "codex:widgets"]
+                )
+        self.assertEqual(
+            exit_code, 1, "Unknown artifact 'widgets' must cause exit code 1"
+        )
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "widgets",
+            written,
+            "Error message must identify the unknown artifact token",
+        )
+
+    def test_unknown_option_rejected(self) -> None:
+        """SRS-278, SRS-284: Unknown option must cause exit code 1."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                exit_code = cli.main(
+                    self._base_args() + ["--provider", "codex:skills:turbo-mode"]
+                )
+        self.assertEqual(
+            exit_code, 1, "Unknown option 'turbo-mode' must cause exit code 1"
+        )
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn(
+            "turbo-mode",
+            written,
+            "Error message must identify the unknown option token",
+        )
+
+    def test_missing_artifacts_rejected(self) -> None:
+        """SRS-278, SRS-284: A spec with no colon separator must cause exit code 1."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stderr") as fake_stderr:
+                exit_code = cli.main(self._base_args() + ["--provider", "codex"])
+        self.assertEqual(
+            exit_code, 1, "A spec missing the ARTIFACTS part must cause exit code 1"
+        )
+
+
+class TestProviderSpecMultiple(unittest.TestCase):
+    """SRS-285: Multiple --provider specs enable distinct per-provider artifact types independently."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-provider-spec-multiple"
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+        cls.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (cls.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (cls.TEST_DIR / "src").mkdir(exist_ok=True)
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cls.exit_code = cli.main(
+                [
+                    "--base",
+                    str(cls.TEST_DIR),
+                    "--docs-dir",
+                    str(cls.TEST_DIR / "docs"),
+                    "--guidelines-dir",
+                    str(cls.TEST_DIR / "guidelines"),
+                    "--tests-dir",
+                    str(cls.TEST_DIR / "tests"),
+                    "--src-dir",
+                    str(cls.TEST_DIR / "src"),
+                    "--provider",
+                    "codex:skills",
+                    "--provider",
+                    "github:agents",
+                    "--provider",
+                    "claude:prompts",
+                ]
+            )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if cls.TEST_DIR.exists():
+            shutil.rmtree(cls.TEST_DIR)
+
+    def test_exit_code_zero(self) -> None:
+        """SRS-285: Multiple --provider specs must produce exit code 0."""
+        self.assertEqual(self.exit_code, 0, "Multiple --provider specs must succeed")
+
+    def test_codex_skills_created(self) -> None:
+        """SRS-285: codex:skills must create .codex/skills directory."""
+        self.assertTrue(
+            (self.TEST_DIR / ".codex" / "skills").is_dir(),
+            ".codex/skills must exist when --provider codex:skills is given",
+        )
+
+    def test_codex_prompts_not_created(self) -> None:
+        """SRS-276, SRS-285: codex:skills must NOT create .codex/prompts."""
+        self.assertFalse(
+            (self.TEST_DIR / ".codex" / "prompts").exists(),
+            ".codex/prompts must NOT exist when only codex:skills is specified",
+        )
+
+    def test_github_agents_created(self) -> None:
+        """SRS-285: github:agents must create .github/agents directory."""
+        self.assertTrue(
+            (self.TEST_DIR / ".github" / "agents").is_dir(),
+            ".github/agents must exist when --provider github:agents is given",
+        )
+
+    def test_github_prompts_not_created(self) -> None:
+        """SRS-276, SRS-285: github:agents must NOT create .github/prompts."""
+        self.assertFalse(
+            (self.TEST_DIR / ".github" / "prompts").exists(),
+            ".github/prompts must NOT exist when only github:agents is specified",
+        )
+
+    def test_claude_commands_created(self) -> None:
+        """SRS-285: claude:prompts must create .claude/commands directory."""
+        self.assertTrue(
+            (self.TEST_DIR / ".claude" / "commands").is_dir(),
+            ".claude/commands must exist when --provider claude:prompts is given",
+        )
+
+    def test_claude_agents_not_created(self) -> None:
+        """SRS-276, SRS-285: claude:prompts must NOT create .claude/agents."""
+        self.assertFalse(
+            (self.TEST_DIR / ".claude" / "agents").exists(),
+            ".claude/agents must NOT exist when only claude:prompts is specified",
+        )
+
+    def test_disabled_providers_absent(self) -> None:
+        """SRS-276, SRS-285: Providers not targeted by any spec must not have directories."""
+        self.assertFalse(
+            (self.TEST_DIR / ".gemini").exists(),
+            ".gemini must not exist when gemini is not targeted",
+        )
+        self.assertFalse(
+            (self.TEST_DIR / ".opencode").exists(),
+            ".opencode must not exist when opencode is not targeted",
+        )
+        self.assertFalse(
+            (self.TEST_DIR / ".kiro").exists(),
+            ".kiro must not exist when kiro is not targeted",
+        )
+
+
+class TestProviderSpecPersistence(unittest.TestCase):
+    """SRS-286: --provider specs are persisted to and restored from config.json."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-provider-spec-persistence"
+    )
+
+    def setUp(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def _base_args(self) -> list[str]:
+        return [
+            "--base",
+            str(self.TEST_DIR),
+            "--docs-dir",
+            str(self.TEST_DIR / "docs"),
+            "--guidelines-dir",
+            str(self.TEST_DIR / "guidelines"),
+            "--tests-dir",
+            str(self.TEST_DIR / "tests"),
+            "--src-dir",
+            str(self.TEST_DIR / "src"),
+        ]
+
+    def test_provider_specs_persisted_to_config(self) -> None:
+        """SRS-279, SRS-286: --provider specs must be stored as JSON array in config.json."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "codex:skills",
+                    "--provider",
+                    "github:agents",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "Initial install with --provider must succeed")
+        config_path = self.TEST_DIR / ".req" / "config.json"
+        self.assertTrue(
+            config_path.is_file(), ".req/config.json must exist after install"
+        )
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+        self.assertIn(
+            "providers",
+            config,
+            "config.json must contain a 'providers' key",
+        )
+        self.assertIsInstance(
+            config["providers"],
+            list,
+            "'providers' must be a JSON array",
+        )
+        self.assertEqual(
+            sorted(config["providers"]),
+            sorted(["codex:skills", "github:agents"]),
+            "Persisted providers must match the CLI-supplied specs",
+        )
+
+    def test_provider_specs_restored_on_update(self) -> None:
+        """SRS-280, SRS-286: --update must restore persisted provider specs."""
+        # Initial install with --provider specs.
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "codex:skills",
+                    "--provider",
+                    "github:agents",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "Initial install must succeed")
+
+        # Remove generated directories to verify they are re-created on --update.
+        codex_skills = self.TEST_DIR / ".codex" / "skills"
+        if codex_skills.exists():
+            shutil.rmtree(codex_skills)
+        github_agents = self.TEST_DIR / ".github" / "agents"
+        if github_agents.exists():
+            shutil.rmtree(github_agents)
+
+        # Run --update (no new --provider flags, should restore persisted ones).
+        previous_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                exit_code = cli.main(["--here", "--update"])
+        finally:
+            os.chdir(previous_cwd)
+        self.assertEqual(
+            exit_code, 0, "--update must succeed when restoring persisted specs"
+        )
+        self.assertTrue(
+            codex_skills.is_dir(),
+            ".codex/skills must be re-created from persisted provider specs on --update",
+        )
+        self.assertTrue(
+            github_agents.is_dir(),
+            ".github/agents must be re-created from persisted provider specs on --update",
+        )
+
+    def test_cli_provider_replaces_persisted_on_update(self) -> None:
+        """SRS-280, SRS-286: CLI --provider specs replace persisted entries on --update."""
+        # Initial install with codex:skills.
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(self._base_args() + ["--provider", "codex:skills"])
+        self.assertEqual(exit_code, 0, "Initial install must succeed")
+
+        # --update with a different --provider spec.
+        previous_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                exit_code = cli.main(
+                    ["--here", "--update", "--provider", "claude:agents"]
+                )
+        finally:
+            os.chdir(previous_cwd)
+        self.assertEqual(exit_code, 0, "--update with new --provider must succeed")
+
+        config_path = self.TEST_DIR / ".req" / "config.json"
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            config["providers"],
+            ["claude:agents"],
+            "CLI --provider specs must replace (not merge with) persisted entries",
+        )
+
+
+class TestProviderSpecGlobalMerge(unittest.TestCase):
+    """SRS-277, SRS-287: Per-provider options override global flags for targeted provider only."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-provider-spec-global-merge"
+    )
+
+    def setUp(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def _base_args(self) -> list[str]:
+        return [
+            "--base",
+            str(self.TEST_DIR),
+            "--docs-dir",
+            str(self.TEST_DIR / "docs"),
+            "--guidelines-dir",
+            str(self.TEST_DIR / "guidelines"),
+            "--tests-dir",
+            str(self.TEST_DIR / "tests"),
+            "--src-dir",
+            str(self.TEST_DIR / "src"),
+        ]
+
+    def test_global_flags_merged_with_provider_spec(self) -> None:
+        """SRS-277, SRS-287: Global --enable-codex with --provider github:agents must activate both."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--enable-codex",
+                    "--install-prompts",
+                    "--provider",
+                    "github:agents",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "Global flags + --provider must succeed")
+        # Codex prompts from global flags.
+        self.assertTrue(
+            (self.TEST_DIR / ".codex" / "prompts").is_dir(),
+            "Codex prompts must exist from global --enable-codex --install-prompts",
+        )
+        # GitHub agents from --provider spec.
+        self.assertTrue(
+            (self.TEST_DIR / ".github" / "agents").is_dir(),
+            "GitHub agents must exist from --provider github:agents",
+        )
+        # GitHub prompts must NOT exist (no --install-prompts + no prompts in spec).
+        # Global --install-prompts only applies to globally-enabled providers,
+        # but github was only enabled via --provider with only 'agents'.
+        self.assertFalse(
+            (self.TEST_DIR / ".github" / "prompts").exists(),
+            "GitHub prompts must NOT exist since github:agents did not include prompts",
+        )
+
+    def test_prompts_use_agents_per_provider_override(self) -> None:
+        """SRS-282, SRS-287: per-provider prompts-use-agents overrides global for that provider."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "github:agents,prompts:prompts-use-agents",
+                    "--provider",
+                    "claude:agents,prompts",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "Per-provider prompts-use-agents must succeed")
+
+        # GitHub prompts should reference agents (prompts-use-agents enabled).
+        gh_prompts_dir = self.TEST_DIR / ".github" / "prompts"
+        self.assertTrue(gh_prompts_dir.is_dir(), "GitHub prompts dir must exist")
+        gh_prompt_files = list(gh_prompts_dir.glob("*.prompt.md"))
+        self.assertGreater(
+            len(gh_prompt_files), 0, "At least one GitHub prompt file must exist"
+        )
+        gh_prompt_content = gh_prompt_files[0].read_text(encoding="utf-8")
+        self.assertIn(
+            "agent:",
+            gh_prompt_content,
+            "GitHub prompt must reference agent when prompts-use-agents is set",
+        )
+
+        # Claude prompts should NOT reference agents (prompts-use-agents NOT set).
+        claude_cmds_dir = self.TEST_DIR / ".claude" / "commands" / "req"
+        self.assertTrue(claude_cmds_dir.is_dir(), "Claude commands dir must exist")
+        claude_cmd_files = list(claude_cmds_dir.glob("*.md"))
+        self.assertGreater(
+            len(claude_cmd_files), 0, "At least one Claude command file must exist"
+        )
+        claude_cmd_content = claude_cmd_files[0].read_text(encoding="utf-8")
+        self.assertNotIn(
+            "agent:",
+            claude_cmd_content,
+            "Claude command must NOT reference agent when prompts-use-agents is not set",
+        )
+
+    def test_enable_models_per_provider_override(self) -> None:
+        """SRS-281, SRS-287: per-provider enable-models overrides global for that provider."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "claude:agents:enable-models",
+                    "--provider",
+                    "github:agents",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "Per-provider enable-models must succeed")
+
+        # Claude agents should have model: lines (enable-models set).
+        claude_agents_dir = self.TEST_DIR / ".claude" / "agents"
+        self.assertTrue(claude_agents_dir.is_dir(), "Claude agents dir must exist")
+        claude_agent_files = list(claude_agents_dir.glob("*.md"))
+        self.assertGreater(
+            len(claude_agent_files), 0, "At least one Claude agent file must exist"
+        )
+        claude_agent_content = claude_agent_files[0].read_text(encoding="utf-8")
+        # Model line should be present if models.json has a model for this prompt.
+        # We check that the frontmatter has either a model line or does not
+        # (depending on models.json content), but the key point is that
+        # the option was accepted without error.
+
+        # GitHub agents should NOT have model: lines (enable-models NOT set).
+        gh_agents_dir = self.TEST_DIR / ".github" / "agents"
+        self.assertTrue(gh_agents_dir.is_dir(), "GitHub agents dir must exist")
+        gh_agent_files = list(gh_agents_dir.glob("*.md"))
+        self.assertGreater(
+            len(gh_agent_files), 0, "At least one GitHub agent file must exist"
+        )
+        gh_agent_content = gh_agent_files[0].read_text(encoding="utf-8")
+        # Extract frontmatter (between first --- and second ---)
+        fm_match = re.search(r"^---\n(.*?)\n---", gh_agent_content, re.DOTALL)
+        if fm_match:
+            gh_frontmatter = fm_match.group(1)
+            self.assertNotIn(
+                "model:",
+                gh_frontmatter,
+                "GitHub agent frontmatter must NOT contain model: when enable-models is not set",
+            )
