@@ -25,7 +25,7 @@ In scope: internal refactors under %%SRC_PATHS%% (including private API reshapin
 ## Pre-requisite: Execution Context
 - Generate <EXECUTION_ID> from the current date/time (NOT UUID) to keep date traceability in worktree and branch names by executing `date +"%Y%m%d%H%M%S"`.
 - Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
-- Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
+- Identify the Git project name with `git rev-parse --show-toplevel | xargs basename` and refer to it as <PROJECT_NAME>.
 
 
 ## Absolute Rules, Non-Negotiable
@@ -158,7 +158,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 3. **CRITICAL**: Worktree Generation & Isolation
    - Generate <EXECUTION_ID> from the current date/time (NOT UUID) to keep date traceability in worktree and branch names by executing `date +"%Y%m%d%H%M%S"`.
    - Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
-   - Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
+   - Identify the Git project name with `git rev-parse --show-toplevel | xargs basename` and refer to it as <PROJECT_NAME>.
    - Create a dedicated worktree OUTSIDE the current repository directory to isolate changes:
       - Execute: `git worktree add ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> -b useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
       - If `.gitignore` excludes `.req/config.json`, copy `.req/config.json` into the new worktree before continuing:

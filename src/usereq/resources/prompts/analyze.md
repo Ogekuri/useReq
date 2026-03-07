@@ -26,7 +26,7 @@ In scope: read-only analysis of the above documents plus source under %%SRC_PATH
 ## Pre-requisite: Execution Context
 - Generate <EXECUTION_ID> from the current date/time (NOT UUID) to keep date traceability in worktree and branch names by executing `date +"%Y%m%d%H%M%S"`.
 - Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
-- Identify the Git project name with `basename "$(git rev-parse --show-toplevel)"` and refer to it as <PROJECT_NAME>.
+- Identify the Git project name with `git rev-parse --show-toplevel | xargs basename` and refer to it as <PROJECT_NAME>.
 
 
 ## Absolute Rules, Non-Negotiable
