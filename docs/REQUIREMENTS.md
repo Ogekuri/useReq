@@ -138,7 +138,9 @@ No explicit performance optimizations identified.
 - **SRS-049**: Immediately after the file list, CLI MUST print a Unicode box-drawing installation summary table with bright-red border lines.
 - **SRS-289**: The first installation summary table header cell MUST be `Provider` and MUST replace any previous `CLI` label.
 - **SRS-290**: The `Prompts Installed` column MUST use a maximum display width of 50 characters and MUST wrap overflowing content onto subsequent lines.
-- **SRS-291**: The `Modules Installed` column MUST list the active per-provider options exactly as parsed from each `--provider PROVIDER:ARTIFACTS[:OPTIONS]` specification.
+- **SRS-291**: The `Modules Installed` column MUST render one line per active `--provider` artifact as `artifact:options`, where `artifact` is `prompts`, `agents`, or `skills`.
+- **SRS-295**: In `artifact:options` lines, `options` MUST preserve parsed token order from `--provider`; if no option is active, `options` MUST be `-`.
+- **SRS-296**: The `Modules Installed` column width MUST fit the longest rendered module-entry line in active rows and MUST NOT wrap module-entry lines.
 - **SRS-050**: At program start, before any input-parameter parsing or validation, the command MUST resolve the GitHub releases endpoint from active git remotes as `https://api.github.com/repos/<owner>/<repository>/releases/latest`.
 - **SRS-051**: The startup release-check MUST execute only when `$HOME/.github_api_idle-time.<program_name>` is missing or its stored idle-until timestamp is expired; otherwise the command MUST skip remote version checks for that invocation.
 - **SRS-052**: When a release-check is executed, it MUST use a hardcoded configurable timeout with default value `2` seconds; if remote version is greater than `__version__`, it MUST print a bright-green English message with installed and latest versions.
@@ -380,7 +382,9 @@ No explicit performance optimizations identified.
 - **SRS-288**: The `.req/config.json` file MUST persist only the `"providers"` JSON array (raw SPEC strings) and the `"preserve-models"` boolean for update round-trips; the 13 legacy boolean keys (`enable-models`, `enable-tools`, `enable-claude`, `enable-codex`, `enable-gemini`, `enable-github`, `enable-kiro`, `enable-opencode`, `install-prompts`, `install-agents`, `install-skills`, `prompts-use-agents`, `legacy`) MUST NOT be written to or required from `config.json`.
 - **SRS-292**: The project MUST include unit tests in `tests/test_cli.py` verifying that the installation summary table uses `Provider` as the first header and Unicode box-drawing borders with bright-red line color.
 - **SRS-293**: The project MUST include unit tests in `tests/test_cli.py` verifying that `Prompts Installed` content wraps with a maximum display width of 50 characters.
-- **SRS-294**: The project MUST include unit tests in `tests/test_cli.py` verifying that `Modules Installed` reports per-provider active options parsed from each `--provider` specification.
+- **SRS-294**: The project MUST include unit tests in `tests/test_cli.py` verifying that `Modules Installed` renders one `artifact:options` line per active provider artifact from `--provider`.
+- **SRS-297**: The project MUST include unit tests in `tests/test_cli.py` verifying that `Modules Installed` preserves parsed option token order in each `artifact:options` line and uses `-` when options are absent.
+- **SRS-298**: The project MUST include unit tests in `tests/test_cli.py` verifying that `Modules Installed` does not wrap module-entry lines and widths include the longest rendered module-entry line.
 
 ## 5. Static Code Analysis Requirements
 

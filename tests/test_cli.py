@@ -2164,7 +2164,7 @@ class TestUpdateNotification(unittest.TestCase):
             )
 
     def test_installation_summary_table_modules_reflect_provider_flags(self) -> None:
-        """SRS-291, SRS-294: Modules Installed must report active provider option flags."""
+        """SRS-291, SRS-294, SRS-297: Modules Installed must render artifact:options lines."""
         if self.TEST_DIR.exists():
             shutil.rmtree(self.TEST_DIR)
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -2198,15 +2198,73 @@ class TestUpdateNotification(unittest.TestCase):
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         lines = [ansi_escape.sub("", line) for line in written.splitlines()]
         table_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
-        parsed: dict[str, str] = {}
+        parsed: dict[str, list[str]] = {}
+        current_provider = ""
         for row in table_rows:
             cells = [part.strip() for part in row.split("│")[1:-1]]
-            if len(cells) == 3 and cells[0] and cells[0] != "Provider":
-                parsed[cells[0]] = cells[2]
+            if len(cells) != 3:
+                continue
+            provider_cell, _prompt_cell, modules_cell = cells
+            if provider_cell == "Provider":
+                continue
+            if provider_cell:
+                current_provider = provider_cell
+                parsed.setdefault(current_provider, [])
+            if current_provider and modules_cell:
+                parsed[current_provider].append(modules_cell)
         self.assertIn("codex", parsed)
         self.assertIn("claude", parsed)
-        self.assertEqual(parsed["codex"], "enable-models, legacy")
-        self.assertEqual(parsed["claude"], "enable-tools, prompts-use-agents")
+        self.assertEqual(parsed["codex"], ["prompts:enable-models,legacy"])
+        self.assertEqual(parsed["claude"], ["prompts:enable-tools,prompts-use-agents"])
+
+    def test_installation_summary_table_modules_multiline_no_wrap(self) -> None:
+        """SRS-296, SRS-298: Modules Installed must keep one unwrapped line per artifact."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stdout") as fake_stdout:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--docs-dir",
+                        str(self.TEST_DIR / "docs"),
+                        "--guidelines-dir",
+                        str(self.TEST_DIR / "guidelines"),
+                        "--tests-dir",
+                        str(self.TEST_DIR / "tests"),
+                        "--src-dir",
+                        str(self.TEST_DIR / "src"),
+                        "--provider",
+                        "claude:prompts,skills:enable-models,enable-tools",
+                    ]
+                )
+        self.assertEqual(exit_code, 0)
+        written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        lines = [ansi_escape.sub("", line) for line in written.splitlines()]
+        table_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        modules_lines: list[str] = []
+        current_provider = ""
+        for row in table_rows:
+            cells = [part.strip() for part in row.split("│")[1:-1]]
+            if len(cells) != 3:
+                continue
+            provider_cell, _prompt_cell, modules_cell = cells
+            if provider_cell == "Provider":
+                continue
+            if provider_cell:
+                current_provider = provider_cell
+            if current_provider == "claude" and modules_cell:
+                modules_lines.append(modules_cell)
+        self.assertIn("prompts:enable-models,enable-tools", modules_lines)
+        self.assertIn("skills:enable-models,enable-tools", modules_lines)
 
 
 class TestGuidelinesTemplates(unittest.TestCase):
@@ -2956,15 +3014,28 @@ class TestArtifactTypeFlags(unittest.TestCase):
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         lines = [ansi_escape.sub("", line) for line in written.splitlines()]
         data_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
-        parsed: dict[str, tuple[str, str]] = {}
+        parsed_prompts: dict[str, list[str]] = {}
+        parsed_modules: dict[str, list[str]] = {}
+        current_provider = ""
         for row in data_rows:
             parts = [part.strip() for part in row.split("│")[1:-1]]
-            if len(parts) == 3 and parts[0] and parts[0] != "Provider":
-                parsed[parts[0]] = (parts[1], parts[2])
-        self.assertIn("codex", parsed, "Summary table must include codex row")
-        self.assertIn("claude", parsed, "Summary table must include claude row")
-        codex_prompts, codex_modules = parsed["codex"]
-        claude_prompts, claude_modules = parsed["claude"]
+            if len(parts) != 3:
+                continue
+            provider_cell, prompts_cell, modules_cell = parts
+            if provider_cell == "Provider":
+                continue
+            if provider_cell:
+                current_provider = provider_cell
+                parsed_prompts.setdefault(current_provider, [])
+                parsed_modules.setdefault(current_provider, [])
+            if current_provider and prompts_cell:
+                parsed_prompts[current_provider].append(prompts_cell)
+            if current_provider and modules_cell:
+                parsed_modules[current_provider].append(modules_cell)
+        self.assertIn("codex", parsed_prompts, "Summary table must include codex row")
+        self.assertIn("claude", parsed_prompts, "Summary table must include claude row")
+        codex_prompts = " ".join(parsed_prompts["codex"])
+        claude_prompts = " ".join(parsed_prompts["claude"])
         self.assertNotEqual(codex_prompts, "-", "codex prompts list must not be empty")
         self.assertNotEqual(
             claude_prompts, "-", "claude prompts list must not be empty"
@@ -2979,16 +3050,8 @@ class TestArtifactTypeFlags(unittest.TestCase):
             claude_prompts,
             "claude prompts list must include a known prompt id",
         )
-        self.assertIn(
-            codex_modules,
-            {"-", ""},
-            "codex modules list must be '-' when no provider option flags are active",
-        )
-        self.assertIn(
-            claude_modules,
-            {"-", ""},
-            "claude modules list must be '-' when no provider option flags are active",
-        )
+        self.assertIn("skills:-", parsed_modules["codex"])
+        self.assertIn("skills:-", parsed_modules["claude"])
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "prompts").exists(),

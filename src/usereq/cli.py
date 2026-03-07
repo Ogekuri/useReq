@@ -3396,29 +3396,23 @@ def run(args: Namespace) -> None:
     else:
         print("The folder %%GUIDELINES_FILES%% does not contain any files")
 
-    # Build and print installation report table with provider-specific options.
+    # Build and print installation report table with provider artifact/options details.
     def _format_install_table(
-        options_map: dict[str, set[str]],
+        modules_map: dict[str, list[str]],
         prompts_map: dict[str, set[str]],
     ) -> list[str]:
         """!
         @brief Format the Unicode installation summary table.
         @details Builds a deterministic box-drawing table with columns: Provider, Prompts Installed, Modules Installed.
-        Prompts Installed is wrapped to a maximum width of 50 characters. Modules Installed renders the active
-        per-provider option flags parsed from provider specifications using canonical option token syntax.
+        Prompts Installed is wrapped to a maximum width of 50 characters. Modules Installed renders one non-wrapped
+        line per active artifact using `artifact:options` format derived from `--provider` specifications.
         Borders are emitted with Unicode line-drawing characters and bright-red ANSI styling.
-        @note Complexity: O(C * (P log P + O)) where C is provider count, P is prompts per provider, O is option flags per provider.
+        @note Complexity: O(C * (P log P + M)) where C is provider count, P is prompts per provider, M is module-entry lines per provider.
         @note Side effects: None (pure formatting).
-        @param options_map {dict[str, set[str]]} Mapping: provider name -> active option flags from --provider specs.
+        @param modules_map {dict[str, list[str]]} Mapping: provider name -> module-entry lines in `artifact:options` format.
         @param prompts_map {dict[str, set[str]]} Mapping: provider name -> installed prompt identifiers (union across artifact types).
         @return {list[str]} Fully formatted table lines (including separators) ready for printing.
         """
-        option_order = (
-            "enable-models",
-            "enable-tools",
-            "prompts-use-agents",
-            "legacy",
-        )
         columns = ("Provider", "Prompts Installed", "Modules Installed")
         rows: list[tuple[str, str, str]] = []
         for provider_name in sorted(prompts_map.keys()):
@@ -3426,12 +3420,8 @@ def run(args: Namespace) -> None:
             if not prompts:
                 continue
             prompts_text = ", ".join(prompts) if prompts else "-"
-            active_options = options_map.get(provider_name, set())
-            modules_text = (
-                ", ".join([opt for opt in option_order if opt in active_options])
-                if active_options
-                else "-"
-            )
+            module_lines = modules_map.get(provider_name, [])
+            modules_text = "\n".join(module_lines) if module_lines else "-"
             rows.append((provider_name, prompts_text, modules_text))
 
         if not rows:
@@ -3440,22 +3430,34 @@ def run(args: Namespace) -> None:
         provider_width = max(len(columns[0]), max(len(row[0]) for row in rows))
         prompt_cells = [columns[1], *[row[1] for row in rows]]
         prompt_width = min(50, max(len(cell) for cell in prompt_cells))
-        modules_width = max(len(columns[2]), max(len(row[2]) for row in rows))
+        modules_width = len(columns[2])
+        for row in rows:
+            modules_width = max(
+                modules_width, max(len(line) for line in row[2].splitlines() or [""])
+            )
 
-        def _wrap_cell(value: str, width: int) -> list[str]:
-            """! @brief Wrap one table cell to fixed width.
-            @details Wraps one table cell with deterministic width constraints and preserves content when wrapping is unnecessary.
+        def _wrap_cell(value: str, width: int, allow_wrap: bool) -> list[str]:
+            """! @brief Normalize one table cell to printable lines.
+            @details Preserves explicit newline-separated segments. When wrapping is enabled, wraps each segment to the target width; otherwise keeps each segment as-is.
             @param value {str} Cell text payload.
             @param width {int} Maximum cell width.
-            @return {list[str]} Wrapped lines for the cell.
+            @param allow_wrap {bool} Whether to apply line wrapping.
+            @return {list[str]} Normalized printable lines for the cell.
             """
-            wrapped = textwrap.wrap(
-                value,
-                width=width,
-                break_long_words=True,
-                break_on_hyphens=False,
-            )
-            return wrapped if wrapped else [""]
+            raw_lines = value.splitlines() or [""]
+            lines: list[str] = []
+            for raw_line in raw_lines:
+                if allow_wrap:
+                    wrapped = textwrap.wrap(
+                        raw_line,
+                        width=width,
+                        break_long_words=True,
+                        break_on_hyphens=False,
+                    )
+                    lines.extend(wrapped if wrapped else [""])
+                else:
+                    lines.append(raw_line)
+            return lines if lines else [""]
 
         def _render_row(provider: str, prompts: str, modules: str) -> list[str]:
             """!
@@ -3466,9 +3468,9 @@ def run(args: Namespace) -> None:
             @param modules {str} Modules Installed cell text.
             @return {list[str]} Physical row lines encoded with box-drawing separators.
             """
-            provider_lines = _wrap_cell(provider, provider_width)
-            prompt_lines = _wrap_cell(prompts, prompt_width)
-            module_lines = _wrap_cell(modules, modules_width)
+            provider_lines = _wrap_cell(provider, provider_width, allow_wrap=False)
+            prompt_lines = _wrap_cell(prompts, prompt_width, allow_wrap=True)
+            module_lines = _wrap_cell(modules, modules_width, allow_wrap=False)
             row_height = max(len(provider_lines), len(prompt_lines), len(module_lines))
             lines: list[str] = []
             for idx in range(row_height):
@@ -3506,27 +3508,40 @@ def run(args: Namespace) -> None:
         lines.append(bottom)
         return lines
 
-    def _build_provider_option_map(
-        resolved_provider_configs: dict[str, dict[str, Any]],
-    ) -> dict[str, set[str]]:
+    def _build_provider_modules_map(provider_specs: list[str]) -> dict[str, list[str]]:
         """!
-        @brief Build provider-to-option mapping for installation table rendering.
-        @details Extracts active option flags from resolved provider configs and emits only flags that are true for each provider.
-        @param resolved_provider_configs {dict[str, dict[str, Any]]} Per-provider boolean configuration map.
-        @return {dict[str, set[str]]} Mapping from provider to active option flag tokens.
+        @brief Build provider-to-module-entry mapping for installation table rendering.
+        @details Parses raw `--provider` specifications preserving token order, then emits one `artifact:options` line per active artifact for each provider.
+        @param provider_specs {list[str]} Raw `--provider` SPEC values after update-merging logic.
+        @return {dict[str, list[str]]} Mapping from provider to ordered module-entry lines.
         """
-        option_keys = (
-            "enable-models",
-            "enable-tools",
-            "prompts-use-agents",
-            "legacy",
-        )
-        option_map: dict[str, set[str]] = {}
-        for provider_name, config in resolved_provider_configs.items():
-            option_map[provider_name] = {
-                key for key in option_keys if bool(config.get(key, False))
-            }
-        return option_map
+        artifacts_ordered: dict[str, list[str]] = {
+            provider_name: [] for provider_name in sorted(VALID_PROVIDERS)
+        }
+        options_ordered: dict[str, list[str]] = {
+            provider_name: [] for provider_name in sorted(VALID_PROVIDERS)
+        }
+        for raw_spec in provider_specs:
+            parts = raw_spec.split(":")
+            if len(parts) < 2:
+                continue
+            provider_name = parts[0].strip().lower()
+            if provider_name not in VALID_PROVIDERS:
+                continue
+            for artifact in [v.strip().lower() for v in parts[1].split(",") if v.strip()]:
+                if artifact in VALID_ARTIFACTS and artifact not in artifacts_ordered[provider_name]:
+                    artifacts_ordered[provider_name].append(artifact)
+            if len(parts) == 3:
+                for option in [v.strip().lower() for v in parts[2].split(",") if v.strip()]:
+                    if option in VALID_PROVIDER_OPTIONS and option not in options_ordered[provider_name]:
+                        options_ordered[provider_name].append(option)
+        modules_map: dict[str, list[str]] = {}
+        for provider_name in sorted(VALID_PROVIDERS):
+            options_text = ",".join(options_ordered[provider_name]) or "-"
+            modules_map[provider_name] = [
+                f"{artifact}:{options_text}" for artifact in artifacts_ordered[provider_name]
+            ]
+        return modules_map
 
     def _colorize_table_border(line: str) -> str:
         """!
@@ -3542,7 +3557,7 @@ def run(args: Namespace) -> None:
         )
 
     table_lines = _format_install_table(
-        _build_provider_option_map(provider_configs), prompts_installed
+        _build_provider_modules_map(effective_provider_specs), prompts_installed
     )
     for table_line in table_lines:
         print(_colorize_table_border(table_line))
