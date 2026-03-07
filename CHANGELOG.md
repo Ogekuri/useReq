@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.29.0](https://github.com/Ogekuri/useReq/compare/v0.28.0..v0.29.0) - 2026-03-07
+### 🚜  Changes
+- reduce release-check idle window to 300s [useReq] *(cli)*
+  - Update SRS-271 default idle_window_seconds from 86400 to 300.
+  - Set RELEASE_CHECK_IDLE_WINDOW_SECONDS to 300 in startup release-check logic.
+  - Add test to assert five-minute default idle window.
+  - Update WORKFLOW runtime note for release-check cadence.
+  - Regenerate REFERENCES to reflect symbol/value updates.
+
 ## [0.28.0](https://github.com/Ogekuri/useReq/compare/v0.27.0..v0.28.0) - 2026-03-07
 ### ⛰️  Features
 - Add bell to prompts.
@@ -735,6 +744,7 @@
 - \[0.26.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.26.0
 - \[0.27.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.27.0
 - \[0.28.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.28.0
+- \[0.29.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.29.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -764,3 +774,4 @@
 [0.26.0]: https://github.com/Ogekuri/useReq/compare/v0.25.0..v0.26.0
 [0.27.0]: https://github.com/Ogekuri/useReq/compare/v0.26.0..v0.27.0
 [0.28.0]: https://github.com/Ogekuri/useReq/compare/v0.27.0..v0.28.0
+[0.29.0]: https://github.com/Ogekuri/useReq/compare/v0.28.0..v0.29.0
