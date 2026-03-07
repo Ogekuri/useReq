@@ -2076,31 +2076,34 @@ class TestUpdateNotification(unittest.TestCase):
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         self.assertIn("Installation completed successfully in", written)
 
-        lines = written.splitlines()
-        header_pattern = re.compile(
-            r"^CLI\s+\|\s+Prompts Installed\s+\|\s+Modules Installed\s*$"
-        )
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        lines = [ansi_escape.sub("", line) for line in written.splitlines()]
+        table_rows = [
+            line
+            for line in lines
+            if line.startswith("│") and line.endswith("│") and "Prompts Installed" in line
+        ]
         try:
-            header_index = next(
-                i for i, line in enumerate(lines) if header_pattern.search(line)
-            )
-        except StopIteration as exc:
+            header_line = table_rows[0]
+        except IndexError as exc:
             raise self.failureException(
                 "The installation summary table header must be printed"
             ) from exc
-        header_line = lines[header_index]
-        header_pipes = [pos for pos, ch in enumerate(header_line) if ch == "|"]
+        header_cells = [part.strip() for part in header_line.split("│")[1:-1]]
         self.assertEqual(
-            len(header_pipes),
-            2,
-            "Header row must contain exactly two pipe separators",
+            header_cells,
+            ["Provider", "Prompts Installed", "Modules Installed"],
+            "Header row must expose Provider/Prompts Installed/Modules Installed columns",
         )
 
-        # Skip header and separator lines; verify all data rows align pipes with header.
+        # Verify at least one data line exists in the Unicode table body.
         data_rows = [
             line
-            for line in lines[header_index + 2 :]
-            if "|" in line and line.strip("- |")
+            for line in lines
+            if line.startswith("│")
+            and line.endswith("│")
+            and "Prompts Installed" not in line
+            and "Provider" not in line
         ]
         self.assertGreater(
             len(data_rows),
@@ -2108,12 +2111,102 @@ class TestUpdateNotification(unittest.TestCase):
             "The installation summary table must include data rows",
         )
         for row in data_rows:
-            row_pipes = [pos for pos, ch in enumerate(row) if ch == "|"]
+            row_cells = [part for part in row.split("│")[1:-1]]
             self.assertEqual(
-                header_pipes,
-                row_pipes,
-                f"Installation summary row is not aligned with header: {row}",
+                len(row_cells),
+                3,
+                f"Installation summary row must expose exactly three cells: {row}",
             )
+
+    def test_installation_summary_table_wraps_prompts_column_to_50(self) -> None:
+        """SRS-290, SRS-293: Prompts Installed column must wrap to max width 50."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stdout") as fake_stdout:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--docs-dir",
+                        str(self.TEST_DIR / "docs"),
+                        "--guidelines-dir",
+                        str(self.TEST_DIR / "guidelines"),
+                        "--tests-dir",
+                        str(self.TEST_DIR / "tests"),
+                        "--src-dir",
+                        str(self.TEST_DIR / "src"),
+                        "--provider",
+                        "codex:prompts",
+                    ]
+                )
+        self.assertEqual(exit_code, 0)
+        written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        lines = [ansi_escape.sub("", line) for line in written.splitlines()]
+        table_lines = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        self.assertGreater(len(table_lines), 0, "Unicode table rows must be present")
+        for line in table_lines:
+            cells = [part for part in line.split("│")[1:-1]]
+            if len(cells) != 3:
+                continue
+            prompt_cell = cells[1].rstrip()
+            self.assertLessEqual(
+                len(prompt_cell),
+                50,
+                f"Prompts Installed display width must be <= 50 characters: {prompt_cell}",
+            )
+
+    def test_installation_summary_table_modules_reflect_provider_flags(self) -> None:
+        """SRS-291, SRS-294: Modules Installed must report active provider option flags."""
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with patch("sys.stdout") as fake_stdout:
+                exit_code = cli.main(
+                    [
+                        "--base",
+                        str(self.TEST_DIR),
+                        "--docs-dir",
+                        str(self.TEST_DIR / "docs"),
+                        "--guidelines-dir",
+                        str(self.TEST_DIR / "guidelines"),
+                        "--tests-dir",
+                        str(self.TEST_DIR / "tests"),
+                        "--src-dir",
+                        str(self.TEST_DIR / "src"),
+                        "--provider",
+                        "codex:prompts:enable-models,legacy",
+                        "--provider",
+                        "claude:prompts:enable-tools,prompts-use-agents",
+                    ]
+                )
+        self.assertEqual(exit_code, 0)
+        written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        lines = [ansi_escape.sub("", line) for line in written.splitlines()]
+        table_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        parsed: dict[str, str] = {}
+        for row in table_rows:
+            cells = [part.strip() for part in row.split("│")[1:-1]]
+            if len(cells) == 3 and cells[0] and cells[0] != "Provider":
+                parsed[cells[0]] = cells[2]
+        self.assertIn("codex", parsed)
+        self.assertIn("claude", parsed)
+        self.assertEqual(parsed["codex"], "enable-models, legacy")
+        self.assertEqual(parsed["claude"], "enable-tools, prompts-use-agents")
 
 
 class TestGuidelinesTemplates(unittest.TestCase):
@@ -2834,7 +2927,7 @@ class TestArtifactTypeFlags(unittest.TestCase):
         """
         @brief Verify skills-only spec generates skills when prompts and agents are absent.
         @details Executes installation with provider specs containing only skills artifact.
-        Asserts that skill directories are created and the installation summary ASCII table lists installed prompt
+        Asserts that skill directories are created and the installation summary table lists installed prompt
         identifiers under "Prompts Installed" even when artifacts are produced as skills (SRS-036, SRS-049, SRS-231).
         @return {None}
         """
@@ -2860,22 +2953,13 @@ class TestArtifactTypeFlags(unittest.TestCase):
             ".claude/skills must be created when skills artifact is set",
         )
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
-        lines = written.splitlines()
-        header_pattern = re.compile(
-            r"^CLI\s+\|\s+Prompts Installed\s+\|\s+Modules Installed\s*$"
-        )
-        header_index = next(
-            i for i, line in enumerate(lines) if header_pattern.search(line)
-        )
-        data_rows = [
-            line
-            for line in lines[header_index + 2 :]
-            if "|" in line and line.strip("- |")
-        ]
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        lines = [ansi_escape.sub("", line) for line in written.splitlines()]
+        data_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
         parsed: dict[str, tuple[str, str]] = {}
         for row in data_rows:
-            parts = [part.strip() for part in row.split("|")]
-            if len(parts) >= 3:
+            parts = [part.strip() for part in row.split("│")[1:-1]]
+            if len(parts) == 3 and parts[0] and parts[0] != "Provider":
                 parsed[parts[0]] = (parts[1], parts[2])
         self.assertIn("codex", parsed, "Summary table must include codex row")
         self.assertIn("claude", parsed, "Summary table must include claude row")
@@ -2895,9 +2979,15 @@ class TestArtifactTypeFlags(unittest.TestCase):
             claude_prompts,
             "claude prompts list must include a known prompt id",
         )
-        self.assertIn("skills", codex_modules, "codex modules list must include skills")
         self.assertIn(
-            "skills", claude_modules, "claude modules list must include skills"
+            codex_modules,
+            {"-", ""},
+            "codex modules list must be '-' when no provider option flags are active",
+        )
+        self.assertIn(
+            claude_modules,
+            {"-", ""},
+            "claude modules list must be '-' when no provider option flags are active",
         )
         # Prompt artifacts MUST NOT exist
         self.assertFalse(

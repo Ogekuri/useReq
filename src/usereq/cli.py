@@ -16,6 +16,7 @@ import re
 import shutil
 import sys
 import subprocess
+import textwrap
 import time
 import urllib.error
 import urllib.request
@@ -2739,10 +2740,6 @@ def run(args: Namespace) -> None:
     include_tools = any(
         pc["enable-tools"] for pc in provider_configs.values() if pc["enabled"]
     )
-    # Global prompts_use_agents is derived from per-provider configs.
-    prompts_use_agents = any(
-        pc["prompts-use-agents"] for pc in provider_configs.values() if pc["enabled"]
-    )
     if include_models or include_tools:
         # Determine preserve_models_path (REQ-082)
         preserve_models_path = None
@@ -3399,63 +3396,156 @@ def run(args: Namespace) -> None:
     else:
         print("The folder %%GUIDELINES_FILES%% does not contain any files")
 
-    # Build and print a simple installation report table describing which
-    # modules were installed for each CLI target. The table is printed in
-    # plain ASCII with a header row matching the requirement.
+    # Build and print installation report table with provider-specific options.
     def _format_install_table(
-        installed_map: dict[str, set[str]],
+        options_map: dict[str, set[str]],
         prompts_map: dict[str, set[str]],
-    ) -> tuple[str, str, list[str]]:
+    ) -> list[str]:
         """!
-        @brief Format the ASCII installation summary table.
-        @details Builds a deterministic fixed-column table with columns: CLI, Prompts Installed, Modules Installed.
-        Prompts Installed is the sorted set of prompt identifiers installed for a CLI during the current
-        invocation, independent of artifact type (prompts/commands, agents, or skills). Modules Installed is the
-        sorted set of artifact category labels installed for a CLI during the current invocation.
-        @note Complexity: O(C * (P log P + M log M)) where C is CLI count, P is prompts per CLI, M is modules per CLI.
+        @brief Format the Unicode installation summary table.
+        @details Builds a deterministic box-drawing table with columns: Provider, Prompts Installed, Modules Installed.
+        Prompts Installed is wrapped to a maximum width of 50 characters. Modules Installed renders the active
+        per-provider option flags parsed from provider specifications using canonical option token syntax.
+        Borders are emitted with Unicode line-drawing characters and bright-red ANSI styling.
+        @note Complexity: O(C * (P log P + O)) where C is provider count, P is prompts per provider, O is option flags per provider.
         @note Side effects: None (pure formatting).
-        @param installed_map {dict[str, set[str]]} Mapping: CLI name -> installed module category labels.
-        @param prompts_map {dict[str, set[str]]} Mapping: CLI name -> installed prompt identifiers (union across artifact types).
-        @return {tuple[str, str, list[str]]} (header_line, separator_line, row_lines).
+        @param options_map {dict[str, set[str]]} Mapping: provider name -> active option flags from --provider specs.
+        @param prompts_map {dict[str, set[str]]} Mapping: provider name -> installed prompt identifiers (union across artifact types).
+        @return {list[str]} Fully formatted table lines (including separators) ready for printing.
         """
-
-        columns = ("CLI", "Prompts Installed", "Modules Installed")
-        widths = [len(value) for value in columns]
+        option_order = (
+            "enable-models",
+            "enable-tools",
+            "prompts-use-agents",
+            "legacy",
+        )
+        columns = ("Provider", "Prompts Installed", "Modules Installed")
         rows: list[tuple[str, str, str]] = []
-
-        for cli_name in sorted(installed_map.keys()):
-            modules = installed_map[cli_name]
-            prompts = sorted(prompts_map.get(cli_name, ()))
-            if not modules and not prompts:
+        for provider_name in sorted(prompts_map.keys()):
+            prompts = sorted(prompts_map.get(provider_name, ()))
+            if not prompts:
                 continue
             prompts_text = ", ".join(prompts) if prompts else "-"
-            mods_text = ", ".join(sorted(modules)) if modules else "-"
-            widths[0] = max(widths[0], len(cli_name))
-            widths[1] = max(widths[1], len(prompts_text))
-            widths[2] = max(widths[2], len(mods_text))
-            rows.append((cli_name, prompts_text, mods_text))
+            active_options = options_map.get(provider_name, set())
+            modules_text = (
+                ", ".join([opt for opt in option_order if opt in active_options])
+                if active_options
+                else "-"
+            )
+            rows.append((provider_name, prompts_text, modules_text))
 
-        def fmt(row: tuple[str, ...]) -> str:
-            """! @brief Format one fixed-width ASCII table row.
-            @details Applies left-padding normalization using the precomputed `widths` vector and joins cells with ` | ` to preserve deterministic column alignment.
-            @param row {tuple[str, ...]} Row values ordered as (CLI, Prompts Installed, Modules Installed).
-            @return {str} Aligned table row string.
-            """
-            return " | ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))
-
-        header = fmt(columns)
-        separator = " | ".join("-" * max(3, widths[idx]) for idx in range(len(columns)))
         if not rows:
-            return header, separator, [fmt(("-", "-", "-"))]
-        return header, separator, [fmt(r) for r in rows]
+            rows = [("-", "-", "-")]
 
-    header, separator, rows = _format_install_table(
-        modules_installed, prompts_installed
+        provider_width = max(len(columns[0]), max(len(row[0]) for row in rows))
+        prompt_cells = [columns[1], *[row[1] for row in rows]]
+        prompt_width = min(50, max(len(cell) for cell in prompt_cells))
+        modules_width = max(len(columns[2]), max(len(row[2]) for row in rows))
+
+        def _wrap_cell(value: str, width: int) -> list[str]:
+            """! @brief Wrap one table cell to fixed width.
+            @details Wraps one table cell with deterministic width constraints and preserves content when wrapping is unnecessary.
+            @param value {str} Cell text payload.
+            @param width {int} Maximum cell width.
+            @return {list[str]} Wrapped lines for the cell.
+            """
+            wrapped = textwrap.wrap(
+                value,
+                width=width,
+                break_long_words=True,
+                break_on_hyphens=False,
+            )
+            return wrapped if wrapped else [""]
+
+        def _render_row(provider: str, prompts: str, modules: str) -> list[str]:
+            """!
+            @brief Render one logical table row into one or more physical lines.
+            @details Applies per-cell wrapping and left alignment, then expands the row height to the maximum wrapped cell line count.
+            @param provider {str} Provider cell text.
+            @param prompts {str} Prompts Installed cell text.
+            @param modules {str} Modules Installed cell text.
+            @return {list[str]} Physical row lines encoded with box-drawing separators.
+            """
+            provider_lines = _wrap_cell(provider, provider_width)
+            prompt_lines = _wrap_cell(prompts, prompt_width)
+            module_lines = _wrap_cell(modules, modules_width)
+            row_height = max(len(provider_lines), len(prompt_lines), len(module_lines))
+            lines: list[str] = []
+            for idx in range(row_height):
+                provider_part = (
+                    provider_lines[idx] if idx < len(provider_lines) else ""
+                ).ljust(provider_width)
+                prompt_part = (
+                    prompt_lines[idx] if idx < len(prompt_lines) else ""
+                ).ljust(prompt_width)
+                module_part = (
+                    module_lines[idx] if idx < len(module_lines) else ""
+                ).ljust(modules_width)
+                lines.append(
+                    f"│ {provider_part} │ {prompt_part} │ {module_part} │"
+                )
+            return lines
+
+        top = (
+            f"┌{'─' * (provider_width + 2)}┬{'─' * (prompt_width + 2)}┬{'─' * (modules_width + 2)}┐"
+        )
+        middle = (
+            f"├{'─' * (provider_width + 2)}┼{'─' * (prompt_width + 2)}┼{'─' * (modules_width + 2)}┤"
+        )
+        bottom = (
+            f"└{'─' * (provider_width + 2)}┴{'─' * (prompt_width + 2)}┴{'─' * (modules_width + 2)}┘"
+        )
+
+        lines: list[str] = [top]
+        lines.extend(_render_row(*columns))
+        lines.append(middle)
+        for index, row in enumerate(rows):
+            lines.extend(_render_row(*row))
+            if index != len(rows) - 1:
+                lines.append(middle)
+        lines.append(bottom)
+        return lines
+
+    def _build_provider_option_map(
+        resolved_provider_configs: dict[str, dict[str, Any]],
+    ) -> dict[str, set[str]]:
+        """!
+        @brief Build provider-to-option mapping for installation table rendering.
+        @details Extracts active option flags from resolved provider configs and emits only flags that are true for each provider.
+        @param resolved_provider_configs {dict[str, dict[str, Any]]} Per-provider boolean configuration map.
+        @return {dict[str, set[str]]} Mapping from provider to active option flag tokens.
+        """
+        option_keys = (
+            "enable-models",
+            "enable-tools",
+            "prompts-use-agents",
+            "legacy",
+        )
+        option_map: dict[str, set[str]] = {}
+        for provider_name, config in resolved_provider_configs.items():
+            option_map[provider_name] = {
+                key for key in option_keys if bool(config.get(key, False))
+            }
+        return option_map
+
+    def _colorize_table_border(line: str) -> str:
+        """!
+        @brief Colorize box-drawing border glyphs with bright-red ANSI style.
+        @details Applies color to border characters while preserving cell payload text color.
+        @param line {str} One already-rendered table line.
+        @return {str} Line with border glyphs wrapped in ANSI bright-red and reset sequences.
+        """
+        border_chars = frozenset("┌┬┐├┼┤└┴┘─│")
+        return "".join(
+            f"{ANSI_BRIGHT_RED}{char}{ANSI_RESET}" if char in border_chars else char
+            for char in line
+        )
+
+    table_lines = _format_install_table(
+        _build_provider_option_map(provider_configs), prompts_installed
     )
-    print(header)
-    print(separator)
-    for line in rows:
-        print(line)
+    for table_line in table_lines:
+        print(_colorize_table_border(table_line))
 
 
 # ── Excluded directories for project-scan file selection ──────────────────

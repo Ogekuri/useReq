@@ -121,6 +121,9 @@
       - `save_config(...)`: persist `.req/config.json` including provider specs under `"providers"` key (SRS-279) [`src/usereq/cli.py`]
       - `list_docs_templates(...)`: enumerate package `resources/docs` templates [`src/usereq/cli.py`]
       - `find_requirements_template(...)`: validate `Requirements_Template.md` availability [`src/usereq/cli.py`]
+      - `_build_provider_option_map(...)`: project active per-provider `--provider` option flags for installation summary rendering [`src/usereq/cli.py`]
+      - `_format_install_table(...)`: render Unicode box-drawing installation summary table with prompt-column wrapping and provider-option cells [`src/usereq/cli.py`]
+      - `_colorize_table_border(...)`: apply bright-red ANSI styling to Unicode border glyphs before stdout emission [`src/usereq/cli.py`]
 - **External Boundaries**
   - `subprocess.run(...)` / `subprocess.check_output(...)`: invokes OS-level commands and static-check tools (e.g., git queries, checker executables) [`src/usereq/cli.py`, `src/usereq/static_check.py`]
   - Filesystem read/write boundaries: `.req/config.json`, project docs directories, selected source files [`src/usereq/cli.py`, `src/usereq/token_counter.py`, `src/usereq/compress_files.py`]
