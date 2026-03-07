@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.28.0](https://github.com/Ogekuri/useReq/compare/v0.27.0..v0.28.0) - 2026-03-07
+### ⛰️  Features
+- Add bell to prompts.
+
+### 🐛  Bug Fixes
+- Fix prompts.
+- update README and scripts to use new --provider parameter *(core)*
+  - Updated README.md, scripts/test-install.sh, and tests/test_static_check.py
+  - to replace deprecated global provider/artifact flags with the new
+  - --provider PROVIDER:ARTIFACTS[:OPTIONS] syntax.
+  - Satisfies SRS-034, SRS-275, SRS-086.
+
+### 🚜  Changes
+- adjust Modules Installed empty-options format [useReq] *(cli)*
+  - Update SRS-291/SRS-295 and SRS-294/SRS-297 to allow bare artifact lines when no options are active.
+  - Implement module-entry rendering in src/usereq/cli.py to output artifact without :options when absent.
+  - Update related unit-test expectations in tests/test_cli.py.
+  - Refresh docs/WORKFLOW.md and regenerate docs/REFERENCES.md.
+- print artifact-option module lines [useReq] *(cli)*
+  - Update requirements for Modules Installed artifact:options format.
+  - Render one non-wrapped line per active artifact in Modules Installed.
+  - Preserve parsed provider option order and emit '-' when options are absent.
+  - Extend tests for multiline module rows and no-wrap width behavior.
+  - Update WORKFLOW call-trace nodes and regenerate REFERENCES.
+- render provider summary table with wrapped prompts [useReq] *(cli)*
+  - Update SRS with Unicode table and provider-option summary requirements.
+  - Implement Unicode box-drawing installation table with bright-red borders.
+  - Rename header to Provider and wrap Prompts Installed at max 50 chars.
+  - Render Modules Installed from active per-provider --provider option flags.
+  - Add/adjust CLI unit tests for header, wrapping, and module option rendering.
+  - Regenerate WORKFLOW/REFERENCES for updated runtime and symbols.
+
+### ✨  Refactor
+- remove 13 legacy global flags; --provider SPEC is sole configuration mechanism *(cli)*
+  - Remove backward compatibility for --enable-models, --enable-tools,
+  - --enable-claude, --enable-codex, --enable-gemini, --enable-github,
+  - --enable-kiro, --enable-opencode, --install-prompts, --install-agents,
+  - --install-skills, --prompts-use-agents, and --legacy global CLI flags.
+  - The --provider PROVIDER:ARTIFACTS[:OPTIONS] repeatable argument is now
+  - the sole mechanism for provider/artifact/option configuration.
+  - --preserve-models is kept as a standalone global flag.
+  - config.json persistence reduced from 14 boolean keys to preserve-models
+  - boolean + providers array of SPEC strings.
+  - resolve_provider_configs() no longer accepts args parameter.
+  - build_persisted_update_flags() and load_persisted_update_flags() now
+  - handle only preserve-models. Legacy mode is derived per-provider from
+  - the :legacy option in --provider specs.
+  - All 108 tests pass. REQUIREMENTS.md bumped to v1.05 with 4 SRS entries
+  - removed (SRS-277, SRS-281, SRS-282, SRS-283) and SRS-288 added.
+
 ## [0.27.0](https://github.com/Ogekuri/useReq/compare/v0.26.0..v0.27.0) - 2026-03-07
 ### 🐛  Bug Fixes
 - Fix scripts/test-install.sh script.
@@ -684,6 +734,7 @@
 - \[0.25.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.25.0
 - \[0.26.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.26.0
 - \[0.27.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.27.0
+- \[0.28.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.28.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -712,3 +763,4 @@
 [0.25.0]: https://github.com/Ogekuri/useReq/compare/v0.24.0..v0.25.0
 [0.26.0]: https://github.com/Ogekuri/useReq/compare/v0.25.0..v0.26.0
 [0.27.0]: https://github.com/Ogekuri/useReq/compare/v0.26.0..v0.27.0
+[0.28.0]: https://github.com/Ogekuri/useReq/compare/v0.27.0..v0.28.0
