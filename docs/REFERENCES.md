@@ -268,7 +268,7 @@ inactive; each spec enables its provider and activates listed artifacts and opti
 - @brief ANSI escape prefix for bright green terminal output."""
 - var `RELEASE_CHECK_TIMEOUT_SECONDS = 2.0` (L171)
 - @brief ANSI escape sequence that resets terminal style."""
-- var `RELEASE_CHECK_IDLE_WINDOW_SECONDS = 86400` (L174)
+- var `RELEASE_CHECK_IDLE_WINDOW_SECONDS = 300` (L174)
 - @brief Hardcoded default timeout for startup release-check HTTP calls."""
 - var `TOOL_PROGRAM_NAME = "usereq"` (L177)
 - @brief Hardcoded default idle window in seconds between release checks."""

@@ -171,7 +171,7 @@ ANSI_RESET = "\033[0m"
 RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
 """! @brief Hardcoded default timeout for startup release-check HTTP calls."""
 
-RELEASE_CHECK_IDLE_WINDOW_SECONDS = 86400
+RELEASE_CHECK_IDLE_WINDOW_SECONDS = 300
 """! @brief Hardcoded default idle window in seconds between release checks."""
 
 TOOL_PROGRAM_NAME = "usereq"

@@ -146,7 +146,7 @@ No explicit performance optimizations identified.
 - **SRS-052**: When a release-check is executed, it MUST use a hardcoded configurable timeout with default value `2` seconds; if remote version is greater than `__version__`, it MUST print a bright-green English message with installed and latest versions.
 - **SRS-269**: If a release-check attempt fails, the command MUST print a bright-red English error message with an explicit failure reason (for example HTTP `403` rate-limit exceeded) and MUST NOT abort command execution.
 - **SRS-270**: The idle-state file MUST be `$HOME/.github_api_idle-time.<program_name>` in JSON format and MUST contain keys `last_success_timestamp`, `last_success_human_readable_timestamp`, `idle_until_timestamp`, and `idle_until_human_readable_timestamp`.
-- **SRS-271**: After each successful release-check HTTP/JSON flow, the command MUST write or update idle-state keys and MUST set `idle_until_timestamp` to `now + idle_window_seconds`, with hardcoded configurable default `idle_window_seconds=86400`.
+- **SRS-271**: After each successful release-check HTTP/JSON flow, the command MUST write or update idle-state keys and MUST set `idle_until_timestamp` to `now + idle_window_seconds`, with hardcoded configurable default `idle_window_seconds=300`.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
 - **SRS-054**: The repository MUST include `scripts/req.sh` as the development launcher wrapper for the CLI.
 - **SRS-055**: The repository MUST keep `requirements.txt` as the canonical runtime/build dependency list containing all and only packages required to execute or build the application.

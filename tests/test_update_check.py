@@ -188,6 +188,10 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         urlopen_mock.assert_not_called()
 
+    def test_release_check_idle_window_default_is_300_seconds(self) -> None:
+        """Default idle window constant must match five-minute cadence."""
+        self.assertEqual(cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS, 300)
+
     def test_successful_release_check_writes_idle_state_file(self) -> None:
         """Successful release check must persist timestamps and human-readable fields."""
         response_mock = MagicMock()
