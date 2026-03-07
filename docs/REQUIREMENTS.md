@@ -60,6 +60,7 @@ useReq is a text-based CLI that initializes and updates repository resources for
 │   └── resources/
 │       ├── common/
 │       ├── docs/
+│       ├── guidelines/
 │       ├── prompts/
 │       └── vscode/
 └── tests/
@@ -232,6 +233,11 @@ No explicit performance optimizations identified.
 - **SRS-129**: The implementation MUST preserve this behavior exactly: The workflow MUST create GitHub Release for the tag and load assets from `dist/`.
 - **SRS-130**: The implementation MUST preserve this behavior exactly: The workflow MUST generate artifact certifications for files in `dist/`.
 - **SRS-268**: The `.github/workflows/release-uvx.yml` workflow MUST define `workflow_dispatch` under `on` in addition to tag-push triggers so releases MAY be launched manually without altering automatic tag-trigger behavior.
+
+### 3.5.1 Package Distribution and Resource Inclusion
+- **SRS-272**: The `[tool.setuptools.package-data]` section in `pyproject.toml` MUST enumerate glob patterns for every resource subdirectory present under `src/usereq/resources/`, including `resources/common/*.json`.
+- **SRS-273**: The `[tool.setuptools.package-data]` section in `pyproject.toml` MUST NOT list glob patterns that reference non-existent directories under `src/usereq/resources/`.
+- **SRS-274**: The built distribution (sdist and wheel) MUST include all files under `src/usereq/resources/` that are required for program operation, ensuring congruent behavior between local development execution, `uv`-installed package execution, and `uvx` live execution.
 
 ### 3.6 Source Analysis Core
 - **SRS-131**: The implementation MUST preserve this behavior exactly: The `usereq.source_analyzer` module MUST support 20 programming languages: C (`.c`), C++ (`.cpp`), C# (`.cs`), Elixir (`.ex`), Go (`.go`), Haskell (`.hs`), Java (`.java`), JavaScript (`.js`, `.mjs`), Kotlin (`.kt`), Lua (`.lua`), Perl (`.pl`), PHP (`.php`), Python (`.py`), Ruby (`.rb`), Rust (`.rs`), Scala (`.scala`), Shell (`.sh`), Swift (`.swift`), TypeScript (`.ts`), and Zig (`.zig`).

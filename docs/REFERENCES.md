@@ -117,7 +117,7 @@ source "${VENVDIR}/bin/activate"
 
 ---
 
-# test-install.sh | Shell | 97L | 6 symbols | 0 imports | 17 comments
+# test-install.sh | Shell | 106L | 6 symbols | 0 imports | 17 comments
 > Path: `scripts/test-install.sh`
 
 ## Definitions
