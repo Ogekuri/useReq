@@ -67,7 +67,6 @@ else
     done
 
     # make dirs
-    rm -rf "${FOLDER_PATH}/guidelines"
     mkdir -p "${FOLDER_PATH}/guidelines"
     mkdir -p "${FOLDER_PATH}/docs"
     mkdir -p "${FOLDER_PATH}/tests"
