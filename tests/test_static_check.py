@@ -1279,8 +1279,8 @@ class TestEnableStaticCheckExecutableValidation(unittest.TestCase):
             "tests",
             "--src-dir",
             "src",
-            "--enable-claude",
-            "--install-prompts",
+            "--provider",
+            "claude:prompts",
             "--enable-static-check",
             "C=Command,nonexistent_tool_xyz_12345",
         ]

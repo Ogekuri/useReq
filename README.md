@@ -114,7 +114,7 @@ uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --guidelines-dir myproject/guidelines_docs/ \
   --tests-dir myproject/tests/ \
   --src-dir myproject/src/ \
-  --enable-codex \
+  --provider codex:prompts \
   --verbose --debug
 ```
 
@@ -138,8 +138,9 @@ uv tool uninstall usereq
 req \
 --base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
 --src-dir "src/" --tests-dir "tests/" \
---enable-claude --enable-codex --enable-github \
---install-skills
+--provider claude:prompts,agents,skills \
+--provider codex:prompts \
+--provider github:prompts,agents,skills
 ```
 - Full-Features Install:
 ```
@@ -147,9 +148,12 @@ req \
 --base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
 --src-dir "src/" --tests-dir "tests/" \
 --upgrade-guidelines \
---enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode \
---enable-models --enable-tools \
---install-prompts --install-agents --install-skills \
+--provider claude:prompts,agents,skills:enable-models,enable-tools \
+--provider codex:prompts,skills \
+--provider gemini:prompts,skills \
+--provider github:prompts,agents,skills:enable-models,enable-tools \
+--provider kiro:prompts,agents,skills:enable-models,enable-tools \
+--provider opencode:prompts,agents,skills:enable-models,enable-tools \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
 --enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
@@ -173,27 +177,25 @@ req \
   - `--docs-dir` is the requirements documentation directory (must exist under the project base); if it is empty, `REQUIREMENTS.md` is generated from the packaged template.
   - `--guidelines-dir` must be an existing directory under the project base, and can contain the user's guideline files.
   - `--src-dir` is repeatable and can be provided multiple times to include multiple source directories (each must exist under the project base).
-  - Select at least one provider for this run (required):
-    - `--enable-claude`       Enable generation of Claude prompts and agents for this run.
-    - `--enable-codex`        Enable generation of Codex prompts for this run.
-    - `--enable-gemini`       Enable generation of Gemini prompts for this run.
-    - `--enable-github`       Enable generation of GitHub prompts and agents for this run.
-    - `--enable-kiro`         Enable generation of Kiro prompts and agents for this run.
-    - `--enable-opencode`     Enable generation of OpenCode prompts and agents for this run.
-    - `--enable-static-check SPEC` Enable static check configuration for a language (repeatable). SPEC format: `LANG=MODULE[,CMD[,PARAM...]]`.
+  - Use one or more `--provider SPEC` parameters (at least one is required) to configure provider activation, artifact types, and options:
+    - `SPEC` format: `PROVIDER:ARTIFACTS[:OPTIONS]`
+    - `PROVIDER`: `codex`, `claude`, `gemini`, `github`, `kiro`, or `opencode`.
+    - `ARTIFACTS`: comma-separated list from `{prompts, agents, skills}`.
+    - `OPTIONS`: (optional) comma-separated list from `{enable-models, enable-tools, prompts-use-agents, legacy}`.
+    - Example: `--provider github:prompts,agents:enable-models,enable-tools`
+  - Artifact types (specified within the `--provider` spec):
+    - `skills` artifact generates skill resources for the provider.
+    - `prompts` artifact generates prompts/commands resources for the provider.
+    - `agents` artifact generates agent resources for the provider.
+  - `--enable-static-check SPEC` Enable static check configuration for a language (repeatable). SPEC format: `LANG=MODULE[,CMD[,PARAM...]]`.
       - Supported `MODULE` values: `Dummy`, `Pylance`, `Ruff`, `Command` (case-insensitive).
-- Artifact types:
-  - Skills are generated only when `--install-skills` is set.
-  - Prompts/commands are generated only when `--install-prompts` is set.
-  - Agents are generated only when `--install-agents` is set.
-  - At least one install flag is required: `--install-prompts`, `--install-agents`, or `--install-skills`.
 - You need to run `req` again if you add or remove requirement-related files in the documentation directory or any files in the `guidelines/` directory.
-- Option `--prompts-use-agents` generates prompt files as **agent-only references** (adds an `agent:` front matter field) where supported (GitHub prompts, Claude commands, and OpenCode commands).
+- Option `prompts-use-agents` (within a `--provider` spec) generates prompt files as **agent-only references** (adds an `agent:` front matter field) where supported (GitHub prompts, Claude commands, and OpenCode commands).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 - Add `--update` to update an existing installation (requires an existing `.req/config.json` under the project base).
   - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
-- Add `--legacy` to enable the *legacy mode* support (see below).
-- Add `--enable-models` and `--enable-tools` to include `model:` and `tools:` fields when available from centralized models configuration.
+- Option `legacy` (within a `--provider` spec) enables the *legacy mode* support (see below).
+- Options `enable-models` and `enable-tools` (within a `--provider` spec) include `model:` and `tools:` fields when available from centralized models configuration.
 - Add `--add-guidelines` to copy packaged guideline templates into `--guidelines-dir` without overwriting existing files.
 - Add `--upgrade-guidelines` to copy packaged guideline templates into `--guidelines-dir` and overwrite existing files.
 - Add `-h` / `--help` to print command help and exit.
@@ -298,7 +300,7 @@ req \
 - ✅ OpenAI Codex: [`/prompts:/req-create`]
 - ✅ Claude Code: [`/req:create`]
 - ✅ GitHub Copilot: [`/agent ➡️ req-create ↩️`]
-  - Use `--legacy` to not add `model:` on agents.
+  - Use `legacy` (within a `--provider` spec) to not add `model:` on agents.
   - Slash command not supported. 
   - Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
   - Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
@@ -347,9 +349,9 @@ req \
 
 ## Enable model and tools on prompts/agents
 
-The `--enable-tools` switch adds a `tools:` specification to prompts based on read/write requirements.
+The `enable-tools` option (within a `--provider` spec) adds a `tools:` specification to prompts based on read/write requirements.
 
-The `--enable-models` switch adds a `model:` specification to prompts as detailed in the tables below.
+The `enable-models` option (within a `--provider` spec) adds a `model:` specification to prompts as detailed in the tables below.
 
 ### Models Specs
 
