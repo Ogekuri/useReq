@@ -73,13 +73,22 @@ else
     mkdir -p "${FOLDER_PATH}/tests"
     mkdir -p "${FOLDER_PATH}/src"
     mkdir -p "${FOLDER_PATH}/.github/workflows"
-    touch "${FOLDER_PATH}/docs/.place-holder"
-    touch "${FOLDER_PATH}/guidelines/.place-holder"
-    touch "${FOLDER_PATH}/tests/.place-holder"
-    touch "${FOLDER_PATH}/src/.place-holder"
-    touch "${FOLDER_PATH}/.github/workflows/.place-holder"
 
-    echo req --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" --tests-dir "${FOLDER_PATH}/tests"
+echo    req \
+--base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" \
+--src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \
+--tests-dir "${FOLDER_PATH}/tests" \
+--upgrade-guidelines \
+--enable-claude --enable-codex --enable-gemini --enable-github --enable-kiro --enable-opencode \
+--enable-models --enable-tools \
+--install-prompts --install-agents --install-skills \
+--enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
+--enable-static-check C=Command,clang-format,--dry-run,--Werror \
+--enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
+--enable-static-check C++=Command,clang-format,--dry-run,--Werror \
+--enable-static-check Python=Pylance \
+--enable-static-check Python=Ruff
+
     req \
 --base "${FOLDER_PATH}" --docs-dir "${FOLDER_PATH}/docs" --guidelines-dir "${FOLDER_PATH}/guidelines" \
 --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \

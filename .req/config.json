@@ -53,6 +53,15 @@
       {
         "module": "Ruff"
       }
+    ],
+    "JavaScript": [
+      {
+        "module": "Command",
+        "cmd": "node",
+        "params": [
+          "--check"
+        ]
+      }
     ]
   },
   "enable-models": false,
@@ -63,9 +72,9 @@
   "enable-github": true,
   "enable-kiro": true,
   "enable-opencode": true,
-  "enable-prompts": false,
-  "enable-agents": false,
-  "disable-skills": false,
+  "install-prompts": true,
+  "install-agents": false,
+  "install-skills": false,
   "prompts-use-agents": false,
   "legacy": false,
   "preserve-models": false
