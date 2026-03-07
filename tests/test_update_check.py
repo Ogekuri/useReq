@@ -176,16 +176,18 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         urlopen_mock.assert_not_called()
 
-    def test_release_check_idle_window_default_is_86400_seconds(self) -> None:
-        """Default idle window constant must match 24-hour successful-check lockout."""
-        self.assertEqual(cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS, 86400)
+    def test_release_check_idle_delay_default_is_300_seconds(self) -> None:
+        """Default release-check idle-delay constant must match five minutes."""
+        self.assertEqual(cli.RELEASE_CHECK_IDLE_DELAY_SECONDS, 300)
 
-    def test_release_check_min_interval_default_is_300_seconds(self) -> None:
-        """Default minimum release-check cadence must match five minutes."""
-        self.assertEqual(cli.RELEASE_CHECK_MIN_INTERVAL_SECONDS, 300)
+    def test_release_check_executes_when_idle_until_expired(self) -> None:
+        """Expired idle-until timestamp must allow a new remote release-check."""
+        response_mock = MagicMock()
+        response_mock.read.return_value = json.dumps({"tag_name": "v0.0.1"}).encode("utf-8")
+        urlopen_cm = MagicMock()
+        urlopen_cm.__enter__.return_value = response_mock
+        urlopen_cm.__exit__.return_value = None
 
-    def test_release_check_skips_when_min_interval_not_elapsed(self) -> None:
-        """Lower-bound cadence must skip remote checks before min interval expires."""
         with tempfile.TemporaryDirectory() as temp_dir:
             idle_path = Path(temp_dir) / "idle.json"
             now_timestamp = 1700000000
@@ -203,10 +205,13 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                         "usereq.cli.get_release_check_idle_file_path",
                         return_value=idle_path,
                     ):
-                        with patch("usereq.cli.urllib.request.urlopen") as urlopen_mock:
+                        with patch(
+                            "usereq.cli.urllib.request.urlopen",
+                            return_value=urlopen_cm,
+                        ) as urlopen_mock:
                             cli.maybe_notify_newer_version(timeout_seconds=2.0)
 
-        urlopen_mock.assert_not_called()
+        urlopen_mock.assert_called_once()
 
     def test_successful_release_check_writes_idle_state_file(self) -> None:
         """Successful release check must persist timestamps and human-readable fields."""
@@ -246,13 +251,120 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         )
         self.assertEqual(
             payload["idle_until_timestamp"],
-            now_timestamp + cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS,
+            now_timestamp + cli.RELEASE_CHECK_IDLE_DELAY_SECONDS,
         )
         self.assertEqual(
             payload["idle_until_human_readable_timestamp"],
             cli.format_unix_timestamp_utc(
-                now_timestamp + cli.RELEASE_CHECK_IDLE_WINDOW_SECONDS
+                now_timestamp + cli.RELEASE_CHECK_IDLE_DELAY_SECONDS
             ),
+        )
+
+    def test_release_check_http_429_uses_retry_after_when_greater_than_idle_delay(
+        self,
+    ) -> None:
+        """HTTP 429 handling must use Retry-After when it exceeds idle-delay."""
+        now_timestamp = 1700000000
+        http_error = urllib.error.HTTPError(
+            url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={"Retry-After": "900"},
+            fp=io.BytesIO(b'{"message":"rate limit exceeded"}'),
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                side_effect=http_error,
+                            ):
+                                cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload["last_success_timestamp"], now_timestamp)
+        self.assertEqual(payload["idle_until_timestamp"], now_timestamp + 900)
+
+    def test_release_check_http_429_uses_idle_delay_when_retry_after_is_lower(
+        self,
+    ) -> None:
+        """HTTP 429 handling must enforce idle-delay floor for short Retry-After values."""
+        now_timestamp = 1700000000
+        http_error = urllib.error.HTTPError(
+            url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={"Retry-After": "60"},
+            fp=io.BytesIO(b'{"message":"rate limit exceeded"}'),
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                side_effect=http_error,
+                            ):
+                                cli.maybe_notify_newer_version(timeout_seconds=2.0)
+
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_IDLE_DELAY_SECONDS,
+        )
+
+    def test_rate_limited_idle_state_keeps_larger_existing_idle_until(self) -> None:
+        """429 idle-state writer must preserve larger pre-existing idle-until timestamp."""
+        now_timestamp = 1700000000
+        idle_state = {
+            "last_success_timestamp": now_timestamp - 7200,
+            "last_success_human_readable_timestamp": "2023-11-14T20:13:20Z",
+            "idle_until_timestamp": now_timestamp + 1800,
+            "idle_until_human_readable_timestamp": "2023-11-14T22:43:20Z",
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            cli.write_rate_limited_release_check_idle_state(
+                file_path=idle_path,
+                now_timestamp=now_timestamp,
+                retry_after_seconds=900,
+                idle_state=idle_state,
+            )
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(
+            payload["last_success_timestamp"],
+            idle_state["last_success_timestamp"],
+        )
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            idle_state["idle_until_timestamp"],
         )
 
     def test_upgrade_command_uses_hardcoded_owner_repository(self) -> None:

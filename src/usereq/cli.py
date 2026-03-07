@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import json
 import os
 import re
@@ -171,11 +172,8 @@ ANSI_RESET = "\033[0m"
 RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
 """! @brief Hardcoded default timeout for startup release-check HTTP calls."""
 
-RELEASE_CHECK_IDLE_WINDOW_SECONDS = 86400
-"""! @brief Hardcoded default idle window in seconds after successful release checks."""
-
-RELEASE_CHECK_MIN_INTERVAL_SECONDS = 300
-"""! @brief Hardcoded lower-bound cadence in seconds for startup release checks."""
+RELEASE_CHECK_IDLE_DELAY_SECONDS = 300
+"""! @brief Hardcoded startup release-check idle-delay in seconds."""
 
 TOOL_PROGRAM_NAME = "usereq"
 """! @brief Hardcoded configurable tool identifier used by uv install/uninstall commands."""
@@ -826,23 +824,16 @@ def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | Non
 def should_execute_release_check(
     idle_state: Mapping[str, Any] | None,
     now_timestamp: int,
-    min_interval_seconds: int = RELEASE_CHECK_MIN_INTERVAL_SECONDS,
 ) -> bool:
     """!
     @brief Decide whether startup release-check should execute in current invocation.
         @param idle_state Parsed idle-state payload or None when unavailable.
         @param now_timestamp Current Unix timestamp in seconds.
-        @param min_interval_seconds Lower-bound cadence in seconds from last successful check.
         @return True when release-check must execute; False when still in idle window.
-    @details Executes release-check when state is missing. If `last_success_timestamp` is valid, applies lower-bound cadence `last_success_timestamp + min_interval_seconds`; then skips when `idle_until_timestamp` remains greater than current time.
+    @details Executes release-check when state is missing and skips only while the persisted `idle_until_timestamp` is greater than the current timestamp.
     """
     if idle_state is None:
         return True
-
-    last_success_timestamp = idle_state.get("last_success_timestamp")
-    if isinstance(last_success_timestamp, (int, float)):
-        if now_timestamp < int(last_success_timestamp) + int(min_interval_seconds):
-            return False
 
     idle_until_timestamp = idle_state.get("idle_until_timestamp")
     if not isinstance(idle_until_timestamp, (int, float)):
@@ -850,24 +841,55 @@ def should_execute_release_check(
     return now_timestamp >= int(idle_until_timestamp)
 
 
-def write_release_check_idle_state(
-    file_path: Path,
+def parse_retry_after_seconds(
+    retry_after_header: str | None,
     now_timestamp: int,
-    idle_window_seconds: int = RELEASE_CHECK_IDLE_WINDOW_SECONDS,
+) -> int | None:
+    """!
+    @brief Parse an HTTP `Retry-After` header value into non-negative seconds.
+        @param retry_after_header Raw `Retry-After` header value.
+        @param now_timestamp Current Unix timestamp in seconds.
+        @return Retry delay in seconds when parsing succeeds; otherwise None.
+    @details Supports integer-second values and HTTP-date values; HTTP-date values are converted to a delta from `now_timestamp`.
+    """
+    if retry_after_header is None:
+        return None
+
+    raw_value = retry_after_header.strip()
+    if not raw_value:
+        return None
+
+    if re.fullmatch(r"[0-9]+", raw_value):
+        return max(0, int(raw_value))
+
+    try:
+        parsed_datetime = parsedate_to_datetime(raw_value)
+    except (TypeError, ValueError):
+        return None
+    if parsed_datetime is None:
+        return None
+    if parsed_datetime.tzinfo is None:
+        parsed_datetime = parsed_datetime.replace(tzinfo=timezone.utc)
+    return max(0, int(parsed_datetime.timestamp()) - now_timestamp)
+
+
+def write_release_check_idle_state_payload(
+    file_path: Path,
+    last_success_timestamp: int,
+    idle_until_timestamp: int,
 ) -> None:
     """!
-    @brief Persist release-check idle-state after a successful remote check.
+    @brief Persist canonical release-check idle-state payload to disk.
         @param file_path Absolute idle-state JSON path.
-        @param now_timestamp Successful check timestamp in seconds.
-        @param idle_window_seconds Idle window length in seconds.
+        @param last_success_timestamp Unix timestamp of the last successful release-check.
+        @param idle_until_timestamp Unix timestamp until startup release-check remains disabled.
         @throws OSError If file write fails.
-    @details Serializes timestamps and human-readable UTC datetimes for both the successful check instant and the idle-until instant.
+    @details Serializes both numeric and UTC human-readable timestamps for the success instant and the idle-until instant.
     """
-    idle_until_timestamp = now_timestamp + idle_window_seconds
     payload = {
-        "last_success_timestamp": now_timestamp,
+        "last_success_timestamp": last_success_timestamp,
         "last_success_human_readable_timestamp": format_unix_timestamp_utc(
-            now_timestamp
+            last_success_timestamp
         ),
         "idle_until_timestamp": idle_until_timestamp,
         "idle_until_human_readable_timestamp": format_unix_timestamp_utc(
@@ -880,13 +902,73 @@ def write_release_check_idle_state(
     )
 
 
+def write_release_check_idle_state(
+    file_path: Path,
+    now_timestamp: int,
+    idle_delay_seconds: int = RELEASE_CHECK_IDLE_DELAY_SECONDS,
+) -> None:
+    """!
+    @brief Persist release-check idle-state after a successful remote check.
+        @param file_path Absolute idle-state JSON path.
+        @param now_timestamp Successful check timestamp in seconds.
+        @param idle_delay_seconds Fixed idle-delay length in seconds.
+        @throws OSError If file write fails.
+    @details Computes `idle_until_timestamp = now_timestamp + idle_delay_seconds` and persists canonical idle-state keys.
+    """
+    idle_until_timestamp = now_timestamp + int(idle_delay_seconds)
+    write_release_check_idle_state_payload(
+        file_path=file_path,
+        last_success_timestamp=now_timestamp,
+        idle_until_timestamp=idle_until_timestamp,
+    )
+
+
+def write_rate_limited_release_check_idle_state(
+    file_path: Path,
+    now_timestamp: int,
+    retry_after_seconds: int,
+    idle_state: Mapping[str, Any] | None,
+    idle_delay_seconds: int = RELEASE_CHECK_IDLE_DELAY_SECONDS,
+) -> None:
+    """!
+    @brief Persist idle-state when GitHub responds with HTTP 429 rate limiting.
+        @param file_path Absolute idle-state JSON path.
+        @param now_timestamp Current Unix timestamp in seconds.
+        @param retry_after_seconds Parsed `Retry-After` delay in seconds.
+        @param idle_state Existing parsed idle-state payload or None.
+        @param idle_delay_seconds Fixed idle-delay length in seconds.
+        @throws OSError If file write fails.
+    @details Computes `candidate_idle_until = now + max(idle_delay_seconds, retry_after_seconds)` and preserves the maximum against any existing `idle_until_timestamp` to avoid shortening prior 429 backoff windows.
+    """
+    effective_retry_after = max(0, int(retry_after_seconds))
+    effective_idle_delay = max(0, int(idle_delay_seconds))
+    candidate_idle_until = now_timestamp + max(effective_idle_delay, effective_retry_after)
+
+    if isinstance(idle_state, Mapping):
+        current_idle_until = idle_state.get("idle_until_timestamp")
+        if isinstance(current_idle_until, (int, float)):
+            candidate_idle_until = max(candidate_idle_until, int(current_idle_until))
+
+    last_success_timestamp = now_timestamp
+    if isinstance(idle_state, Mapping):
+        current_last_success = idle_state.get("last_success_timestamp")
+        if isinstance(current_last_success, (int, float)):
+            last_success_timestamp = int(current_last_success)
+
+    write_release_check_idle_state_payload(
+        file_path=file_path,
+        last_success_timestamp=last_success_timestamp,
+        idle_until_timestamp=candidate_idle_until,
+    )
+
+
 def maybe_notify_newer_version(
     timeout_seconds: float = RELEASE_CHECK_TIMEOUT_SECONDS,
 ) -> None:
     """!
     @brief Executes idle-gated online version check and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details Reads idle-state from `$HOME/.github_api_idle-time.<program_name>`, skips remote requests when idle window is active, resolves latest-release URL from active git remotes when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, and writes idle-state only after successful HTTP/JSON validation.
+        @details Reads idle-state from `$HOME/.github_api_idle-time.usereq`, skips remote requests when idle window is active, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, writes idle-state after successful HTTP/JSON validation, and updates idle-state on HTTP 429 using `Retry-After`.
     @return {None} Function return value.
     """
 
@@ -957,14 +1039,36 @@ def maybe_notify_newer_version(
             )
     except urllib.error.HTTPError as exc:
         error_details = f"HTTP {exc.code}"
+        raw_error_payload = exc.read().decode("utf-8", errors="replace")
+        payload: Any = None
         try:
-            payload = json.loads(exc.read().decode("utf-8", errors="replace"))
+            payload = json.loads(raw_error_payload) if raw_error_payload else None
         except json.JSONDecodeError:
             payload = None
         if isinstance(payload, dict):
             message = payload.get("message")
             if isinstance(message, str) and message.strip():
                 error_details = f"{error_details}: {message.strip()}"
+        if exc.code == 429:
+            retry_after_header = exc.headers.get("Retry-After") if exc.headers else None
+            retry_after_seconds = parse_retry_after_seconds(
+                retry_after_header,
+                now_timestamp,
+            )
+            if retry_after_seconds is None:
+                retry_after_seconds = 0
+            try:
+                write_rate_limited_release_check_idle_state(
+                    file_path=idle_state_path,
+                    now_timestamp=now_timestamp,
+                    retry_after_seconds=retry_after_seconds,
+                    idle_state=idle_state,
+                )
+            except OSError as idle_state_error:
+                print(
+                    f"{ANSI_BRIGHT_RED}Release-check error: idle-state write failure ({idle_state_error}){ANSI_RESET}",
+                    file=sys.stderr,
+                )
         print(
             f"{ANSI_BRIGHT_RED}Release-check error: {error_details}{ANSI_RESET}",
             file=sys.stderr,
