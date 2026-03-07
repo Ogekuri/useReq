@@ -3405,11 +3405,11 @@ def run(args: Namespace) -> None:
         @brief Format the Unicode installation summary table.
         @details Builds a deterministic box-drawing table with columns: Provider, Prompts Installed, Modules Installed.
         Prompts Installed is wrapped to a maximum width of 50 characters. Modules Installed renders one non-wrapped
-        line per active artifact using `artifact:options` format derived from `--provider` specifications.
+        line per active artifact as `artifact` when no options are active, or `artifact:options` when options exist.
         Borders are emitted with Unicode line-drawing characters and bright-red ANSI styling.
         @note Complexity: O(C * (P log P + M)) where C is provider count, P is prompts per provider, M is module-entry lines per provider.
         @note Side effects: None (pure formatting).
-        @param modules_map {dict[str, list[str]]} Mapping: provider name -> module-entry lines in `artifact:options` format.
+        @param modules_map {dict[str, list[str]]} Mapping: provider name -> module-entry lines in `artifact` or `artifact:options` format.
         @param prompts_map {dict[str, set[str]]} Mapping: provider name -> installed prompt identifiers (union across artifact types).
         @return {list[str]} Fully formatted table lines (including separators) ready for printing.
         """
@@ -3511,7 +3511,7 @@ def run(args: Namespace) -> None:
     def _build_provider_modules_map(provider_specs: list[str]) -> dict[str, list[str]]:
         """!
         @brief Build provider-to-module-entry mapping for installation table rendering.
-        @details Parses raw `--provider` specifications preserving token order, then emits one `artifact:options` line per active artifact for each provider.
+        @details Parses raw `--provider` specifications preserving token order, then emits one module-entry line per active artifact as `artifact` or `artifact:options`.
         @param provider_specs {list[str]} Raw `--provider` SPEC values after update-merging logic.
         @return {dict[str, list[str]]} Mapping from provider to ordered module-entry lines.
         """
@@ -3537,10 +3537,15 @@ def run(args: Namespace) -> None:
                         options_ordered[provider_name].append(option)
         modules_map: dict[str, list[str]] = {}
         for provider_name in sorted(VALID_PROVIDERS):
-            options_text = ",".join(options_ordered[provider_name]) or "-"
-            modules_map[provider_name] = [
-                f"{artifact}:{options_text}" for artifact in artifacts_ordered[provider_name]
-            ]
+            options = options_ordered[provider_name]
+            if options:
+                options_text = ",".join(options)
+                modules_map[provider_name] = [
+                    f"{artifact}:{options_text}"
+                    for artifact in artifacts_ordered[provider_name]
+                ]
+            else:
+                modules_map[provider_name] = list(artifacts_ordered[provider_name])
         return modules_map
 
     def _colorize_table_border(line: str) -> str:

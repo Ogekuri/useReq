@@ -2164,7 +2164,7 @@ class TestUpdateNotification(unittest.TestCase):
             )
 
     def test_installation_summary_table_modules_reflect_provider_flags(self) -> None:
-        """SRS-291, SRS-294, SRS-297: Modules Installed must render artifact:options lines."""
+        """SRS-291, SRS-294, SRS-297: Modules Installed must render module-entry lines."""
         if self.TEST_DIR.exists():
             shutil.rmtree(self.TEST_DIR)
         self.TEST_DIR.mkdir(parents=True, exist_ok=True)
@@ -3050,8 +3050,8 @@ class TestArtifactTypeFlags(unittest.TestCase):
             claude_prompts,
             "claude prompts list must include a known prompt id",
         )
-        self.assertIn("skills:-", parsed_modules["codex"])
-        self.assertIn("skills:-", parsed_modules["claude"])
+        self.assertIn("skills", parsed_modules["codex"])
+        self.assertIn("skills", parsed_modules["claude"])
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "prompts").exists(),
