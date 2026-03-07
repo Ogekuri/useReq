@@ -42,22 +42,21 @@ KIRO_READ_WRITE_TOOLS = [
 ]
 """List of read-write tools allowed for Kiro."""
 
-PROVIDER_FLAGS = [
-    "--enable-claude",
-    "--enable-codex",
-    "--enable-gemini",
-    "--enable-github",
-    "--enable-kiro",
-    "--enable-opencode",
+ALL_PROVIDERS_ALL_ARTIFACTS = [
+    "--provider",
+    "claude:prompts,agents,skills",
+    "--provider",
+    "codex:prompts,agents,skills",
+    "--provider",
+    "gemini:prompts,agents,skills",
+    "--provider",
+    "github:prompts,agents,skills",
+    "--provider",
+    "kiro:prompts,agents,skills",
+    "--provider",
+    "opencode:prompts,agents,skills",
 ]
-"""Provider-specific CLI flags that enable prompt generation."""
-
-ARTIFACT_TYPE_FLAGS = [
-    "--install-prompts",
-    "--install-agents",
-    "--install-skills",
-]
-"""Artifact-type CLI flags that explicitly enable prompts/agents/skills."""
+"""Repeatable --provider specs that enable every provider with all artifact types."""
 
 
 class TestCLI(unittest.TestCase):
@@ -121,8 +120,7 @@ class TestCLI(unittest.TestCase):
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
+                + ALL_PROVIDERS_ALL_ARTIFACTS
             )
         cls.exit_code = exit_code
         cls.prompts_snapshot_after = cls._snapshot_non_hidden_files(
@@ -375,7 +373,7 @@ class TestCLI(unittest.TestCase):
             )
             # Verify file content.
             content = prompt_path.read_text(encoding="utf-8")
-            # With default (no --prompts-use-agents) the file must contain prompt body
+            # With default (no prompts-use-agents option) the file must contain prompt body
             # and not just a reference to the agent.
             self.assertNotIn(
                 "agent:", content, "The prompt must not be just an agent reference"
@@ -513,12 +511,12 @@ class TestCLI(unittest.TestCase):
             self.assertNotIn(
                 "tools",
                 data,
-                f"{agent} must not contain 'tools' field without --enable-tools",
+                f"{agent} must not contain 'tools' field without enable-tools option",
             )
             self.assertNotIn(
                 "allowedTools",
                 data,
-                f"{agent} must not contain 'allowedTools' field without --enable-tools",
+                f"{agent} must not contain 'allowedTools' field without enable-tools option",
             )
 
     def test_render_kiro_agent_includes_model_tools(self) -> None:
@@ -708,7 +706,7 @@ class TestCLI(unittest.TestCase):
             )
 
             # verify model field: inherit.
-            # The 'model' field is no longer required by default (only when --enable-models).
+            # The 'model' field is no longer required by default (only with enable-models option).
 
             # Verify description field.
             self.assertIn(
@@ -1062,9 +1060,9 @@ class TestGuidelinesPathReplacement(unittest.TestCase):
                     str(cls.TEST_DIR / "src"),
                     "--src-dir",
                     str(cls.TEST_DIR / "lib"),
-                    "--enable-codex",
+                    "--provider",
+                    "codex:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
 
     @classmethod
@@ -1243,11 +1241,19 @@ class TestModelsAndTools(unittest.TestCase):
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
-                    "--enable-models",
-                    "--enable-tools",
+                    "--provider",
+                    "claude:prompts,agents,skills:enable-models,enable-tools",
+                    "--provider",
+                    "codex:prompts,agents,skills:enable-models,enable-tools",
+                    "--provider",
+                    "gemini:prompts,agents,skills:enable-models,enable-tools",
+                    "--provider",
+                    "github:prompts,agents,skills:enable-models,enable-tools",
+                    "--provider",
+                    "kiro:prompts,agents,skills:enable-models,enable-tools",
+                    "--provider",
+                    "opencode:prompts,agents,skills:enable-models,enable-tools",
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1328,8 +1334,7 @@ class TestModelsAndTools(unittest.TestCase):
                     "--src-dir",
                     str(self.TEST_DIR / "src"),
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
+                + ALL_PROVIDERS_ALL_ARTIFACTS
             )
         self.assertEqual(exit_code, 0)
         gha = self.TEST_DIR / ".github" / "agents" / "req-analyze.agent.md"
@@ -1344,7 +1349,7 @@ class TestModelsAndTools(unittest.TestCase):
         self.assertNotIn("model:", codex_content)
 
     def test_tools_only_adds_tools_without_models(self) -> None:
-        """With only --enable-tools, tools should appear but not models."""
+        """With only enable-tools option, tools should appear but not models."""
         from unittest.mock import patch
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -1360,10 +1365,19 @@ class TestModelsAndTools(unittest.TestCase):
                     str(self.TEST_DIR / "tests"),
                     "--src-dir",
                     str(self.TEST_DIR / "src"),
-                    "--enable-tools",
+                    "--provider",
+                    "claude:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "codex:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "gemini:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "github:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "kiro:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "opencode:prompts,agents,skills:enable-tools",
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -1428,8 +1442,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
+                + ALL_PROVIDERS_ALL_ARTIFACTS
             )
         cls.exit_code = exit_code
 
@@ -1498,7 +1511,7 @@ class TestCLIWithExistingDocs(unittest.TestCase):
 
 
 class TestPromptsUseAgents(unittest.TestCase):
-    """Verifies behavior with --prompts-use-agents enabled."""
+    """Verifies behavior with prompts-use-agents per-provider option enabled."""
 
     TEST_DIR = (
         Path(__file__).resolve().parents[1] / "temp" / "project-test-prompts-agents"
@@ -1529,12 +1542,19 @@ class TestPromptsUseAgents(unittest.TestCase):
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
-                    "--prompts-use-agents",
-                    "--enable-models",
-                    "--enable-tools",
+                    "--provider",
+                    "claude:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "--provider",
+                    "codex:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "--provider",
+                    "gemini:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "--provider",
+                    "github:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "--provider",
+                    "kiro:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "--provider",
+                    "opencode:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1563,7 +1583,7 @@ class TestPromptsUseAgents(unittest.TestCase):
         self.assertIn(
             "agent: req-analyze",
             content,
-            "The command must contain 'agent:' line when --prompts-use-agents is active",
+            "The command must contain 'agent:' line when prompts-use-agents is active",
         )
         # The file should be a YAML front matter block.
         self.assertTrue(content.startswith("---"))
@@ -1588,14 +1608,14 @@ class TestPromptsUseAgents(unittest.TestCase):
         self.assertIn(
             "agent: req-analyze",
             content,
-            "The opencode command must contain 'agent:' line when --prompts-use-agents is active",
+            "The opencode command must contain 'agent:' line when prompts-use-agents is active",
         )
         self.assertTrue(content.startswith("---"))
         self.assertTrue(content.endswith("---"))
 
 
 class TestKiroToolsEnabled(unittest.TestCase):
-    """Verifies that Kiro populates tools/allowedTools only with --enable-tools."""
+    """Verifies that Kiro populates tools/allowedTools only with enable-tools option."""
 
     TEST_DIR = Path(__file__).resolve().parents[1] / "temp" / "project-test-kiro-tools"
 
@@ -1624,10 +1644,19 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
-                    "--enable-tools",
+                    "--provider",
+                    "claude:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "codex:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "gemini:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "github:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "kiro:prompts,agents,skills:enable-tools",
+                    "--provider",
+                    "opencode:prompts,agents,skills:enable-tools",
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
             )
         cls.exit_code = exit_code
 
@@ -1717,7 +1746,7 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
         shutil.rmtree(self.resources_dir)
 
     def test_legacy_mode_prefers_legacy_configs(self) -> None:
-        """REQ-082: With --legacy the models-legacy.json overrides models.json."""
+        """REQ-082: With legacy option the models-legacy.json overrides models.json."""
         configs = cli.load_centralized_models(self.resources_dir, legacy_mode=True)
         claude_config = configs["claude"]
         gemini_config = configs["gemini"]
@@ -1839,9 +1868,9 @@ class TestCLIWithoutClaude(unittest.TestCase):
                     str(cls.TEST_DIR / "tests"),
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
-                    "--enable-github",
+                    "--provider",
+                    "github:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
 
     @classmethod
@@ -1867,7 +1896,7 @@ class TestCLIWithoutClaude(unittest.TestCase):
 
 
 class TestProviderEnableFlags(unittest.TestCase):
-    """Ensures the CLI enforces provider enable flags before generating resources."""
+    """Ensures the CLI enforces --provider spec requirement before generating resources."""
 
     TEST_DIR = (
         Path(__file__).resolve().parents[1] / "temp" / "project-test-provider-flags"
@@ -1886,7 +1915,7 @@ class TestProviderEnableFlags(unittest.TestCase):
         if self.TEST_DIR.exists():
             shutil.rmtree(self.TEST_DIR)
 
-    def test_requires_at_least_one_provider_flag(self) -> None:
+    def test_requires_at_least_one_provider_spec(self) -> None:
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stderr") as fake_stderr:
                 exit_code = cli.main(
@@ -1907,13 +1936,13 @@ class TestProviderEnableFlags(unittest.TestCase):
         self.assertEqual(
             exit_code,
             4,
-            "Missing provider --enable-* flags must cause exit code 4",
+            "Missing --provider spec must cause exit code 4",
         )
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(
-            "--enable-*",
+            "--provider",
             written,
-            "Error message must mention the --enable-* requirement",
+            "Error message must mention the --provider requirement",
         )
 
 
@@ -1951,9 +1980,9 @@ class TestBasePrefixedRelativePaths(unittest.TestCase):
                     f"{self.BASE_ARG}/tests",
                     "--src-dir",
                     f"{self.BASE_ARG}/src",
-                    "--enable-codex",
+                    "--provider",
+                    "codex:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
         config = json.loads(
@@ -2009,8 +2038,7 @@ class TestUpdateNotification(unittest.TestCase):
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
                     ]
-                    + PROVIDER_FLAGS
-                    + ARTIFACT_TYPE_FLAGS
+                    + ALL_PROVIDERS_ALL_ARTIFACTS
                 )
 
         # Note: we do not check exit code because stdout capture might vary based on runner.
@@ -2042,8 +2070,7 @@ class TestUpdateNotification(unittest.TestCase):
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
                     ]
-                    + PROVIDER_FLAGS
-                    + ARTIFACT_TYPE_FLAGS
+                    + ALL_PROVIDERS_ALL_ARTIFACTS
                 )
 
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
@@ -2147,9 +2174,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "--src-dir",
                     "src",
                     "--add-guidelines",
-                    "--enable-claude",
+                    "--provider",
+                    "claude:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -2190,9 +2217,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "--src-dir",
                         "src",
                         "--upgrade-guidelines",
-                        "--enable-claude",
+                        "--provider",
+                        "claude:prompts,agents,skills",
                     ]
-                    + ARTIFACT_TYPE_FLAGS
                 )
         finally:
             cli.RESOURCE_ROOT = original_resource_root
@@ -2235,9 +2262,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "--src-dir",
                         "src",
                         "--upgrade-guidelines",
-                        "--enable-claude",
+                        "--provider",
+                        "claude:prompts,agents,skills",
                     ]
-                    + ARTIFACT_TYPE_FLAGS
                 )
         finally:
             cli.RESOURCE_ROOT = original_resource_root
@@ -2269,9 +2296,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
                         "src",
                         "--add-guidelines",
                         "--upgrade-guidelines",
-                        "--enable-claude",
+                        "--provider",
+                        "claude:prompts,agents,skills",
                     ]
-                    + ARTIFACT_TYPE_FLAGS
                 )
 
     def test_no_copy_without_flags(self) -> None:
@@ -2290,9 +2317,9 @@ class TestGuidelinesTemplates(unittest.TestCase):
                     "tests",
                     "--src-dir",
                     "src",
-                    "--enable-claude",
+                    "--provider",
+                    "claude:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -2307,7 +2334,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
 
 
 class TestPreserveModels(unittest.TestCase):
-    """Verifies --preserve-models flag preserves .req/models.json and bypasses --legacy."""
+    """Verifies --preserve-models flag preserves .req/models.json and bypasses the legacy per-provider option."""
 
     def setUp(self) -> None:
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-preserve-models-"))
@@ -2339,9 +2366,9 @@ class TestPreserveModels(unittest.TestCase):
                     "tests",
                     "--src-dir",
                     "src",
-                    "--enable-claude",
+                    "--provider",
+                    "claude:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -2365,9 +2392,9 @@ class TestPreserveModels(unittest.TestCase):
                     str(self.TEST_DIR),
                     "--update",
                     "--preserve-models",
-                    "--enable-claude",
+                    "--provider",
+                    "claude:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
@@ -2390,7 +2417,7 @@ class TestPreserveModels(unittest.TestCase):
         )
 
     def test_preserve_models_bypasses_legacy_mode(self) -> None:
-        """REQ-082: With --preserve-models, --legacy has no effect."""
+        """REQ-082: With --preserve-models, the legacy per-provider option has no effect."""
         # Setup with initial run
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             cli.main(
@@ -2405,9 +2432,9 @@ class TestPreserveModels(unittest.TestCase):
                     "tests",
                     "--src-dir",
                     "src",
-                    "--enable-claude",
+                    "--provider",
+                    "claude:prompts,agents,skills",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
 
         # Create custom models.json
@@ -2418,7 +2445,7 @@ class TestPreserveModels(unittest.TestCase):
         }
         models_file.write_text(json.dumps(custom_config, indent=2), encoding="utf-8")
 
-        # Run with both --preserve-models and --legacy
+        # Run with both --preserve-models and legacy per-provider option
         # The preserve flag should take precedence
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
@@ -2427,24 +2454,23 @@ class TestPreserveModels(unittest.TestCase):
                     str(self.TEST_DIR),
                     "--update",
                     "--preserve-models",
-                    "--legacy",
-                    "--enable-claude",
+                    "--provider",
+                    "claude:prompts,agents,skills:legacy",
                 ]
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(exit_code, 0)
 
-        # Verify custom content is still preserved (--legacy had no effect)
+        # Verify custom content is still preserved (legacy option had no effect)
         preserved_content = json.loads(models_file.read_text(encoding="utf-8"))
         self.assertEqual(
             preserved_content["settings"]["marker"],
             "preserve-wins",
-            "--preserve-models should take precedence over --legacy",
+            "--preserve-models should take precedence over legacy per-provider option",
         )
 
 
 class TestUpdateLoadsPersistedFlags(unittest.TestCase):
-    """Verifies that --update reloads persisted flag states from .req/config.json."""
+    """Verifies that --update reloads persisted provider specs from .req/config.json."""
 
     def setUp(self) -> None:
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-update-persisted-flags-"))
@@ -2466,7 +2492,7 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
             os.chdir(previous_cwd)
 
     def test_update_reloads_persisted_flags(self) -> None:
-        """SRS-034, SRS-064: --update must restore persisted install flags from config.json."""
+        """SRS-034, SRS-064, SRS-288: --update must restore persisted provider specs from config.json."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             install_exit_code = cli.main(
                 [
@@ -2480,42 +2506,50 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "tests",
                     "--src-dir",
                     "src",
-                    "--enable-models",
-                    "--enable-tools",
-                    "--prompts-use-agents",
-                    "--legacy",
+                    "--provider",
+                    "claude:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "codex:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "gemini:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "github:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "kiro:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "opencode:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(install_exit_code, 0)
 
         config_payload = json.loads(
             (self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8")
         )
-        expected_flags = {
-            "enable-models": True,
-            "enable-tools": True,
-            "enable-claude": True,
-            "enable-codex": True,
-            "enable-gemini": True,
-            "enable-github": True,
-            "enable-kiro": True,
-            "enable-opencode": True,
-            "install-prompts": True,
-            "install-agents": True,
-            "install-skills": True,
-            "prompts-use-agents": True,
-            "legacy": True,
-            "preserve-models": False,
-        }
-        for key, expected in expected_flags.items():
-            self.assertIn(
-                key, config_payload, f"{key} must be persisted in .req/config.json"
-            )
-            self.assertEqual(
-                config_payload[key], expected, f"{key} must preserve its boolean state"
-            )
+        # New format: preserve-models boolean + providers array.
+        self.assertIn(
+            "preserve-models",
+            config_payload,
+            "preserve-models must be persisted in .req/config.json",
+        )
+        self.assertFalse(
+            config_payload["preserve-models"],
+            "preserve-models must default to False",
+        )
+        self.assertIn(
+            "providers",
+            config_payload,
+            "providers array must be persisted in .req/config.json",
+        )
+        self.assertIsInstance(
+            config_payload["providers"],
+            list,
+            "providers must be a list of spec strings",
+        )
+        self.assertEqual(
+            len(config_payload["providers"]),
+            6,
+            "All 6 provider specs must be persisted",
+        )
 
         shutil.rmtree(self.TEST_DIR / ".github")
         shutil.rmtree(self.TEST_DIR / ".claude")
@@ -2530,34 +2564,34 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                 ]
             )
         self.assertEqual(
-            update_exit_code, 0, "--update must reuse persisted provider/artifact flags"
+            update_exit_code, 0, "--update must reuse persisted provider specs"
         )
 
         github_prompt = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
         self.assertTrue(
             github_prompt.is_file(),
-            "GitHub prompts must be regenerated from persisted flags",
+            "GitHub prompts must be regenerated from persisted provider specs",
         )
         self.assertEqual(
             github_prompt.read_text(encoding="utf-8").strip(),
             "---\nagent: req-analyze\n---",
-            "Persisted --prompts-use-agents must generate agent-stub prompts",
+            "Persisted prompts-use-agents option must generate agent-stub prompts",
         )
         self.assertTrue(
             (self.TEST_DIR / ".github" / "skills").is_dir(),
-            "Persisted --install-skills must keep skill generation enabled",
+            "Persisted skills artifact must keep skill generation enabled",
         )
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "agents").is_dir(),
-            "Persisted --enable-claude and --install-agents must regenerate Claude agents",
+            "Persisted claude spec with agents artifact must regenerate Claude agents",
         )
         self.assertTrue(
             (self.TEST_DIR / ".opencode" / "agent").is_dir(),
-            "Persisted --enable-opencode and --install-agents must regenerate OpenCode agents",
+            "Persisted opencode spec with agents artifact must regenerate OpenCode agents",
         )
 
     def test_update_here_reloads_persisted_flags(self) -> None:
-        """SRS-064: --update with --here must reuse persisted flags from .req/config.json."""
+        """SRS-064, SRS-288: --update with --here must reuse persisted provider specs."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             install_exit_code = cli.main(
                 [
@@ -2571,13 +2605,19 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "tests",
                     "--src-dir",
                     "src",
-                    "--enable-models",
-                    "--enable-tools",
-                    "--prompts-use-agents",
-                    "--legacy",
+                    "--provider",
+                    "claude:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "codex:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "gemini:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "github:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "kiro:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "opencode:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
                 ]
-                + PROVIDER_FLAGS
-                + ARTIFACT_TYPE_FLAGS
             )
         self.assertEqual(install_exit_code, 0)
 
@@ -2588,19 +2628,19 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             update_exit_code = self._run_here_update(["--here", "--update"])
         self.assertEqual(
-            update_exit_code, 0, "--update --here must reuse persisted flags"
+            update_exit_code, 0, "--update --here must reuse persisted provider specs"
         )
         self.assertTrue(
             (self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md").is_file(),
-            "Persisted flags must regenerate provider artifacts in --here mode",
+            "Persisted provider specs must regenerate artifacts in --here mode",
         )
         self.assertTrue(
             (self.TEST_DIR / ".github" / "skills").is_dir(),
-            "Persisted --install-skills must remain effective in --here update mode",
+            "Persisted skills artifact must remain effective in --here update mode",
         )
 
     def test_update_here_invalid_persisted_flags_uses_config_error(self) -> None:
-        """SRS-064: --update --here must fail with config-invalid error for invalid persisted flags."""
+        """SRS-064: --update --here must fail with config-invalid error for invalid persisted config."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             install_exit_code = cli.main(
                 [
@@ -2614,23 +2654,16 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "tests",
                     "--src-dir",
                     "src",
-                    "--enable-claude",
-                    "--install-prompts",
+                    "--provider",
+                    "claude:prompts",
                 ]
             )
         self.assertEqual(install_exit_code, 0)
 
         config_path = self.TEST_DIR / ".req" / "config.json"
         config_payload = json.loads(config_path.read_text(encoding="utf-8"))
-        for key in (
-            "enable-claude",
-            "enable-codex",
-            "enable-gemini",
-            "enable-github",
-            "enable-kiro",
-            "enable-opencode",
-        ):
-            config_payload[key] = False
+        # Corrupt the providers array to make it invalid.
+        config_payload["providers"] = "not-a-list"
         config_path.write_text(json.dumps(config_payload, indent=2), encoding="utf-8")
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -2641,17 +2674,17 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         self.assertIn(
             "invalid provider/artifact update configuration",
             written,
-            "Invalid persisted flags must report config-specific update error",
+            "Invalid persisted config must report config-specific update error",
         )
         self.assertNotIn(
-            "at least one --enable-* provider flag is required",
+            "at least one --provider spec",
             written,
-            "Update invalid-config path must not report regular provider-flag validation error",
+            "Update invalid-config path must not report regular provider-spec validation error",
         )
 
 
 class TestArtifactTypeFlags(unittest.TestCase):
-    """Verifies enforcement and behavior of install artifact-type flags (SRS-231, SRS-035)."""
+    """Verifies enforcement and behavior of per-provider artifact types (SRS-231, SRS-035)."""
 
     TEST_DIR = (
         Path(__file__).resolve().parents[1]
@@ -2689,31 +2722,36 @@ class TestArtifactTypeFlags(unittest.TestCase):
             str(self.TEST_DIR / "src"),
         ]
 
-    def test_requires_at_least_one_artifact_type_flag(self) -> None:
-        """SRS-035, SRS-231: CLI MUST exit with code 4 when all artifact types are inactive."""
+    def test_requires_at_least_one_provider_spec(self) -> None:
+        """SRS-035: CLI MUST exit with code 4 when no --provider spec is supplied."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stderr") as fake_stderr:
-                exit_code = cli.main(self._base_args() + ["--enable-claude"])
+                exit_code = cli.main(self._base_args())
 
         self.assertEqual(
             exit_code,
             4,
-            "Missing artifact-type flag must cause exit code 4",
+            "Missing --provider spec must cause exit code 4",
         )
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(
-            "--install-prompts",
+            "--provider",
             written,
-            "Error message must mention install artifact flags",
+            "Error message must mention --provider",
         )
 
     def test_disable_skills_flag_is_rejected(self) -> None:
-        """SRS-034, SRS-231: removed --disable-skills MUST be rejected by parser."""
+        """SRS-034: removed --disable-skills MUST be rejected by parser."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stderr") as fake_stderr:
                 with self.assertRaises(SystemExit) as cm:
                     cli.main(
-                        self._base_args() + ["--enable-claude", "--disable-skills"]
+                        self._base_args()
+                        + [
+                            "--provider",
+                            "claude:prompts,agents,skills",
+                            "--disable-skills",
+                        ]
                     )
         self.assertEqual(
             cm.exception.code, 2, "Removed --disable-skills flag must be rejected"
@@ -2725,75 +2763,77 @@ class TestArtifactTypeFlags(unittest.TestCase):
             "Parser error must mention removed --disable-skills flag",
         )
 
-    def test_enable_prompts_only_generates_prompt_artifacts(self) -> None:
-        """SRS-231: --install-prompts generates only prompt/command artifacts; agent/skill dirs absent."""
+    def test_prompts_only_generates_prompt_artifacts(self) -> None:
+        """SRS-231: provider spec with only prompts generates prompt/command artifacts; agent/skill dirs absent."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
                 + [
-                    "--enable-claude",
-                    "--enable-codex",
-                    "--install-prompts",
+                    "--provider",
+                    "claude:prompts",
+                    "--provider",
+                    "codex:prompts",
                 ]
             )
-        self.assertEqual(exit_code, 0, "CLI must succeed with --install-prompts")
+        self.assertEqual(exit_code, 0, "CLI must succeed with prompts-only specs")
         # Prompt artifacts MUST exist
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "commands").is_dir(),
-            ".claude/commands must be created with --install-prompts",
+            ".claude/commands must be created with prompts artifact",
         )
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "prompts").is_dir(),
-            ".codex/prompts must be created with --install-prompts",
+            ".codex/prompts must be created with prompts artifact",
         )
-        # Agent artifacts MUST NOT exist (--install-agents not set)
+        # Agent artifacts MUST NOT exist (agents not in spec)
         self.assertFalse(
             (self.TEST_DIR / ".claude" / "agents").exists(),
-            ".claude/agents must NOT be created without --install-agents",
+            ".claude/agents must NOT be created without agents artifact",
         )
-        # Skill artifacts MUST NOT exist (--install-skills not set)
+        # Skill artifacts MUST NOT exist (skills not in spec)
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "skills").exists(),
-            ".codex/skills must NOT be created without --install-skills",
+            ".codex/skills must NOT be created without skills artifact",
         )
 
-    def test_enable_agents_only_generates_agent_artifacts(self) -> None:
-        """SRS-231: --install-agents generates only agent artifacts; prompt/skill dirs absent."""
+    def test_agents_only_generates_agent_artifacts(self) -> None:
+        """SRS-231: provider spec with only agents generates agent artifacts; prompt/skill dirs absent."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
                 + [
-                    "--enable-claude",
-                    "--enable-codex",
-                    "--install-agents",
+                    "--provider",
+                    "claude:agents",
+                    "--provider",
+                    "codex:agents",
                 ]
             )
-        self.assertEqual(exit_code, 0, "CLI must succeed with --install-agents")
+        self.assertEqual(exit_code, 0, "CLI must succeed with agents-only specs")
         # Agent artifacts MUST exist
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "agents").is_dir(),
-            ".claude/agents must be created with --install-agents",
+            ".claude/agents must be created with agents artifact",
         )
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".claude" / "commands").exists(),
-            ".claude/commands must NOT be created without --install-prompts",
+            ".claude/commands must NOT be created without prompts artifact",
         )
         # Codex prompt artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "prompts").exists(),
-            ".codex/prompts must NOT be created without --install-prompts",
+            ".codex/prompts must NOT be created without prompts artifact",
         )
-        # Skill artifacts MUST NOT exist (--install-skills not set)
+        # Skill artifacts MUST NOT exist (skills not in spec)
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "skills").exists(),
-            ".codex/skills must NOT be created without --install-skills",
+            ".codex/skills must NOT be created without skills artifact",
         )
 
-    def test_install_skills_only_generates_skill_artifacts(self) -> None:
+    def test_skills_only_generates_skill_artifacts(self) -> None:
         """
-        @brief Verify --install-skills generates skills when prompts and agents remain disabled.
-        @details Executes installation with provider flags plus --install-skills only.
+        @brief Verify skills-only spec generates skills when prompts and agents are absent.
+        @details Executes installation with provider specs containing only skills artifact.
         Asserts that skill directories are created and the installation summary ASCII table lists installed prompt
         identifiers under "Prompts Installed" even when artifacts are produced as skills (SRS-036, SRS-049, SRS-231).
         @return {None}
@@ -2803,20 +2843,21 @@ class TestArtifactTypeFlags(unittest.TestCase):
                 exit_code = cli.main(
                     self._base_args()
                     + [
-                        "--enable-claude",
-                        "--enable-codex",
-                        "--install-skills",
+                        "--provider",
+                        "claude:skills",
+                        "--provider",
+                        "codex:skills",
                     ]
                 )
-        self.assertEqual(exit_code, 0, "CLI must succeed with --install-skills")
+        self.assertEqual(exit_code, 0, "CLI must succeed with skills-only specs")
         # Skill artifacts MUST exist for each enabled provider
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "skills").is_dir(),
-            ".codex/skills must be created when --install-skills is set",
+            ".codex/skills must be created when skills artifact is set",
         )
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "skills").is_dir(),
-            ".claude/skills must be created when --install-skills is set",
+            ".claude/skills must be created when skills artifact is set",
         )
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         lines = written.splitlines()
@@ -2861,28 +2902,27 @@ class TestArtifactTypeFlags(unittest.TestCase):
         # Prompt artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".codex" / "prompts").exists(),
-            ".codex/prompts must NOT be created without --install-prompts",
+            ".codex/prompts must NOT be created without prompts artifact",
         )
         # Agent artifacts MUST NOT exist
         self.assertFalse(
             (self.TEST_DIR / ".claude" / "agents").exists(),
-            ".claude/agents must NOT be created without --install-agents",
+            ".claude/agents must NOT be created without agents artifact",
         )
 
-    def test_all_artifact_type_flags_enable_all_artifacts(self) -> None:
-        """SRS-231: all install flags enable all artifact categories."""
+    def test_all_artifacts_enable_all_categories(self) -> None:
+        """SRS-231: provider specs with all artifact types enable all artifact categories."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
                 + [
-                    "--enable-claude",
-                    "--enable-codex",
-                    "--install-prompts",
-                    "--install-agents",
-                    "--install-skills",
+                    "--provider",
+                    "claude:prompts,agents,skills",
+                    "--provider",
+                    "codex:prompts,agents,skills",
                 ]
             )
-        self.assertEqual(exit_code, 0, "CLI must succeed with all artifact-type flags")
+        self.assertEqual(exit_code, 0, "CLI must succeed with all artifact types")
         self.assertTrue(
             (self.TEST_DIR / ".claude" / "commands").is_dir(),
             ".claude/commands must exist",
@@ -3272,7 +3312,7 @@ class TestProviderSpecPersistence(unittest.TestCase):
 
 
 class TestProviderSpecGlobalMerge(unittest.TestCase):
-    """SRS-277, SRS-287: Per-provider options override global flags for targeted provider only."""
+    """SRS-275, SRS-287: Per-provider options override defaults for targeted provider only."""
 
     TEST_DIR = (
         Path(__file__).resolve().parents[1]
@@ -3307,32 +3347,30 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
             str(self.TEST_DIR / "src"),
         ]
 
-    def test_global_flags_merged_with_provider_spec(self) -> None:
-        """SRS-277, SRS-287: Global --enable-codex with --provider github:agents must activate both."""
+    def test_multiple_provider_specs_activate_independently(self) -> None:
+        """SRS-275: Multiple --provider specs activate distinct providers with their own artifact sets."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
                 + [
-                    "--enable-codex",
-                    "--install-prompts",
+                    "--provider",
+                    "codex:prompts",
                     "--provider",
                     "github:agents",
                 ]
             )
-        self.assertEqual(exit_code, 0, "Global flags + --provider must succeed")
-        # Codex prompts from global flags.
+        self.assertEqual(exit_code, 0, "Multiple --provider specs must succeed")
+        # Codex prompts from its spec.
         self.assertTrue(
             (self.TEST_DIR / ".codex" / "prompts").is_dir(),
-            "Codex prompts must exist from global --enable-codex --install-prompts",
+            "Codex prompts must exist from --provider codex:prompts",
         )
-        # GitHub agents from --provider spec.
+        # GitHub agents from its spec.
         self.assertTrue(
             (self.TEST_DIR / ".github" / "agents").is_dir(),
             "GitHub agents must exist from --provider github:agents",
         )
-        # GitHub prompts must NOT exist (no --install-prompts + no prompts in spec).
-        # Global --install-prompts only applies to globally-enabled providers,
-        # but github was only enabled via --provider with only 'agents'.
+        # GitHub prompts must NOT exist (prompts not in github spec).
         self.assertFalse(
             (self.TEST_DIR / ".github" / "prompts").exists(),
             "GitHub prompts must NOT exist since github:agents did not include prompts",

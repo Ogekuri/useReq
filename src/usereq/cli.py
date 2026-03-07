@@ -39,23 +39,8 @@ DEBUG = False
 REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
 """! @brief Name of the packaged requirements template file."""
 
-PERSISTED_UPDATE_FLAG_KEYS = (
-    "enable-models",
-    "enable-tools",
-    "enable-claude",
-    "enable-codex",
-    "enable-gemini",
-    "enable-github",
-    "enable-kiro",
-    "enable-opencode",
-    "install-prompts",
-    "install-agents",
-    "install-skills",
-    "prompts-use-agents",
-    "legacy",
-    "preserve-models",
-)
-"""! @brief Config keys persisted for install/update boolean flags."""
+PERSISTED_UPDATE_FLAG_KEYS = ("preserve-models",)
+"""! @brief Config keys persisted for install/update boolean flags (SRS-288)."""
 
 VALID_PROVIDERS = frozenset({"codex", "claude", "gemini", "github", "kiro", "opencode"})
 """! @brief Valid provider names accepted by ``--provider`` specs (SRS-275)."""
@@ -122,69 +107,45 @@ def parse_provider_spec(spec: str) -> tuple[str, set[str], set[str]]:
 
 
 def resolve_provider_configs(
-    args: Namespace,
     provider_specs: list[str],
 ) -> dict[str, dict[str, Any]]:
     """!
-    @brief Resolve per-provider configurations by merging global flags with ``--provider`` specs.
-    @param args Parsed CLI namespace containing global flags.
+    @brief Resolve per-provider configurations from ``--provider`` specs only.
     @param provider_specs List of raw ``--provider`` SPEC strings.
     @return Dict mapping each of the 6 provider names to a config dict with keys:
       ``enabled`` (bool), ``prompts`` (bool), ``agents`` (bool), ``skills`` (bool),
       ``enable-models`` (bool), ``enable-tools`` (bool), ``prompts-use-agents`` (bool),
       ``legacy`` (bool).
-    @details Global flags provide the baseline for all providers; ``--provider`` specs
-    extend or override per-provider values.  A provider is enabled if its
-    ``--enable-<provider>`` flag is True OR any ``--provider`` spec targets it.
-    Artifact types are the union of global ``--install-<type>`` flags and per-spec
-    artifact lists.  Options from specs override global flags for that provider only
-    (SRS-277, SRS-281, SRS-282, SRS-283).
-    @see SRS-275, SRS-276, SRS-277, SRS-281, SRS-282, SRS-283
+    @details ``--provider`` specs are the sole mechanism for provider/artifact/option
+    configuration (SRS-275, SRS-276).  All providers start disabled with all options
+    inactive; each spec enables its provider and activates listed artifacts and options.
+    @see SRS-275, SRS-276
     """
-    global_enable_models = bool(args.enable_models)
-    global_enable_tools = bool(args.enable_tools)
-    global_prompts_use_agents = bool(args.prompts_use_agents)
-    global_legacy = bool(args.legacy)
-    global_prompts = bool(args.enable_prompts)
-    global_agents = bool(args.enable_agents)
-    global_skills = bool(args.enable_skills)
-
-    enable_flags = {
-        "codex": bool(args.enable_codex),
-        "claude": bool(args.enable_claude),
-        "gemini": bool(args.enable_gemini),
-        "github": bool(args.enable_github),
-        "kiro": bool(args.enable_kiro),
-        "opencode": bool(args.enable_opencode),
-    }
-
-    # Initialize per-provider configs from global flags.
+    # Initialize all providers as disabled with inactive options.
     configs: dict[str, dict[str, Any]] = {}
     for prov in sorted(VALID_PROVIDERS):
         configs[prov] = {
-            "enabled": enable_flags[prov],
-            "prompts": global_prompts if enable_flags[prov] else False,
-            "agents": global_agents if enable_flags[prov] else False,
-            "skills": global_skills if enable_flags[prov] else False,
-            "enable-models": global_enable_models,
-            "enable-tools": global_enable_tools,
-            "prompts-use-agents": global_prompts_use_agents,
-            "legacy": global_legacy,
+            "enabled": False,
+            "prompts": False,
+            "agents": False,
+            "skills": False,
+            "enable-models": False,
+            "enable-tools": False,
+            "prompts-use-agents": False,
+            "legacy": False,
         }
 
-    # Apply --provider specs on top.
+    # Apply --provider specs.
     for spec_str in provider_specs:
         provider, artifacts, options = parse_provider_spec(spec_str)
         cfg = configs[provider]
         cfg["enabled"] = True
-        # Merge artifact types (union with what global flags already set).
         if "prompts" in artifacts:
             cfg["prompts"] = True
         if "agents" in artifacts:
             cfg["agents"] = True
         if "skills" in artifacts:
             cfg["skills"] = True
-        # Options override globals for this provider.
         if "enable-models" in options:
             cfg["enable-models"] = True
         if "enable-tools" in options:
@@ -293,17 +254,16 @@ def _get_available_tags_help() -> str:
 def build_parser() -> argparse.ArgumentParser:
     """! @brief Builds the CLI argument parser.
     @return Configured ArgumentParser instance.
-    @details Defines all supported CLI arguments, flags, and help texts. Includes provider flags (--enable-claude, --enable-codex, --enable-gemini, --enable-github, --enable-kiro, --enable-opencode) and artifact-type flags (--install-prompts, --install-agents, --install-skills).
+    @details Defines all supported CLI arguments, flags, and help texts. Provider enablement,
+    artifact selection, and per-provider options are configured exclusively via the repeatable
+    ``--provider SPEC`` argument (SRS-275, SRS-034).
     """
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] [--enable-models] [--enable-tools] "
-        "[--enable-claude] [--enable-codex] [--enable-gemini] [--enable-github] "
-        "[--enable-kiro] [--enable-opencode] [--prompts-use-agents] "
-        "[--install-prompts] [--install-agents] [--install-skills] "
+        "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] "
         "[--provider PROVIDER:ARTIFACTS[:OPTIONS]] "
-        "[--legacy] [--preserve-models] [--add-guidelines | --upgrade-guidelines] "
+        "[--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
         "[--test-static-check {dummy,pylance,ruff,command} [FILES...]] "
@@ -358,78 +318,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--debug", action="store_true", help="Show debug logs for diagnostics."
     )
     parser.add_argument(
-        "--enable-models",
-        action="store_true",
-        help="Include 'model' in generated prompts/agents when available from CLI configs.",
-    )
-    parser.add_argument(
-        "--enable-tools",
-        action="store_true",
-        help="Include 'tools' in generated prompts/agents when available from CLI configs.",
-    )
-    parser.add_argument(
-        "--enable-claude",
-        action="store_true",
-        help="Enable generation of Claude prompts and agents for this run.",
-    )
-    parser.add_argument(
-        "--enable-codex",
-        action="store_true",
-        help="Enable generation of Codex prompts for this run.",
-    )
-    parser.add_argument(
-        "--enable-gemini",
-        action="store_true",
-        help="Enable generation of Gemini prompts for this run.",
-    )
-    parser.add_argument(
-        "--enable-github",
-        action="store_true",
-        help="Enable generation of GitHub prompts and agents for this run.",
-    )
-    parser.add_argument(
-        "--enable-kiro",
-        action="store_true",
-        help="Enable generation of Kiro prompts and agents for this run.",
-    )
-    parser.add_argument(
-        "--enable-opencode",
-        action="store_true",
-        help="Enable generation of OpenCode prompts and agents for this run.",
-    )
-    parser.add_argument(
-        "--install-prompts",
-        dest="enable_prompts",
-        action="store_true",
-        help="Install prompt/command artifact files for each enabled provider.",
-    )
-    parser.add_argument(
-        "--install-agents",
-        dest="enable_agents",
-        action="store_true",
-        help="Install agent artifact files for each enabled provider.",
-    )
-    parser.add_argument(
-        "--install-skills",
-        dest="enable_skills",
-        action="store_true",
-        default=False,
-        help="Install skill artifact files for each enabled provider.",
-    )
-    parser.add_argument(
-        "--prompts-use-agents",
-        action="store_true",
-        help="When set, generate .github and .claude prompt files as agent-only references (agent: req-<name>).",
-    )
-    parser.add_argument(
-        "--legacy",
-        action="store_true",
-        help="When set, enable legacy mode using config-legacy.json files for prompt configuration.",
-    )
-    parser.add_argument(
         "--preserve-models",
         action="store_true",
-        help="When set with --update, preserve existing .req/models.json and bypass --legacy mode.",
+        help="When set with --update, preserve existing .req/models.json.",
     )
     parser.add_argument(
         "--provider",
@@ -1383,24 +1274,11 @@ def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
     @brief Build persistent update flags from parsed CLI arguments.
         @param args Parsed CLI namespace.
         @return Mapping of config key -> boolean value for install/update persistence.
-    @details Implements the build_persisted_update_flags function behavior with deterministic control flow.
-    Note: ``--provider`` specs are persisted separately via the ``provider_specs`` parameter
-    in ``save_config()`` (SRS-279); this function only handles boolean flags.
+    @details Only ``preserve-models`` is persisted as a boolean flag (SRS-288).
+    Provider/artifact/option configuration is persisted via ``--provider`` specs under
+    the ``providers`` key in ``config.json`` (SRS-279).
     """
     return {
-        "enable-models": bool(args.enable_models),
-        "enable-tools": bool(args.enable_tools),
-        "enable-claude": bool(args.enable_claude),
-        "enable-codex": bool(args.enable_codex),
-        "enable-gemini": bool(args.enable_gemini),
-        "enable-github": bool(args.enable_github),
-        "enable-kiro": bool(args.enable_kiro),
-        "enable-opencode": bool(args.enable_opencode),
-        "install-prompts": bool(args.enable_prompts),
-        "install-agents": bool(args.enable_agents),
-        "install-skills": bool(args.enable_skills),
-        "prompts-use-agents": bool(args.prompts_use_agents),
-        "legacy": bool(args.legacy),
         "preserve-models": bool(args.preserve_models),
     }
 
@@ -1411,9 +1289,8 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
         @param project_base The project root path.
         @return Mapping of persisted config key -> boolean value.
         @throws ReqError If config file is missing, invalid, or required flag fields are missing/invalid.
-    @details Implements the load_persisted_update_flags function behavior with deterministic control flow.
-    Note: when ``--provider`` specs are persisted, provider/artifact activation may come solely
-    from those specs.  The validation accounts for both global flags and provider specs (SRS-280).
+    @details Only ``preserve-models`` is loaded as a boolean flag (SRS-288).
+    Provider/artifact activation is validated via the persisted ``providers`` array (SRS-280).
     """
     config_path = project_base / ".req" / "config.json"
     if not config_path.is_file():
@@ -1434,36 +1311,13 @@ def load_persisted_update_flags(project_base: Path) -> dict[str, bool]:
             )
         flags[key] = value
 
-    # Check persisted --provider specs for additional provider/artifact activation (SRS-280).
+    # Validate that persisted --provider specs provide adequate activation (SRS-280).
     persisted_providers = payload.get("providers", [])
     has_provider_specs = (
         isinstance(persisted_providers, list) and len(persisted_providers) > 0
     )
 
-    has_provider = has_provider_specs or any(
-        (
-            flags["enable-claude"],
-            flags["enable-codex"],
-            flags["enable-gemini"],
-            flags["enable-github"],
-            flags["enable-kiro"],
-            flags["enable-opencode"],
-        )
-    )
-
-    # Determine artifact activation from global flags and provider specs.
-    has_artifact_type = any(
-        (
-            flags["install-prompts"],
-            flags["install-agents"],
-            flags["install-skills"],
-        )
-    )
-    if not has_artifact_type and has_provider_specs:
-        # Provider specs implicitly activate artifact types for their providers.
-        has_artifact_type = True
-
-    if not has_provider or not has_artifact_type:
+    if not has_provider_specs:
         raise ReqError(
             "Error: .req/config.json has an invalid provider/artifact update configuration",
             11,
@@ -2445,8 +2299,8 @@ def _validate_enable_static_check_command_executables(
 def run(args: Namespace) -> None:
     """!
     @brief Handles the main initialization flow.
-        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one provider flag and at least one active artifact type among prompts, agents, and skills.
-        @param args Parsed CLI namespace; must contain provider flags (enable_claude, enable_codex, enable_gemini, enable_github, enable_kiro, enable_opencode) and artifact-type controls (enable_prompts, enable_agents, enable_skills toggled by --install-prompts/--install-agents/--install-skills).
+        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035).
+        @param args Parsed CLI namespace; must contain ``provider_specs`` list and ``preserve_models`` boolean.
     @return {None} Function return value.
     """
     global VERBOSE, DEBUG
@@ -2504,37 +2358,6 @@ def run(args: Namespace) -> None:
 
     if args.update:
         persisted_flags = load_persisted_update_flags(project_base)
-        args.enable_models = (
-            bool(args.enable_models) or persisted_flags["enable-models"]
-        )
-        args.enable_tools = bool(args.enable_tools) or persisted_flags["enable-tools"]
-        args.enable_claude = (
-            bool(args.enable_claude) or persisted_flags["enable-claude"]
-        )
-        args.enable_codex = bool(args.enable_codex) or persisted_flags["enable-codex"]
-        args.enable_gemini = (
-            bool(args.enable_gemini) or persisted_flags["enable-gemini"]
-        )
-        args.enable_github = (
-            bool(args.enable_github) or persisted_flags["enable-github"]
-        )
-        args.enable_kiro = bool(args.enable_kiro) or persisted_flags["enable-kiro"]
-        args.enable_opencode = (
-            bool(args.enable_opencode) or persisted_flags["enable-opencode"]
-        )
-        args.enable_prompts = (
-            bool(args.enable_prompts) or persisted_flags["install-prompts"]
-        )
-        args.enable_agents = (
-            bool(args.enable_agents) or persisted_flags["install-agents"]
-        )
-        args.enable_skills = (
-            bool(args.enable_skills) or persisted_flags["install-skills"]
-        )
-        args.prompts_use_agents = (
-            bool(args.prompts_use_agents) or persisted_flags["prompts-use-agents"]
-        )
-        args.legacy = bool(args.legacy) or persisted_flags["legacy"]
         args.preserve_models = (
             bool(args.preserve_models) or persisted_flags["preserve-models"]
         )
@@ -2650,7 +2473,7 @@ def run(args: Namespace) -> None:
                     f"OK: no guidelines templates found at {guidelines_src}, skipping copy"
                 )
 
-    # Resolve --provider specs: load persisted specs on --update, merge with CLI specs (SRS-275..SRS-283).
+    # Resolve --provider specs: load persisted specs on --update, replace with CLI specs (SRS-275, SRS-280).
     cli_provider_specs: list[str] = getattr(args, "provider_specs", None) or []
     persisted_provider_specs: list[str] = []
     if use_here_config or args.update:
@@ -2662,10 +2485,10 @@ def run(args: Namespace) -> None:
     # Validate all specs (will raise ReqError on invalid tokens, SRS-278).
     for spec_str in effective_provider_specs:
         parse_provider_spec(spec_str)
-    # Resolve per-provider configs.
-    provider_configs = resolve_provider_configs(args, effective_provider_specs)
+    # Resolve per-provider configs (spec-driven only, SRS-275).
+    provider_configs = resolve_provider_configs(effective_provider_specs)
 
-    # Derive flat enable_* variables from per-provider configs.
+    # Derive flat enable_* variables from per-provider configs (spec-driven only).
     enable_claude = provider_configs["claude"]["enabled"]
     enable_codex = provider_configs["codex"]["enabled"]
     enable_gemini = provider_configs["gemini"]["enabled"]
@@ -2673,7 +2496,7 @@ def run(args: Namespace) -> None:
     enable_kiro = provider_configs["kiro"]["enabled"]
     enable_opencode = provider_configs["opencode"]["enabled"]
 
-    # A provider's artifacts are enabled if the global flag OR the per-provider spec sets them.
+    # A provider's artifacts are enabled only via the per-provider spec.
     enable_prompts = any(pc["prompts"] for pc in provider_configs.values())
     enable_agents = any(pc["agents"] for pc in provider_configs.values())
     enable_skills = any(pc["skills"] for pc in provider_configs.values())
@@ -2696,7 +2519,7 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one --enable-* provider flag or --provider spec is required to generate prompts",
+            "Error: at least one --provider spec is required to generate prompts",
             4,
         )
     if not any((enable_prompts, enable_agents, enable_skills)):
@@ -2708,7 +2531,7 @@ def run(args: Namespace) -> None:
         parser = build_parser()
         parser.print_help()
         raise ReqError(
-            "Error: at least one artifact install flag is required (--install-prompts, --install-agents, --install-skills, or artifact in --provider spec)",
+            "Error: at least one --provider spec with artifact types is required",
             4,
         )
 
@@ -2790,11 +2613,12 @@ def run(args: Namespace) -> None:
     if VERBOSE:
         log(f"OK: ensured directory {req_root}")
 
-    # Copy models configuration to .req/models.json based on legacy mode (REQ-084)
+    # Copy models configuration to .req/models.json based on per-provider legacy mode (SRS-066)
     # Skip if --preserve-models is active
+    any_legacy = any(pc["legacy"] for pc in provider_configs.values() if pc["enabled"])
     if not args.preserve_models:
         models_target = req_root / "models.json"
-        if args.legacy:
+        if any_legacy:
             legacy_candidate = RESOURCE_ROOT / "common" / "models-legacy.json"
             if legacy_candidate.is_file():
                 models_src = legacy_candidate
@@ -2915,7 +2739,7 @@ def run(args: Namespace) -> None:
     include_tools = any(
         pc["enable-tools"] for pc in provider_configs.values() if pc["enabled"]
     )
-    # Global prompts_use_agents is still used as a fallback; per-provider override applies in loop.
+    # Global prompts_use_agents is derived from per-provider configs.
     prompts_use_agents = any(
         pc["prompts-use-agents"] for pc in provider_configs.values() if pc["enabled"]
     )
@@ -2929,7 +2753,7 @@ def run(args: Namespace) -> None:
 
         configs = load_centralized_models(
             RESOURCE_ROOT,
-            legacy_mode=args.legacy,
+            legacy_mode=any_legacy,
             preserve_models_path=preserve_models_path,
         )
     prompts_installed: dict[str, set[str]] = {
