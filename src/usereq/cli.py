@@ -2414,9 +2414,10 @@ def _validate_enable_static_check_command_executables(
 def run(args: Namespace) -> None:
     """!
     @brief Handles the main initialization flow.
-        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035).
+        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035). Deduplicates ``--enable-static-check`` entries (SRS-251, SRS-301).
         @param args Parsed CLI namespace; must contain ``provider_specs`` list and ``preserve_models`` boolean.
     @return {None} Function return value.
+    @satisfies SRS-251, SRS-301
     """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
@@ -2650,7 +2651,7 @@ def run(args: Namespace) -> None:
             4,
         )
 
-    # Parse --enable-static-check specs and compute merged static-check config (SRS-248..SRS-252).
+    # Parse --enable-static-check specs and compute merged static-check config (SRS-248..SRS-252, SRS-301).
     new_static_check: dict = {}
     enable_static_check_specs = getattr(args, "enable_static_check", None) or []
     if enable_static_check_specs:
@@ -2658,18 +2659,24 @@ def run(args: Namespace) -> None:
 
         for spec in enable_static_check_specs:
             canonical_lang, lang_cfg = _parse_sc(spec)
-            new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
+            # SRS-251: discard structurally identical entry already accumulated for this language.
+            if lang_cfg not in new_static_check.get(canonical_lang, []):
+                new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
     _validate_enable_static_check_command_executables(
         new_static_check,
         enforce=(not args.update and not use_here_config),
     )
 
-    # Compute merged static-check: existing config + new entries (SRS-252).
+    # Compute merged static-check: existing config + new non-duplicate entries (SRS-252, SRS-301).
     if use_here_config or args.update:
         existing_sc = load_static_check_from_config(project_base)
         merged_static_check: dict = {k: list(v) for k, v in existing_sc.items()}
         for lang, entries in new_static_check.items():
-            merged_static_check.setdefault(lang, []).extend(entries)
+            existing_for_lang = merged_static_check.get(lang, [])
+            for entry in entries:
+                # SRS-301: skip new entry if structurally identical entry already exists.
+                if entry not in existing_for_lang:
+                    merged_static_check.setdefault(lang, []).append(entry)
     else:
         merged_static_check = new_static_check
 
@@ -2687,7 +2694,7 @@ def run(args: Namespace) -> None:
             else None,
         )
     elif merged_static_check or effective_provider_specs:
-        # --update path: re-save config.json with merged static-check entries (SRS-252)
+        # --update path: re-save config.json with merged static-check entries (SRS-252, SRS-301)
         # and/or updated provider specs (SRS-279).
         existing_full_config = load_config(project_base)
         persisted_flags = load_persisted_update_flags(project_base)

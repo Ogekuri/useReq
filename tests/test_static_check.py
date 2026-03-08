@@ -1298,9 +1298,10 @@ class TestEnableStaticCheckExecutableValidation(unittest.TestCase):
 
 class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
     """!
-    @brief Tests for --enable-static-check config persistence (SRS-248, SRS-252, SRS-262).
+    @brief Tests for --enable-static-check config persistence (SRS-248, SRS-251, SRS-252, SRS-262, SRS-301).
     @details Verifies that static-check config is correctly written to config.json via
-      `save_config()` and that multiple specs merge correctly as ordered arrays (SRS-251).
+      `save_config()`, that identical entries are deduplicated within a single invocation (SRS-251),
+      and that update merges preserve pre-existing entries while discarding identical duplicates (SRS-301).
       Uses direct API calls to `save_config` and `load_static_check_from_config` to avoid
       invoking the full installation flow (which requires provider flags and resource files).
     """
@@ -1391,6 +1392,75 @@ class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
         # No config.json written in setUp for this test
         result = load_static_check_from_config(self.tmp)
         self.assertEqual(result, {})
+
+    def test_enable_static_check_deduplicates_identical_entries_same_invocation(self) -> None:
+        """Identical specs in one invocation are deduplicated to first occurrence (SRS-251)."""
+        from usereq.static_check import parse_enable_static_check
+        specs = ["Python=Ruff", "Python=Ruff"]
+        new_static_check: dict = {}
+        for spec in specs:
+            lang, cfg = parse_enable_static_check(spec)
+            if cfg not in new_static_check.get(lang, []):
+                new_static_check.setdefault(lang, []).append(cfg)
+        self.assertEqual(len(new_static_check["Python"]), 1)
+        self.assertEqual(new_static_check["Python"][0]["module"], "Ruff")
+
+    def test_enable_static_check_preserves_different_params_same_module(self) -> None:
+        """Two Command entries for same language with different params are both preserved (SRS-251)."""
+        from usereq.static_check import parse_enable_static_check
+        specs = [
+            "C=Command,cppcheck,--check-library",
+            "C=Command,cppcheck,--enable=all",
+        ]
+        new_static_check: dict = {}
+        for spec in specs:
+            lang, cfg = parse_enable_static_check(spec)
+            if cfg not in new_static_check.get(lang, []):
+                new_static_check.setdefault(lang, []).append(cfg)
+        self.assertEqual(len(new_static_check["C"]), 2)
+        self.assertEqual(new_static_check["C"][0]["params"], ["--check-library"])
+        self.assertEqual(new_static_check["C"][1]["params"], ["--enable=all"])
+
+    def test_enable_static_check_update_does_not_duplicate_existing_identical_entry(self) -> None:
+        """Merging new entry identical to existing config entry is discarded (SRS-301)."""
+        from usereq.cli import save_config, load_static_check_from_config
+        existing_sc = {"Python": [{"module": "Pylance"}]}
+        save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=existing_sc)
+        # Simulate merge logic: load existing then add identical new entry.
+        loaded = load_static_check_from_config(self.tmp)
+        merged: dict = {k: list(v) for k, v in loaded.items()}
+        new_entry = {"module": "Pylance"}
+        if new_entry not in merged.get("Python", []):
+            merged.setdefault("Python", []).append(new_entry)
+        self.assertEqual(len(merged["Python"]), 1)
+
+    def test_enable_static_check_update_preserves_existing_tools_when_adding_new(self) -> None:
+        """Existing static-check entries are not removed when a new non-duplicate entry is added (SRS-301)."""
+        from usereq.cli import save_config, load_static_check_from_config
+        existing_sc = {"Python": [{"module": "Pylance"}]}
+        save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=existing_sc)
+        loaded = load_static_check_from_config(self.tmp)
+        merged: dict = {k: list(v) for k, v in loaded.items()}
+        new_entry = {"module": "Ruff"}
+        if new_entry not in merged.get("Python", []):
+            merged.setdefault("Python", []).append(new_entry)
+        self.assertEqual(len(merged["Python"]), 2)
+        self.assertEqual(merged["Python"][0]["module"], "Pylance")
+        self.assertEqual(merged["Python"][1]["module"], "Ruff")
+
+    def test_enable_static_check_update_adds_same_module_different_params(self) -> None:
+        """New Command entry with different params is appended even if same module exists (SRS-301)."""
+        from usereq.cli import save_config, load_static_check_from_config
+        existing_sc = {"C": [{"module": "Command", "cmd": "cppcheck", "params": ["--check-library"]}]}
+        save_config(self.tmp, "guidelines", "docs", "tests", ["src"], static_check_config=existing_sc)
+        loaded = load_static_check_from_config(self.tmp)
+        merged: dict = {k: list(v) for k, v in loaded.items()}
+        new_entry = {"module": "Command", "cmd": "cppcheck", "params": ["--enable=all"]}
+        if new_entry not in merged.get("C", []):
+            merged.setdefault("C", []).append(new_entry)
+        self.assertEqual(len(merged["C"]), 2)
+        self.assertEqual(merged["C"][0]["params"], ["--check-library"])
+        self.assertEqual(merged["C"][1]["params"], ["--enable=all"])
 
 
 if __name__ == "__main__":

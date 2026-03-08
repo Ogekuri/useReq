@@ -179,7 +179,7 @@ import sys
 
 ---
 
-# cli.py | Python | 4353L | 136 symbols | 32 imports | 211 comments
+# cli.py | Python | 4360L | 136 symbols | 32 imports | 213 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -844,7 +844,7 @@ under the `"providers"` key (SRS-279).
 - @details Validation scope is limited to Command entries coming from CLI specs.
 Each Command `cmd` is resolved with `shutil.which`; on miss, raises `ReqError(code=1)`
 before any configuration persistence.
-- @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035).
+- @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035). Deduplicates ``--enable-static-check`` entries (SRS-251, SRS-301).
 - @param static_check_config Parsed static-check entries grouped by canonical language.
 - @param enforce When false, skip validation and return immediately.
 - @param args Parsed CLI namespace; must contain ``provider_specs`` list and ``preserve_models`` boolean.
@@ -852,17 +852,19 @@ before any configuration persistence.
 - @return {None} Function return value.
 - @throws ReqError If a Command entry references a non-executable `cmd` on this system.
 - @see SRS-250
+- @satisfies SRS-251, SRS-301
 
-- var `VERBOSE = args.verbose` (L2422)
+- var `VERBOSE = args.verbose` (L2423)
 - @brief Handles the main initialization flow.
-- @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035).
+- @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035). Deduplicates ``--enable-static-check`` entries (SRS-251, SRS-301).
 - @param args Parsed CLI namespace; must contain ``provider_specs`` list and ``preserve_models`` boolean.
 - @return {None} Function return value.
-- var `DEBUG = args.debug` (L2423)
-- var `PROMPT = prompt_path.stem` (L2886)
-### fn `def _format_install_table(` `priv` (L3514-3516)
+- @satisfies SRS-251, SRS-301
+- var `DEBUG = args.debug` (L2424)
+- var `PROMPT = prompt_path.stem` (L2893)
+### fn `def _format_install_table(` `priv` (L3521-3523)
 
-### fn `def _wrap_cell(value: str, width: int, allow_wrap: bool) -> list[str]` `priv` (L3553-3575)
+### fn `def _wrap_cell(value: str, width: int, allow_wrap: bool) -> list[str]` `priv` (L3560-3582)
 - @brief Format the Unicode installation summary table.
 - @brief Normalize one table cell to printable lines.
 - @details Builds a deterministic box-drawing table with columns: Provider, Prompts Installed, Modules Installed.
@@ -880,7 +882,7 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @note Complexity: O(C * (P log P + M)) where C is provider count, P is prompts per provider, M is module-entry lines per provider.
 - @note Side effects: None (pure formatting).
 
-### fn `def _render_row(provider: str, prompts: str, modules: str) -> list[str]` `priv` (L3576-3604)
+### fn `def _render_row(provider: str, prompts: str, modules: str) -> list[str]` `priv` (L3583-3611)
 - @brief Render one logical table row into one or more physical lines.
 - @details Applies per-cell wrapping and left alignment, then expands the row height to the maximum wrapped cell line count.
 - @param provider {str} Provider cell text.
@@ -888,116 +890,116 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @param modules {str} Modules Installed cell text.
 - @return {list[str]} Physical row lines encoded with box-drawing separators.
 
-### fn `def _build_provider_modules_map(provider_specs: list[str]) -> dict[str, list[str]]` `priv` (L3625-3664)
+### fn `def _build_provider_modules_map(provider_specs: list[str]) -> dict[str, list[str]]` `priv` (L3632-3671)
 - @brief Build provider-to-module-entry mapping for installation table rendering.
 - @details Parses raw `--provider` specifications preserving token order, then emits one module-entry line per active artifact as `artifact` or `artifact:options`.
 - @param provider_specs {list[str]} Raw `--provider` SPEC values after update-merging logic.
 - @return {dict[str, list[str]]} Mapping from provider to ordered module-entry lines.
 
-### fn `def _colorize_table_border(line: str) -> str` `priv` (L3665-3677)
+### fn `def _colorize_table_border(line: str) -> str` `priv` (L3672-3684)
 - @brief Colorize box-drawing border glyphs with bright-red ANSI style.
 - @details Applies color to border characters while preserving cell payload text color.
 - @param line {str} One already-rendered table line.
 - @return {str} Line with border glyphs wrapped in ANSI bright-red and reset sequences.
 
-- var `SUPPORTED_EXTENSIONS = frozenset(` (L3692)
-### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L3720-3777)
+- var `SUPPORTED_EXTENSIONS = frozenset(` (L3699)
+### fn `def _collect_source_files(src_dirs: list[str], project_base: Path) -> list[str]` `priv` (L3727-3784)
 - @brief Collect source files from git-indexed project paths.
 - @details Uses `git ls-files --cached --others --exclude-standard` in project root, filters by src-dir prefixes, applies EXCLUDED_DIRS filtering, and keeps only SUPPORTED_EXTENSIONS files.
 - @param src_dirs Input parameter `src_dirs`.
 - @param project_base Input parameter `project_base`.
 - @return {list[str]} Function return value.
 
-### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L3778-3823)
+### fn `def _build_ascii_tree(paths: list[str]) -> str` `priv` (L3785-3830)
 - @brief Build a deterministic tree string from project-relative paths.
 - @details Implements the _build_ascii_tree function behavior with deterministic control flow.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _emit(` `priv` (L3802-3804)
+### fn `def _emit(` `priv` (L3809-3811)
 - @brief Build a deterministic tree string from project-relative paths.
 - @details Implements the _build_ascii_tree function behavior with deterministic control flow.
 - @param paths Project-relative file paths.
 - @return Rendered tree rooted at '.'.
 
-### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L3824-3838)
+### fn `def _format_files_structure_markdown(files: list[str], project_base: Path) -> str` `priv` (L3831-3845)
 - @brief Format markdown section containing the scanned files tree.
 - @details Implements the _format_files_structure_markdown function behavior with deterministic control flow.
 - @param files Absolute file paths selected for --references processing.
 - @param project_base Project root used to normalize relative paths.
 - @return Markdown section with heading and fenced tree.
 
-### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L3839-3857)
+### fn `def _is_standalone_command(args: Namespace) -> bool` `priv` (L3846-3864)
 - @brief Check if the parsed args contain a standalone file command.
 - @details Standalone commands require no `--base`/`--here`: `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--test-static-check`, and `--files-static-check`. SRS-253 adds `--files-static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any file-scope standalone flag is present.
 
-### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L3858-3874)
+### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L3865-3881)
 - @brief Check if the parsed args contain a project-scan command.
 - @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`, and `--static-check`. SRS-257 adds `--static-check` to this group.
 - @param args Parsed CLI namespace.
 - @return True when any project-scan flag is present.
 
-### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L3875-3890)
+### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L3882-3897)
 - @brief Check if args request a project-scan command restricted to `--here` mode.
 - @details Implements the _is_here_only_project_scan_command function behavior with deterministic control flow.
 - @param args Parsed CLI namespace.
 - @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L3891-3913)
+### fn `def run_files_tokens(files: list[str]) -> None` (L3898-3920)
 - @brief Execute --files-tokens: count tokens for arbitrary files.
 - @details Implements the run_files_tokens function behavior with deterministic control flow.
 - @param files Input parameter `files`.
 - @return {None} Function return value.
 
-### fn `def run_files_references(files: list[str]) -> None` (L3914-3930)
+### fn `def run_files_references(files: list[str]) -> None` (L3921-3937)
 - @brief Execute --files-references: generate markdown for arbitrary files.
 - @details Implements the run_files_references function behavior with deterministic control flow.
 - @param files Input parameter `files`.
 - @return {None} Function return value.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L3931-3949)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L3938-3956)
 - @brief Execute --files-compress: compress arbitrary files.
 - @details Renders output header paths relative to current working directory.
 - @param files List of source file paths to compress.
 - @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 - @return {None} Function return value.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L3950-3978)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L3957-3985)
 - @brief Execute --files-find: find constructs in arbitrary files.
 - @details Implements the run_files_find function behavior with deterministic control flow.
 - @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
 - @param enable_line_numbers If True, emits <n>: prefixes in output.
 - @return {None} Function return value.
 
-### fn `def run_references(args: Namespace) -> None` (L3979-3996)
+### fn `def run_references(args: Namespace) -> None` (L3986-4003)
 - @brief Execute --references: generate markdown for project source files.
 - @details Implements the run_references function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {None} Function return value.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L3997-4018)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L4004-4025)
 - @brief Execute --compress: compress project source files.
 - @details Implements the run_compress_cmd function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return {None} Function return value.
 
-### fn `def run_find(args: Namespace) -> None` (L4019-4048)
+### fn `def run_find(args: Namespace) -> None` (L4026-4055)
 - @brief Execute --find: find constructs in project source files.
 - @details Implements the run_find function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return {None} Function return value.
 - @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L4049-4076)
+### fn `def run_tokens(args: Namespace) -> None` (L4056-4083)
 - @brief Execute --tokens on the canonical documentation files in --docs-dir.
 - @details Uses docs-dir from .req/config.json in here-only mode, ignores explicit --docs-dir, selects only REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md as direct regular files in fixed order, and delegates summary rendering to run_files_tokens.
 - @param args Parsed CLI arguments namespace.
 - @return None.
 - @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L4077-4146)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L4084-4153)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
 - @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
@@ -1005,7 +1007,7 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4147-4192)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4154-4199)
 - @brief Execute `--static-check`: run static analysis on all project source files.
 - @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
@@ -1013,31 +1015,31 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4193-4213)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4200-4220)
 - @brief Resolve project base path for project-level commands.
 - @details Implements the _resolve_project_base function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4214-4266)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4221-4273)
 - @brief Resolve project base and src-dirs for project source commands.
 - @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L4267-4353)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L4274-4360)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L4291)
+- var `VERBOSE = getattr(args, "verbose", False)` (L4298)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
-- var `DEBUG = getattr(args, "debug", False)` (L4292)
+- var `DEBUG = getattr(args, "debug", False)` (L4299)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -1146,37 +1148,37 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 |`run_remove`|fn|pub|2332-2381|def run_remove(args: Namespace) -> None|
 |`_validate_enable_static_check_command_executables`|fn|priv|2382-2385|def _validate_enable_static_check_command_executables(|
 |`run`|fn|pub|2414-2613|def run(args: Namespace) -> None|
-|`VERBOSE`|var|pub|2422||
-|`DEBUG`|var|pub|2423||
-|`PROMPT`|var|pub|2886||
-|`_format_install_table`|fn|priv|3514-3516|def _format_install_table(|
-|`_wrap_cell`|fn|priv|3553-3575|def _wrap_cell(value: str, width: int, allow_wrap: bool) ...|
-|`_render_row`|fn|priv|3576-3604|def _render_row(provider: str, prompts: str, modules: str...|
-|`_build_provider_modules_map`|fn|priv|3625-3664|def _build_provider_modules_map(provider_specs: list[str]...|
-|`_colorize_table_border`|fn|priv|3665-3677|def _colorize_table_border(line: str) -> str|
-|`SUPPORTED_EXTENSIONS`|var|pub|3692||
-|`_collect_source_files`|fn|priv|3720-3777|def _collect_source_files(src_dirs: list[str], project_ba...|
-|`_build_ascii_tree`|fn|priv|3778-3823|def _build_ascii_tree(paths: list[str]) -> str|
-|`_emit`|fn|priv|3802-3804|def _emit(|
-|`_format_files_structure_markdown`|fn|priv|3824-3838|def _format_files_structure_markdown(files: list[str], pr...|
-|`_is_standalone_command`|fn|priv|3839-3857|def _is_standalone_command(args: Namespace) -> bool|
-|`_is_project_scan_command`|fn|priv|3858-3874|def _is_project_scan_command(args: Namespace) -> bool|
-|`_is_here_only_project_scan_command`|fn|priv|3875-3890|def _is_here_only_project_scan_command(args: Namespace) -...|
-|`run_files_tokens`|fn|pub|3891-3913|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|3914-3930|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|3931-3949|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|3950-3978|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|3979-3996|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|3997-4018|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|4019-4048|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|4049-4076|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|4077-4146|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|4147-4192|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|4193-4213|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|4214-4266|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|4267-4353|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|4291||
-|`DEBUG`|var|pub|4292||
+|`VERBOSE`|var|pub|2423||
+|`DEBUG`|var|pub|2424||
+|`PROMPT`|var|pub|2893||
+|`_format_install_table`|fn|priv|3521-3523|def _format_install_table(|
+|`_wrap_cell`|fn|priv|3560-3582|def _wrap_cell(value: str, width: int, allow_wrap: bool) ...|
+|`_render_row`|fn|priv|3583-3611|def _render_row(provider: str, prompts: str, modules: str...|
+|`_build_provider_modules_map`|fn|priv|3632-3671|def _build_provider_modules_map(provider_specs: list[str]...|
+|`_colorize_table_border`|fn|priv|3672-3684|def _colorize_table_border(line: str) -> str|
+|`SUPPORTED_EXTENSIONS`|var|pub|3699||
+|`_collect_source_files`|fn|priv|3727-3784|def _collect_source_files(src_dirs: list[str], project_ba...|
+|`_build_ascii_tree`|fn|priv|3785-3830|def _build_ascii_tree(paths: list[str]) -> str|
+|`_emit`|fn|priv|3809-3811|def _emit(|
+|`_format_files_structure_markdown`|fn|priv|3831-3845|def _format_files_structure_markdown(files: list[str], pr...|
+|`_is_standalone_command`|fn|priv|3846-3864|def _is_standalone_command(args: Namespace) -> bool|
+|`_is_project_scan_command`|fn|priv|3865-3881|def _is_project_scan_command(args: Namespace) -> bool|
+|`_is_here_only_project_scan_command`|fn|priv|3882-3897|def _is_here_only_project_scan_command(args: Namespace) -...|
+|`run_files_tokens`|fn|pub|3898-3920|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|3921-3937|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|3938-3956|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|3957-3985|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|3986-4003|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|4004-4025|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|4026-4055|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|4056-4083|def run_tokens(args: Namespace) -> None|
+|`run_files_static_check_cmd`|fn|pub|4084-4153|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|4154-4199|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|4200-4220|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|4221-4273|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|4274-4360|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|4298||
+|`DEBUG`|var|pub|4299||
 
 
 ---
