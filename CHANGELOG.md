@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.0](https://github.com/Ogekuri/useReq/compare/v0.30.0..v0.31.0) - 2026-03-08
+### 🚜  Changes
+- deduplicate identical --enable-static-check entries on update [useReq] *(static-check)*
+  - SRS-251 updated: identical entries (same module, cmd, params) within one invocation are silently discarded
+  - SRS-301 added: --update/--here merge preserves all pre-existing static-check tools; new entries identical to existing ones are discarded; new entries with same module but different params are appended
+  - cli.py run(): dedup logic applied both when collecting new specs and when merging with existing config
+  - test_static_check.py: 5 new tests covering dedup within invocation, different params, update preservation, and identical-entry discard
+
 ## [0.30.0](https://github.com/Ogekuri/useReq/compare/v0.29.0..v0.30.0) - 2026-03-07
 ### ⛰️  Features
 - Remove bell from prompts.
@@ -765,6 +773,7 @@
 - \[0.28.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.28.0
 - \[0.29.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.29.0
 - \[0.30.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.30.0
+- \[0.31.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.31.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -796,3 +805,4 @@
 [0.28.0]: https://github.com/Ogekuri/useReq/compare/v0.27.0..v0.28.0
 [0.29.0]: https://github.com/Ogekuri/useReq/compare/v0.28.0..v0.29.0
 [0.30.0]: https://github.com/Ogekuri/useReq/compare/v0.29.0..v0.30.0
+[0.31.0]: https://github.com/Ogekuri/useReq/compare/v0.30.0..v0.31.0
