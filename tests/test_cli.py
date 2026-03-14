@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -2281,6 +2282,7 @@ class TestGuidelinesTemplates(unittest.TestCase):
         self.guidelines_dir.mkdir(parents=True, exist_ok=True)
         self.test_dir.mkdir(parents=True, exist_ok=True)
         self.src_dir.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
 
     def tearDown(self) -> None:
         """Clean up test directory."""
@@ -2497,6 +2499,7 @@ class TestPreserveModels(unittest.TestCase):
         self.guidelines_dir.mkdir(parents=True, exist_ok=True)
         self.test_dir.mkdir(parents=True, exist_ok=True)
         self.src_dir.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
@@ -2629,6 +2632,7 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (self.TEST_DIR / "tests").mkdir(exist_ok=True)
         (self.TEST_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
@@ -3615,3 +3619,341 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
                 gh_frontmatter,
                 "GitHub agent frontmatter must NOT contain model: when enable-models is not set",
             )
+
+
+class TestConfigPathPersistence(unittest.TestCase):
+    """SRS-302, SRS-303, SRS-305, SRS-306, SRS-307, SRS-329:
+    Verifies base-path and git-path persistence in .req/config.json."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-config-path-"))
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_base_path_and_git_path_persisted_on_install(self) -> None:
+        """SRS-302, SRS-306: base-path and git-path are saved to config.json."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            rc = cli.main([
+                "--base", str(self.TEST_DIR),
+                "--docs-dir", "docs",
+                "--guidelines-dir", "guidelines",
+                "--tests-dir", "tests",
+                "--src-dir", "src",
+                "--provider", "claude:prompts",
+            ])
+        self.assertEqual(rc, 0)
+        cfg = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
+        self.assertIn("base-path", cfg)
+        self.assertIn("git-path", cfg)
+        self.assertEqual(cfg["base-path"], str(self.TEST_DIR.resolve()))
+        self.assertEqual(cfg["git-path"], str(self.TEST_DIR.resolve()))
+
+    def test_base_path_updated_on_update(self) -> None:
+        """SRS-303, SRS-307: base-path and git-path are updated on --update."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main([
+                "--base", str(self.TEST_DIR),
+                "--docs-dir", "docs",
+                "--guidelines-dir", "guidelines",
+                "--tests-dir", "tests",
+                "--src-dir", "src",
+                "--provider", "claude:prompts",
+            ])
+        # Manually modify base-path to simulate a moved project.
+        cfg_path = self.TEST_DIR / ".req" / "config.json"
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        cfg["base-path"] = "/old/path"
+        cfg["git-path"] = "/old/git"
+        cfg_path.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
+        # Run --update; should update paths.
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            rc = cli.main([
+                "--base", str(self.TEST_DIR),
+                "--update",
+            ])
+        self.assertEqual(rc, 0)
+        cfg2 = json.loads(cfg_path.read_text(encoding="utf-8"))
+        self.assertEqual(cfg2["base-path"], str(self.TEST_DIR.resolve()))
+        self.assertEqual(cfg2["git-path"], str(self.TEST_DIR.resolve()))
+
+    def test_install_fails_outside_git_repo(self) -> None:
+        """SRS-305: Installation must fail if --base is not inside a git repo."""
+        non_git = Path(tempfile.mkdtemp(prefix="usereq-nongit-"))
+        (non_git / "docs").mkdir(exist_ok=True)
+        (non_git / "guidelines").mkdir(exist_ok=True)
+        (non_git / "tests").mkdir(exist_ok=True)
+        (non_git / "src").mkdir(exist_ok=True)
+        try:
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main([
+                    "--base", str(non_git),
+                    "--docs-dir", "docs",
+                    "--guidelines-dir", "guidelines",
+                    "--tests-dir", "tests",
+                    "--src-dir", "src",
+                    "--provider", "claude:prompts",
+                ])
+            self.assertNotEqual(rc, 0)
+        finally:
+            shutil.rmtree(non_git)
+
+
+class TestGitCheckCommand(unittest.TestCase):
+    """SRS-311, SRS-312, SRS-330: Verifies --git-check behavior."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-check-"))
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "--allow-empty", "-m", "init"],
+            cwd=str(self.TEST_DIR), capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
+                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+        )
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main([
+                "--base", str(self.TEST_DIR),
+                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
+                "--tests-dir", "tests", "--src-dir", "src",
+                "--provider", "claude:prompts",
+            ])
+        # Stage all so repo is clean.
+        subprocess.run(["git", "add", "-A"], cwd=str(self.TEST_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "setup"],
+            cwd=str(self.TEST_DIR), capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
+                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+        )
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_git_check_on_clean_repo_succeeds(self) -> None:
+        """SRS-312: --git-check succeeds on clean repo with valid HEAD."""
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-check"])
+            self.assertEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_git_check_on_dirty_repo_fails(self) -> None:
+        """SRS-312: --git-check fails when repo has uncommitted changes."""
+        (self.TEST_DIR / "dirty.txt").write_text("dirty", encoding="utf-8")
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-check"])
+            self.assertNotEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_git_check_rejects_base(self) -> None:
+        """SRS-311: --git-check must reject --base."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            rc = cli.main(["--git-check", "--base", str(self.TEST_DIR)])
+        self.assertNotEqual(rc, 0)
+
+
+class TestDocsCheckCommand(unittest.TestCase):
+    """SRS-313..SRS-317, SRS-330: Verifies --docs-check behavior."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-docs-check-"))
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main([
+                "--base", str(self.TEST_DIR),
+                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
+                "--tests-dir", "tests", "--src-dir", "src",
+                "--provider", "claude:prompts",
+            ])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_docs_check_all_present_succeeds(self) -> None:
+        """SRS-314: succeeds when all three doc files exist."""
+        doc = self.TEST_DIR / "docs"
+        (doc / "REQUIREMENTS.md").write_text("r", encoding="utf-8")
+        (doc / "WORKFLOW.md").write_text("w", encoding="utf-8")
+        (doc / "REFERENCES.md").write_text("f", encoding="utf-8")
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--docs-check"])
+            self.assertEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_docs_check_missing_requirements(self) -> None:
+        """SRS-315: fails when REQUIREMENTS.md is missing."""
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--docs-check"])
+            self.assertNotEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_docs_check_missing_workflow(self) -> None:
+        """SRS-316: fails when WORKFLOW.md is missing."""
+        (self.TEST_DIR / "docs" / "REQUIREMENTS.md").write_text("r", encoding="utf-8")
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--docs-check"])
+            self.assertNotEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+
+class TestGitWtNameCommand(unittest.TestCase):
+    """SRS-318, SRS-319, SRS-330: Verifies --git-wt-name output format."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-name-"))
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "--allow-empty", "-m", "init"],
+            cwd=str(self.TEST_DIR), capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
+                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+        )
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main([
+                "--base", str(self.TEST_DIR),
+                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
+                "--tests-dir", "tests", "--src-dir", "src",
+                "--provider", "claude:prompts",
+            ])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_git_wt_name_format(self) -> None:
+        """SRS-319: output matches useReq-<PROJECT>-<BRANCH>-<TIMESTAMP>."""
+        import io
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), \
+                 patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                rc = cli.main(["--git-wt-name"])
+            self.assertEqual(rc, 0)
+            output = mock_stdout.getvalue().strip()
+            self.assertTrue(
+                output.startswith("useReq-"),
+                f"Output must start with 'useReq-': {output}",
+            )
+            parts = output.split("-")
+            self.assertGreaterEqual(len(parts), 4)
+            # Last part must be a timestamp (14 digits).
+            self.assertTrue(parts[-1].isdigit() and len(parts[-1]) == 14)
+        finally:
+            os.chdir(prev_cwd)
+
+
+class TestGitWtCreateDeleteCommands(unittest.TestCase):
+    """SRS-320..SRS-328, SRS-330: Verifies --git-wt-create and --git-wt-delete."""
+
+    def setUp(self) -> None:
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-cd-"))
+        (self.TEST_DIR / "docs").mkdir(exist_ok=True)
+        (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.TEST_DIR / "tests").mkdir(exist_ok=True)
+        (self.TEST_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "--allow-empty", "-m", "init"],
+            cwd=str(self.TEST_DIR), capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
+                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+        )
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main([
+                "--base", str(self.TEST_DIR),
+                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
+                "--tests-dir", "tests", "--src-dir", "src",
+                "--provider", "claude:prompts",
+            ])
+        subprocess.run(["git", "add", "-A"], cwd=str(self.TEST_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "setup"],
+            cwd=str(self.TEST_DIR), capture_output=True,
+            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
+                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+        )
+
+    def tearDown(self) -> None:
+        parent = self.TEST_DIR.parent
+        for d in parent.iterdir():
+            if d.name.startswith("test-wt-"):
+                shutil.rmtree(d, ignore_errors=True)
+        shutil.rmtree(self.TEST_DIR)
+
+    def test_wt_create_invalid_name_fails(self) -> None:
+        """SRS-321: invalid characters in WT_NAME trigger error."""
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-create", "bad name with spaces"])
+            self.assertNotEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_wt_create_and_delete_roundtrip(self) -> None:
+        """SRS-322, SRS-323, SRS-328: create then delete a worktree."""
+        wt_name = "test-wt-roundtrip"
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-create", wt_name])
+            self.assertEqual(rc, 0)
+            wt_dir = self.TEST_DIR.parent / wt_name
+            self.assertTrue(wt_dir.is_dir(), "Worktree directory must exist")
+            self.assertTrue((wt_dir / ".req").is_dir(), ".req must be copied")
+            # Delete.
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc2 = cli.main(["--git-wt-delete", wt_name])
+            self.assertEqual(rc2, 0)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_wt_delete_nonexistent_fails(self) -> None:
+        """SRS-327: deleting a non-existent worktree/branch fails."""
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-delete", "nonexistent-wt-branch-xyz"])
+            self.assertNotEqual(rc, 0)
+        finally:
+            os.chdir(prev_cwd)

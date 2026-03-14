@@ -28,12 +28,12 @@ useReq is a text-based CLI that initializes and updates repository resources for
 
 ### 1.2 Project Scope
 - Primary interface: CLI (`req`, `use-req`, `usereq`).
-- Functional domains: project resource generation, configuration persistence, source analysis, token counting, compression, construct extraction, and Doxygen field extraction.
+- Functional domains: project resource generation, configuration persistence, source analysis, token counting, compression, construct extraction, Doxygen field extraction, and git worktree management.
 - Out-of-scope for this SRS rewrite: source-code modification.
 
 ### 1.3 Components and Dependencies
 - Runtime: Python 3.11+.
-- Core libraries: `argparse`, `pathlib`, `json`, `re`, `os`, `shutil`, `urllib`.
+- Core libraries: `argparse`, `pathlib`, `json`, `re`, `os`, `shutil`, `subprocess`, `urllib`.
 - Tokenization: `tiktoken` (`cl100k_base` default).
 - Workflow automation: `.github/workflows/release-uvx.yml`.
 
@@ -116,7 +116,7 @@ No explicit performance optimizations identified.
 - **SRS-027**: The no-argument invocation behavior MUST be treated as legacy intent; current true-state behavior prints parser help and returns success without an additional standalone version line (see `SRS-028`).
 - **SRS-028**: The CLI with no arguments MUST print parser help and exit with code 0, and the current implementation does not append a standalone version line in this path.
 - **SRS-029**: When `req` is invoked with `--ver` or `--version`, the command MUST print the version number, and a startup bright-green newer-version message MAY precede it when online release-check detects a newer release.
-- **SRS-030**: The help usage string MUST include command `req`, version, and all available options including `--add-guidelines`, `--upgrade-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--references`, `--compress`, `--find`, `--enable-line-numbers`, `--tokens`, `--preserve-models`, and `--provider` in `usage: req -c ...` format. The usage string MUST NOT include any removed legacy flags (`--enable-models`, `--enable-tools`, `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--install-prompts`, `--install-agents`, `--install-skills`, `--prompts-use-agents`, `--legacy`). When `req` is invoked without parameters, the `--files-find` help text MUST include the dynamic list of available TAGs by language generated from `LANGUAGE_TAGS`. The `--find` help text MUST explicitly reference the list shown in `--files-find` to avoid duplication.
+- **SRS-030**: The help usage string MUST include command `req`, version, and all available options including `--add-guidelines`, `--upgrade-guidelines`, `--files-tokens`, `--files-references`, `--files-compress`, `--files-find`, `--references`, `--compress`, `--find`, `--enable-line-numbers`, `--tokens`, `--preserve-models`, `--provider`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, and `--git-wt-delete` in `usage: req -c ...` format. The usage string MUST NOT include any removed legacy flags (`--enable-models`, `--enable-tools`, `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--install-prompts`, `--install-agents`, `--install-skills`, `--prompts-use-agents`, `--legacy`). When `req` is invoked without parameters, the `--files-find` help text MUST include the dynamic list of available TAGs by language generated from `LANGUAGE_TAGS`. The `--find` help text MUST explicitly reference the list shown in `--files-find` to avoid duplication.
 - **SRS-031**: The implementation MUST preserve this behavior exactly: All usage, help, information, verbose, and debug outputs emitted by the script MUST be in English.
 - **SRS-032**: The implementation MUST preserve this behavior exactly: The command MUST require the `--docs-dir`, `--tests-dir`, and `--src-dir` parameters and verify that they indicate existing directories when `--base` is used; when `--here` is used, it MUST load these paths from `.req/config.json` and ignore any values passed with explicit parameters.
 - **SRS-033**: The implementation MUST preserve this behavior exactly: The `--src-dir` parameter MUST be provided several times; each past directory MUST be normalized as other paths and MUST exist, otherwise the command MUST end with error.
@@ -160,7 +160,7 @@ No explicit performance optimizations identified.
 - **SRS-266**: The repository MUST include `scripts/ruff.sh`, which bootstraps `.venv` from `requirements.txt` when missing and then execs `.venv/bin/ruff` with passthrough arguments.
 - **SRS-267**: The repository MUST include `scripts/pyright.sh`, which bootstraps `.venv` from `requirements.txt` when missing and then execs `.venv/bin/pyright` with passthrough arguments.
 - **SRS-060**: The implementation MUST preserve this behavior exactly: The command MUST save the values of `--guidelines-dir`, `--docs-dir`, `--tests-dir`, and the list of `--src-dir` in `.req/config.json` as relative paths.
-- **SRS-061**: The implementation MUST preserve this behavior exactly: The `.req/config.json` file MUST include `guidelines-dir`, `docs-dir`, `tests-dir`, and `src-dir` fields while preserving final slash; `src-dir` MUST be an array with a voice for each past directory.
+- **SRS-061**: The implementation MUST preserve this behavior exactly: The `.req/config.json` file MUST include `guidelines-dir`, `docs-dir`, `tests-dir`, `src-dir`, `base-path`, and `git-path` fields while preserving final slash for directory fields; `src-dir` MUST be an array with a voice for each past directory; `base-path` and `git-path` MUST be absolute filesystem paths.
 - **SRS-062**: The implementation MUST preserve this behavior exactly: The command MUST support the `--update` option to rerun initialization using saved parameters.
 - **SRS-063**: The implementation MUST preserve this behavior exactly: When `--update` is present, the command MUST verify the presence of `.req/config.json` and terminate with error if absent.
 - **SRS-064**: With `--update`, the CLI MUST load paths, `--preserve-models` flag, and persisted `providers` array from `.req/config.json`, then apply only CLI-provided `--preserve-models` flag and `--provider` specs as overrides; if no provider spec is active after merging, it MUST raise a config-invalid error.
@@ -425,3 +425,48 @@ No explicit performance optimizations identified.
 
 ### 5.6 Static Analysis Configuration and Dispatch Test Requirements
 - **SRS-262**: The project MUST include unit tests in `tests/test_static_check.py` for parser/dispatcher behavior plus multi-entry language arrays, including repeated `Command` entries for one language and sequential execution checks for `--files-static-check` and `--static-check`.
+
+## 6. Git Integration and Worktree Management Requirements
+
+### 6.1 Configuration Path Persistence
+- **SRS-302**: During installation (`--base` without `--update`), the CLI MUST resolve the `--base` path to an absolute filesystem path and persist it as `"base-path"` in `.req/config.json`.
+- **SRS-303**: During `--update`, if the current absolute project path differs from the `"base-path"` value in `.req/config.json`, the CLI MUST update `"base-path"` to the current absolute path.
+- **SRS-304**: When `.req/config.json` exists and is loaded, the `"base-path"` value MUST be available to all CLI functions that process project-level commands.
+- **SRS-305**: During installation (`--base`), the CLI MUST verify that the resolved `--base` path is inside a git repository by executing `git rev-parse --is-inside-work-tree` in the resolved path; if not inside a git repository, the CLI MUST terminate with a non-zero exit code and an English error message.
+- **SRS-306**: During installation, after verifying git repository membership, the CLI MUST determine the git repository root via `git rev-parse --show-toplevel` and persist it as `"git-path"` in `.req/config.json`.
+- **SRS-307**: During `--update`, if the current git repository root differs from the `"git-path"` value in `.req/config.json`, the CLI MUST update `"git-path"` to the current value.
+- **SRS-308**: The variable `"parent-path"` MUST be derived dynamically at runtime as the parent directory of `"git-path"` and MUST NOT be persisted in `.req/config.json`.
+- **SRS-309**: The variable `"base-dir"` MUST be derived dynamically at runtime as the relative path from `"git-path"` to `"base-path"` and MUST NOT be persisted in `.req/config.json`.
+- **SRS-310**: When `.req/config.json` is loaded for `--here` or `--base` on an existing project, ALL key-value parameters in the configuration file MUST be loaded and available to CLI command functions.
+
+### 6.2 Git Check Command
+- **SRS-311**: The CLI MUST support `--git-check` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
+- **SRS-312**: The `--git-check` command MUST execute `git rev-parse --is-inside-work-tree && ! git status --porcelain | grep -q . && { git symbolic-ref -q HEAD || git rev-parse --verify HEAD ; }` in the `"git-path"` directory; on non-zero exit, the CLI MUST print `ERROR: Git status unclear!\n` to stdout and exit with non-zero code.
+
+### 6.3 Docs Check Command
+- **SRS-313**: The CLI MUST support `--docs-check` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
+- **SRS-314**: The `--docs-check` command MUST construct `DOC_PATH` as `"base-path"/"docs-dir"` using values from `.req/config.json` and verify existence of `REQUIREMENTS.md`, `WORKFLOW.md`, and `REFERENCES.md` in sequential order.
+- **SRS-315**: If `DOC_PATH/REQUIREMENTS.md` does not exist, `--docs-check` MUST print `ERROR: File <DOC_PATH>/REQUIREMENTS.md does not exist, generate it with the /req-write prompt!\n` to stdout and exit with non-zero code.
+- **SRS-316**: If `DOC_PATH/WORKFLOW.md` does not exist, `--docs-check` MUST print `ERROR: File <DOC_PATH>/WORKFLOW.md does not exist, generate it with the /req-workflow prompt!\n` to stdout and exit with non-zero code.
+- **SRS-317**: If `DOC_PATH/REFERENCES.md` does not exist, `--docs-check` MUST print `ERROR: File <DOC_PATH>/REFERENCES.md does not exist, generate it with the /req-references prompt!\n` to stdout and exit with non-zero code.
+
+### 6.4 Git Worktree Name Command
+- **SRS-318**: The CLI MUST support `--git-wt-name` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
+- **SRS-319**: The `--git-wt-name` command MUST print exactly `useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>` where `<PROJECT_NAME>` is the basename of `"git-path"`, `<ORIGINAL_BRANCH>` is the current git branch name with characters incompatible with Linux or Windows paths replaced by `-`, and `<EXECUTION_ID>` is the current timestamp formatted as `YYYYMMDDHHmmss`.
+
+### 6.5 Git Worktree Create Command
+- **SRS-320**: The CLI MUST support `--git-wt-create WT_NAME` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided; `WT_NAME` is mandatory.
+- **SRS-321**: The `--git-wt-create` command MUST validate that `WT_NAME` contains only characters compatible with both Linux and Windows directory names; if invalid, it MUST print `ERROR: Invalid worktree/branch name: <WT_NAME>.\n` and exit with non-zero code.
+- **SRS-322**: The `--git-wt-create` command MUST execute `git worktree add "<parent-path>/<WT_NAME>" -b <WT_NAME>` from within the `"git-path"` directory.
+- **SRS-323**: After worktree creation, `--git-wt-create` MUST copy `"base-path"/.req` with all subdirectories to `"<parent-path>/<WT_NAME>/<base-dir>"` if `.req` is not already present in the destination.
+- **SRS-324**: After worktree creation, `--git-wt-create` MUST copy active provider directories from `"base-path"` to `"<parent-path>/<WT_NAME>/<base-dir>"`, only for providers configured in `"providers"` whose source directories exist on the filesystem.
+- **SRS-325**: The provider-to-directory mapping for `--git-wt-create` MUST be: claude -> `.claude/commands`, `.claude/agents`, `.claude/skills`; gemini -> `.gemini/commands`, `.gemini/skills`; github -> `.github/prompts`, `.github/agents`, `.github/skills`; codex -> `.codex/prompts`, `.codex/skills`; kiro -> `.kiro/prompts`, `.kiro/agents`, `.kiro/skills`; opencode -> `.opencode/agent`, `.opencode/command`, `.opencode/skill`.
+
+### 6.6 Git Worktree Delete Command
+- **SRS-326**: The CLI MUST support `--git-wt-delete WT_NAME` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided; `WT_NAME` is mandatory.
+- **SRS-327**: The `--git-wt-delete` command MUST validate that a git branch or worktree named `WT_NAME` exists; if not, it MUST print `ERROR: Invalid worktree or branch name: <WT_NAME>.\n` and exit with non-zero code.
+- **SRS-328**: The `--git-wt-delete` command MUST execute `git worktree remove "<parent-path>/<WT_NAME>" --force` and `git branch -D <WT_NAME>` from within `"git-path"`; if either command fails, it MUST print `ERROR: Unable to remove worktree or branch <WT_NAME>.\n` and exit with non-zero code.
+
+### 6.7 Git Integration Test Requirements
+- **SRS-329**: The project MUST include unit tests in `tests/test_cli.py` verifying that `"base-path"` and `"git-path"` are persisted to `.req/config.json` during installation and updated during `--update` when paths change.
+- **SRS-330**: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, and `--git-wt-delete` commands behave per their respective requirements.

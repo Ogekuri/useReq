@@ -2,7 +2,7 @@
 - `PROC:main`
   - `type`: `Process`
   - `parent_process`: `-`
-  - `role`: `CLI orchestration for setup, source analysis, compression, token counting, and static-check dispatch`
+  - `role`: `CLI orchestration for setup, source analysis, compression, token counting, static-check dispatch, git integration, and worktree management`
   - `entrypoints`: `main(argv: Optional[list[str]] = None) -> int`
   - `defining_files`: `src/usereq/cli.py`
   - `threads`: `no explicit threads detected`
@@ -58,7 +58,7 @@
     - `run_uninstall()`: dispatch uv-based uninstall before argparse parsing when `--uninstall` is present [`src/usereq/cli.py`]
     - `run_upgrade()`: dispatch uv-based self-upgrade before argparse parsing when `--upgrade` is present using hardcoded source `git+https://github.com/Ogekuri/useReq.git` [`src/usereq/cli.py`]
     - `parse_args(...)`: parse argv into `Namespace` [`src/usereq/cli.py`]
-    - `_is_here_only_project_scan_command(...)`: enforce implicit `--here` and reject `--base` for here-only project-scan commands [`src/usereq/cli.py`]
+    - `_is_here_only_project_scan_command(...)`: enforce implicit `--here` and reject `--base` for here-only project-scan commands including git and worktree commands [`src/usereq/cli.py`]
     - `_is_standalone_command(...)`: detect standalone command path [`src/usereq/cli.py`]
       - `run_files_tokens(...)`: process explicit file list for token counting [`src/usereq/cli.py`]
         - `count_files_metrics(...)`: compute token and char metrics per file [`src/usereq/token_counter.py`]
@@ -87,7 +87,7 @@
         - `load_static_check_from_config(...)`: load static-check settings from `.req/config.json` [`src/usereq/cli.py`]
         - `dispatch_static_check_for_file(...)`: dispatch checker for one file/language [`src/usereq/static_check.py`]
           - `StaticCheckBase.run(...)`: execute checker and aggregate exit code [`src/usereq/static_check.py`]
-    - `_is_project_scan_command(...)`: detect project-scan command path [`src/usereq/cli.py`]
+    - `_is_project_scan_command(...)`: detect project-scan command path including git and worktree commands [`src/usereq/cli.py`]
       - `run_references(...)`: generate references for project-selected source files [`src/usereq/cli.py`]
         - `_resolve_project_src_dirs(...)`: resolve project base and effective source dirs [`src/usereq/cli.py`]
         - `_collect_source_files(...)`: select files via `git ls-files` + extension filtering (including JavaScript `.js` and `.mjs`) [`src/usereq/cli.py`]
@@ -110,7 +110,30 @@
         - `_collect_source_files(...)`: select files via `git ls-files` + extension filtering (including JavaScript `.js` and `.mjs`) [`src/usereq/cli.py`]
         - `load_static_check_from_config(...)`: load static-check entries [`src/usereq/cli.py`]
         - `dispatch_static_check_for_file(...)`: dispatch checker for each selected file [`src/usereq/static_check.py`]
-    - `run(...)`: initialization/update command path for resources and config persistence; requires at least one `--provider` spec in non-update mode (SRS-035) [`src/usereq/cli.py`]
+      - `run_git_check(...)`: execute `--git-check` verifying clean git status and valid HEAD in configured `git-path` [`src/usereq/cli.py`]
+        - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
+        - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
+        - external boundaries: `subprocess.run(["bash", "-c", ...])` git status command
+      - `run_docs_check(...)`: execute `--docs-check` verifying existence of REQUIREMENTS.md, WORKFLOW.md, REFERENCES.md [`src/usereq/cli.py`]
+        - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
+        - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
+      - `run_git_wt_name(...)`: execute `--git-wt-name` printing standardized worktree name `useReq-<PROJECT>-<BRANCH>-<TIMESTAMP>` [`src/usereq/cli.py`]
+        - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
+        - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
+        - `sanitize_branch_name(...)`: replace path-incompatible characters with `-` [`src/usereq/cli.py`]
+        - external boundaries: `subprocess.run(["git", "branch", "--show-current"], ...)` branch name resolution
+      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch and copying `.req` and provider dirs [`src/usereq/cli.py`]
+        - `validate_wt_name(...)`: validate worktree/branch name against invalid character regex [`src/usereq/cli.py`]
+        - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
+        - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
+        - external boundaries: `subprocess.run(["git", "worktree", "add", ...])` worktree creation, `shutil.copytree(...)` directory copy
+      - `run_git_wt_delete(...)`: execute `--git-wt-delete` removing worktree and branch by name [`src/usereq/cli.py`]
+        - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
+        - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
+        - external boundaries: `subprocess.run(["git", "worktree", "remove", ...])` and `subprocess.run(["git", "branch", "-D", ...])` worktree/branch removal
+    - `run(...)`: initialization/update command path for resources and config persistence; validates git repository and persists base-path/git-path; requires at least one `--provider` spec in non-update mode (SRS-035) [`src/usereq/cli.py`]
+      - `is_inside_git_repo(...)`: verify target path is inside a git work tree (SRS-305) [`src/usereq/cli.py`]
+      - `resolve_git_root(...)`: resolve git repository root for base-path (SRS-305, SRS-306) [`src/usereq/cli.py`]
       - `load_persisted_update_flags(...)`: load persisted `preserve-models` boolean from `.req/config.json` and validate `providers` array existence (SRS-288) [`src/usereq/cli.py`]
       - `load_persisted_provider_specs(...)`: load persisted `--provider` SPEC strings from `.req/config.json` `"providers"` key (SRS-280) [`src/usereq/cli.py`]
       - `resolve_provider_configs(...)`: resolve `--provider` specs into per-provider config dicts keyed by provider name; sole mechanism for provider/artifact/option configuration (SRS-275, SRS-276) [`src/usereq/cli.py`]
@@ -119,7 +142,7 @@
       - `parse_enable_static_check(...)`: parse `--enable-static-check` entries [`src/usereq/static_check.py`]
       - `_validate_enable_static_check_command_executables(...)`: validate local executability of command-based checkers [`src/usereq/cli.py`]
       - `build_persisted_update_flags(...)`: collect persisted `preserve-models` boolean flag (SRS-288); provider/artifact/option configuration is persisted via `--provider` specs under `providers` key [`src/usereq/cli.py`]
-      - `save_config(...)`: persist `.req/config.json` including provider specs under `"providers"` key (SRS-279) [`src/usereq/cli.py`]
+      - `save_config(...)`: persist `.req/config.json` including provider specs, base-path, and git-path (SRS-279, SRS-302, SRS-306) [`src/usereq/cli.py`]
       - `list_docs_templates(...)`: enumerate package `resources/docs` templates [`src/usereq/cli.py`]
       - `find_requirements_template(...)`: validate `Requirements_Template.md` availability [`src/usereq/cli.py`]
       - `_build_provider_modules_map(...)`: derive ordered per-provider module-entry lines as `artifact` (no active options) or `artifact:options` (active options) from merged `--provider` specs [`src/usereq/cli.py`]

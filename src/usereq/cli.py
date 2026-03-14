@@ -55,6 +55,19 @@ VALID_PROVIDER_OPTIONS = frozenset(
 )
 """! @brief Valid per-provider option tokens accepted in ``--provider`` specs (SRS-275)."""
 
+PROVIDER_DIR_MAP: dict[str, list[str]] = {
+    "claude": [".claude/commands", ".claude/agents", ".claude/skills"],
+    "gemini": [".gemini/commands", ".gemini/skills"],
+    "github": [".github/prompts", ".github/agents", ".github/skills"],
+    "codex": [".codex/prompts", ".codex/skills"],
+    "kiro": [".kiro/prompts", ".kiro/agents", ".kiro/skills"],
+    "opencode": [".opencode/agent", ".opencode/command", ".opencode/skill"],
+}
+"""! @brief Provider-to-directory mapping for worktree copy operations (SRS-325)."""
+
+INVALID_WT_NAME_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\s]')
+"""! @brief Regex matching characters invalid in both Linux and Windows directory names."""
+
 
 def parse_provider_spec(spec: str) -> tuple[str, set[str], set[str]]:
     """!
@@ -281,6 +294,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
         "[--test-static-check {dummy,pylance,ruff,command} [FILES...]] "
+        "[--git-check] [--docs-check] [--git-wt-name] [--git-wt-create WT_NAME] [--git-wt-delete WT_NAME] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -462,6 +476,56 @@ def build_parser() -> argparse.ArgumentParser:
             "Run static analysis on all source files in configured src-dir directories "
             "(here-only project scan; --here implied; --base forbidden). Uses the same file-collection logic as --references "
             "and --compress. Tools are loaded from the 'static-check' section of .req/config.json."
+        ),
+    )
+    parser.add_argument(
+        "--git-check",
+        action="store_true",
+        default=False,
+        dest="git_check",
+        help=(
+            "Check git repository status: clean work tree and valid HEAD "
+            "(here-only; --here implied; --base forbidden)."
+        ),
+    )
+    parser.add_argument(
+        "--docs-check",
+        action="store_true",
+        default=False,
+        dest="docs_check",
+        help=(
+            "Check existence of REQUIREMENTS.md, WORKFLOW.md, and REFERENCES.md in docs-dir "
+            "(here-only; --here implied; --base forbidden)."
+        ),
+    )
+    parser.add_argument(
+        "--git-wt-name",
+        action="store_true",
+        default=False,
+        dest="git_wt_name",
+        help=(
+            "Print a standardized worktree name: useReq-<PROJECT>-<BRANCH>-<TIMESTAMP> "
+            "(here-only; --here implied; --base forbidden)."
+        ),
+    )
+    parser.add_argument(
+        "--git-wt-create",
+        metavar="WT_NAME",
+        default=None,
+        dest="git_wt_create",
+        help=(
+            "Create a git worktree and branch with the given name, copying .req and provider dirs "
+            "(here-only; --here implied; --base forbidden)."
+        ),
+    )
+    parser.add_argument(
+        "--git-wt-delete",
+        metavar="WT_NAME",
+        default=None,
+        dest="git_wt_delete",
+        help=(
+            "Remove a git worktree and branch by name "
+            "(here-only; --here implied; --base forbidden)."
         ),
     )
     return parser
@@ -1255,6 +1319,96 @@ def compute_sub_path(
     return format_substituted_path(normalized)
 
 
+def resolve_git_root(target_path: Path) -> Path:
+    """!
+    @brief Resolve the git repository root for a given path.
+    @param target_path Absolute path that must be inside a git repository.
+    @return Absolute path to the git repository root.
+    @throws ReqError If the path is not inside a git repository.
+    @satisfies SRS-305, SRS-306
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            cwd=str(target_path),
+            timeout=10,
+        )
+        if result.returncode != 0:
+            raise ReqError(
+                f"Error: '{target_path}' is not inside a git repository.",
+                3,
+            )
+        return Path(result.stdout.strip()).resolve()
+    except FileNotFoundError:
+        raise ReqError("Error: git is not available on PATH.", 3)
+    except subprocess.TimeoutExpired:
+        raise ReqError("Error: git command timed out.", 3)
+
+
+def is_inside_git_repo(target_path: Path) -> bool:
+    """!
+    @brief Check whether a given path is inside a git work tree.
+    @param target_path Absolute path to check.
+    @return True if inside a git work tree, False otherwise.
+    @satisfies SRS-305
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            capture_output=True,
+            text=True,
+            cwd=str(target_path),
+            timeout=10,
+        )
+        return result.returncode == 0 and result.stdout.strip() == "true"
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return False
+
+
+def sanitize_branch_name(branch: str) -> str:
+    """!
+    @brief Replace characters incompatible with Linux or Windows paths in a branch name.
+    @param branch Raw git branch name.
+    @return Sanitized string with incompatible characters replaced by `-`.
+    @satisfies SRS-319
+    """
+    return re.sub(r'[<>:"/\\|?*\x00-\x1f\s~^{}\[\]]', "-", branch)
+
+
+def validate_wt_name(wt_name: str) -> bool:
+    """!
+    @brief Validate that a worktree/branch name contains only valid directory characters.
+    @param wt_name Candidate worktree name.
+    @return True if valid, False if invalid characters are present.
+    @satisfies SRS-321
+    """
+    if not wt_name or wt_name in (".", ".."):
+        return False
+    return INVALID_WT_NAME_RE.search(wt_name) is None
+
+
+def load_full_config(project_base: Path) -> dict:
+    """!
+    @brief Load ALL parameters from `.req/config.json` as a raw dictionary.
+    @param project_base The project root path.
+    @return Full dictionary of all config.json key-value pairs.
+    @throws ReqError If config file is missing or invalid JSON.
+    @satisfies SRS-310
+    """
+    config_path = project_base / ".req" / "config.json"
+    if not config_path.is_file():
+        raise ReqError(
+            "Error: .req/config.json not found in the project root",
+            11,
+        )
+    try:
+        return json.loads(config_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ReqError("Error: .req/config.json is not valid", 11) from exc
+
+
 def save_config(
     project_base: Path,
     guidelines_dir_value: str,
@@ -1264,23 +1418,27 @@ def save_config(
     static_check_config: Optional[dict] = None,
     persisted_flags: Optional[dict[str, bool]] = None,
     provider_specs: Optional[list[str]] = None,
+    base_path_abs: Optional[str] = None,
+    git_path_abs: Optional[str] = None,
 ) -> None:
     """!
     @brief Saves normalized parameters to .req/config.json.
-        @param project_base The project root path.
-        @param guidelines_dir_value Relative path to guidelines directory.
-        @param doc_dir_value Relative path to docs directory.
-        @param test_dir_value Relative path to tests directory.
-        @param src_dir_values List of relative paths to source directories.
-        @param static_check_config Optional dict of static-check config to persist under key
-          `"static-check"`; omitted from JSON when None or empty.
-        @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
-        @param provider_specs Optional list of raw ``--provider`` SPEC strings to persist
-          under the `"providers"` key (SRS-279).
-        @details Writes full config payload to `.req/config.json`. When `static_check_config`
-        is a non-empty dict, it is included under the `"static-check"` key (SRS-252).
-        When `provider_specs` is a non-empty list, it is included under the `"providers"` key (SRS-279).
+    @param project_base The project root path.
+    @param guidelines_dir_value Relative path to guidelines directory.
+    @param doc_dir_value Relative path to docs directory.
+    @param test_dir_value Relative path to tests directory.
+    @param src_dir_values List of relative paths to source directories.
+    @param static_check_config Optional dict of static-check config to persist under key
+      `"static-check"`; omitted from JSON when None or empty.
+    @param persisted_flags Optional dict with persisted boolean flags used by `--update`.
+    @param provider_specs Optional list of raw ``--provider`` SPEC strings to persist
+      under the `"providers"` key (SRS-279).
+    @param base_path_abs Optional absolute path string for `"base-path"` (SRS-302).
+    @param git_path_abs Optional absolute path string for `"git-path"` (SRS-306).
+    @details Writes full config payload to `.req/config.json`. Includes `"base-path"` and
+    `"git-path"` when provided (SRS-302, SRS-306).
     @return {None} Function return value.
+    @satisfies SRS-302, SRS-306
     """
     config_path = project_base / ".req" / "config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1290,6 +1448,10 @@ def save_config(
         "tests-dir": test_dir_value,
         "src-dir": src_dir_values,
     }
+    if base_path_abs is not None:
+        payload["base-path"] = base_path_abs
+    if git_path_abs is not None:
+        payload["git-path"] = git_path_abs
     if static_check_config:
         payload["static-check"] = static_check_config
     if provider_specs:
@@ -2435,6 +2597,17 @@ def run(args: Namespace) -> None:
     if not project_base.exists():
         raise ReqError(f"Error: PROJECT_BASE '{project_base}' does not exist", 2)
 
+    # SRS-305: Verify project_base is inside a git repository during installation.
+    if not is_inside_git_repo(project_base):
+        raise ReqError(
+            f"Error: '{project_base}' is not inside a git repository.",
+            3,
+        )
+    # SRS-306: Determine git root.
+    git_root = resolve_git_root(project_base)
+    base_path_abs = str(project_base)
+    git_path_abs = str(git_root)
+
     guidelines_dir = getattr(args, "guidelines_dir", None)
     doc_dir = getattr(args, "docs_dir", None)
     test_dir = getattr(args, "tests_dir", None)
@@ -2692,10 +2865,12 @@ def run(args: Namespace) -> None:
             provider_specs=effective_provider_specs
             if effective_provider_specs
             else None,
+            base_path_abs=base_path_abs,
+            git_path_abs=git_path_abs,
         )
-    elif merged_static_check or effective_provider_specs:
-        # --update path: re-save config.json with merged static-check entries (SRS-252, SRS-301)
-        # and/or updated provider specs (SRS-279).
+    else:
+        # --update path: always re-save config.json to update base-path/git-path (SRS-303, SRS-307)
+        # and merge static-check entries (SRS-252, SRS-301) and provider specs (SRS-279).
         existing_full_config = load_config(project_base)
         persisted_flags = load_persisted_update_flags(project_base)
         save_config(
@@ -2704,11 +2879,13 @@ def run(args: Namespace) -> None:
             str(existing_full_config["docs-dir"]),
             str(existing_full_config["tests-dir"]),
             list(existing_full_config["src-dir"]),  # type: ignore[arg-type]
-            static_check_config=merged_static_check,
+            static_check_config=merged_static_check if merged_static_check else None,
             persisted_flags=persisted_flags,
             provider_specs=effective_provider_specs
             if effective_provider_specs
             else None,
+            base_path_abs=base_path_abs,
+            git_path_abs=git_path_abs,
         )
 
     sub_guidelines_dir = compute_sub_path(
@@ -3868,7 +4045,8 @@ def _is_project_scan_command(args: Namespace) -> bool:
     @param args Parsed CLI namespace.
     @return True when any project-scan flag is present.
     @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`,
-      and `--static-check`. SRS-257 adds `--static-check` to this group.
+      `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`,
+      and `--git-wt-delete`.
     """
     return bool(
         getattr(args, "references", False)
@@ -3876,15 +4054,22 @@ def _is_project_scan_command(args: Namespace) -> bool:
         or getattr(args, "tokens", False)
         or getattr(args, "find", None)
         or getattr(args, "static_check", False)
+        or getattr(args, "git_check", False)
+        or getattr(args, "docs_check", False)
+        or getattr(args, "git_wt_name", False)
+        or getattr(args, "git_wt_create", None)
+        or getattr(args, "git_wt_delete", None)
     )
 
 
 def _is_here_only_project_scan_command(args: Namespace) -> bool:
     """!
-        @brief Check if args request a project-scan command restricted to `--here` mode.
-        @param args Parsed CLI namespace.
-        @return True when command is one of `--references`, `--compress`, `--tokens`, `--find`, `--static-check`.
-    @details Implements the _is_here_only_project_scan_command function behavior with deterministic control flow.
+    @brief Check if args request a project-scan command restricted to `--here` mode.
+    @param args Parsed CLI namespace.
+    @return True when command requires implicit `--here` and rejects `--base`.
+    @details Includes `--references`, `--compress`, `--tokens`, `--find`, `--static-check`,
+      `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, and `--git-wt-delete`.
+    @satisfies SRS-311, SRS-313, SRS-318, SRS-320, SRS-326
     """
     return bool(
         getattr(args, "references", False)
@@ -3892,7 +4077,254 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
         or getattr(args, "tokens", False)
         or getattr(args, "find", None)
         or getattr(args, "static_check", False)
+        or getattr(args, "git_check", False)
+        or getattr(args, "docs_check", False)
+        or getattr(args, "git_wt_name", False)
+        or getattr(args, "git_wt_create", None)
+        or getattr(args, "git_wt_delete", None)
     )
+
+
+def run_git_check(args: Namespace) -> None:
+    """!
+    @brief Execute --git-check: verify clean git status and valid HEAD.
+    @param args Parsed CLI namespace.
+    @return {None} Function return value.
+    @throws ReqError On git status unclear or config load failure.
+    @satisfies SRS-311, SRS-312
+    """
+    project_base = _resolve_project_base(args)
+    full_cfg = load_full_config(project_base)
+    git_path = full_cfg.get("git-path")
+    if not git_path or not Path(git_path).is_dir():
+        raise ReqError("Error: git-path not configured or does not exist.", 11)
+    cmd = (
+        'git rev-parse --is-inside-work-tree '
+        '&& ! git status --porcelain | grep -q . '
+        '&& { git symbolic-ref -q HEAD || git rev-parse --verify HEAD ; }'
+    )
+    try:
+        result = subprocess.run(
+            ["bash", "-c", cmd],
+            capture_output=True,
+            text=True,
+            cwd=git_path,
+            timeout=30,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        print("ERROR: Git status unclear!")
+        raise ReqError("ERROR: Git status unclear!", 1)
+    if result.returncode != 0:
+        print("ERROR: Git status unclear!")
+        raise ReqError("ERROR: Git status unclear!", 1)
+    print(result.stdout, end="")
+
+
+def run_docs_check(args: Namespace) -> None:
+    """!
+    @brief Execute --docs-check: verify existence of REQUIREMENTS.md, WORKFLOW.md, REFERENCES.md.
+    @param args Parsed CLI namespace.
+    @return {None} Function return value.
+    @throws ReqError If any required doc file is missing.
+    @satisfies SRS-313, SRS-314, SRS-315, SRS-316, SRS-317
+    """
+    project_base = _resolve_project_base(args)
+    full_cfg = load_full_config(project_base)
+    base_path = full_cfg.get("base-path", str(project_base))
+    docs_dir = full_cfg.get("docs-dir", "docs")
+    if isinstance(docs_dir, str):
+        docs_dir = docs_dir.rstrip("/\\")
+    doc_path = Path(base_path) / docs_dir
+    for filename, prompt_cmd in [
+        ("REQUIREMENTS.md", "/req-write"),
+        ("WORKFLOW.md", "/req-workflow"),
+        ("REFERENCES.md", "/req-references"),
+    ]:
+        full_path = doc_path / filename
+        if not full_path.is_file():
+            msg = (
+                f"ERROR: File {doc_path}/{filename} does not exist, "
+                f"generate it with the {prompt_cmd} prompt!"
+            )
+            print(msg)
+            raise ReqError(msg, 1)
+
+
+def run_git_wt_name(args: Namespace) -> None:
+    """!
+    @brief Execute --git-wt-name: print standardized worktree name.
+    @param args Parsed CLI namespace.
+    @return {None} Function return value.
+    @satisfies SRS-318, SRS-319
+    """
+    project_base = _resolve_project_base(args)
+    full_cfg = load_full_config(project_base)
+    git_path = full_cfg.get("git-path")
+    if not git_path or not Path(git_path).is_dir():
+        raise ReqError("Error: git-path not configured or does not exist.", 11)
+    project_name = Path(git_path).name
+    try:
+        branch_result = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True,
+            text=True,
+            cwd=git_path,
+            timeout=10,
+        )
+        branch = branch_result.stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        branch = "unknown"
+    sanitized_branch = sanitize_branch_name(branch)
+    execution_id = datetime.now().strftime("%Y%m%d%H%M%S")
+    print(f"useReq-{project_name}-{sanitized_branch}-{execution_id}")
+
+
+def run_git_wt_create(args: Namespace) -> None:
+    """!
+    @brief Execute --git-wt-create: create a git worktree and copy .req/provider dirs.
+    @param args Parsed CLI namespace.
+    @return {None} Function return value.
+    @throws ReqError On invalid name, git command failure, or config errors.
+    @satisfies SRS-320, SRS-321, SRS-322, SRS-323, SRS-324, SRS-325
+    """
+    wt_name: str = args.git_wt_create
+    if not validate_wt_name(wt_name):
+        msg = f"ERROR: Invalid worktree/branch name: {wt_name}."
+        print(msg)
+        raise ReqError(msg, 1)
+    project_base = _resolve_project_base(args)
+    full_cfg = load_full_config(project_base)
+    git_path_str = full_cfg.get("git-path")
+    base_path_str = full_cfg.get("base-path", str(project_base))
+    if not git_path_str or not Path(git_path_str).is_dir():
+        raise ReqError("Error: git-path not configured or does not exist.", 11)
+    git_path = Path(git_path_str)
+    base_path = Path(base_path_str)
+    parent_path = git_path.parent
+    # SRS-309: base-dir = relative path from git-path to base-path.
+    try:
+        base_dir = base_path.relative_to(git_path)
+    except ValueError:
+        base_dir = Path(".")
+    # SRS-322: create worktree + branch.
+    wt_dest = parent_path / wt_name
+    try:
+        result = subprocess.run(
+            ["git", "worktree", "add", str(wt_dest), "-b", wt_name],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=30,
+        )
+        if result.returncode != 0:
+            raise ReqError(
+                f"Error: git worktree add failed: {result.stderr.strip()}", 1
+            )
+    except FileNotFoundError:
+        raise ReqError("Error: git is not available on PATH.", 3)
+    except subprocess.TimeoutExpired:
+        raise ReqError("Error: git worktree add timed out.", 3)
+    # SRS-323: copy .req if not present in new worktree.
+    wt_base_dir = wt_dest / base_dir
+    wt_req = wt_base_dir / ".req"
+    src_req = base_path / ".req"
+    if src_req.is_dir() and not wt_req.is_dir():
+        shutil.copytree(str(src_req), str(wt_req))
+    # SRS-324, SRS-325: copy active provider directories.
+    providers_specs = full_cfg.get("providers", [])
+    active_providers: set[str] = set()
+    if isinstance(providers_specs, list):
+        for spec in providers_specs:
+            if isinstance(spec, str) and ":" in spec:
+                active_providers.add(spec.split(":")[0].lower())
+    for provider, dirs in PROVIDER_DIR_MAP.items():
+        if provider not in active_providers:
+            continue
+        for rel_dir in dirs:
+            src_dir = base_path / rel_dir
+            dst_dir = wt_base_dir / rel_dir
+            if src_dir.is_dir() and not dst_dir.is_dir():
+                shutil.copytree(str(src_dir), str(dst_dir))
+
+
+def run_git_wt_delete(args: Namespace) -> None:
+    """!
+    @brief Execute --git-wt-delete: remove a git worktree and branch by name.
+    @param args Parsed CLI namespace.
+    @return {None} Function return value.
+    @throws ReqError On invalid name or git removal failure.
+    @satisfies SRS-326, SRS-327, SRS-328
+    """
+    wt_name: str = args.git_wt_delete
+    project_base = _resolve_project_base(args)
+    full_cfg = load_full_config(project_base)
+    git_path_str = full_cfg.get("git-path")
+    if not git_path_str or not Path(git_path_str).is_dir():
+        raise ReqError("Error: git-path not configured or does not exist.", 11)
+    git_path = Path(git_path_str)
+    parent_path = git_path.parent
+    # SRS-327: validate branch or worktree exists.
+    branch_exists = False
+    try:
+        br = subprocess.run(
+            ["git", "show-ref", "--verify", f"refs/heads/{wt_name}"],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=10,
+        )
+        if br.returncode == 0:
+            branch_exists = True
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    wt_exists = False
+    try:
+        wt_list = subprocess.run(
+            ["git", "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=10,
+        )
+        if wt_list.returncode == 0 and wt_name in wt_list.stdout:
+            wt_exists = True
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    if not branch_exists and not wt_exists:
+        msg = f"ERROR: Invalid worktree or branch name: {wt_name}."
+        print(msg)
+        raise ReqError(msg, 1)
+    # SRS-328: remove worktree and branch.
+    wt_path = parent_path / wt_name
+    error_occurred = False
+    try:
+        r1 = subprocess.run(
+            ["git", "worktree", "remove", str(wt_path), "--force"],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=30,
+        )
+        if r1.returncode != 0:
+            error_occurred = True
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        error_occurred = True
+    try:
+        r2 = subprocess.run(
+            ["git", "branch", "-D", wt_name],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=10,
+        )
+        if r2.returncode != 0:
+            error_occurred = True
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        error_occurred = True
+    if error_occurred:
+        msg = f"ERROR: Unable to remove worktree or branch {wt_name}."
+        print(msg)
+        raise ReqError(msg, 1)
 
 
 def run_files_tokens(files: list[str]) -> None:
@@ -4300,7 +4732,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         if _is_here_only_project_scan_command(args):
             if getattr(args, "base", None):
                 raise ReqError(
-                    "Error: --references, --compress, --tokens, --find, and --static-check do not allow --base; use --here.",
+                    "Error: --references, --compress, --tokens, --find, --static-check, "
+                    "--git-check, --docs-check, --git-wt-name, --git-wt-create, and "
+                    "--git-wt-delete do not allow --base; use --here.",
                     1,
                 )
             args.here = True
@@ -4342,6 +4776,16 @@ def main(argv: Optional[list[str]] = None) -> int:
             elif getattr(args, "static_check", False):
                 rc = run_project_static_check_cmd(args)
                 return rc
+            elif getattr(args, "git_check", False):
+                run_git_check(args)
+            elif getattr(args, "docs_check", False):
+                run_docs_check(args)
+            elif getattr(args, "git_wt_name", False):
+                run_git_wt_name(args)
+            elif getattr(args, "git_wt_create", None):
+                run_git_wt_create(args)
+            elif getattr(args, "git_wt_delete", None):
+                run_git_wt_delete(args)
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):
