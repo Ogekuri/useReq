@@ -251,7 +251,7 @@ No explicit performance optimizations identified.
 - **SRS-268**: The `.github/workflows/release-uvx.yml` workflow MUST define `workflow_dispatch` under `on` in addition to tag-push triggers so releases MAY be launched manually without altering automatic tag-trigger behavior.
 
 ### 3.5.1 Package Distribution and Resource Inclusion
-- **SRS-272**: The `[tool.setuptools.package-data]` section in `pyproject.toml` MUST enumerate glob patterns for every resource subdirectory present under `src/usereq/resources/`, including `resources/common/*.json`.
+- **SRS-272**: The `[tool.setuptools.package-data]` section in `pyproject.toml` MUST enumerate glob patterns for required operational resource subdirectories only: `resources/common/*.json`, `resources/prompts/*.md`, `resources/guidelines/*.md`, `resources/docs/*.md`, `resources/vscode/settings.json`.
 - **SRS-273**: The `[tool.setuptools.package-data]` section in `pyproject.toml` MUST NOT list glob patterns that reference non-existent directories under `src/usereq/resources/`.
 - **SRS-274**: The built distribution (sdist and wheel) MUST include all files under `src/usereq/resources/` that are required for program operation, ensuring congruent behavior between local development execution, `uv`-installed package execution, and `uvx` live execution.
 

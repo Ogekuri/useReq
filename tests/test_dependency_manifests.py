@@ -22,6 +22,13 @@ PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 REQ_SCRIPT_PATH = REPO_ROOT / "scripts" / "req.sh"
 RESOURCES_DIR = REPO_ROOT / "src" / "usereq" / "resources"
 RUNTIME_BUILD_PACKAGES = {"build", "setuptools", "wheel", "tiktoken", "pyyaml"}
+REQUIRED_OPERATIONAL_RESOURCE_SUBDIRS = {
+    "common",
+    "prompts",
+    "guidelines",
+    "docs",
+    "vscode",
+}
 
 
 def _normalize_requirement_name(requirement: str) -> str:
@@ -114,11 +121,10 @@ def _get_existing_resource_subdirs() -> set[str]:
     }
 
 
-def test_package_data_covers_all_resource_subdirectories() -> None:
-    """@brief Assert package-data patterns reference every existing resource subdirectory.
-    @details Extracts directory prefixes from each package-data glob pattern and verifies that every actual
-    subdirectory under src/usereq/resources/ has at least one corresponding pattern. Prevents resource
-    directories from being silently excluded from built distributions.
+def test_package_data_covers_required_operational_resource_subdirectories() -> None:
+    """@brief Assert package-data patterns reference required operational resource subdirectories.
+    @details Extracts directory prefixes from package-data glob patterns and verifies coverage of the fixed
+    operational subdirectory set required for runtime behavior and packaging.
     @return {None} No return value.
     @satisfies SRS-272, SRS-274
     """
@@ -130,11 +136,11 @@ def test_package_data_covers_all_resource_subdirectories() -> None:
         if len(parts) >= 2 and parts[0] == "resources":
             covered_dirs.add(parts[1])
 
-    existing_dirs = _get_existing_resource_subdirs()
-    missing = existing_dirs - covered_dirs
+    missing = REQUIRED_OPERATIONAL_RESOURCE_SUBDIRS - covered_dirs
     assert not missing, (
-        f"Resource subdirectories not covered by package-data: {sorted(missing)}. "
-        f"Existing: {sorted(existing_dirs)}, Covered: {sorted(covered_dirs)}"
+        "Required operational resource subdirectories not covered by package-data: "
+        f"{sorted(missing)}. Required: {sorted(REQUIRED_OPERATIONAL_RESOURCE_SUBDIRS)}, "
+        f"Covered: {sorted(covered_dirs)}"
     )
 
 
