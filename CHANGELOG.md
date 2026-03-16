@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.37.0](https://github.com/Ogekuri/useReq/compare/v0.36.0..v0.37.0) - 2026-03-16
+### 🚜  Changes
+- BREAKING CHANGE: remove ruff.sh and pyright.sh accessory scripts [useReq] *(scripts)*
+  - Remove SRS-266 (scripts/ruff.sh requirement)
+  - Remove SRS-267 (scripts/pyright.sh requirement)
+  - Delete scripts/ruff.sh and scripts/pyright.sh
+  - Remove PROC:ruff-sh and PROC:pyright-sh from WORKFLOW.md
+  - Regenerate REFERENCES.md without deleted scripts
+  - No source code or test changes needed (no references existed)
+- BREAKING CHANGE: include tests-dir in --static-check file selection [useReq] *(static-check)*
+  - SRS-256: --static-check now selects files from both src-dir and tests-dir
+  - SRS-336: tests-dir loaded from config.json; missing/invalid skipped silently
+  - SRS-337: unit tests verify both src-dir and tests-dir file inclusion
+  - run_project_static_check_cmd loads full config to extract tests-dir
+  - Two new tests in TestStaticCheckProjectScan class
+  - WORKFLOW.md updated with new call-trace for load_full_config
+  - REFERENCES.md regenerated
+
 ## [0.36.0](https://github.com/Ogekuri/useReq/compare/v0.35.0..v0.36.0) - 2026-03-16
 ### 🚜  Changes
 - enforce Command params-before-file order [useReq] *(static-check)*
@@ -858,6 +876,7 @@
 - \[0.34.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.34.0
 - \[0.35.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.35.0
 - \[0.36.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.36.0
+- \[0.37.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.37.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -895,3 +914,4 @@
 [0.34.0]: https://github.com/Ogekuri/useReq/compare/v0.33.0..v0.34.0
 [0.35.0]: https://github.com/Ogekuri/useReq/compare/v0.34.0..v0.35.0
 [0.36.0]: https://github.com/Ogekuri/useReq/compare/v0.35.0..v0.36.0
+[0.37.0]: https://github.com/Ogekuri/useReq/compare/v0.36.0..v0.37.0
