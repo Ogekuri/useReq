@@ -3893,7 +3893,7 @@ class TestGitWtNameCommand(unittest.TestCase):
 
 
 class TestGitWtCreateDeleteCommands(unittest.TestCase):
-    """SRS-320..SRS-328, SRS-330..SRS-332: Verifies --git-wt-create and --git-wt-delete."""
+    """SRS-320..SRS-328, SRS-330..SRS-332, SRS-335: Verifies --git-wt-create and --git-wt-delete."""
 
     def setUp(self) -> None:
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-cd-"))
@@ -3961,8 +3961,11 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
             os.chdir(prev_cwd)
 
     def test_wt_create_and_delete_roundtrip(self) -> None:
-        """SRS-322, SRS-323, SRS-328, SRS-331, SRS-332: create then delete a worktree."""
+        """SRS-322, SRS-323, SRS-328, SRS-331, SRS-332, SRS-335: create then delete a worktree."""
         wt_name = "test-wt-roundtrip"
+        src_venv = self.TEST_DIR / ".venv"
+        (src_venv / "bin").mkdir(parents=True, exist_ok=True)
+        (src_venv / "bin" / "marker").write_text("venv-copy", encoding="utf-8")
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
@@ -3972,6 +3975,11 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
             wt_dir = self.TEST_DIR.parent / wt_name
             self.assertTrue(wt_dir.is_dir(), "Worktree directory must exist")
             self.assertTrue((wt_dir / ".req").is_dir(), ".req must be copied")
+            self.assertTrue((wt_dir / ".venv").is_dir(), ".venv must be copied")
+            self.assertEqual(
+                (wt_dir / ".venv" / "bin" / "marker").read_text(encoding="utf-8"),
+                "venv-copy",
+            )
             self.assertEqual(Path.cwd(), wt_dir)
             # Delete.
             with patch("usereq.cli.maybe_notify_newer_version", autospec=True):

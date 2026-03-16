@@ -462,6 +462,7 @@ No explicit performance optimizations identified.
 - **SRS-324**: After worktree creation, `--git-wt-create` MUST copy active provider directories from `"base-path"` to `"<parent-path>/<WT_NAME>/<base-dir>"`, only for providers configured in `"providers"` whose source directories exist on the filesystem.
 - **SRS-325**: The provider-to-directory mapping for `--git-wt-create` MUST be: claude -> `.claude/commands`, `.claude/agents`, `.claude/skills`; gemini -> `.gemini/commands`, `.gemini/skills`; github -> `.github/prompts`, `.github/agents`, `.github/skills`; codex -> `.codex/prompts`, `.codex/skills`; kiro -> `.kiro/prompts`, `.kiro/agents`, `.kiro/skills`; opencode -> `.opencode/agent`, `.opencode/command`, `.opencode/skill`.
 - **SRS-331**: The `--git-wt-create` command MUST change the current directory to `"<parent-path>/<WT_NAME>/<base-dir>"` as the final operation only after successful worktree and copy operations; if any error occurs, it MUST NOT change the current directory.
+- **SRS-335**: Before the final directory change, `--git-wt-create` MUST check for a `.venv` directory in `"base-path"` first, then `"git-path"`; when found and destination is absent, it MUST copy `.venv` preserving its relative path from `"git-path"`.
 
 ### 6.6 Git Worktree Delete Command
 - **SRS-326**: The CLI MUST support `--git-wt-delete WT_NAME` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided; `WT_NAME` is mandatory.
@@ -475,4 +476,4 @@ No explicit performance optimizations identified.
 
 ### 6.8 Git Integration Test Requirements
 - **SRS-329**: The project MUST include unit tests in `tests/test_cli.py` verifying that `"base-path"` and `"git-path"` are persisted to `.req/config.json` during installation and updated during `--update` when paths change.
-- **SRS-330**: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`, and `--git-wt-exit` commands behave per their respective requirements.
+- **SRS-330**: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create` (including `.venv` copy behavior), `--git-wt-delete`, and `--git-wt-exit` commands behave per their respective requirements.

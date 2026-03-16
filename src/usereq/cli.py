@@ -4195,7 +4195,7 @@ def run_git_wt_create(args: Namespace) -> None:
     @param args Parsed CLI namespace.
     @return {None} Function return value.
     @throws ReqError On invalid name, git command failure, or config errors.
-    @satisfies SRS-320, SRS-321, SRS-322, SRS-323, SRS-324, SRS-325, SRS-331
+    @satisfies SRS-320, SRS-321, SRS-322, SRS-323, SRS-324, SRS-325, SRS-331, SRS-335
     """
     wt_name: str = args.git_wt_create
     if not validate_wt_name(wt_name):
@@ -4255,6 +4255,22 @@ def run_git_wt_create(args: Namespace) -> None:
             dst_dir = wt_base_dir / rel_dir
             if src_dir.is_dir() and not dst_dir.is_dir():
                 shutil.copytree(str(src_dir), str(dst_dir))
+    # SRS-335: copy .venv from base-path first, then git-path, preserving path from git-path.
+    src_venv: Optional[Path] = None
+    base_venv = base_path / ".venv"
+    git_venv = git_path / ".venv"
+    rel_venv = Path(".venv")
+    if base_venv.is_dir():
+        src_venv = base_venv
+        rel_venv = base_dir / ".venv"
+    elif git_venv.is_dir():
+        src_venv = git_venv
+        rel_venv = Path(".venv")
+    if src_venv is not None:
+        dst_venv = wt_dest / rel_venv
+        if not dst_venv.is_dir():
+            dst_venv.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(str(src_venv), str(dst_venv))
     os.chdir(wt_base_dir)
 
 
