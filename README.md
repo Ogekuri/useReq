@@ -237,6 +237,21 @@ req \
 - Run static analysis on git-tracked source files under configured `src-dir` directories using tools configured in `.req/config.json` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--static-check`
 
+- Check repository integrity for the configured git path: clean working tree and valid HEAD (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--git-check`
+
+- Check canonical docs presence in configured `docs-dir`: `REQUIREMENTS.md`, `WORKFLOW.md`, `REFERENCES.md` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--docs-check`
+
+- Create an isolated git worktree and branch with the provided name; also copies `.req/` and active provider directories into the new worktree context (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--git-wt-create WT_NAME`
+
+- Remove the git worktree and branch identified by name (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--git-wt-delete WT_NAME`
+
+- Exit from a worktree session by changing the current directory to the configured `base-path` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--git-wt-exit`
+
 
 - Add `--enable-line-numbers` to include `<n>:` prefixes in `--files-compress`, `--compress`, `--files-find`, and `--find` output.
 
