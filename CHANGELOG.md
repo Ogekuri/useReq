@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.34.0](https://github.com/Ogekuri/useReq/compare/v0.33.0..v0.34.0) - 2026-03-16
+### 🐛  Bug Fixes
+- Minor fixex in promtps.
+- Major fixes on prompts.
+
+### 🚜  Changes
+- decouple resource coverage from unused skills dir [useReq] *(packaging)*
+  - Update SRS-272 to require only operational resource patterns.
+  - Adjust dependency manifest test to validate fixed required subdirectories.
+  - Keep provider skills generation logic unchanged; resources/skills remains absent.
+- BREAKING CHANGE: remove provider skills artifact support [useReq] *(cli)*
+  - Update SRS to drop skills artifact handling requirements.
+  - Remove skills artifact parsing and generation logic from src/usereq/cli.py.
+  - Adjust tests to align with prompts/agents-only provider artifacts.
+  - Regenerate docs/REFERENCES.md and update docs/WORKFLOW.md runtime notes.
+- harden git-wt safety [useReq] *(cli)*
+  - Update SRS for exact-target and rollback guarantees in worktree commands.\nHarden --git-wt-create with rollback helper on post-create failures.\nHarden --git-wt-delete with exact path/ref matching and forced dirty-target removal.\nAdd regression tests for rollback, dirty delete, and partial-name safety.\nUpdate WORKFLOW and regenerate REFERENCES.
+
+### ◀️  Revert
+- Roll back branch to 26f54c01 (26f54c01a215e861b350ce3d6244cafb3d1f0b80).
+
 ## [0.33.0](https://github.com/Ogekuri/useReq/compare/v0.32.0..v0.33.0) - 2026-03-16
 ### ⛰️  Features
 - Update prompt files.
@@ -804,6 +825,7 @@
 - \[0.31.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.31.0
 - \[0.32.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.32.0
 - \[0.33.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.33.0
+- \[0.34.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.34.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -838,3 +860,4 @@
 [0.31.0]: https://github.com/Ogekuri/useReq/compare/v0.30.0..v0.31.0
 [0.32.0]: https://github.com/Ogekuri/useReq/compare/v0.31.0..v0.32.0
 [0.33.0]: https://github.com/Ogekuri/useReq/compare/v0.32.0..v0.33.0
+[0.34.0]: https://github.com/Ogekuri/useReq/compare/v0.33.0..v0.34.0
