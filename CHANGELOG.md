@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.38.0](https://github.com/Ogekuri/useReq/compare/v0.37.0..v0.38.0) - 2026-03-16
+### 🐛  Bug Fixes
+- remove pytest from requirements.txt [useReq] *(dependencies)*
+  - Removed 'pytest' from requirements.txt; it is a test/dev dependency,
+  - not a runtime/build package (violates SRS-055).
+  - Restores alignment between pyproject.toml and requirements.txt (SRS-264).
+  - Both test_requirements_contains_only_runtime_build_packages and
+  - test_pyproject_dependencies_are_aligned_with_requirements now pass.
+  - Fallback no-test flow: defect is manifest-only, no source code change;
+  - existing tests already cover this requirement.
+- Fix requirements.txt file.
+
+### 🚜  Changes
+- BREAKING CHANGE: use package-installed ruff/pyright via sys.executable [useReq] *(static-check)*
+  - SRS-242: StaticCheckPylance now invokes pyright via [sys.executable, "-m", "pyright"]
+  - SRS-243: StaticCheckRuff now invokes ruff via [sys.executable, "-m", "ruff", "check"]
+  - SRS-264: Updated to require ruff and pyright in pyproject.toml project.dependencies
+  - SRS-338: pyproject.toml [project].dependencies includes ruff and pyright
+  - SRS-339: Pylance/Ruff checkers use sys.executable -m invocation (no external PATH)
+  - SRS-340: New test validates ruff/pyright in pyproject.toml dependencies
+  - Updated test_static_check.py to verify new command invocation format
+  - Updated test_dependency_manifests.py with pyright/ruff dependency test
+  - Regenerated REFERENCES.md
+- BREAKING CHANGE: add pytest, pyright, ruff to requirements.txt [useReq] *(dependencies)*
+  - SRS-055: requirements.txt now covers all project deps
+  - SRS-264: pyproject.toml deps now required to be subset of requirements.txt
+  - Added pytest, pyright, ruff to requirements.txt
+  - Renamed RUNTIME_BUILD_PACKAGES to ALL_PROJECT_PACKAGES in tests
+  - Alignment test checks subset relationship instead of exact match
+- BREAKING CHANGE: suppress stdout output for passing checks in --files-static-check and --static-check [useReq] *(static-check)*
+  - SRS-241/242/243/244: add fail_only mode to all checker classes;
+  - when active, passing files produce no output (no header, no Result: OK,
+  - no trailing blank line)
+  - SRS-253: --files-static-check now dispatches with fail_only=True
+  - SRS-256: --static-check now dispatches with fail_only=True
+  - SRS-261: dispatch_static_check_for_file gains fail_only kwarg (default False)
+  - SRS-247: add fail_only mode unit tests for all checker classes
+  - --test-static-check retains verbose output (fail_only defaults to False)
+  - Updated WORKFLOW.md and REFERENCES.md to reflect changes
+
 ## [0.37.0](https://github.com/Ogekuri/useReq/compare/v0.36.0..v0.37.0) - 2026-03-16
 ### 🚜  Changes
 - BREAKING CHANGE: remove ruff.sh and pyright.sh accessory scripts [useReq] *(scripts)*
@@ -877,6 +917,7 @@
 - \[0.35.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.35.0
 - \[0.36.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.36.0
 - \[0.37.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.37.0
+- \[0.38.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.38.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -915,3 +956,4 @@
 [0.35.0]: https://github.com/Ogekuri/useReq/compare/v0.34.0..v0.35.0
 [0.36.0]: https://github.com/Ogekuri/useReq/compare/v0.35.0..v0.36.0
 [0.37.0]: https://github.com/Ogekuri/useReq/compare/v0.36.0..v0.37.0
+[0.38.0]: https://github.com/Ogekuri/useReq/compare/v0.37.0..v0.38.0
