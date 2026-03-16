@@ -2,9 +2,7 @@
 ```
 .
 ├── scripts
-│   ├── pyright.sh
 │   ├── req.sh
-│   ├── ruff.sh
 │   └── test-install.sh
 └── src
     └── usereq
@@ -21,72 +19,8 @@
         └── token_counter.py
 ```
 
-# pyright.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
-> Path: `scripts/pyright.sh`
-
-## Imports
-```
-source "${VENVDIR}/bin/activate"
-source "${VENVDIR}/bin/activate"
-```
-
-## Definitions
-
-- var `FULL_PATH=$(readlink -f "$0")` (L9)
-- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
-- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
-- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
-- var `VENVDIR="${BASE_DIR}/.venv"` (L27)
-- var `REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"` (L28)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L51)
-## Symbol Index
-|Symbol|Kind|Vis|Lines|Sig|
-|---|---|---|---|---|
-|`FULL_PATH`|var||9||
-|`SCRIPT_PATH`|var||12||
-|`SCRIPT_NAME`|var||15||
-|`BASE_DIR`|var||18||
-|`VENVDIR`|var||27||
-|`REQUIREMENTS_FILE`|var||28||
-|`PYTHONPATH`|var||51||
-
-
----
-
 # req.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
 > Path: `scripts/req.sh`
-
-## Imports
-```
-source "${VENVDIR}/bin/activate"
-source "${VENVDIR}/bin/activate"
-```
-
-## Definitions
-
-- var `FULL_PATH=$(readlink -f "$0")` (L9)
-- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
-- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
-- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
-- var `VENVDIR="${BASE_DIR}/.venv"` (L27)
-- var `REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"` (L28)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L51)
-## Symbol Index
-|Symbol|Kind|Vis|Lines|Sig|
-|---|---|---|---|---|
-|`FULL_PATH`|var||9||
-|`SCRIPT_PATH`|var||12||
-|`SCRIPT_NAME`|var||15||
-|`BASE_DIR`|var||18||
-|`VENVDIR`|var||27||
-|`REQUIREMENTS_FILE`|var||28||
-|`PYTHONPATH`|var||51||
-
-
----
-
-# ruff.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
-> Path: `scripts/ruff.sh`
 
 ## Imports
 ```

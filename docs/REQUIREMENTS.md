@@ -157,8 +157,6 @@ No explicit performance optimizations identified.
 - **SRS-057**: The current implementation MUST be treated as not providing a root-level `doxygen.sh` script for automated Doxygen generation.
 - **SRS-058**: Any workflow that invokes `doxygen.sh` from repository root MUST fail fast because no such script path exists in the repository.
 - **SRS-059**: Doxygen output generation to `doxygen/html`, `doxygen/pdf`, and `doxygen/markdown` MUST be treated as unsupported by committed automation scripts.
-- **SRS-266**: The repository MUST include `scripts/ruff.sh`, which bootstraps `.venv` from `requirements.txt` when missing and then execs `.venv/bin/ruff` with passthrough arguments.
-- **SRS-267**: The repository MUST include `scripts/pyright.sh`, which bootstraps `.venv` from `requirements.txt` when missing and then execs `.venv/bin/pyright` with passthrough arguments.
 - **SRS-060**: The implementation MUST preserve this behavior exactly: The command MUST save the values of `--guidelines-dir`, `--docs-dir`, `--tests-dir`, and the list of `--src-dir` in `.req/config.json` as relative paths.
 - **SRS-061**: The implementation MUST preserve this behavior exactly: The `.req/config.json` file MUST include `guidelines-dir`, `docs-dir`, `tests-dir`, `src-dir`, `base-path`, and `git-path` fields while preserving final slash for directory fields; `src-dir` MUST be an array with a voice for each past directory; `base-path` and `git-path` MUST be absolute filesystem paths.
 - **SRS-062**: The implementation MUST preserve this behavior exactly: The command MUST support the `--update` option to rerun initialization using saved parameters.
