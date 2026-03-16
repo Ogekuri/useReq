@@ -12,6 +12,8 @@ license = { file = "LICENSE" }
 dependencies = [
   "tiktoken",
   "pyyaml",
+  "ruff",
+  "pyright",
 ]
 authors = [
   { name = "Astral" }

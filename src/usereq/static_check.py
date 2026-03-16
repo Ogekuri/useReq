@@ -437,29 +437,33 @@ class StaticCheckBase:
 
 class StaticCheckPylance(StaticCheckBase):
     """!
-    @brief Pylance static-check class; runs pyright on each resolved file.
+    @brief Pylance static-check class; runs pyright on each resolved file via `sys.executable -m pyright`.
     @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright`
-      as a subprocess and parse its exit code.
+      via `[sys.executable, '-m', 'pyright']` subprocess using the package-installed pyright module,
+      without requiring external PATH availability, and parse its exit code.
       Header label: `Pylance`.
       Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
     @see StaticCheckBase
+    @satisfies SRS-242, SRS-339
     """
 
     LABEL = "Pylance"
 
     def _check_file(self, filepath: str) -> int:
         """!
-        @brief Run pyright on `filepath` and emit OK or FAIL with evidence.
+        @brief Run pyright on `filepath` via `sys.executable -m pyright` and emit OK or FAIL with evidence.
         @param filepath Absolute path of the file to analyse with pyright.
         @return 0 when pyright exits 0, 1 otherwise.
         @details
-          Invokes `pyright <filepath> [extra_args...]`.
+          Invokes `[sys.executable, '-m', 'pyright', <filepath>, <extra_args>...]` to use the
+          package-installed pyright module without requiring external PATH availability.
           Captures combined stdout+stderr.
           When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
           When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-242).
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
+        @satisfies SRS-242, SRS-339
         """
-        cmd = ["pyright", filepath] + self._extra_args
+        cmd = [sys.executable, "-m", "pyright", filepath] + self._extra_args
         try:
             result = subprocess.run(
                 cmd,
@@ -470,7 +474,7 @@ class StaticCheckPylance(StaticCheckBase):
             self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
-            self._emit_line("  pyright not found on PATH")
+            self._emit_line("  pyright module not available via sys.executable")
             return 1
 
         if result.returncode == 0:
@@ -493,29 +497,33 @@ class StaticCheckPylance(StaticCheckBase):
 
 class StaticCheckRuff(StaticCheckBase):
     """!
-    @brief Ruff static-check class; runs `ruff check` on each resolved file.
+    @brief Ruff static-check class; runs `ruff check` on each resolved file via `sys.executable -m ruff`.
     @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check`
-      as a subprocess and parse its exit code.
+      via `[sys.executable, '-m', 'ruff', 'check']` subprocess using the package-installed ruff module,
+      without requiring external PATH availability, and parse its exit code.
       Header label: `Ruff`.
       Evidence block is emitted on failure by concatenating stdout and stderr from ruff.
     @see StaticCheckBase
+    @satisfies SRS-243, SRS-339
     """
 
     LABEL = "Ruff"
 
     def _check_file(self, filepath: str) -> int:
         """!
-        @brief Run `ruff check` on `filepath` and emit OK or FAIL with evidence.
+        @brief Run `ruff check` on `filepath` via `sys.executable -m ruff` and emit OK or FAIL with evidence.
         @param filepath Absolute path of the file to analyse with ruff.
         @return 0 when ruff exits 0, 1 otherwise.
         @details
-          Invokes `ruff check <filepath> [extra_args...]`.
+          Invokes `[sys.executable, '-m', 'ruff', 'check', <filepath>, <extra_args>...]` to use the
+          package-installed ruff module without requiring external PATH availability.
           Captures combined stdout+stderr.
           When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
           When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-243).
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
+        @satisfies SRS-243, SRS-339
         """
-        cmd = ["ruff", "check", filepath] + self._extra_args
+        cmd = [sys.executable, "-m", "ruff", "check", filepath] + self._extra_args
         try:
             result = subprocess.run(
                 cmd,
@@ -526,7 +534,7 @@ class StaticCheckRuff(StaticCheckBase):
             self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
-            self._emit_line("  ruff not found on PATH")
+            self._emit_line("  ruff module not available via sys.executable")
             return 1
 
         if result.returncode == 0:

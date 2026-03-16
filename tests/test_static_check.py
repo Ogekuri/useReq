@@ -26,6 +26,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from io import StringIO
@@ -262,7 +263,7 @@ class TestStaticCheckPylance(unittest.TestCase):
         self.assertTrue(any(evidence in s for s in calls))
 
     def test_pyright_not_found(self) -> None:
-        """When pyright is not on PATH, emits FAIL with evidence."""
+        """When pyright module is not available via sys.executable, emits FAIL with evidence (SRS-339)."""
         f = _make_temp_file(self.tmp, "nobin.py")
         with patch("subprocess.run", side_effect=FileNotFoundError):
             with patch("builtins.print") as mock_print:
@@ -350,7 +351,7 @@ class TestStaticCheckRuff(unittest.TestCase):
         self.assertTrue(any(evidence in s for s in calls))
 
     def test_ruff_not_found(self) -> None:
-        """When ruff is not on PATH, emits FAIL with evidence."""
+        """When ruff module is not available via sys.executable, emits FAIL with evidence (SRS-339)."""
         f = _make_temp_file(self.tmp, "nobin.py")
         with patch("subprocess.run", side_effect=FileNotFoundError):
             with patch("builtins.print") as mock_print:
@@ -361,15 +362,17 @@ class TestStaticCheckRuff(unittest.TestCase):
         self.assertIn("Result: FAIL", calls)
 
     def test_invokes_ruff_check(self) -> None:
-        """Ruff invocation uses 'ruff check' as the command prefix."""
+        """Ruff invocation uses 'sys.executable -m ruff check' as the command prefix (SRS-243, SRS-339)."""
         f = _make_temp_file(self.tmp, "cmd_check.py")
         with patch("subprocess.run", return_value=self._make_completed(0)) as mock_run:
             checker = StaticCheckRuff(inputs=[str(f)])
             with patch("builtins.print"):
                 checker.run()
         cmd_used = mock_run.call_args[0][0]
-        self.assertEqual(cmd_used[0], "ruff")
-        self.assertEqual(cmd_used[1], "check")
+        self.assertEqual(cmd_used[0], sys.executable)
+        self.assertEqual(cmd_used[1], "-m")
+        self.assertEqual(cmd_used[2], "ruff")
+        self.assertEqual(cmd_used[3], "check")
 
     def test_multiple_files_all_ok(self) -> None:
         """All files OK returns rc 0."""

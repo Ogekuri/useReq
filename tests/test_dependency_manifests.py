@@ -96,6 +96,29 @@ def test_pyproject_dependencies_are_subset_of_requirements() -> None:
     )
 
 
+def test_pyproject_dependencies_include_ruff_and_pyright() -> None:
+    """@brief Verify pyproject.toml project.dependencies includes ruff and pyright.
+    @details Ensures static-analysis tools are declared as runtime dependencies
+    so they are installed with the package, enabling internal module-based invocation
+    via sys.executable without requiring external PATH availability.
+    @return {None} No return value.
+    @satisfies SRS-338, SRS-340
+    """
+
+    pyproject_data = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
+    project_dependencies = pyproject_data["project"]["dependencies"]
+    normalized_deps = {
+        _normalize_requirement_name(entry)
+        for entry in project_dependencies
+    }
+    required_static_tools = {"ruff", "pyright"}
+    missing = required_static_tools - normalized_deps
+    assert not missing, (
+        f"pyproject.toml [project].dependencies missing static-analysis tools: "
+        f"{sorted(missing)}. Required: {sorted(required_static_tools)}"
+    )
+
+
 def test_req_sh_executes_cli_with_venv_python() -> None:
     """@brief Validate req.sh executes CLI through .venv Python without hash-refresh logic.
     @details Confirms req.sh forwards CLI arguments unchanged to the .venv Python entrypoint and does not contain requirements-hash synchronization behavior.

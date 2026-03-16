@@ -1978,7 +1978,7 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 
 ---
 
-# static_check.py | Python | 696L | 20 symbols | 8 imports | 58 comments
+# static_check.py | Python | 704L | 20 symbols | 8 imports | 58 comments
 > Path: `src/usereq/static_check.py`
 - @brief Static code analysis dispatch module implementing Dummy/Pylance/Ruff/Command check classes.
 - @details Provides a class hierarchy for running static analysis tools against resolved file lists.
@@ -2059,47 +2059,55 @@ When `fail_only` is True, passing files produce no output (SRS-241, SRS-253, SRS
   - @param line Line content to emit on stdout.
   - @return {None} Function return value.
 
-### class `class StaticCheckPylance(StaticCheckBase)` : StaticCheckBase (L438-489)
-- @brief Pylance static-check class; runs pyright on each resolved file.
-- @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright` as a subprocess and parse its exit code. Header label: `Pylance`. Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
+### class `class StaticCheckPylance(StaticCheckBase)` : StaticCheckBase (L438-493)
+- @brief Pylance static-check class; runs pyright on each resolved file via `sys.executable -m pyright`.
+- @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright` via `[sys.executable, '-m', 'pyright']` subprocess using the package-installed pyright module, without requiring external PATH availability, and parse its exit code. Header label: `Pylance`. Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
 - @see StaticCheckBase
-- var `LABEL = "Pylance"` (L448)
-  - @brief Pylance static-check class; runs pyright on each resolved file.
+- @satisfies SRS-242, SRS-339
+- var `LABEL = "Pylance"` (L450)
+  - @brief Pylance static-check class; runs pyright on each resolved file via `sys.executable -m pyright`.
   - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright`
-as a subprocess and parse its exit code.
+via `[sys.executable, '-m', 'pyright']` subprocess using the package-installed pyright module,
+without requiring external PATH availability, and parse its exit code.
 Header label: `Pylance`.
 Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L450-489)
-  - @brief Run pyright on `filepath` and emit OK or FAIL with evidence.
-  - @details Invokes `pyright <filepath> [extra_args...]`. Captures combined stdout+stderr. When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence. When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-242).
+  - @satisfies SRS-242, SRS-339
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L452-493)
+  - @brief Run pyright on `filepath` via `sys.executable -m pyright` and emit OK or FAIL with evidence.
+  - @details Invokes `[sys.executable, '-m', 'pyright', <filepath>, <extra_args>...]` to use the package-installed pyright module without requiring external PATH availability. Captures combined stdout+stderr. When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence. When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-242).
   - @param filepath Absolute path of the file to analyse with pyright.
   - @return 0 when pyright exits 0, 1 otherwise.
   - @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
+  - @satisfies SRS-242, SRS-339
 
-### class `class StaticCheckRuff(StaticCheckBase)` : StaticCheckBase (L494-545)
-- @brief Ruff static-check class; runs `ruff check` on each resolved file.
-- @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check` as a subprocess and parse its exit code. Header label: `Ruff`. Evidence block is emitted on failure by concatenating stdout and stderr from ruff.
+### class `class StaticCheckRuff(StaticCheckBase)` : StaticCheckBase (L498-553)
+- @brief Ruff static-check class; runs `ruff check` on each resolved file via `sys.executable -m ruff`.
+- @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check` via `[sys.executable, '-m', 'ruff', 'check']` subprocess using the package-installed ruff module, without requiring external PATH availability, and parse its exit code. Header label: `Ruff`. Evidence block is emitted on failure by concatenating stdout and stderr from ruff.
 - @see StaticCheckBase
-- var `LABEL = "Ruff"` (L504)
-  - @brief Ruff static-check class; runs `ruff check` on each resolved file.
+- @satisfies SRS-243, SRS-339
+- var `LABEL = "Ruff"` (L510)
+  - @brief Ruff static-check class; runs `ruff check` on each resolved file via `sys.executable -m ruff`.
   - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `ruff check`
-as a subprocess and parse its exit code.
+via `[sys.executable, '-m', 'ruff', 'check']` subprocess using the package-installed ruff module,
+without requiring external PATH availability, and parse its exit code.
 Header label: `Ruff`.
 Evidence block is emitted on failure by concatenating stdout and stderr from ruff.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L506-545)
-  - @brief Run `ruff check` on `filepath` and emit OK or FAIL with evidence.
-  - @details Invokes `ruff check <filepath> [extra_args...]`. Captures combined stdout+stderr. When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence. When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-243).
+  - @satisfies SRS-243, SRS-339
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L512-553)
+  - @brief Run `ruff check` on `filepath` via `sys.executable -m ruff` and emit OK or FAIL with evidence.
+  - @details Invokes `[sys.executable, '-m', 'ruff', 'check', <filepath>, <extra_args>...]` to use the package-installed ruff module without requiring external PATH availability. Captures combined stdout+stderr. When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence. When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-243).
   - @param filepath Absolute path of the file to analyse with ruff.
   - @return 0 when ruff exits 0, 1 otherwise.
   - @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
+  - @satisfies SRS-243, SRS-339
 
-### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L550-627)
+### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L558-635)
 - @brief Command static-check class; runs an arbitrary external command on each resolved file.
 - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied `cmd` as a subprocess. Header label: `Command[<cmd>]`. Before processing files the constructor verifies that `cmd` is available on PATH via `shutil.which`; raises `ReqError(code=1)` if the command is not found.
 - @see StaticCheckBase
-- fn `def __init__(` `priv` (L561-567)
+- fn `def __init__(` `priv` (L569-575)
   - @brief Command static-check class; runs an arbitrary external command on each resolved file.
   - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied
 `cmd` as a subprocess.
@@ -2107,7 +2115,7 @@ Header label: `Command[<cmd>]`.
 Before processing files the constructor verifies that `cmd` is available on PATH via
 `shutil.which`; raises `ReqError(code=1)` if the command is not found.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L588-627)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L596-635)
   - @brief Initialize the command checker and verify tool availability.
   - @brief Run the external command on `filepath` and emit OK or FAIL with evidence.
   - @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
@@ -2123,7 +2131,7 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
   - @throws ReqError If `cmd` is not found on PATH (exit code 1).
   - @satisfies SRS-244, SRS-253, SRS-256
 
-### fn `def run_static_check(argv: Sequence[str]) -> int` (L632-696)
+### fn `def run_static_check(argv: Sequence[str]) -> int` (L640-704)
 - @brief Parse `--test-static-check` sub-argv and dispatch to the appropriate checker class.
 - @details Expected argument format: - `dummy [FILES...]` - `pylance [FILES...]` - `ruff [FILES...]` - `command <cmd> [FILES...]` No custom `--recursive` flag is parsed; recursive traversal is expressed via `**` glob patterns in `[FILES]` (e.g., `src/**/*.py`). For `command`, the first token after `command` is treated as `<cmd>`. All remaining tokens (after subcommand and optional cmd) are treated as FILES. Dispatches to: - `dummy` -> `StaticCheckBase` - `pylance` -> `StaticCheckPylance` - `ruff` -> `StaticCheckRuff` - `command` -> `StaticCheckCommand`
 - @param argv Remaining argument tokens after `--test-static-check` (i.e. [subcommand, ...]).
@@ -2143,16 +2151,16 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
 |`StaticCheckBase._header_line`|fn|priv|398-408|def _header_line(self, filepath: str) -> str|
 |`StaticCheckBase._check_file`|fn|priv|409-423|def _check_file(self, filepath: str) -> int|
 |`StaticCheckBase._emit_line`|fn|priv|424-433|def _emit_line(self, line: str) -> None|
-|`StaticCheckPylance`|class|pub|438-489|class StaticCheckPylance(StaticCheckBase)|
-|`StaticCheckPylance.LABEL`|var|pub|448||
-|`StaticCheckPylance._check_file`|fn|priv|450-489|def _check_file(self, filepath: str) -> int|
-|`StaticCheckRuff`|class|pub|494-545|class StaticCheckRuff(StaticCheckBase)|
-|`StaticCheckRuff.LABEL`|var|pub|504||
-|`StaticCheckRuff._check_file`|fn|priv|506-545|def _check_file(self, filepath: str) -> int|
-|`StaticCheckCommand`|class|pub|550-627|class StaticCheckCommand(StaticCheckBase)|
-|`StaticCheckCommand.__init__`|fn|priv|561-567|def __init__(|
-|`StaticCheckCommand._check_file`|fn|priv|588-627|def _check_file(self, filepath: str) -> int|
-|`run_static_check`|fn|pub|632-696|def run_static_check(argv: Sequence[str]) -> int|
+|`StaticCheckPylance`|class|pub|438-493|class StaticCheckPylance(StaticCheckBase)|
+|`StaticCheckPylance.LABEL`|var|pub|450||
+|`StaticCheckPylance._check_file`|fn|priv|452-493|def _check_file(self, filepath: str) -> int|
+|`StaticCheckRuff`|class|pub|498-553|class StaticCheckRuff(StaticCheckBase)|
+|`StaticCheckRuff.LABEL`|var|pub|510||
+|`StaticCheckRuff._check_file`|fn|priv|512-553|def _check_file(self, filepath: str) -> int|
+|`StaticCheckCommand`|class|pub|558-635|class StaticCheckCommand(StaticCheckBase)|
+|`StaticCheckCommand.__init__`|fn|priv|569-575|def __init__(|
+|`StaticCheckCommand._check_file`|fn|priv|596-635|def _check_file(self, filepath: str) -> int|
+|`run_static_check`|fn|pub|640-704|def run_static_check(argv: Sequence[str]) -> int|
 
 
 ---
