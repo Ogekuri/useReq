@@ -461,13 +461,13 @@ No explicit performance optimizations identified.
 - **SRS-323**: After worktree creation, `--git-wt-create` MUST copy `"base-path"/.req` with all subdirectories to `"<parent-path>/<WT_NAME>/<base-dir>"` if `.req` is not already present in the destination.
 - **SRS-324**: After worktree creation, `--git-wt-create` MUST copy active provider directories from `"base-path"` to `"<parent-path>/<WT_NAME>/<base-dir>"`, only for providers configured in `"providers"` whose source directories exist on the filesystem.
 - **SRS-325**: The provider-to-directory mapping for `--git-wt-create` MUST be: claude -> `.claude/commands`, `.claude/agents`, `.claude/skills`; gemini -> `.gemini/commands`, `.gemini/skills`; github -> `.github/prompts`, `.github/agents`, `.github/skills`; codex -> `.codex/prompts`, `.codex/skills`; kiro -> `.kiro/prompts`, `.kiro/agents`, `.kiro/skills`; opencode -> `.opencode/agent`, `.opencode/command`, `.opencode/skill`.
-- **SRS-331**: The `--git-wt-create` command MUST change the current directory to `"<parent-path>/<WT_NAME>/<base-dir>"` as the final operation only after successful worktree and copy operations; if any error occurs, it MUST NOT change the current directory.
+- **SRS-331**: The `--git-wt-create` command MUST change the current directory to `"<parent-path>/<WT_NAME>/<base-dir>"` only as the final successful operation; if post-create operations fail, it MUST rollback created worktree and branch and MUST NOT change current directory.
 - **SRS-335**: Before the final directory change, `--git-wt-create` MUST check for a `.venv` directory in `"base-path"` first, then `"git-path"`; when found and destination is absent, it MUST copy `.venv` preserving its relative path from `"git-path"`.
 
 ### 6.6 Git Worktree Delete Command
 - **SRS-326**: The CLI MUST support `--git-wt-delete WT_NAME` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided; `WT_NAME` is mandatory.
-- **SRS-327**: The `--git-wt-delete` command MUST validate that a git branch or worktree named `WT_NAME` exists; if not, it MUST print `ERROR: Invalid worktree or branch name: <WT_NAME>.\n` and exit with non-zero code.
-- **SRS-328**: The `--git-wt-delete` command MUST change the current directory to `"base-path"` before any deletion operation, then execute `git worktree remove "<parent-path>/<WT_NAME>" --force` and `git branch -D <WT_NAME>`; if either command fails, it MUST print `ERROR: Unable to remove worktree or branch <WT_NAME>.\n` and exit with non-zero code.
+- **SRS-327**: The `--git-wt-delete` command MUST validate only exact targets for `WT_NAME`: branch ref `refs/heads/<WT_NAME>` and worktree path `"<parent-path>/<WT_NAME>"`; substring or partial-name matches MUST NOT be accepted.
+- **SRS-328**: The `--git-wt-delete` command MUST change current directory to `"base-path"` before deletion, then force-remove only exact target worktree and exact target branch using git commands, remaining robust when target worktree contains pending/uncommitted changes.
 - **SRS-332**: The `--git-wt-delete` command MUST NOT execute explicit file-system deletions of worktree content paths (for example `.req`, `.claude`, `.codex`), and MUST rely only on `git worktree remove` and `git branch -D`.
 
 ### 6.7 Git Worktree Exit Command

@@ -122,12 +122,12 @@
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - `sanitize_branch_name(...)`: replace path-incompatible characters with `-` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "branch", "--show-current"], ...)` branch name resolution
-      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch, copying `.req`, provider dirs, and optional `.venv` from `base-path`/`git-path` before final cwd change to created worktree path [`src/usereq/cli.py`]
+      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch, running copy steps, and rolling back exact created worktree/branch on post-create failure before any successful final cwd change [`src/usereq/cli.py`]
         - `validate_wt_name(...)`: validate worktree/branch name against invalid character regex [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "worktree", "add", ...])` worktree creation, `shutil.copytree(...)` directory copy
-      - `run_git_wt_delete(...)`: execute `--git-wt-delete` by changing cwd to configured `base-path` before deletion, then removing worktree and branch via git commands only [`src/usereq/cli.py`]
+      - `run_git_wt_delete(...)`: execute `--git-wt-delete` by validating exact target path/ref only, changing cwd to configured `base-path`, then force-removing the exact target worktree/branch even with pending target changes [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "worktree", "remove", ...])` and `subprocess.run(["git", "branch", "-D", ...])` worktree/branch removal

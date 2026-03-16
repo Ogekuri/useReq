@@ -4189,6 +4189,73 @@ def run_git_wt_name(args: Namespace) -> None:
     print(f"useReq-{project_name}-{sanitized_branch}-{execution_id}")
 
 
+def _worktree_path_exists_exact(git_path: Path, target_path: Path) -> bool:
+    """!
+    @brief Check whether a git worktree exists at the exact target path.
+    @param git_path Absolute git root path used as command cwd.
+    @param target_path Absolute worktree path expected for WT_NAME.
+    @return {bool} True only when target_path is listed as an exact worktree path.
+    @throws ReqError On git command execution errors.
+    @details Parses `git worktree list --porcelain` output by `worktree <path>` records and performs exact path comparison to prevent partial-name or substring matches.
+    """
+    try:
+        wt_list = subprocess.run(
+            ["git", "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        raise ReqError("Error: unable to query git worktree list.", 3)
+    if wt_list.returncode != 0:
+        raise ReqError("Error: unable to query git worktree list.", 3)
+    target_norm = str(target_path.resolve())
+    for line in wt_list.stdout.splitlines():
+        if line.startswith("worktree "):
+            listed_path = line[len("worktree ") :].strip()
+            if Path(listed_path).resolve() == Path(target_norm):
+                return True
+    return False
+
+
+def _rollback_worktree_create(git_path: Path, wt_path: Path, wt_name: str) -> None:
+    """!
+    @brief Roll back worktree and branch created by --git-wt-create on post-create failure.
+    @param git_path Absolute git root path used as command cwd.
+    @param wt_path Absolute worktree path to remove.
+    @param wt_name Exact branch name to delete.
+    @return {None} Function return value.
+    @throws ReqError If rollback cannot remove the exact target worktree and branch.
+    @details Uses `git worktree remove <path> --force` and `git branch -D <name>` to restore a clean git state when post-create copy/chdir operations fail.
+    """
+    try:
+        remove_result = subprocess.run(
+            ["git", "worktree", "remove", str(wt_path), "--force"],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=30,
+        )
+        branch_result = subprocess.run(
+            ["git", "branch", "-D", wt_name],
+            capture_output=True,
+            text=True,
+            cwd=str(git_path),
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        raise ReqError(
+            f"ERROR: Rollback failed for worktree or branch {wt_name}.",
+            1,
+        )
+    if remove_result.returncode != 0 or branch_result.returncode != 0:
+        raise ReqError(
+            f"ERROR: Rollback failed for worktree or branch {wt_name}.",
+            1,
+        )
+
+
 def run_git_wt_create(args: Namespace) -> None:
     """!
     @brief Execute --git-wt-create: create a git worktree and copy .req/provider dirs.
@@ -4234,44 +4301,51 @@ def run_git_wt_create(args: Namespace) -> None:
         raise ReqError("Error: git is not available on PATH.", 3)
     except subprocess.TimeoutExpired:
         raise ReqError("Error: git worktree add timed out.", 3)
-    # SRS-323: copy .req if not present in new worktree.
     wt_base_dir = wt_dest / base_dir
-    wt_req = wt_base_dir / ".req"
-    src_req = base_path / ".req"
-    if src_req.is_dir() and not wt_req.is_dir():
-        shutil.copytree(str(src_req), str(wt_req))
-    # SRS-324, SRS-325: copy active provider directories.
-    providers_specs = full_cfg.get("providers", [])
-    active_providers: set[str] = set()
-    if isinstance(providers_specs, list):
-        for spec in providers_specs:
-            if isinstance(spec, str) and ":" in spec:
-                active_providers.add(spec.split(":")[0].lower())
-    for provider, dirs in PROVIDER_DIR_MAP.items():
-        if provider not in active_providers:
-            continue
-        for rel_dir in dirs:
-            src_dir = base_path / rel_dir
-            dst_dir = wt_base_dir / rel_dir
-            if src_dir.is_dir() and not dst_dir.is_dir():
-                shutil.copytree(str(src_dir), str(dst_dir))
-    # SRS-335: copy .venv from base-path first, then git-path, preserving path from git-path.
-    src_venv: Optional[Path] = None
-    base_venv = base_path / ".venv"
-    git_venv = git_path / ".venv"
-    rel_venv = Path(".venv")
-    if base_venv.is_dir():
-        src_venv = base_venv
-        rel_venv = base_dir / ".venv"
-    elif git_venv.is_dir():
-        src_venv = git_venv
+    try:
+        # SRS-323: copy .req if not present in new worktree.
+        wt_req = wt_base_dir / ".req"
+        src_req = base_path / ".req"
+        if src_req.is_dir() and not wt_req.is_dir():
+            shutil.copytree(str(src_req), str(wt_req))
+        # SRS-324, SRS-325: copy active provider directories.
+        providers_specs = full_cfg.get("providers", [])
+        active_providers: set[str] = set()
+        if isinstance(providers_specs, list):
+            for spec in providers_specs:
+                if isinstance(spec, str) and ":" in spec:
+                    active_providers.add(spec.split(":")[0].lower())
+        for provider, dirs in PROVIDER_DIR_MAP.items():
+            if provider not in active_providers:
+                continue
+            for rel_dir in dirs:
+                src_dir = base_path / rel_dir
+                dst_dir = wt_base_dir / rel_dir
+                if src_dir.is_dir() and not dst_dir.is_dir():
+                    shutil.copytree(str(src_dir), str(dst_dir))
+        # SRS-335: copy .venv from base-path first, then git-path, preserving path from git-path.
+        src_venv: Optional[Path] = None
+        base_venv = base_path / ".venv"
+        git_venv = git_path / ".venv"
         rel_venv = Path(".venv")
-    if src_venv is not None:
-        dst_venv = wt_dest / rel_venv
-        if not dst_venv.is_dir():
-            dst_venv.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(str(src_venv), str(dst_venv))
-    os.chdir(wt_base_dir)
+        if base_venv.is_dir():
+            src_venv = base_venv
+            rel_venv = base_dir / ".venv"
+        elif git_venv.is_dir():
+            src_venv = git_venv
+            rel_venv = Path(".venv")
+        if src_venv is not None:
+            dst_venv = wt_dest / rel_venv
+            if not dst_venv.is_dir():
+                dst_venv.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(str(src_venv), str(dst_venv))
+        os.chdir(wt_base_dir)
+    except (OSError, ReqError):
+        _rollback_worktree_create(git_path, wt_dest, wt_name)
+        raise ReqError(
+            f"ERROR: Unable to finalize worktree creation for {wt_name}.",
+            1,
+        )
 
 
 def run_git_wt_delete(args: Namespace) -> None:
@@ -4304,55 +4378,48 @@ def run_git_wt_delete(args: Namespace) -> None:
             branch_exists = True
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
         pass
-    wt_exists = False
+    wt_path = parent_path / wt_name
     try:
-        wt_list = subprocess.run(
-            ["git", "worktree", "list", "--porcelain"],
-            capture_output=True,
-            text=True,
-            cwd=str(git_path),
-            timeout=10,
-        )
-        if wt_list.returncode == 0 and wt_name in wt_list.stdout:
-            wt_exists = True
-    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-        pass
+        wt_exists = _worktree_path_exists_exact(git_path, wt_path)
+    except ReqError:
+        wt_exists = False
     if not branch_exists and not wt_exists:
         msg = f"ERROR: Invalid worktree or branch name: {wt_name}."
         print(msg)
         raise ReqError(msg, 1)
     # SRS-328: remove worktree and branch.
-    wt_path = parent_path / wt_name
     error_occurred = False
     base_path_str = full_cfg.get("base-path", str(project_base))
     base_path = Path(base_path_str)
     if not base_path.is_dir():
         raise ReqError("Error: base-path not configured or does not exist.", 11)
     os.chdir(base_path)
-    try:
-        r1 = subprocess.run(
-            ["git", "worktree", "remove", str(wt_path), "--force"],
-            capture_output=True,
-            text=True,
-            cwd=str(base_path),
-            timeout=30,
-        )
-        if r1.returncode != 0:
+    if wt_exists:
+        try:
+            r1 = subprocess.run(
+                ["git", "worktree", "remove", str(wt_path), "--force"],
+                capture_output=True,
+                text=True,
+                cwd=str(base_path),
+                timeout=30,
+            )
+            if r1.returncode != 0:
+                error_occurred = True
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
             error_occurred = True
-    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-        error_occurred = True
-    try:
-        r2 = subprocess.run(
-            ["git", "branch", "-D", wt_name],
-            capture_output=True,
-            text=True,
-            cwd=str(base_path),
-            timeout=10,
-        )
-        if r2.returncode != 0:
+    if branch_exists:
+        try:
+            r2 = subprocess.run(
+                ["git", "branch", "-D", wt_name],
+                capture_output=True,
+                text=True,
+                cwd=str(base_path),
+                timeout=10,
+            )
+            if r2.returncode != 0:
+                error_occurred = True
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
             error_occurred = True
-    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-        error_occurred = True
     if error_occurred:
         msg = f"ERROR: Unable to remove worktree or branch {wt_name}."
         print(msg)

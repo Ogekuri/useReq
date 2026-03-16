@@ -3893,7 +3893,7 @@ class TestGitWtNameCommand(unittest.TestCase):
 
 
 class TestGitWtCreateDeleteCommands(unittest.TestCase):
-    """SRS-320..SRS-328, SRS-330..SRS-332, SRS-335: Verifies --git-wt-create and --git-wt-delete."""
+    """SRS-320..SRS-332, SRS-335: Verifies --git-wt-create and --git-wt-delete."""
 
     def setUp(self) -> None:
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-cd-"))
@@ -3960,6 +3960,29 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
         finally:
             os.chdir(prev_cwd)
 
+    def test_wt_create_post_create_failure_rolls_back(self) -> None:
+        """SRS-331: post-create failures rollback created exact worktree and branch."""
+        wt_name = "test-wt-rollback"
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                "usereq.cli.os.chdir", side_effect=OSError("chdir failure")
+            ):
+                rc = cli.main(["--git-wt-create", wt_name])
+            self.assertNotEqual(rc, 0)
+            wt_dir = self.TEST_DIR.parent / wt_name
+            self.assertFalse(wt_dir.exists(), "Failed create must rollback worktree path")
+            br = subprocess.run(
+                ["git", "show-ref", "--verify", f"refs/heads/{wt_name}"],
+                cwd=str(self.TEST_DIR),
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(br.returncode, 0, "Failed create must rollback branch")
+        finally:
+            os.chdir(prev_cwd)
+
     def test_wt_create_and_delete_roundtrip(self) -> None:
         """SRS-322, SRS-323, SRS-328, SRS-331, SRS-332, SRS-335: create then delete a worktree."""
         wt_name = "test-wt-roundtrip"
@@ -3986,6 +4009,46 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
                 rc2 = cli.main(["--git-wt-delete", wt_name])
             self.assertEqual(rc2, 0)
             self.assertEqual(Path.cwd(), self.TEST_DIR)
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_wt_delete_dirty_worktree_forced(self) -> None:
+        """SRS-328: delete must force-remove target worktree with pending changes."""
+        wt_name = "test-wt-dirty"
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-create", wt_name])
+            self.assertEqual(rc, 0)
+            wt_dir = self.TEST_DIR.parent / wt_name
+            (wt_dir / "dirty.txt").write_text("pending", encoding="utf-8")
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc2 = cli.main(["--git-wt-delete", wt_name])
+            self.assertEqual(rc2, 0)
+            self.assertFalse(wt_dir.exists(), "Dirty target worktree must be force-removed")
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_wt_delete_rejects_partial_name_matches(self) -> None:
+        """SRS-327: delete must reject partial-name matches for worktree/branch."""
+        wt_name = "test-wt-target-extra"
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-create", wt_name])
+            self.assertEqual(rc, 0)
+            wt_dir = self.TEST_DIR.parent / wt_name
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc2 = cli.main(["--git-wt-delete", "test-wt-target"])
+            self.assertNotEqual(rc2, 0)
+            self.assertTrue(wt_dir.exists(), "Non-target worktree must not be deleted")
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc3 = cli.main(["--git-wt-delete", wt_name])
+            self.assertEqual(rc3, 0)
         finally:
             os.chdir(prev_cwd)
 
