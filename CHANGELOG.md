@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.36.0](https://github.com/Ogekuri/useReq/compare/v0.35.0..v0.36.0) - 2026-03-16
+### 🚜  Changes
+- enforce Command params-before-file order [useReq] *(static-check)*
+  - Update SRS-244/SRS-253/SRS-256 for Command invocation order.
+  - Implement Command execution as <cmd> [params...] <filename>.
+  - Add regression tests for --files-static-check and --static-check command ordering.
+  - Refresh WORKFLOW and REFERENCES documents.
+
+### 📚  Documentation
+- Update README.md document.
+
 ## [0.35.0](https://github.com/Ogekuri/useReq/compare/v0.34.0..v0.35.0) - 2026-03-16
 ### 🐛  Bug Fixes
 - preserve existing static-check entries [useReq] *(cli)*
@@ -846,6 +857,7 @@
 - \[0.33.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.33.0
 - \[0.34.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.34.0
 - \[0.35.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.35.0
+- \[0.36.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.36.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -882,3 +894,4 @@
 [0.33.0]: https://github.com/Ogekuri/useReq/compare/v0.32.0..v0.33.0
 [0.34.0]: https://github.com/Ogekuri/useReq/compare/v0.33.0..v0.34.0
 [0.35.0]: https://github.com/Ogekuri/useReq/compare/v0.34.0..v0.35.0
+[0.36.0]: https://github.com/Ogekuri/useReq/compare/v0.35.0..v0.36.0
