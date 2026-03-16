@@ -21,7 +21,6 @@ import textwrap
 import time
 import urllib.error
 import urllib.request
-import yaml
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Mapping, Optional
@@ -47,7 +46,7 @@ PERSISTED_UPDATE_FLAG_KEYS = ("preserve-models",)
 VALID_PROVIDERS = frozenset({"codex", "claude", "gemini", "github", "kiro", "opencode"})
 """! @brief Valid provider names accepted by ``--provider`` specs (SRS-275)."""
 
-VALID_ARTIFACTS = frozenset({"prompts", "agents", "skills"})
+VALID_ARTIFACTS = frozenset({"prompts", "agents"})
 """! @brief Valid artifact type tokens accepted in ``--provider`` specs (SRS-275)."""
 
 VALID_PROVIDER_OPTIONS = frozenset(
@@ -56,12 +55,12 @@ VALID_PROVIDER_OPTIONS = frozenset(
 """! @brief Valid per-provider option tokens accepted in ``--provider`` specs (SRS-275)."""
 
 PROVIDER_DIR_MAP: dict[str, list[str]] = {
-    "claude": [".claude/commands", ".claude/agents", ".claude/skills"],
-    "gemini": [".gemini/commands", ".gemini/skills"],
-    "github": [".github/prompts", ".github/agents", ".github/skills"],
-    "codex": [".codex/prompts", ".codex/skills"],
-    "kiro": [".kiro/prompts", ".kiro/agents", ".kiro/skills"],
-    "opencode": [".opencode/agent", ".opencode/command", ".opencode/skill"],
+    "claude": [".claude/commands", ".claude/agents"],
+    "gemini": [".gemini/commands"],
+    "github": [".github/prompts", ".github/agents"],
+    "codex": [".codex/prompts"],
+    "kiro": [".kiro/prompts", ".kiro/agents"],
+    "opencode": [".opencode/agent", ".opencode/command"],
 }
 """! @brief Provider-to-directory mapping for worktree copy operations (SRS-325)."""
 
@@ -128,7 +127,7 @@ def resolve_provider_configs(
     @brief Resolve per-provider configurations from ``--provider`` specs only.
     @param provider_specs List of raw ``--provider`` SPEC strings.
     @return Dict mapping each of the 6 provider names to a config dict with keys:
-      ``enabled`` (bool), ``prompts`` (bool), ``agents`` (bool), ``skills`` (bool),
+      ``enabled`` (bool), ``prompts`` (bool), ``agents`` (bool),
       ``enable-models`` (bool), ``enable-tools`` (bool), ``prompts-use-agents`` (bool),
       ``legacy`` (bool).
     @details ``--provider`` specs are the sole mechanism for provider/artifact/option
@@ -143,7 +142,6 @@ def resolve_provider_configs(
             "enabled": False,
             "prompts": False,
             "agents": False,
-            "skills": False,
             "enable-models": False,
             "enable-tools": False,
             "prompts-use-agents": False,
@@ -159,8 +157,6 @@ def resolve_provider_configs(
             cfg["prompts"] = True
         if "agents" in artifacts:
             cfg["agents"] = True
-        if "skills" in artifacts:
-            cfg["skills"] = True
         if "enable-models" in options:
             cfg["enable-models"] = True
         if "enable-tools" in options:
@@ -359,7 +355,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Per-provider artifact and option configuration (repeatable). "
             "Format: PROVIDER:ARTIFACTS[:OPTIONS]. "
             "PROVIDER: codex|claude|gemini|github|kiro|opencode. "
-            "ARTIFACTS: comma-separated from {prompts,agents,skills}. "
+            "ARTIFACTS: comma-separated from {prompts,agents}. "
             "OPTIONS: comma-separated from {enable-models,enable-tools,prompts-use-agents,legacy}."
         ),
     )
@@ -1954,25 +1950,6 @@ def _extract_section_text(body: str, section_name: str) -> str:
     return " ".join(parts)
 
 
-def extract_skill_description(frontmatter: str) -> str:
-    """! @brief Extracts the usage field from YAML front matter as a single YAML-safe line.
-    @details Parses the YAML front matter and returns the `usage` field value with all
-    whitespace normalized to a single line. Returns an empty string if the field is absent.
-    @param[in] frontmatter str -- YAML front matter text (without the leading/trailing `---` delimiters).
-    @return str -- Single-line text of the usage field; empty string if absent.
-    """
-    try:
-        data = yaml.safe_load(frontmatter)
-    except yaml.YAMLError:
-        return ""
-    if not isinstance(data, dict):
-        return ""
-    usage = data.get("usage", "")
-    if not usage:
-        return ""
-    return " ".join(str(usage).split())
-
-
 def json_escape(value: str) -> str:
     """!
     @brief Escapes a string for JSON without external delimiters.
@@ -2459,13 +2436,7 @@ def remove_generated_resources(project_base: Path) -> None:
     """
     remove_dirs = [
         project_base / ".gemini" / "commands" / "req",
-        project_base / ".gemini" / "skills",
         project_base / ".claude" / "commands" / "req",
-        project_base / ".claude" / "skills",
-        project_base / ".codex" / "skills",
-        project_base / ".github" / "skills",
-        project_base / ".kiro" / "skills",
-        project_base / ".opencode" / "skill",
         project_base / ".req" / "docs",
     ]
     remove_globs = [
@@ -2798,7 +2769,6 @@ def run(args: Namespace) -> None:
     # A provider's artifacts are enabled only via the per-provider spec.
     enable_prompts = any(pc["prompts"] for pc in provider_configs.values())
     enable_agents = any(pc["agents"] for pc in provider_configs.values())
-    enable_skills = any(pc["skills"] for pc in provider_configs.values())
 
     if not any(
         (
@@ -2821,7 +2791,7 @@ def run(args: Namespace) -> None:
             "Error: at least one --provider spec is required to generate prompts",
             4,
         )
-    if not any((enable_prompts, enable_agents, enable_skills)):
+    if not any((enable_prompts, enable_agents)):
         if args.update:
             raise ReqError(
                 "Error: .req/config.json has an invalid provider/artifact update configuration",
@@ -2961,12 +2931,6 @@ def run(args: Namespace) -> None:
     dlog(f"SUB_GUIDELINES_DIR={sub_guidelines_dir}")
     dlog(f"TOKEN_GUIDELINES_DIR={token_guidelines_dir}")
 
-    codex_skills_root = None
-    claude_skills_root = None
-    gemini_skills_root = None
-    opencode_skills_root = None
-    github_skills_root = None
-    kiro_skills_root = None
     target_folders: list[Path] = []
     # Use per-provider configs to determine which directories to create (SRS-276).
     pc_codex = provider_configs["codex"]
@@ -2977,16 +2941,10 @@ def run(args: Namespace) -> None:
     pc_opencode = provider_configs["opencode"]
     if pc_codex["enabled"] and pc_codex["prompts"]:
         target_folders.append(project_base / ".codex" / "prompts")
-    if pc_codex["enabled"] and pc_codex["skills"]:
-        codex_skills_root = project_base / ".codex" / "skills"
-        target_folders.append(codex_skills_root)
     if pc_github["enabled"] and pc_github["agents"]:
         target_folders.append(project_base / ".github" / "agents")
     if pc_github["enabled"] and pc_github["prompts"]:
         target_folders.append(project_base / ".github" / "prompts")
-    if pc_github["enabled"] and pc_github["skills"]:
-        github_skills_root = project_base / ".github" / "skills"
-        target_folders.append(github_skills_root)
     if pc_gemini["enabled"] and pc_gemini["prompts"]:
         target_folders.extend(
             [
@@ -2994,16 +2952,10 @@ def run(args: Namespace) -> None:
                 project_base / ".gemini" / "commands" / "req",
             ]
         )
-    if pc_gemini["enabled"] and pc_gemini["skills"]:
-        gemini_skills_root = project_base / ".gemini" / "skills"
-        target_folders.append(gemini_skills_root)
     if pc_kiro["enabled"] and pc_kiro["agents"]:
         target_folders.append(project_base / ".kiro" / "agents")
     if pc_kiro["enabled"] and pc_kiro["prompts"]:
         target_folders.append(project_base / ".kiro" / "prompts")
-    if pc_kiro["enabled"] and pc_kiro["skills"]:
-        kiro_skills_root = project_base / ".kiro" / "skills"
-        target_folders.append(kiro_skills_root)
     if pc_claude["enabled"] and pc_claude["agents"]:
         target_folders.append(project_base / ".claude" / "agents")
     if pc_claude["enabled"] and pc_claude["prompts"]:
@@ -3013,16 +2965,10 @@ def run(args: Namespace) -> None:
                 project_base / ".claude" / "commands" / "req",
             ]
         )
-    if pc_claude["enabled"] and pc_claude["skills"]:
-        claude_skills_root = project_base / ".claude" / "skills"
-        target_folders.append(claude_skills_root)
     if pc_opencode["enabled"] and pc_opencode["agents"]:
         target_folders.append(project_base / ".opencode" / "agent")
     if pc_opencode["enabled"] and pc_opencode["prompts"]:
         target_folders.append(project_base / ".opencode" / "command")
-    if pc_opencode["enabled"] and pc_opencode["skills"]:
-        opencode_skills_root = project_base / ".opencode" / "skill"
-        target_folders.append(opencode_skills_root)
     for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -3102,9 +3048,6 @@ def run(args: Namespace) -> None:
 
         # Precompute description and Claude metadata so provider blocks can reuse them safely.
         desc_yaml = yaml_double_quote_escape(description)
-        skill_desc_yaml = yaml_double_quote_escape(
-            extract_skill_description(frontmatter)
-        )
         claude_model = None
         claude_tools = None
         if configs:
@@ -3122,35 +3065,6 @@ def run(args: Namespace) -> None:
             prompts_installed["codex"].add(PROMPT)
             modules_installed["codex"].add("prompts")
 
-        if pc_codex["enabled"] and pc_codex["skills"] and codex_skills_root is not None:
-            # .codex/skills/req-<prompt>/SKILL.md
-            codex_skill_dir = codex_skills_root / f"req-{PROMPT}"
-            codex_skill_dir.mkdir(parents=True, exist_ok=True)
-            codex_model = None
-            codex_tools = None
-            if configs:
-                codex_model, codex_tools = get_model_tools_for_prompt(
-                    configs.get("codex"), PROMPT, "codex"
-                )
-            codex_header_lines = [
-                "---",
-                f"name: req-{PROMPT}",
-                f'description: "{skill_desc_yaml}"',
-            ]
-            if pc_codex["enable-models"] and codex_model:
-                codex_header_lines.append(f"model: {codex_model}")
-            if pc_codex["enable-tools"] and codex_tools:
-                codex_header_lines.append(
-                    f"tools: {format_tools_inline_list(codex_tools)}"
-                )
-            codex_skill_text = (
-                "\n".join(codex_header_lines) + "\n---\n\n" + prompt_body_replaced
-            )
-            if not codex_skill_text.endswith("\n"):
-                codex_skill_text += "\n"
-            write_text_file(codex_skill_dir / "SKILL.md", codex_skill_text)
-            prompts_installed["codex"].add(PROMPT)
-            modules_installed["codex"].add("skills")
 
         if is_prompt_source and pc_gemini["enabled"] and pc_gemini["prompts"]:
             # Gemini TOML
@@ -3454,180 +3368,10 @@ def run(args: Namespace) -> None:
             prompts_installed["claude"].add(PROMPT)
             modules_installed["claude"].add("commands")
 
-        if (
-            pc_claude["enabled"]
-            and pc_claude["skills"]
-            and claude_skills_root is not None
-        ):
-            # .claude/skills/req-<prompt>/SKILL.md
-            claude_skill_dir = claude_skills_root / f"req-{PROMPT}"
-            claude_skill_dir.mkdir(parents=True, exist_ok=True)
-            claude_skill_header_lines = [
-                "---",
-                f"name: req-{PROMPT}",
-                f'description: "{skill_desc_yaml}"',
-            ]
-            if pc_claude["enable-models"] and claude_model:
-                claude_skill_header_lines.append(f"model: {claude_model}")
-            if pc_claude["enable-tools"] and claude_tools:
-                claude_skill_header_lines.append(
-                    f"tools: {format_tools_inline_list(claude_tools)}"
-                )
-            claude_skill_text = (
-                "\n".join(claude_skill_header_lines)
-                + "\n---\n\n"
-                + prompt_body_replaced
-            )
-            if not claude_skill_text.endswith("\n"):
-                claude_skill_text += "\n"
-            write_text_file(claude_skill_dir / "SKILL.md", claude_skill_text)
-            prompts_installed["claude"].add(PROMPT)
-            modules_installed["claude"].add("skills")
 
-        if (
-            pc_gemini["enabled"]
-            and pc_gemini["skills"]
-            and gemini_skills_root is not None
-        ):
-            # .gemini/skills/req-<prompt>/SKILL.md
-            gemini_skill_dir = gemini_skills_root / f"req-{PROMPT}"
-            gemini_skill_dir.mkdir(parents=True, exist_ok=True)
-            gemini_skill_model = None
-            gemini_skill_tools = None
-            if configs:
-                gemini_skill_model, gemini_skill_tools = get_model_tools_for_prompt(
-                    configs.get("gemini"), PROMPT, "gemini"
-                )
-            gemini_skill_header_lines = [
-                "---",
-                f"name: req-{PROMPT}",
-                f'description: "{skill_desc_yaml}"',
-            ]
-            if pc_gemini["enable-models"] and gemini_skill_model:
-                gemini_skill_header_lines.append(f"model: {gemini_skill_model}")
-            if pc_gemini["enable-tools"] and gemini_skill_tools:
-                gemini_skill_header_lines.append(
-                    f"tools: {format_tools_inline_list(gemini_skill_tools)}"
-                )
-            gemini_skill_text = (
-                "\n".join(gemini_skill_header_lines)
-                + "\n---\n\n"
-                + prompt_body_replaced
-            )
-            if not gemini_skill_text.endswith("\n"):
-                gemini_skill_text += "\n"
-            write_text_file(gemini_skill_dir / "SKILL.md", gemini_skill_text)
-            prompts_installed["gemini"].add(PROMPT)
-            modules_installed["gemini"].add("skills")
 
-        if (
-            pc_github["enabled"]
-            and pc_github["skills"]
-            and github_skills_root is not None
-        ):
-            # .github/skills/req-<prompt>/SKILL.md
-            github_skill_dir = github_skills_root / f"req-{PROMPT}"
-            github_skill_dir.mkdir(parents=True, exist_ok=True)
-            github_skill_model = None
-            github_skill_tools = None
-            if configs:
-                github_skill_model, github_skill_tools = get_model_tools_for_prompt(
-                    configs.get("copilot"), PROMPT, "copilot"
-                )
-            github_skill_header_lines = [
-                "---",
-                f"name: req-{PROMPT}",
-                f'description: "{skill_desc_yaml}"',
-            ]
-            if pc_github["enable-models"] and github_skill_model:
-                github_skill_header_lines.append(f"model: {github_skill_model}")
-            if pc_github["enable-tools"] and github_skill_tools:
-                github_skill_header_lines.append(
-                    f"tools: {format_tools_inline_list(github_skill_tools)}"
-                )
-            github_skill_text = (
-                "\n".join(github_skill_header_lines)
-                + "\n---\n\n"
-                + prompt_body_replaced
-            )
-            if not github_skill_text.endswith("\n"):
-                github_skill_text += "\n"
-            write_text_file(github_skill_dir / "SKILL.md", github_skill_text)
-            prompts_installed["github"].add(PROMPT)
-            modules_installed["github"].add("skills")
 
-        if pc_kiro["enabled"] and pc_kiro["skills"] and kiro_skills_root is not None:
-            # .kiro/skills/req-<prompt>/SKILL.md
-            kiro_skill_dir = kiro_skills_root / f"req-{PROMPT}"
-            kiro_skill_dir.mkdir(parents=True, exist_ok=True)
-            kiro_skill_model, kiro_skill_tools = get_model_tools_for_prompt(
-                kiro_config, PROMPT, "kiro"
-            )
-            kiro_skill_header_lines = [
-                "---",
-                f"name: req-{PROMPT}",
-                f'description: "{skill_desc_yaml}"',
-            ]
-            if pc_kiro["enable-models"] and kiro_skill_model:
-                kiro_skill_header_lines.append(f"model: {kiro_skill_model}")
-            if (
-                pc_kiro["enable-tools"]
-                and isinstance(kiro_skill_tools, list)
-                and kiro_skill_tools
-            ):
-                kiro_skill_header_lines.append(
-                    f"tools: {format_tools_inline_list(kiro_skill_tools)}"
-                )
-            kiro_skill_text = (
-                "\n".join(kiro_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
-            )
-            if not kiro_skill_text.endswith("\n"):
-                kiro_skill_text += "\n"
-            write_text_file(kiro_skill_dir / "SKILL.md", kiro_skill_text)
-            prompts_installed["kiro"].add(PROMPT)
-            modules_installed["kiro"].add("skills")
 
-        if (
-            pc_opencode["enabled"]
-            and pc_opencode["skills"]
-            and opencode_skills_root is not None
-        ):
-            # .opencode/skill/req-<prompt>/SKILL.md
-            opencode_skill_dir = opencode_skills_root / f"req-{PROMPT}"
-            opencode_skill_dir.mkdir(parents=True, exist_ok=True)
-            opencode_skill_header_lines = [
-                "---",
-                f"name: req-{PROMPT}",
-                f'description: "{skill_desc_yaml}"',
-            ]
-            if configs:
-                oc_skill_model, _ = get_model_tools_for_prompt(
-                    configs.get("opencode"), PROMPT, "opencode"
-                )
-                oc_skill_tools_raw = get_raw_tools_for_prompt(
-                    configs.get("opencode"), PROMPT
-                )
-                if pc_opencode["enable-models"] and oc_skill_model:
-                    opencode_skill_header_lines.append(f"model: {oc_skill_model}")
-                if pc_opencode["enable-tools"] and oc_skill_tools_raw is not None:
-                    if isinstance(oc_skill_tools_raw, list):
-                        opencode_skill_header_lines.append(
-                            f"tools: {format_tools_inline_list(oc_skill_tools_raw)}"
-                        )
-                    elif isinstance(oc_skill_tools_raw, str):
-                        opencode_skill_header_lines.append(
-                            f'tools: "{yaml_double_quote_escape(oc_skill_tools_raw)}"'
-                        )
-            opencode_skill_text = (
-                "\n".join(opencode_skill_header_lines)
-                + "\n---\n\n"
-                + prompt_body_replaced
-            )
-            if not opencode_skill_text.endswith("\n"):
-                opencode_skill_text += "\n"
-            write_text_file(opencode_skill_dir / "SKILL.md", opencode_skill_text)
-            prompts_installed["opencode"].add(PROMPT)
-            modules_installed["opencode"].add("skills")
 
     templates_target = req_root / "docs"
     if templates_target.exists():

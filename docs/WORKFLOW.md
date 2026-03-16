@@ -140,7 +140,7 @@
       - `load_persisted_update_flags(...)`: load persisted `preserve-models` boolean from `.req/config.json` and validate `providers` array existence (SRS-288) [`src/usereq/cli.py`]
       - `load_persisted_provider_specs(...)`: load persisted `--provider` SPEC strings from `.req/config.json` `"providers"` key (SRS-280) [`src/usereq/cli.py`]
       - `resolve_provider_configs(...)`: resolve `--provider` specs into per-provider config dicts keyed by provider name; sole mechanism for provider/artifact/option configuration (SRS-275, SRS-276) [`src/usereq/cli.py`]
-        - `parse_provider_spec(...)`: parse and validate a single `--provider` SPEC string into provider name, artifacts set, and options set (SRS-275, SRS-278) [`src/usereq/cli.py`]
+        - `parse_provider_spec(...)`: parse and validate a single `--provider` SPEC string into provider name, artifact set (`prompts`, `agents`), and options set (SRS-275, SRS-278) [`src/usereq/cli.py`]
       - `load_centralized_models(...)`: load provider models metadata from package resources [`src/usereq/cli.py`]
       - `parse_enable_static_check(...)`: parse `--enable-static-check` entries [`src/usereq/static_check.py`]
       - `_validate_enable_static_check_command_executables(...)`: validate local executability of command-based checkers [`src/usereq/cli.py`]
