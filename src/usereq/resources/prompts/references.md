@@ -14,18 +14,17 @@ Maintain a machine-usable reference index (`%%DOC_PATH%%/REFERENCES.md`) derived
 In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in English (following the prompt’s `req --references` workflow) and commit that doc change. Out of scope: changes to requirements, workflow docs, source code, or tests.
 
 ## Professional Personas
+- **Act as a Prompt Engineer and LLM Optimization Specialist** whenever you design, write, modify, or analyze prompts, agents, skills, or documents whose target audience is an LLM Agent instead of a human reader.
 - **Act as a Senior System Engineer** when analyzing source code and directory structures to understand the system's architecture and logic.
 - **Act as a Technical Writer** when producing the final reference index, ensuring clarity, technical precision, and structured formatting.
 - **Act as an Expert GitOps Engineer** when executing git workflows, especially when creating/removing/managing git worktrees to isolate changes safely.
 
 ## Pre-requisite: Execution Context
-- Generate <EXECUTION_ID> from the current date/time (NOT UUID) to keep date traceability in worktree and branch names by executing `date +"%Y%m%d%H%M%S"`.
-- Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
-- Identify the Git project name with `git rev-parse --show-toplevel | xargs basename` and refer to it as <PROJECT_NAME>.
+- Generate <WORKTREE_NAME> with `req --git-wt-name` and use this identifier for all worktree operations in this workflow.
 
 
 ## Absolute Rules, Non-Negotiable
-- **CRITICAL**: NEVER write, modify, edit, or delete files outside of the active git worktree directory, except under `/tmp`, and except for creating/removing the dedicated worktree directory `../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>` as explicitly required by this workflow.
+- **CRITICAL**: NEVER write, modify, edit, or delete files outside of the active git worktree directory, except under `/tmp`, and except for worktree operations executed through `req --git-wt-create <WORKTREE_NAME>` and `req --git-wt-delete <WORKTREE_NAME>`.
 - You can read, write, or edit `%%DOC_PATH%%/REFERENCES.md`.
 - Treat running the test suite as safe. Any files created solely as test artifacts should be considered acceptable because they are always confined to temporary or ignored directories and do not alter existing project files. All file operations executed by tests are restricted to temporary or cache directories (e.g., `tmp/`, `temp/`, `.cache/`, `.pytest_cache/`, `node_modules/.cache`, `/tmp`); when generating new test cases, strictly adhere to this rule and ensure all write operations use these specific directories.
 - **CRITICAL**: Do not modify any project files except creating/updating `%%DOC_PATH%%/REFERENCES.md`.
@@ -69,17 +68,12 @@ During the execution flow you MUST follow these directives:
 ## Steps
 Create internally a *check-list* for the **Global Roadmap** including all the numbered steps below: `1..6`, and start following the roadmap at the same time, executing the tool call of Step 1 (Check GIT Status). If a tool call is required in Step 1, invoke it immediately; otherwise proceed to Step 1 without additional commentary. Do not add extra intent-adjustment checks unless explicitly listed in the Steps section.
 1. **CRITICAL**: Check GIT Status
-   - Check GIT status. Confirm you are inside a clean git repo by executing `git rev-parse --is-inside-work-tree >/dev/null 2>&1 && ! git status --porcelain | grep -q . && { git symbolic-ref -q HEAD >/dev/null 2>&1 || git rev-parse --verify HEAD >/dev/null 2>&1; } || { printf '%s\n' 'ERROR: Git status unclear!'; }`. If it prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
+   - Check GIT status with `req --git-check`. If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Git status unclear!", and then terminate the execution.
 2. **CRITICAL**: Worktree Generation & Isolation
-   - Generate <EXECUTION_ID> from the current date/time (NOT UUID) to keep date traceability in worktree and branch names by executing `date +"%Y%m%d%H%M%S"`.
-   - Identify the current git branch with `git branch --show-current` and refer to it as <ORIGINAL_BRANCH>.
-   - Identify the Git project name with `git rev-parse --show-toplevel | xargs basename` and refer to it as <PROJECT_NAME>.
-   - Create a dedicated worktree OUTSIDE the current repository directory to isolate changes:
-      - Execute: `git worktree add ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> -b useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
-      - If `.gitignore` excludes `.req/config.json`, copy `.req/config.json` into the new worktree before continuing:
-         - `if git check-ignore -q .req/config.json && [ -f .req/config.json ]; then mkdir -p ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req && cp .req/config.json ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req/config.json; fi`
-   - Move into the worktree directory and perform ALL subsequent steps from there:
-      - `cd ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
+   - Generate <WORKTREE_NAME> with `req --git-wt-name`.
+   - Create and enter the dedicated isolated worktree with `req --git-wt-create <WORKTREE_NAME>`.
+   - If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Worktree generation failed!", and then terminate the execution.
+
 3. Update `%%DOC_PATH%%/REFERENCES.md` references file
    -  Create/update the references file with `req --here --references >"%%DOC_PATH%%/REFERENCES.md"`
 4. **CRITICAL**: Stage & commit
@@ -94,14 +88,10 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - Do not include the 'Co-authored-by' trailer or any AI attribution.
    - Confirm the repo is clean with `git status --porcelain`. If it is NOT empty, override the final line with EXACTLY "WARNING: References request completed with unclean git repository!".
 5. **CRITICAL**: Merge Conflict Management
-   - Return to the original repository directory (the sibling directory of the worktree). After working in `../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`, return with: `cd ../<PROJECT_NAME>`
-   - Ensure you are on <ORIGINAL_BRANCH>: `git checkout <ORIGINAL_BRANCH>`
-   - If `.gitignore` excludes `.req/config.json`, remove the copied `.req/config.json` from the worktree before merge:
-      - `if git check-ignore -q .req/config.json; then rm -f ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>/.req/config.json; fi`
-   - Merge the isolated branch into <ORIGINAL_BRANCH>: `git merge useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
-   - If the merge completes successfully, remove the worktree directory with force and delete the isolated branch: `git worktree remove ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> --force && git branch -D useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID>`
-   - Immediately before proceeding to the next step, verify effective deletion of the worktree directory and isolated branch: `test ! -d ../useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> && ! git show-ref --verify --quiet refs/heads/useReq-<PROJECT_NAME>-<ORIGINAL_BRANCH>-<EXECUTION_ID> || { printf '%s\n' 'ERROR: Worktree cleanup verification failed!'; }`
-   - If the verification command prints any text containing the word "ERROR", OUTPUT exactly "ERROR: Worktree cleanup verification failed!", and then terminate the execution.
+   - Return to the original repository directory (the sibling directory of the worktree).
+   - Ensure you are on the original branch used before worktree creation by running `req --git-wt-exit`.
+   - Merge the isolated branch into the original branch: `git merge <WORKTREE_NAME>`
+   - If the merge completes successfully, delete the isolated worktree and branch with `req --git-wt-delete <WORKTREE_NAME>`; if the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Worktree cleanup verification failed!", and then terminate the execution.
    - If the merge fails or results in conflicts, do NOT remove the worktree directory and override the final line with EXACTLY "WARNING: References request completed with merge conflicting!".
 6. Present results
    - PRINT, in the response, the results in a clear, structured format suitable for analytical processing (lists of findings, file paths, and concise evidence). Use the fixed report schema: ## **Outcome**, ## **Requirement Delta**, ## **Design Delta**, ## **Implementation Delta**, ## **Verification Delta**, ## **Evidence**, ## **Assumptions**, ## **Next Workflow**. Final line MUST be exactly: STATUS: OK or STATUS: ERROR.
