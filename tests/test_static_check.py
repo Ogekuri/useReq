@@ -16,6 +16,7 @@
   - --static-check project-scan dispatch (SRS-262)
   - --enable-static-check config persistence (SRS-262)
   - Language name case-insensitivity (SRS-262)
+  - fail_only mode suppressing output on pass for each checker class (SRS-247)
 @author useReq
 @version 0.0.72
 """
@@ -623,6 +624,163 @@ class TestCLIIntegrationStaticCheck(unittest.TestCase):
         with patch("builtins.print"):
             rc = cli.main(["--test-static-check", "dummy", str(f)])
         self.assertEqual(rc, 0)
+
+
+# ---------------------------------------------------------------------------
+# fail_only mode tests (SRS-241, SRS-242, SRS-243, SRS-244, SRS-247)
+# ---------------------------------------------------------------------------
+
+class TestFailOnlyMode(unittest.TestCase):
+    """!
+    @brief Tests for `fail_only` mode across all checker classes (SRS-247).
+    @details Verifies that when `fail_only=True`, passing checks produce no stdout output,
+      and failing checks still emit header, Result: FAIL, Evidence, and trailing blank line.
+    """
+
+    def setUp(self) -> None:
+        self.tmp = TEMP_BASE / "fail_only"
+        if self.tmp.exists():
+            shutil.rmtree(self.tmp)
+        self.tmp.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        if self.tmp.exists():
+            shutil.rmtree(self.tmp)
+
+    def _make_proc_result(self, rc: int, stdout: str = "", stderr: str = "") -> MagicMock:
+        """!
+        @brief Create a mock subprocess result.
+        @param rc Return code.
+        @param stdout Mocked stdout content.
+        @param stderr Mocked stderr content.
+        @return MagicMock with returncode, stdout, stderr attributes.
+        """
+        m = MagicMock()
+        m.returncode = rc
+        m.stdout = stdout
+        m.stderr = stderr
+        return m
+
+    def test_dummy_fail_only_pass_no_output(self) -> None:
+        """StaticCheckBase with fail_only=True produces no output on pass (SRS-241)."""
+        f = _make_temp_file(self.tmp, "ok.py")
+        out = StringIO()
+        with patch("sys.stdout", out):
+            checker = StaticCheckBase(inputs=[str(f)], fail_only=True)
+            rc = checker.run()
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.getvalue(), "")
+
+    def test_dummy_fail_only_false_produces_output(self) -> None:
+        """StaticCheckBase with fail_only=False produces header + Result: OK (SRS-241)."""
+        f = _make_temp_file(self.tmp, "ok.py")
+        out = StringIO()
+        with patch("sys.stdout", out):
+            checker = StaticCheckBase(inputs=[str(f)], fail_only=False)
+            rc = checker.run()
+        self.assertEqual(rc, 0)
+        self.assertIn("Static-Check(Dummy)", out.getvalue())
+        self.assertIn("Result: OK", out.getvalue())
+
+    def test_pylance_fail_only_pass_no_output(self) -> None:
+        """StaticCheckPylance with fail_only=True produces no output on pass (SRS-242)."""
+        f = _make_temp_file(self.tmp, "ok.py")
+        out = StringIO()
+        with patch("subprocess.run", return_value=self._make_proc_result(0)):
+            with patch("sys.stdout", out):
+                checker = StaticCheckPylance(inputs=[str(f)], fail_only=True)
+                rc = checker.run()
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.getvalue(), "")
+
+    def test_pylance_fail_only_fail_emits_output(self) -> None:
+        """StaticCheckPylance with fail_only=True still emits header+FAIL on failure (SRS-242)."""
+        f = _make_temp_file(self.tmp, "bad.py")
+        out = StringIO()
+        with patch("subprocess.run", return_value=self._make_proc_result(1, "type error")):
+            with patch("sys.stdout", out):
+                checker = StaticCheckPylance(inputs=[str(f)], fail_only=True)
+                rc = checker.run()
+        self.assertEqual(rc, 1)
+        output = out.getvalue()
+        self.assertIn("Static-Check(Pylance)", output)
+        self.assertIn("Result: FAIL", output)
+        self.assertIn("Evidence:", output)
+        self.assertIn("type error", output)
+
+    def test_ruff_fail_only_pass_no_output(self) -> None:
+        """StaticCheckRuff with fail_only=True produces no output on pass (SRS-243)."""
+        f = _make_temp_file(self.tmp, "ok.py")
+        out = StringIO()
+        with patch("subprocess.run", return_value=self._make_proc_result(0)):
+            with patch("sys.stdout", out):
+                checker = StaticCheckRuff(inputs=[str(f)], fail_only=True)
+                rc = checker.run()
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.getvalue(), "")
+
+    def test_ruff_fail_only_fail_emits_output(self) -> None:
+        """StaticCheckRuff with fail_only=True still emits header+FAIL on failure (SRS-243)."""
+        f = _make_temp_file(self.tmp, "bad.py")
+        out = StringIO()
+        with patch("subprocess.run", return_value=self._make_proc_result(1, "lint error")):
+            with patch("sys.stdout", out):
+                checker = StaticCheckRuff(inputs=[str(f)], fail_only=True)
+                rc = checker.run()
+        self.assertEqual(rc, 1)
+        output = out.getvalue()
+        self.assertIn("Static-Check(Ruff)", output)
+        self.assertIn("Result: FAIL", output)
+        self.assertIn("Evidence:", output)
+        self.assertIn("lint error", output)
+
+    def test_command_fail_only_pass_no_output(self) -> None:
+        """StaticCheckCommand with fail_only=True produces no output on pass (SRS-244)."""
+        f = _make_temp_file(self.tmp, "ok.c", "int main(){return 0;}\n")
+        out = StringIO()
+        with patch("shutil.which", return_value="/usr/bin/cppcheck"):
+            with patch("subprocess.run", return_value=self._make_proc_result(0)):
+                with patch("sys.stdout", out):
+                    checker = StaticCheckCommand(cmd="cppcheck", inputs=[str(f)], fail_only=True)
+                    rc = checker.run()
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.getvalue(), "")
+
+    def test_command_fail_only_fail_emits_output(self) -> None:
+        """StaticCheckCommand with fail_only=True still emits header+FAIL on failure (SRS-244)."""
+        f = _make_temp_file(self.tmp, "bad.c", "int main(){return 0;}\n")
+        out = StringIO()
+        with patch("shutil.which", return_value="/usr/bin/cppcheck"):
+            with patch("subprocess.run", return_value=self._make_proc_result(1, "syntax error")):
+                with patch("sys.stdout", out):
+                    checker = StaticCheckCommand(cmd="cppcheck", inputs=[str(f)], fail_only=True)
+                    rc = checker.run()
+        self.assertEqual(rc, 1)
+        output = out.getvalue()
+        self.assertIn("Static-Check(Command[cppcheck])", output)
+        self.assertIn("Result: FAIL", output)
+        self.assertIn("Evidence:", output)
+        self.assertIn("syntax error", output)
+
+    def test_dispatch_fail_only_kwarg_forwarded(self) -> None:
+        """dispatch_static_check_for_file forwards fail_only to checker (SRS-261)."""
+        f = _make_temp_file(self.tmp, "x.py")
+        out = StringIO()
+        cfg = {"module": "Dummy"}
+        with patch("sys.stdout", out):
+            rc = dispatch_static_check_for_file(str(f), cfg, fail_only=True)
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.getvalue(), "")
+
+    def test_dispatch_fail_only_default_false(self) -> None:
+        """dispatch_static_check_for_file defaults fail_only to False (SRS-261)."""
+        f = _make_temp_file(self.tmp, "x.py")
+        out = StringIO()
+        cfg = {"module": "Dummy"}
+        with patch("sys.stdout", out):
+            rc = dispatch_static_check_for_file(str(f), cfg)
+        self.assertEqual(rc, 0)
+        self.assertIn("Result: OK", out.getvalue())
 
 
 # ---------------------------------------------------------------------------
@@ -1304,8 +1462,8 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         """!
         @brief --static-check includes files from both src-dir and tests-dir (SRS-256, SRS-336, SRS-337).
         @details Verifies that file selection collects files from configured tests-dir
-          alongside src-dir directories. Dummy checker output MUST reference files from
-          both directories.
+          alongside src-dir directories. With fail_only=True (SRS-256), Dummy checker
+          produces no stdout for passing files; verify via dispatch call arguments.
         """
         from usereq import cli
 
@@ -1316,22 +1474,22 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         old_cwd = os.getcwd()
         try:
             os.chdir(str(self.tmp))
-            with patch("builtins.print") as mock_print:
+            with patch("usereq.static_check.dispatch_static_check_for_file", return_value=0) as mock_dispatch:
                 rc = cli.main(["--static-check"])
         finally:
             os.chdir(old_cwd)
         self.assertEqual(rc, 0)
-        output = "\n".join(
-            str(c.args[0]) for c in mock_print.call_args_list if c.args
-        )
-        self.assertIn("main.py", output)
-        self.assertIn("test_main.py", output)
+        dispatched_files = [c.args[0] for c in mock_dispatch.call_args_list]
+        dispatched_str = "\n".join(dispatched_files)
+        self.assertIn("main.py", dispatched_str)
+        self.assertIn("test_main.py", dispatched_str)
 
     def test_static_check_tests_dir_only(self) -> None:
         """!
         @brief --static-check processes test files even when src-dir has no supported files (SRS-336).
         @details Verifies that when src-dir contains no supported-extension files but tests-dir
           does, the command still succeeds and processes the test files.
+          With fail_only=True (SRS-256), verify via dispatch call arguments.
         """
         from usereq import cli
 
@@ -1342,15 +1500,14 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         old_cwd = os.getcwd()
         try:
             os.chdir(str(self.tmp))
-            with patch("builtins.print") as mock_print:
+            with patch("usereq.static_check.dispatch_static_check_for_file", return_value=0) as mock_dispatch:
                 rc = cli.main(["--static-check"])
         finally:
             os.chdir(old_cwd)
         self.assertEqual(rc, 0)
-        output = "\n".join(
-            str(c.args[0]) for c in mock_print.call_args_list if c.args
-        )
-        self.assertIn("test_core.py", output)
+        dispatched_files = [c.args[0] for c in mock_dispatch.call_args_list]
+        dispatched_str = "\n".join(dispatched_files)
+        self.assertIn("test_core.py", dispatched_str)
 
 
 # ---------------------------------------------------------------------------

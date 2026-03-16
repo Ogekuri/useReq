@@ -225,12 +225,18 @@ def parse_enable_static_check(spec: str) -> tuple[str, dict]:
 # Per-file dispatch helper (SRS-261)
 # ---------------------------------------------------------------------------
 
-def dispatch_static_check_for_file(filepath: str, lang_config: dict) -> int:
+def dispatch_static_check_for_file(
+    filepath: str,
+    lang_config: dict,
+    *,
+    fail_only: bool = False,
+) -> int:
     """!
     @brief Dispatch static-check for a single file based on a language config dict.
     @param filepath Absolute path of the file to analyse.
     @param lang_config Dict with keys `"module"` (str), optional `"cmd"` (str, Command only),
       optional `"params"` (list[str]).
+    @param fail_only When True, suppress all stdout output for passing checks (SRS-253, SRS-256).
     @return Exit code: 0 on pass, 1 on fail.
     @throws ReqError If module is unknown, or Command module is missing `"cmd"`.
     @details
@@ -239,7 +245,7 @@ def dispatch_static_check_for_file(filepath: str, lang_config: dict) -> int:
       - `"Pylance"` -> `StaticCheckPylance`
       - `"Ruff"` -> `StaticCheckRuff`
       - `"Command"` -> `StaticCheckCommand` (requires `"cmd"` key)
-      Instantiates the checker with `inputs=[filepath]` and `extra_args=params`.
+      Instantiates the checker with `inputs=[filepath]`, `extra_args=params`, and `fail_only`.
       Delegates actual check to `checker.run()`.
     @see SRS-261, SRS-253, SRS-256
     """
@@ -250,18 +256,18 @@ def dispatch_static_check_for_file(filepath: str, lang_config: dict) -> int:
     module_key = module.lower()
     checker: StaticCheckBase
     if module_key == "dummy":
-        checker = StaticCheckBase(inputs=[filepath], extra_args=params)
+        checker = StaticCheckBase(inputs=[filepath], extra_args=params, fail_only=fail_only)
     elif module_key == "pylance":
-        checker = StaticCheckPylance(inputs=[filepath], extra_args=params)
+        checker = StaticCheckPylance(inputs=[filepath], extra_args=params, fail_only=fail_only)
     elif module_key == "ruff":
-        checker = StaticCheckRuff(inputs=[filepath], extra_args=params)
+        checker = StaticCheckRuff(inputs=[filepath], extra_args=params, fail_only=fail_only)
     elif module_key == "command":
         if not cmd:
             raise ReqError(
                 f"Error: Command module requires 'cmd' in static-check config for '{filepath}'.",
                 1,
             )
-        checker = StaticCheckCommand(cmd=cmd, inputs=[filepath], extra_args=params)
+        checker = StaticCheckCommand(cmd=cmd, inputs=[filepath], extra_args=params, fail_only=fail_only)
     else:
         raise ReqError(
             f"Error: unknown static-check module '{module}'. "
@@ -328,6 +334,7 @@ class StaticCheckBase:
     @details Iterates over resolved input files and emits a per-file header line plus `Result: OK`.
       Subclasses override `_check_file` to provide tool-specific logic.
       File resolution is delegated to `_resolve_files`.
+      When `fail_only` is True, passing files produce no output (SRS-241, SRS-253, SRS-256).
     """
 
     #: Tool label used in the header line. Subclasses override this.
@@ -337,17 +344,21 @@ class StaticCheckBase:
         self,
         inputs: Sequence[str],
         extra_args: Optional[Sequence[str]] = None,
+        *,
+        fail_only: bool = False,
     ) -> None:
         """!
                 @brief Initialize the static checker with resolved inputs and options.
                 @param inputs Raw path/pattern/directory entries from CLI.
                 @param extra_args Additional CLI arguments forwarded to the external tool (may be None).
+                @param fail_only When True, suppress all stdout output for passing checks (SRS-241).
                 @details Resolves `inputs` immediately into `self._files` via `_resolve_files`.
                   Recursive traversal is expressed via `**` glob patterns in `inputs` (e.g., `src/**/*.py`);
                   no separate recursive flag exists (SRS-240, SRS-245).
         @return {None} Function return value.
         """
         self._extra_args: List[str] = list(extra_args) if extra_args else []
+        self._fail_only: bool = fail_only
         self._files = _resolve_files(inputs)
 
     # ------------------------------------------------------------------
@@ -362,6 +373,7 @@ class StaticCheckBase:
           If the resolved file list is empty a warning is printed to stderr and 0 is returned.
           For each file `_check_file` is called; the overall return code is the maximum of all
           per-file return codes (0 = all OK, 1 = at least one FAIL).
+          When `fail_only` is True, trailing blank separator lines are emitted only for failing files.
         """
         if not self._files:
             print(
@@ -375,7 +387,8 @@ class StaticCheckBase:
             rc = self._check_file(filepath)
             if rc != 0:
                 overall = 1
-            self._emit_line("")
+            if not self._fail_only or rc != 0:
+                self._emit_line("")
         return overall
 
     # ------------------------------------------------------------------
@@ -398,11 +411,14 @@ class StaticCheckBase:
         @brief Perform the static analysis for a single file.
         @param filepath Absolute path of the file to check.
         @return 0 on pass, non-zero on failure.
-        @details Base implementation (Dummy): always prints the header and `Result: OK`.
+        @details Base implementation (Dummy): always passes.
+          When `fail_only` is False, prints the header and `Result: OK`.
+          When `fail_only` is True, produces no output (SRS-241).
           Subclasses override this method to invoke external tools.
         """
-        self._emit_line(self._header_line(filepath))
-        self._emit_line("Result: OK")
+        if not self._fail_only:
+            self._emit_line(self._header_line(filepath))
+            self._emit_line("Result: OK")
         return 0
 
     def _emit_line(self, line: str) -> None:
@@ -439,11 +455,10 @@ class StaticCheckPylance(StaticCheckBase):
         @details
           Invokes `pyright <filepath> [extra_args...]`.
           Captures combined stdout+stderr.
-          On exit code 0 prints `Result: OK`.
-          On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
+          When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
+          When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-242).
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
         """
-        self._emit_line(self._header_line(filepath))
         cmd = ["pyright", filepath] + self._extra_args
         try:
             result = subprocess.run(
@@ -452,15 +467,19 @@ class StaticCheckPylance(StaticCheckBase):
                 text=True,
             )
         except FileNotFoundError:
+            self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
             self._emit_line("  pyright not found on PATH")
             return 1
 
         if result.returncode == 0:
-            self._emit_line("Result: OK")
+            if not self._fail_only:
+                self._emit_line(self._header_line(filepath))
+                self._emit_line("Result: OK")
             return 0
         else:
+            self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
             evidence = (result.stdout or "") + (result.stderr or "")
@@ -492,11 +511,10 @@ class StaticCheckRuff(StaticCheckBase):
         @details
           Invokes `ruff check <filepath> [extra_args...]`.
           Captures combined stdout+stderr.
-          On exit code 0 prints `Result: OK`.
-          On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
+          When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
+          When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-243).
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
         """
-        self._emit_line(self._header_line(filepath))
         cmd = ["ruff", "check", filepath] + self._extra_args
         try:
             result = subprocess.run(
@@ -505,15 +523,19 @@ class StaticCheckRuff(StaticCheckBase):
                 text=True,
             )
         except FileNotFoundError:
+            self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
             self._emit_line("  ruff not found on PATH")
             return 1
 
         if result.returncode == 0:
-            self._emit_line("Result: OK")
+            if not self._fail_only:
+                self._emit_line(self._header_line(filepath))
+                self._emit_line("Result: OK")
             return 0
         else:
+            self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
             evidence = (result.stdout or "") + (result.stderr or "")
@@ -541,12 +563,15 @@ class StaticCheckCommand(StaticCheckBase):
         cmd: str,
         inputs: Sequence[str],
         extra_args: Optional[Sequence[str]] = None,
+        *,
+        fail_only: bool = False,
     ) -> None:
         """!
                 @brief Initialize the command checker and verify tool availability.
                 @param cmd External command name (must be available on PATH).
                 @param inputs Raw path/pattern/directory entries from CLI.
                 @param extra_args Additional CLI arguments forwarded to the external command.
+                @param fail_only When True, suppress all stdout output for passing checks (SRS-244).
                 @throws ReqError If `cmd` is not found on PATH (exit code 1).
                 @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
                   Sets `LABEL` dynamically to `Command[<cmd>]`.
@@ -558,7 +583,7 @@ class StaticCheckCommand(StaticCheckBase):
             )
         self._cmd = cmd
         self.LABEL = f"Command[{cmd}]"
-        super().__init__(inputs=inputs, extra_args=extra_args)
+        super().__init__(inputs=inputs, extra_args=extra_args, fail_only=fail_only)
 
     def _check_file(self, filepath: str) -> int:
         """!
@@ -568,11 +593,10 @@ class StaticCheckCommand(StaticCheckBase):
         @details
           Invokes `<cmd> [extra_args...] <filepath>`.
           Captures combined stdout+stderr.
-          On exit code 0 prints `Result: OK`.
-          On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
+          When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
+          When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-244).
         @satisfies SRS-244, SRS-253, SRS-256
         """
-        self._emit_line(self._header_line(filepath))
         cmd = [self._cmd] + self._extra_args + [filepath]
         try:
             result = subprocess.run(
@@ -581,15 +605,19 @@ class StaticCheckCommand(StaticCheckBase):
                 text=True,
             )
         except FileNotFoundError:
+            self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
             self._emit_line(f"  command '{self._cmd}' not found on PATH")
             return 1
 
         if result.returncode == 0:
-            self._emit_line("Result: OK")
+            if not self._fail_only:
+                self._emit_line(self._header_line(filepath))
+                self._emit_line("Result: OK")
             return 0
         else:
+            self._emit_line(self._header_line(filepath))
             self._emit_line("Result: FAIL")
             self._emit_line("Evidence:")
             evidence = (result.stdout or "") + (result.stderr or "")

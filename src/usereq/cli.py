@@ -4692,8 +4692,9 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
       - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension.
       - Looks up language in the `"static-check"` config section; skips silently if absent.
       - Executes each configured language entry sequentially via
-        `dispatch_static_check_for_file(filepath, lang_config)`.
+        `dispatch_static_check_for_file(filepath, lang_config, fail_only=True)`.
       - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
+      All checks execute with `fail_only=True`: passing checks produce no stdout output (SRS-253).
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
     @see SRS-253, SRS-254, SRS-255
     """
@@ -4739,7 +4740,7 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
             vlog(f"Skipping {raw_path}: no static-check config for language '{lang}'")
             continue
         for lang_config in lang_configs:
-            rc = dispatch_static_check_for_file(filepath, lang_config)
+            rc = dispatch_static_check_for_file(filepath, lang_config, fail_only=True)
             if rc != 0:
                 overall = 1
     return overall
@@ -4760,8 +4761,9 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       - Looks up language in the `"static-check"` section of `.req/config.json`.
       - Skips silently when no tool is configured for the file's language.
       - Executes each configured language entry sequentially via
-        `dispatch_static_check_for_file(filepath, lang_config)`.
+        `dispatch_static_check_for_file(filepath, lang_config, fail_only=True)`.
       - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
+      All checks execute with `fail_only=True`: passing checks produce no stdout output (SRS-256).
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
     @throws ReqError If no source files are found.
     @see SRS-256, SRS-257, SRS-336
@@ -4796,7 +4798,7 @@ def run_project_static_check_cmd(args: Namespace) -> int:
             vlog(f"Skipping {filepath}: no static-check config for language '{lang}'")
             continue
         for lang_config in lang_configs:
-            rc = dispatch_static_check_for_file(filepath, lang_config)
+            rc = dispatch_static_check_for_file(filepath, lang_config, fail_only=True)
             if rc != 0:
                 overall = 1
     return overall
