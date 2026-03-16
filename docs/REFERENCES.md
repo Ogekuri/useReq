@@ -179,7 +179,7 @@ import sys
 
 ---
 
-# cli.py | Python | 4969L | 151 symbols | 32 imports | 240 comments
+# cli.py | Python | 4979L | 151 symbols | 32 imports | 241 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -1112,39 +1112,39 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4748-4794)
-- @brief Execute `--static-check`: run static analysis on all project source files.
-- @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. - For `Command` module entries, execution order is `<cmd> [params...] <filename>`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4748-4804)
+- @brief Execute `--static-check`: run static analysis on project source and test files.
+- @details Collects files from configured `src-dir` directories and the `tests-dir` directory (SRS-256, SRS-336), applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. If `tests-dir` is missing or invalid in `.req/config.json`, test directory inclusion is skipped silently without error (SRS-336). For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. - For `Command` module entries, execution order is `<cmd> [params...] <filename>`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @throws ReqError If no source files are found.
-- @see SRS-256, SRS-257
+- @see SRS-256, SRS-257, SRS-336
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4795-4815)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4805-4825)
 - @brief Resolve project base path for project-level commands.
 - @details Implements the _resolve_project_base function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4816-4868)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4826-4878)
 - @brief Resolve project base and src-dirs for project source commands.
 - @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L4869-4969)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L4879-4979)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L4893)
+- var `VERBOSE = getattr(args, "verbose", False)` (L4903)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
-- var `DEBUG = getattr(args, "debug", False)` (L4894)
+- var `DEBUG = getattr(args, "debug", False)` (L4904)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -1293,12 +1293,12 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 |`run_find`|fn|pub|4619-4648|def run_find(args: Namespace) -> None|
 |`run_tokens`|fn|pub|4649-4676|def run_tokens(args: Namespace) -> None|
 |`run_files_static_check_cmd`|fn|pub|4677-4747|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|4748-4794|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|4795-4815|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|4816-4868|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|4869-4969|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|4893||
-|`DEBUG`|var|pub|4894||
+|`run_project_static_check_cmd`|fn|pub|4748-4804|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|4805-4825|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|4826-4878|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|4879-4979|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|4903||
+|`DEBUG`|var|pub|4904||
 
 
 ---

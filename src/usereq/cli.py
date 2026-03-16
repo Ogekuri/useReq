@@ -4747,13 +4747,14 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
 
 def run_project_static_check_cmd(args: Namespace) -> int:
     """!
-    @brief Execute `--static-check`: run static analysis on all project source files.
+    @brief Execute `--static-check`: run static analysis on project source and test files.
     @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
     @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
     @details
-      Uses the same file-collection logic as `--references` and `--compress` (SRS-177,
-      SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories,
-      applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching.
+      Collects files from configured `src-dir` directories and the `tests-dir` directory
+      (SRS-256, SRS-336), applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching.
+      If `tests-dir` is missing or invalid in `.req/config.json`, test directory inclusion is
+      skipped silently without error (SRS-336).
       For each collected file:
       - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension.
       - Looks up language in the `"static-check"` section of `.req/config.json`.
@@ -4763,12 +4764,21 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
     @throws ReqError If no source files are found.
-    @see SRS-256, SRS-257
+    @see SRS-256, SRS-257, SRS-336
     """
     from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
 
     project_base, src_dirs = _resolve_project_src_dirs(args)
     sc_config = load_static_check_from_config(project_base)
+
+    # SRS-336: append tests-dir to file selection; skip silently if missing/invalid
+    try:
+        full_cfg = load_full_config(project_base)
+        tests_dir_val = full_cfg.get("tests-dir") or full_cfg.get("test-dir")
+        if isinstance(tests_dir_val, str) and tests_dir_val.strip():
+            src_dirs = list(src_dirs) + [tests_dir_val]
+    except ReqError:
+        pass
 
     files = _collect_source_files(src_dirs, project_base)
     if not files:

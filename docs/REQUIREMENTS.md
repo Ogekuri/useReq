@@ -415,8 +415,9 @@ No explicit performance optimizations identified.
 - **SRS-253**: The CLI MUST support `--files-static-check FILE [FILE ...]` as a standalone command (no `--base`/`--here` required); for each FILE it MUST resolve absolute path, detect language, load the language array from `"static-check"`, and execute all configured entries sequentially; for `Command` entries it MUST invoke tools as `<cmd> [params...] <filename>`; files with no language or no configured entries MUST be skipped.
 - **SRS-254**: When `--files-static-check` cannot locate `.req/config.json` (no `--here`, no `--base`, and no `.req/config.json` exists in CWD), the command MUST print a warning to stderr and exit with code 0 without checking any files.
 - **SRS-255**: The `--files-static-check` command exit code MUST be 0 when all checked files pass (or no files are checked), and 1 when at least one file fails static analysis.
-- **SRS-256**: The CLI MUST support `--static-check` as a `--here`-only project-scan command with implicit `--here`, `--base` rejection, and file selection from `git ls-files` under configured `src-dir` values plus SRS-131/SRS-180 filtering; for `Command` entries it MUST invoke tools as `<cmd> [params...] <filename>`.
+- **SRS-256**: The CLI MUST support `--static-check` as a `--here`-only project-scan command with implicit `--here`, `--base` rejection, and file selection from `git ls-files` under configured `src-dir` values and the `tests-dir` value plus SRS-131/SRS-180 filtering; for `Command` entries it MUST invoke tools as `<cmd> [params...] <filename>`.
 - **SRS-257**: The `--static-check` command exit code MUST be 0 when all checked files pass (or no files are checked), and 1 when at least one file fails static analysis; it MUST remain dispatched via `_is_project_scan_command`.
+- **SRS-336**: The `--static-check` command MUST load the `tests-dir` value from `.req/config.json` and append it to the `src-dir` list for file selection; if `tests-dir` is missing or invalid the command MUST skip test directory inclusion without error.
 ### 5.5 Static Analysis Dispatch Implementation Requirements
 - **SRS-258**: The implementation MUST provide a `STATIC_CHECK_LANG_CANONICAL` dict in `src/usereq/static_check.py` mapping lowercase language identifiers (including common aliases: `cpp` for C++, `csharp` for C#, `js` for JavaScript, `ts` for TypeScript, `sh` for Shell) to canonical language names from SRS-249.
 - **SRS-259**: The implementation MUST provide a `STATIC_CHECK_EXT_TO_LANG` dict in `src/usereq/static_check.py` mapping file extensions to canonical language names, using the same 20-language extension set as SRS-131.
@@ -425,6 +426,7 @@ No explicit performance optimizations identified.
 
 ### 5.6 Static Analysis Configuration and Dispatch Test Requirements
 - **SRS-262**: The project MUST include unit tests in `tests/test_static_check.py` for parser/dispatcher behavior plus multi-entry language arrays, including repeated `Command` entries for one language and sequential execution checks for `--files-static-check` and `--static-check`.
+- **SRS-337**: The project MUST include unit tests in `tests/test_static_check.py` verifying that `--static-check` includes files from both `src-dir` and `tests-dir` directories in its file selection.
 
 ## 6. Git Integration and Worktree Management Requirements
 

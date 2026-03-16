@@ -1300,6 +1300,58 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         cmd_used = non_git_calls[0]
         self.assertEqual(cmd_used, ["node", "--check", str(f.resolve())])
 
+    def test_static_check_includes_tests_dir_files(self) -> None:
+        """!
+        @brief --static-check includes files from both src-dir and tests-dir (SRS-256, SRS-336, SRS-337).
+        @details Verifies that file selection collects files from configured tests-dir
+          alongside src-dir directories. Dummy checker output MUST reference files from
+          both directories.
+        """
+        from usereq import cli
+
+        (self.tmp / "tests").mkdir(exist_ok=True)
+        _make_temp_file(self.tmp / "src", "main.py")
+        _make_temp_file(self.tmp / "tests", "test_main.py")
+        self._write_config({"Python": [{"module": "Dummy"}]})
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("builtins.print") as mock_print:
+                rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
+        self.assertEqual(rc, 0)
+        output = "\n".join(
+            str(c.args[0]) for c in mock_print.call_args_list if c.args
+        )
+        self.assertIn("main.py", output)
+        self.assertIn("test_main.py", output)
+
+    def test_static_check_tests_dir_only(self) -> None:
+        """!
+        @brief --static-check processes test files even when src-dir has no supported files (SRS-336).
+        @details Verifies that when src-dir contains no supported-extension files but tests-dir
+          does, the command still succeeds and processes the test files.
+        """
+        from usereq import cli
+
+        (self.tmp / "tests").mkdir(exist_ok=True)
+        _make_temp_file(self.tmp / "src", "readme.txt", "not a source file\n")
+        _make_temp_file(self.tmp / "tests", "test_core.py")
+        self._write_config({"Python": [{"module": "Dummy"}]})
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("builtins.print") as mock_print:
+                rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
+        self.assertEqual(rc, 0)
+        output = "\n".join(
+            str(c.args[0]) for c in mock_print.call_args_list if c.args
+        )
+        self.assertIn("test_core.py", output)
+
 
 # ---------------------------------------------------------------------------
 # --enable-static-check Command executable validation tests (SRS-250)
