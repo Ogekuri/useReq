@@ -134,7 +134,7 @@
       - `run_git_wt_exit(...)`: execute `--git-wt-exit` changing cwd to configured `base-path` [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
-    - `run(...)`: initialization/update command path for resources and config persistence; validates git repository and persists base-path/git-path; requires at least one `--provider` spec in non-update mode (SRS-035) and deduplicates static-check entries by `(language, module, cmd, params)` identity [`src/usereq/cli.py`]
+    - `run(...)`: initialization/update command path for resources and config persistence; validates git repository and persists base-path/git-path; requires at least one `--provider` spec in non-update mode (SRS-035), deduplicates static-check entries by `(language, module, cmd, params)` identity, and preserves pre-existing static-check entries from `.req/config.json` when adding new `--enable-static-check` entries [`src/usereq/cli.py`]
       - `is_inside_git_repo(...)`: verify target path is inside a git work tree (SRS-305) [`src/usereq/cli.py`]
       - `resolve_git_root(...)`: resolve git repository root for base-path (SRS-305, SRS-306) [`src/usereq/cli.py`]
       - `load_persisted_update_flags(...)`: load persisted `preserve-models` boolean from `.req/config.json` and validate `providers` array existence (SRS-288) [`src/usereq/cli.py`]

@@ -2881,7 +2881,15 @@ def run(args: Namespace) -> None:
     )
 
     # Compute merged static-check: existing config + new non-duplicate entries (SRS-252, SRS-301).
-    if use_here_config or args.update:
+    # Preserve pre-existing static-check entries whenever config.json already exists and
+    # the invocation includes at least one --enable-static-check spec.
+    config_path = project_base / ".req" / "config.json"
+    should_merge_existing = (
+        use_here_config
+        or args.update
+        or (bool(enable_static_check_specs) and config_path.is_file())
+    )
+    if should_merge_existing:
         existing_sc = load_static_check_from_config(project_base)
         merged_static_check: dict = {k: list(v) for k, v in existing_sc.items()}
         for lang, entries in new_static_check.items():

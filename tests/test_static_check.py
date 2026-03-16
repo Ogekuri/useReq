@@ -1500,6 +1500,64 @@ class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
             merged.setdefault("Python", []).append(new_entry)
         self.assertEqual(len(merged["Python"]), 1)
 
+    def test_non_update_enable_static_check_preserves_existing_entries(self) -> None:
+        """Non-update init appends non-duplicate entry and preserves existing ones (SRS-301 behavior)."""
+        import json
+        from usereq import cli
+
+        existing_payload = {
+            "guidelines-dir": "guidelines",
+            "docs-dir": "docs",
+            "tests-dir": "tests",
+            "src-dir": ["src"],
+            "providers": ["claude:prompts"],
+            "base-path": str(self.tmp),
+            "git-path": str(self.tmp),
+            "static-check": {
+                "JavaScript": [{"module": "Command", "cmd": "scripts/check-js-syntax.sh"}]
+            },
+        }
+        (self.tmp / "guidelines").mkdir(parents=True, exist_ok=True)
+        (self.tmp / "docs").mkdir(parents=True, exist_ok=True)
+        (self.tmp / "tests").mkdir(parents=True, exist_ok=True)
+        (self.tmp / "src").mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["git", "init"], cwd=self.tmp, check=True, stdout=subprocess.DEVNULL
+        )
+        (self.tmp / ".req" / "config.json").write_text(
+            json.dumps(existing_payload, ensure_ascii=False), encoding="utf-8"
+        )
+
+        argv = [
+            "--base",
+            str(self.tmp),
+            "--guidelines-dir",
+            "guidelines",
+            "--docs-dir",
+            "docs",
+            "--tests-dir",
+            "tests",
+            "--src-dir",
+            "src",
+            "--provider",
+            "claude:prompts",
+            "--enable-static-check",
+            "JavaScript=Command,node,--check",
+        ]
+        with patch("usereq.cli.maybe_notify_newer_version", return_value=None):
+            rc = cli.main(argv)
+        self.assertEqual(rc, 0)
+
+        payload = json.loads((self.tmp / ".req" / "config.json").read_text(encoding="utf-8"))
+        entries = payload["static-check"]["JavaScript"]
+        self.assertEqual(
+            entries,
+            [
+                {"module": "Command", "cmd": "scripts/check-js-syntax.sh"},
+                {"module": "Command", "cmd": "node", "params": ["--check"]},
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
