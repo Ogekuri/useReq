@@ -21,7 +21,10 @@ REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 REQ_SCRIPT_PATH = REPO_ROOT / "scripts" / "req.sh"
 RESOURCES_DIR = REPO_ROOT / "src" / "usereq" / "resources"
-RUNTIME_BUILD_PACKAGES = {"build", "setuptools", "wheel", "tiktoken", "pyyaml"}
+ALL_PROJECT_PACKAGES = {
+    "build", "setuptools", "wheel", "tiktoken", "pyyaml",
+    "pytest", "pyright", "ruff",
+}
 REQUIRED_OPERATIONAL_RESOURCE_SUBDIRS = {
     "common",
     "prompts",
@@ -59,19 +62,24 @@ def _read_requirements_packages() -> set[str]:
     }
 
 
-def test_requirements_contains_only_runtime_build_packages() -> None:
-    """@brief Assert requirements.txt matches allowed runtime/build dependency set.
-    @details Prevents drift to test/lint-only packages and enforces exact package set required for application execution and build operations.
+def test_requirements_contains_only_project_packages() -> None:
+    """@brief Assert requirements.txt matches allowed project dependency set.
+    @details Prevents drift by enforcing exact package set required for
+    application execution, build, development, testing, and static analysis.
     @return {None} No return value.
+    @satisfies SRS-055
     """
 
-    assert _read_requirements_packages() == RUNTIME_BUILD_PACKAGES
+    assert _read_requirements_packages() == ALL_PROJECT_PACKAGES
 
 
-def test_pyproject_dependencies_are_aligned_with_requirements() -> None:
-    """@brief Verify pyproject dependency declarations mirror requirements.txt.
-    @details Compares requirements.txt package names with union(build-system.requires, project.dependencies) after normalization to enforce exact manifest alignment.
+def test_pyproject_dependencies_are_subset_of_requirements() -> None:
+    """@brief Verify pyproject dependency declarations are a subset of requirements.txt.
+    @details Compares union(build-system.requires, project.dependencies) after
+    normalization against requirements.txt packages. pyproject.toml runtime/build
+    deps MUST be a subset; requirements.txt MAY additionally list dev/test/tool packages.
     @return {None} No return value.
+    @satisfies SRS-264
     """
 
     pyproject_data = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
@@ -81,7 +89,11 @@ def test_pyproject_dependencies_are_aligned_with_requirements() -> None:
         _normalize_requirement_name(entry)
         for entry in [*build_requires, *project_dependencies]
     }
-    assert pyproject_packages == _read_requirements_packages()
+    requirements_packages = _read_requirements_packages()
+    assert pyproject_packages <= requirements_packages, (
+        f"pyproject.toml declares packages not in requirements.txt: "
+        f"{sorted(pyproject_packages - requirements_packages)}"
+    )
 
 
 def test_req_sh_executes_cli_with_venv_python() -> None:

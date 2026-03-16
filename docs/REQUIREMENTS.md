@@ -151,9 +151,9 @@ No explicit performance optimizations identified.
 - **SRS-300**: On HTTP 429 with valid `Retry-After`, the command MUST set `idle_until_timestamp` to `max(current_idle_until_timestamp, now + max(300, retry_after_seconds))` and MUST persist all idle-state human-readable timestamps.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
 - **SRS-054**: The repository MUST include `scripts/req.sh` as the development launcher wrapper for the CLI.
-- **SRS-055**: The repository MUST keep `requirements.txt` as the canonical runtime/build dependency list containing all and only packages required to execute or build the application.
+- **SRS-055**: The repository MUST keep `requirements.txt` as the canonical project dependency list containing all and only packages required to execute, build, develop, test, or statically analyze the application.
 - **SRS-056**: `scripts/req.sh` MUST execute the CLI via `.venv/bin/python3` and MUST forward all user-provided CLI arguments unchanged.
-- **SRS-264**: Dependency declarations in `pyproject.toml` or `setup.py` MUST match `requirements.txt` exactly and MUST include all and only packages required to execute or build the application.
+- **SRS-264**: Runtime and build dependency declarations in `pyproject.toml` (`[build-system].requires` union `[project].dependencies`) MUST be a subset of `requirements.txt`; `requirements.txt` MAY additionally list development, testing, and static-analysis tooling packages not declared in `pyproject.toml`.
 - **SRS-057**: The current implementation MUST be treated as not providing a root-level `doxygen.sh` script for automated Doxygen generation.
 - **SRS-058**: Any workflow that invokes `doxygen.sh` from repository root MUST fail fast because no such script path exists in the repository.
 - **SRS-059**: Doxygen output generation to `doxygen/html`, `doxygen/pdf`, and `doxygen/markdown` MUST be treated as unsupported by committed automation scripts.

@@ -4,3 +4,6 @@ setuptools
 wheel
 tiktoken
 pyyaml
+pytest
+pyright
+ruff
