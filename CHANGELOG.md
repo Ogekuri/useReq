@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.32.0](https://github.com/Ogekuri/useReq/compare/v0.31.0..v0.32.0) - 2026-03-16
+### 🐛  Bug Fixes
+- Rimosso .req path.
+- Rimosso .req path.
+
+### 🚜  Changes
+- add git integration, worktree management, and config path persistence [useReq] *(cli)*
+  - SRS-302/303: persist and update absolute base-path in .req/config.json
+  - SRS-305/306/307: validate git repo on install, persist and update git-path
+  - SRS-308/309: derive parent-path and base-dir dynamically at runtime
+  - SRS-310: load_full_config loads all config.json params for command use
+  - SRS-311/312: new --git-check command verifying clean git status
+  - SRS-313-317: new --docs-check command verifying docs file existence
+  - SRS-318/319: new --git-wt-name command printing standardized worktree name
+  - SRS-320-325: new --git-wt-create command with .req and provider dir copy
+  - SRS-326-328: new --git-wt-delete command for worktree/branch removal
+  - Updated requirements, workflow, references, and 13 new tests (1912 total pass)
+
 ## [0.31.0](https://github.com/Ogekuri/useReq/compare/v0.30.0..v0.31.0) - 2026-03-08
 ### 🚜  Changes
 - deduplicate identical --enable-static-check entries on update [useReq] *(static-check)*
@@ -774,6 +792,7 @@
 - \[0.29.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.29.0
 - \[0.30.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.30.0
 - \[0.31.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.31.0
+- \[0.32.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.32.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -806,3 +825,4 @@
 [0.29.0]: https://github.com/Ogekuri/useReq/compare/v0.28.0..v0.29.0
 [0.30.0]: https://github.com/Ogekuri/useReq/compare/v0.29.0..v0.30.0
 [0.31.0]: https://github.com/Ogekuri/useReq/compare/v0.30.0..v0.31.0
+[0.32.0]: https://github.com/Ogekuri/useReq/compare/v0.31.0..v0.32.0
