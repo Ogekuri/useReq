@@ -4,3 +4,4 @@ setuptools
 wheel
 tiktoken
 pyyaml
+pytest
