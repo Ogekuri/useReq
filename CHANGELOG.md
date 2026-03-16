@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.35.0](https://github.com/Ogekuri/useReq/compare/v0.34.0..v0.35.0) - 2026-03-16
+### 🐛  Bug Fixes
+- preserve existing static-check entries [useReq] *(cli)*
+  - Ensure --enable-static-check appends only non-duplicate entries and keeps existing ones.\nAdd regression test for non-update config with pre-existing JavaScript Command checker.\nUpdate runtime/reference docs.
+
+### 🚜  Changes
+- enforce identity-based update merge [useReq] *(static-check)*
+  - Update SRS-301 to define duplicate detection by exact tuple (language,module,cmd,params).
+  - Implement canonical static-check identity helper in cli merge flow.
+  - Preserve existing static-check entries and append only non-duplicate identities.
+  - Add tests covering tuple-based dedupe and metadata-insensitive duplicate detection.
+  - Refresh WORKFLOW.md and regenerate REFERENCES.md.
+
+### 📚  Documentation
+- document git/docs utility commands [useReq] *(readme)*
+  - Document CLI usage for --docs-check, --git-check, --git-wt-create, --git-wt-exit, and --git-wt-delete.\nKeep the existing README structure and limit edits to command coverage.
+- align static-check merge behavior [useReq] *(readme)*
+  - Document --enable-static-check merge semantics for existing config.\nClarify that existing entries are preserved, duplicates ignored, and new entries appended.
+
 ## [0.34.0](https://github.com/Ogekuri/useReq/compare/v0.33.0..v0.34.0) - 2026-03-16
 ### 🐛  Bug Fixes
 - Minor fixex in promtps.
@@ -826,6 +845,7 @@
 - \[0.32.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.32.0
 - \[0.33.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.33.0
 - \[0.34.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.34.0
+- \[0.35.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.35.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -861,3 +881,4 @@
 [0.32.0]: https://github.com/Ogekuri/useReq/compare/v0.31.0..v0.32.0
 [0.33.0]: https://github.com/Ogekuri/useReq/compare/v0.32.0..v0.33.0
 [0.34.0]: https://github.com/Ogekuri/useReq/compare/v0.33.0..v0.34.0
+[0.35.0]: https://github.com/Ogekuri/useReq/compare/v0.34.0..v0.35.0
