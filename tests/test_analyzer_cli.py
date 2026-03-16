@@ -3,7 +3,6 @@
 import os
 import subprocess
 import sys
-import pytest
 
 
 ANALYZER_PATH = os.path.join(

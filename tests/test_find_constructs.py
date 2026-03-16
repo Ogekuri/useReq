@@ -3,9 +3,7 @@
 @details Tests construct extraction, tag filtering, pattern matching, and output formatting for the find_constructs module.
 """
 
-import os
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest

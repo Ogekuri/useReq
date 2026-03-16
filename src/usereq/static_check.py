@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import glob
+import os
 import shutil
 import subprocess
 import sys
@@ -24,6 +25,25 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 from .cli import ReqError
+
+
+def _detect_venv_python() -> str:
+    """!
+    @brief Detect the project virtual-environment Python interpreter.
+    @return Absolute path to the venv Python if found, otherwise `sys.executable`.
+    @details Searches for `.venv/bin/python` (Unix) or `.venv/Scripts/python.exe` (Windows)
+      relative to `os.getcwd()`. Falls back to `sys.executable` when no project venv is detected.
+      Used by `StaticCheckPylance` to pass `--pythonpath` so that pyright resolves imports
+      against the project environment rather than the tool-installation environment.
+    """
+    cwd = Path(os.getcwd())
+    for candidate in (
+        cwd / ".venv" / "bin" / "python",
+        cwd / ".venv" / "Scripts" / "python.exe",
+    ):
+        if candidate.is_file():
+            return str(candidate.resolve())
+    return sys.executable
 
 
 # ---------------------------------------------------------------------------
@@ -455,15 +475,20 @@ class StaticCheckPylance(StaticCheckBase):
         @param filepath Absolute path of the file to analyse with pyright.
         @return 0 when pyright exits 0, 1 otherwise.
         @details
-          Invokes `[sys.executable, '-m', 'pyright', <filepath>, <extra_args>...]` to use the
-          package-installed pyright module without requiring external PATH availability.
+          Invokes `[sys.executable, '-m', 'pyright', '--pythonpath', <venv_python>,
+          <filepath>, <extra_args>...]` to use the package-installed pyright module
+          without requiring external PATH availability. The `--pythonpath` flag points
+          to the project virtual-environment Python (detected by `_detect_venv_python`)
+          so that pyright resolves imports against the project environment, preventing
+          `reportMissingImports` false positives for project-installed packages.
           Captures combined stdout+stderr.
           When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
           When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-242).
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
         @satisfies SRS-242, SRS-339
         """
-        cmd = [sys.executable, "-m", "pyright", filepath] + self._extra_args
+        venv_python = _detect_venv_python()
+        cmd = [sys.executable, "-m", "pyright", "--pythonpath", venv_python, filepath] + self._extra_args
         try:
             result = subprocess.run(
                 cmd,

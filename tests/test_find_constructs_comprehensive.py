@@ -5,11 +5,10 @@ Tests verify that find_constructs_in_files() correctly identifies and extracts c
 the tag filter and regex pattern for each language-construct combination defined in FND-002.
 """
 
-import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, Set
 
 import pytest
 
@@ -454,7 +453,7 @@ class TestFindConstructsComprehensive:
         fixture = str(self.get_fixture_path(fixtures_dir, "python"))
         output = find_constructs_in_files([fixture], "FUNCTION", ".*")
 
-        expected_functions = EXPECTED_CONSTRUCTS["python"]["FUNCTION"]
+        _ = EXPECTED_CONSTRUCTS["python"]["FUNCTION"]
         # Test subset of key functions
         key_functions = {"regular_function", "async_function", "generator_function"}
         for func_name in key_functions:
@@ -700,7 +699,7 @@ class TestFindConstructsComprehensive:
         assert "FUNCTION: `main`" in output
         # Should not match min_val or other functions containing 'main'
         lines = output.split("\n")
-        main_lines = [l for l in lines if "FUNCTION:" in l]
+        main_lines = [line for line in lines if "FUNCTION:" in line]
         assert len(main_lines) <= 2  # Header line + main function
 
     def test_multiple_tags_extraction(self, fixtures_dir):

@@ -298,6 +298,8 @@ class TestCLI(unittest.TestCase):
         self.assertIsNotNone(
             agent_desc_match, "GitHub agent must have quoted description"
         )
+        assert codex_desc_match is not None
+        assert agent_desc_match is not None
         # Skill description MUST differ from agent description (different source: sections vs front matter).
         self.assertNotEqual(
             codex_desc_match.group(1),
@@ -334,7 +336,7 @@ class TestCLI(unittest.TestCase):
             # Verify front matter with name (REQ-053).
             content = agent_path.read_text(encoding="utf-8")
             self.assertIn("---", content, f"{agent} must contain front matter")
-            prompt_name = agent.replace(".agent.md", "").replace(".", "-")
+            _ = agent.replace(".agent.md", "").replace(".", "-")
             # The name in front matter must be req-<name>.
             expected_name_pattern = agent.replace(".agent.md", "").replace(".", "-")
             self.assertIn(
@@ -588,7 +590,8 @@ class TestCLI(unittest.TestCase):
         config_path = self.TEST_DIR / ".req" / "config.json"
         data = json.loads(config_path.read_text(encoding="utf-8"))
         test_dir = data["tests-dir"]
-        test_value = f"`{test_dir.rstrip('/\\\\')}/`"
+        stripped = test_dir.rstrip("/\\")
+        test_value = f"`{stripped}/`"
         replaced = cli.apply_replacements(
             "TEST: %%TEST_PATH%%", {"%%TEST_PATH%%": test_value}
         )
@@ -599,7 +602,10 @@ class TestCLI(unittest.TestCase):
         config_path = self.TEST_DIR / ".req" / "config.json"
         data = json.loads(config_path.read_text(encoding="utf-8"))
         src_dirs = data["src-dir"]
-        src_value = ", ".join(f"`{value.rstrip('/\\\\')}/`" for value in src_dirs)
+        _strip_chars = "/\\"
+        src_value = ", ".join(
+            "`{}/`".format(value.rstrip(_strip_chars)) for value in src_dirs
+        )
         replaced = cli.apply_replacements(
             "SRC: %%SRC_PATHS%%", {"%%SRC_PATHS%%": src_value}
         )
@@ -2027,7 +2033,7 @@ class TestUpdateNotification(unittest.TestCase):
 
         with patch("usereq.cli.maybe_notify_newer_version", side_effect=fake_notify):
             with patch("sys.stdout") as fake_stdout:
-                exit_code = cli.main(
+                cli.main(
                     [
                         "--base",
                         str(self.TEST_DIR),
@@ -2059,7 +2065,7 @@ class TestUpdateNotification(unittest.TestCase):
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stdout") as fake_stdout:
-                exit_code = cli.main(
+                cli.main(
                     [
                         "--base",
                         str(self.TEST_DIR),
@@ -3213,7 +3219,7 @@ class TestProviderSpecParsing(unittest.TestCase):
     def test_missing_artifacts_rejected(self) -> None:
         """SRS-278, SRS-284: A spec with no colon separator must cause exit code 1."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            with patch("sys.stderr") as fake_stderr:
+            with patch("sys.stderr"):
                 exit_code = cli.main(self._base_args() + ["--provider", "codex"])
         self.assertEqual(
             exit_code, 1, "A spec missing the ARTIFACTS part must cause exit code 1"
@@ -3597,7 +3603,7 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
         self.assertGreater(
             len(claude_agent_files), 0, "At least one Claude agent file must exist"
         )
-        claude_agent_content = claude_agent_files[0].read_text(encoding="utf-8")
+        _ = claude_agent_files[0].read_text(encoding="utf-8")
         # Model line should be present if models.json has a model for this prompt.
         # We check that the frontmatter has either a model line or does not
         # (depending on models.json content), but the key point is that

@@ -1,11 +1,8 @@
 """Test per i metodi interni dell'analyzer."""
 
-import os
-import tempfile
-import pytest
 
 from usereq.source_analyzer import (
-    SourceAnalyzer, ElementType, LanguageSpec, build_language_specs,
+    SourceAnalyzer, LanguageSpec, build_language_specs,
 )
 
 

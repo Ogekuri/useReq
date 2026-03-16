@@ -294,7 +294,8 @@ def _count_source_doxygen_tags_with_regex(filepath: Path) -> Dict[str, int]:
     text = filepath.read_text(encoding="utf-8", errors="replace")
     counts = _init_zero_tag_counts()
     for match in DOXYGEN_SOURCE_MULTILINE_ENTRY_PATTERN.finditer(text):
-        normalized_tag = f"@{re.sub(r'\\s+', '', match.group('tag').lower())}"
+        tag_stripped = re.sub(r"\\s+", "", match.group("tag").lower())
+        normalized_tag = "@{}".format(tag_stripped)
         if normalized_tag in counts:
             counts[normalized_tag] += 1
     return counts

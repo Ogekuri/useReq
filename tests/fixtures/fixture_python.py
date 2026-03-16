@@ -4,9 +4,10 @@
 @brief Comprehensive Python test fixture for parser validation.
 @details Covers classes, protocols, decorators, generators, async functions, and rich Doxygen-tagged constructs used to validate extraction workflows and deterministic parser behavior.
 """
-import os  #!< @brief OS interface module. @details Provides OS-dependent functionality.
+import asyncio  #!< @brief Async IO support. @details Used for async test fixtures. # noqa: F401
+import os  #!< @brief OS interface module. @details Provides OS-dependent functionality. # noqa: F401
 import sys  #!< @brief System-specific parameters. @see sys.exit() for exit handling.
-from pathlib import Path  #!< @brief Object-oriented filesystem paths. @note Preferred over os.path.
+from pathlib import Path  #!< @brief Object-oriented filesystem paths. @note Preferred over os.path. # noqa: F401
 from typing import (
     Optional, List, Dict, Union, Protocol,
     TypeVar, Generic, Iterator, AsyncIterator
@@ -282,8 +283,8 @@ class Renderable(Protocol):
         ...
 
 
-@property  #!< @brief Property decorator. @details Converts function to property.
- def regular_function(x: int) -> int:
+@property  # type: ignore[arg-type]  #!< @brief Property decorator. @details Converts function to property.
+def regular_function(x: int) -> int:
     """Simple function demonstrating decorator and return.
 
     @param x Input integer value.
@@ -391,7 +392,7 @@ def uses_unpacking(*args: int, **kwargs: str) -> Dict[str, Union[int, str]]:
 
 
 # Lambda assigned to a variable for inline transforms
-transform = lambda x: x * 2 + 1
+transform = lambda x: x * 2 + 1  # noqa: E731
 
 # List comprehension with conditional filtering
 EVEN_SQUARES = [x ** 2 for x in range(20) if x % 2 == 0]
@@ -402,7 +403,7 @@ async def async_function():
 
     @brief Minimal async function for testing async detection.
     """
-    await None
+    await asyncio.sleep(0)
 
 
 def deeply_nested_logic(matrix: List[List[int]]) -> int:
@@ -441,7 +442,7 @@ def exception_handling_example(path: str) -> Optional[str]:
     except FileNotFoundError:
         # File does not exist
         return None
-    except (PermissionError, OSError) as e:
+    except (PermissionError, OSError) as e:  # noqa: F841
         # Access denied or OS-level error
         sys.exit(1)
     except Exception:

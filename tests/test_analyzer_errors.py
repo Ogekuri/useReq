@@ -4,7 +4,7 @@ import os
 import tempfile
 import pytest
 
-from usereq.source_analyzer import SourceAnalyzer, ElementType
+from usereq.source_analyzer import ElementType
 
 
 class TestUnsupportedLanguage:

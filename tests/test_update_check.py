@@ -1,6 +1,7 @@
 """Unit tests for online update-check dispatch in CLI command flows."""
 
 import io
+import http.client
 import json
 import tempfile
 import urllib.error
@@ -92,7 +93,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
             code=403,
             msg="Forbidden",
-            hdrs=None,
+            hdrs=http.client.HTTPMessage(),
             fp=io.BytesIO(b'{"message":"API rate limit exceeded"}'),
         )
 
@@ -265,11 +266,13 @@ class TestOnlineUpdateCheck(unittest.TestCase):
     ) -> None:
         """HTTP 429 handling must use Retry-After when it exceeds idle-delay."""
         now_timestamp = 1700000000
+        hdrs_429 = http.client.HTTPMessage()
+        hdrs_429["Retry-After"] = "900"
         http_error = urllib.error.HTTPError(
             url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
             code=429,
             msg="Too Many Requests",
-            hdrs={"Retry-After": "900"},
+            hdrs=hdrs_429,
             fp=io.BytesIO(b'{"message":"rate limit exceeded"}'),
         )
 
@@ -303,11 +306,13 @@ class TestOnlineUpdateCheck(unittest.TestCase):
     ) -> None:
         """HTTP 429 handling must enforce idle-delay floor for short Retry-After values."""
         now_timestamp = 1700000000
+        hdrs_429_short = http.client.HTTPMessage()
+        hdrs_429_short["Retry-After"] = "60"
         http_error = urllib.error.HTTPError(
             url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
             code=429,
             msg="Too Many Requests",
-            hdrs={"Retry-After": "60"},
+            hdrs=hdrs_429_short,
             fp=io.BytesIO(b'{"message":"rate limit exceeded"}'),
         )
 

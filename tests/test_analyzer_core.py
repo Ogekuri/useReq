@@ -2,7 +2,6 @@
 
 import os
 import pytest
-from collections import Counter
 
 from tests.test_helpers import (
     ALL_LANGUAGES,
@@ -14,7 +13,7 @@ from tests.test_helpers import (
     filter_elements,
     count_by_type,
 )
-from usereq.source_analyzer import SourceAnalyzer, ElementType, SourceElement
+from usereq.source_analyzer import ElementType, SourceElement
 
 
 class TestAnalyzerAllLanguages:

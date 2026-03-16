@@ -27,11 +27,9 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 from io import StringIO
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from usereq.static_check import (
@@ -1654,7 +1652,6 @@ class TestEnableStaticCheckConfigPersistence(unittest.TestCase):
 
     def test_load_static_check_returns_empty_when_key_absent(self) -> None:
         """load_static_check_from_config returns {} when 'static-check' key is absent."""
-        import json
         from usereq.cli import save_config, load_static_check_from_config
         save_config(self.tmp, "guidelines", "docs", "tests", ["src"])
         result = load_static_check_from_config(self.tmp)

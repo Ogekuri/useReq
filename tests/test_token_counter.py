@@ -6,7 +6,6 @@ Covers: TOK-001 through TOK-006.
 import os
 import tempfile
 
-import pytest
 
 from usereq.token_counter import (
     TokenCounter,

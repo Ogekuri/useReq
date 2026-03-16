@@ -1,3 +1,6 @@
+// cppcheck-suppress-begin unusedStructMember
+// cppcheck-suppress-begin constParameterPointer
+// cppcheck-suppress-begin constParameter
 /**
  * @file fixture_c.c
  * @brief Comprehensive C language test fixture for parser validation.
@@ -8,11 +11,11 @@
 // Single line comment
 /* Multi-line
    comment */
+#include "myheader.h"
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include "myheader.h"
 
 /* ── Preprocessor directives ──────────────────────────────────────────── */
 
@@ -57,8 +60,8 @@ typedef unsigned char byte_t;
  * @brief 2D point with integer coordinates.
  */
 struct Point {
-    int x; /**< @brief Horizontal coordinate. */
-    int y; /**< @brief Vertical coordinate. */
+  int x; /**< @brief Horizontal coordinate. */
+  int y; /**< @brief Vertical coordinate. */
 };
 
 /**
@@ -66,10 +69,10 @@ struct Point {
  * @brief Bitfield struct testing parser handling of colon-separated widths.
  */
 struct PackedFlags {
-    unsigned int readable  : 1;  /**< @brief Read permission flag. */
-    unsigned int writable  : 1;  /**< @brief Write permission flag. */
-    unsigned int executable: 1;  /**< @brief Execute permission flag. */
-    unsigned int reserved  : 5;  /**< @brief Reserved for future use. */
+  unsigned int readable : 1;   /**< @brief Read permission flag. */
+  unsigned int writable : 1;   /**< @brief Write permission flag. */
+  unsigned int executable : 1; /**< @brief Execute permission flag. */
+  unsigned int reserved : 5;   /**< @brief Reserved for future use. */
 };
 
 /**
@@ -77,12 +80,12 @@ struct PackedFlags {
  * @brief Self-referential linked-list node with embedded anonymous union.
  */
 struct Node {
-    /** @brief Payload can hold either an integer or float value. */
-    union {
-        int   i_val;
-        float f_val;
-    } payload;
-    struct Node *next; /**< @brief Pointer to successor node or NULL. */
+  /** @brief Payload can hold either an integer or float value. */
+  union {
+    int i_val;
+    float f_val;
+  } payload;
+  struct Node *next; /**< @brief Pointer to successor node or NULL. */
 };
 
 /* ── Union ────────────────────────────────────────────────────────────── */
@@ -92,9 +95,9 @@ struct Node {
  * @brief Discriminated union for multi-type storage.
  */
 union Data {
-    int   i;     /**< @brief Integer interpretation. */
-    float f;     /**< @brief Float interpretation. */
-    char  s[16]; /**< @brief Fixed-size string buffer. */
+  int i;      /**< @brief Integer interpretation. */
+  float f;    /**< @brief Float interpretation. */
+  char s[16]; /**< @brief Fixed-size string buffer. */
 };
 
 /* ── Enum ─────────────────────────────────────────────────────────────── */
@@ -104,9 +107,9 @@ union Data {
  * @brief Primary color identifiers for rendering pipeline.
  */
 enum Color {
-    RED,    /**< @brief Red channel. */
-    GREEN,  /**< @brief Green channel. */
-    BLUE    /**< @brief Blue channel. */
+  RED,   /**< @brief Red channel. */
+  GREEN, /**< @brief Green channel. */
+  BLUE   /**< @brief Blue channel. */
 };
 
 /* ── Typedef for function pointer ─────────────────────────────────────── */
@@ -133,9 +136,9 @@ typedef int (*transform_fn)(int value);
  * @brief Combined struct typedef for callback registration entries.
  */
 typedef struct {
-    const char   *name;    /**< @brief Callback identifier. */
-    comparator_fn handler; /**< @brief Comparison function pointer. */
-    int           priority;/**< @brief Dispatch priority (lower = first). */
+  const char *name;      /**< @brief Callback identifier. */
+  comparator_fn handler; /**< @brief Comparison function pointer. */
+  int priority;          /**< @brief Dispatch priority (lower = first). */
 } callback_entry_t;
 
 /* ── Static module-level variable ─────────────────────────────────────── */
@@ -154,9 +157,7 @@ static char error_buffer[256] = {0};
  * @param b Second integer.
  * @return The smaller of a and b.
  */
-static inline int min_val(int a, int b) {
-    return a < b ? a : b;
-}
+static inline int min_val(int a, int b) { return a < b ? a : b; }
 
 /* ── Standard functions ───────────────────────────────────────────────── */
 
@@ -165,11 +166,11 @@ static inline int min_val(int a, int b) {
  * @param name The recipient name; must not be NULL.
  */
 void greet(const char *name) {
-    /* Validate non-null input before printing */
-    if (name == NULL) {
-        return;
-    }
-    printf("Hello %s\n", name);
+  /* Validate non-null input before printing */
+  if (name == NULL) {
+    return;
+  }
+  printf("Hello %s\n", name);
 }
 
 /**
@@ -179,13 +180,13 @@ void greet(const char *name) {
  * @return Exit code: 0 on success, 1 on error.
  */
 int main(int argc, char **argv) {
-    if (argc < 2) {
-        /* No arguments supplied — show usage */
-        fprintf(stderr, "Usage: %s <name>\n", argv[0]);
-        return 1;
-    }
-    greet(argv[1]);
-    return 0;
+  if (argc < 2) {
+    /* No arguments supplied — show usage */
+    fprintf(stderr, "Usage: %s <name>\n", argv[0]);
+    return 1;
+  }
+  greet(argv[1]);
+  return 0;
 }
 
 /* ── Variadic function ────────────────────────────────────────────────── */
@@ -197,15 +198,15 @@ int main(int argc, char **argv) {
  * @return The cumulative sum of all provided integers.
  */
 int sum_ints(int count, ...) {
-    va_list ap;
-    va_start(ap, count);
-    int total = 0;
-    /* Iterate through variadic argument list */
-    for (int i = 0; i < count; i++) {
-        total += va_arg(ap, int);
-    }
-    va_end(ap);
-    return total;
+  va_list ap;
+  va_start(ap, count);
+  int total = 0;
+  /* Iterate through variadic argument list */
+  for (int i = 0; i < count; i++) {
+    total += va_arg(ap, int);
+  }
+  va_end(ap);
+  return total;
 }
 
 /* ── Function pointer parameter ───────────────────────────────────────── */
@@ -217,10 +218,10 @@ int sum_ints(int count, ...) {
  * @param fn    Transform callback applied to each element.
  */
 void apply_transform(int *arr, size_t len, transform_fn fn) {
-    for (size_t i = 0; i < len; i++) {
-        /* Apply callback and store result back */
-        arr[i] = fn(arr[i]);
-    }
+  for (size_t i = 0; i < len; i++) {
+    /* Apply callback and store result back */
+    arr[i] = fn(arr[i]);
+  }
 }
 
 /* ── Recursive function with conditional returns ──────────────────────── */
@@ -231,12 +232,12 @@ void apply_transform(int *arr, size_t len, transform_fn fn) {
  * @return n! or 1 when n <= 1.
  */
 unsigned long factorial(unsigned int n) {
-    /* Base case */
-    if (n <= 1) {
-        return 1;
-    }
-    /* Recursive step */
-    return n * factorial(n - 1);
+  /* Base case */
+  if (n <= 1) {
+    return 1;
+  }
+  /* Recursive step */
+  return n * factorial(n - 1);
 }
 
 /* ── Static helper with restrict/volatile qualifiers ──────────────────── */
@@ -248,7 +249,7 @@ unsigned long factorial(unsigned int n) {
  * @param n    Number of bytes to copy.
  */
 static void fast_copy(void *restrict dest, const void *restrict src, size_t n) {
-    memcpy(dest, src, n);
+  memcpy(dest, src, n);
 }
 
 /**
@@ -256,9 +257,7 @@ static void fast_copy(void *restrict dest, const void *restrict src, size_t n) {
  * @param reg Pointer to the memory-mapped register.
  * @return The current 32-bit register value.
  */
-static int read_volatile(volatile int *reg) {
-    return *reg;
-}
+static int read_volatile(volatile int *reg) { return *reg; }
 
 /* ── Array parameter syntax ───────────────────────────────────────────── */
 
@@ -268,24 +267,42 @@ static int read_volatile(volatile int *reg) {
  * @return The sum of the first 10 elements.
  */
 int sum_fixed(int arr[static 10]) {
-    int s = 0;
-    for (int i = 0; i < 10; i++) {
-        s += arr[i];
-    }
-    return s;
+  int s = 0;
+  for (int i = 0; i < 10; i++) {
+    s += arr[i];
+  }
+  return s;
 }
 
 /* coverage extension block */
-struct Vector2 { int x; int y; }; // inline struct comment
-struct Matrix2 { int a11; int a22; };
+struct Vector2 {
+  int x;
+  int y;
+}; // inline struct comment
+struct Matrix2 {
+  int a11;
+  int a22;
+};
 enum StatusCode { STATUS_OK, STATUS_ERR, STATUS_UNKNOWN };
 enum LevelCode { LEVEL_LOW, LEVEL_MEDIUM, LEVEL_HIGH };
 enum ModeCode { MODE_A, MODE_B };
 enum FlagCode { FLAG_ON, FLAG_OFF };
-union NumberValue { int i; float f; };
-union PtrValue { void *p; long l; };
-union StateValue { int s; char c; };
-union PairValue { int x; int y; };
+union NumberValue {
+  int i;
+  float f;
+};
+union PtrValue {
+  void *p;
+  long l;
+};
+union StateValue {
+  int s;
+  char c;
+};
+union PairValue {
+  int x;
+  int y;
+};
 typedef long index_t;
 typedef float ratio_t;
 typedef struct Point point_t;
@@ -338,3 +355,7 @@ int req_cover_c_4(int value) { return value + 4; }
 int req_cover_c_5(int value) { return value + 5; }
 
 /* REQ-COVER-SRS-231 END */
+
+// cppcheck-suppress-end constParameter
+// cppcheck-suppress-end constParameterPointer
+// cppcheck-suppress-end unusedStructMember

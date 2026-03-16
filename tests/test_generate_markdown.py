@@ -71,7 +71,7 @@ class TestGenerateMarkdown:
         unsup.write("data")
         unsup.close()
         try:
-            md = generate_markdown([unsup.name, valid_path])
+            _ = generate_markdown([unsup.name, valid_path])
             captured = capsys.readouterr()
             assert "SKIP" not in captured.err
         finally:

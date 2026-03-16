@@ -1,11 +1,10 @@
 """Test per format_output() e type_label."""
 
-import os
 import pytest
 
 from tests.test_helpers import ALL_LANGUAGES, fixture_path
 from usereq.source_analyzer import (
-    SourceAnalyzer, ElementType, SourceElement, format_markdown,
+    ElementType, SourceElement, format_markdown,
 )
 
 

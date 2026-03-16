@@ -23,6 +23,7 @@ class TestReleaseWorkflowTriggers(unittest.TestCase):
             flags=re.MULTILINE,
         )
         self.assertIsNotNone(on_block, "Workflow must define an 'on' block")
+        assert on_block is not None
         self.assertIn(
             "workflow_dispatch:",
             on_block.group("body"),

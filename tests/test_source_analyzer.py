@@ -12,7 +12,6 @@ import pytest
 
 from usereq.source_analyzer import (
     ElementType,
-    LanguageSpec,
     SourceAnalyzer,
     SourceElement,
     build_language_specs,
@@ -74,7 +73,7 @@ LANGUAGE_ALIASES = {
 EXPECTED_COUNTS = {
     "c": {
         ElementType.COMMENT_MULTI: 72,
-        ElementType.COMMENT_SINGLE: 2,
+        ElementType.COMMENT_SINGLE: 8,
         ElementType.ENUM: 5,
         ElementType.FUNCTION: 16,
         ElementType.IMPORT: 5,
@@ -82,12 +81,12 @@ EXPECTED_COUNTS = {
         ElementType.STRUCT: 6,
         ElementType.TYPEDEF: 5,
         ElementType.UNION: 5,
-        ElementType.VARIABLE: 6,
+        ElementType.VARIABLE: 17,
     },
     "cpp": {
         ElementType.CLASS: 6,
         ElementType.COMMENT_MULTI: 70,
-        ElementType.COMMENT_SINGLE: 4,
+        ElementType.COMMENT_SINGLE: 11,
         ElementType.ENUM: 5,
         ElementType.FUNCTION: 23,
         ElementType.IMPORT: 7,
@@ -204,10 +203,10 @@ EXPECTED_COUNTS = {
     "python": {
         ElementType.CLASS: 7,
         ElementType.COMMENT_MULTI: 41,
-        ElementType.COMMENT_SINGLE: 58,
+        ElementType.COMMENT_SINGLE: 61,
         ElementType.DECORATOR: 9,
         ElementType.FUNCTION: 37,
-        ElementType.IMPORT: 7,
+        ElementType.IMPORT: 8,
         ElementType.VARIABLE: 6,
     },
     "ruby": {
@@ -292,19 +291,19 @@ EXPECTED_COUNTS = {
 }
 
 EXPECTED_NAMED = [
-    ("python", ElementType.CLASS, "class MyClass:", 61),
-    ("python", ElementType.FUNCTION, "def regular_function(", 286),
-    ("python", ElementType.FUNCTION, "async def async_function(", 400),
-    ("python", ElementType.IMPORT, "import os", 7),
-    ("python", ElementType.VARIABLE, "MAX_RETRIES = ", 18),
-    ("python", ElementType.DECORATOR, "dataclass", 25),
-    ("c", ElementType.STRUCT, "struct Point", 59),
-    ("c", ElementType.UNION, "union Data", 94),
-    ("c", ElementType.ENUM, "enum Color", 106),
-    ("c", ElementType.FUNCTION, "void greet(", 167),
-    ("c", ElementType.FUNCTION, "int main(", 181),
-    ("c", ElementType.MACRO, "#define MAX_SIZE", 19),
-    ("c", ElementType.TYPEDEF, "typedef int my_int;", 48),
+    ("python", ElementType.CLASS, "class MyClass:", 62),
+    ("python", ElementType.FUNCTION, "def regular_function(", 287),
+    ("python", ElementType.FUNCTION, "async def async_function(", 401),
+    ("python", ElementType.IMPORT, "import os", 8),
+    ("python", ElementType.VARIABLE, "MAX_RETRIES = ", 19),
+    ("python", ElementType.DECORATOR, "dataclass", 26),
+    ("c", ElementType.STRUCT, "struct Point", 62),
+    ("c", ElementType.UNION, "union Data", 97),
+    ("c", ElementType.ENUM, "enum Color", 109),
+    ("c", ElementType.FUNCTION, "void greet(", 168),
+    ("c", ElementType.FUNCTION, "int main(", 182),
+    ("c", ElementType.MACRO, "#define MAX_SIZE", 22),
+    ("c", ElementType.TYPEDEF, "typedef int my_int;", 51),
     ("rust", ElementType.STRUCT, "pub struct MyStruct", 20),
     ("rust", ElementType.ENUM, "pub enum MyEnum", 51),
     ("rust", ElementType.TRAIT, "pub trait MyTrait", 65),

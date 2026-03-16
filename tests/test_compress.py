@@ -170,7 +170,7 @@ class TestCompressFiles:
             f.write("x = 1\n")
             valid_path = f.name
         try:
-            result = compress_files(["/nonexistent.py", valid_path])
+            _ = compress_files(["/nonexistent.py", valid_path])
             captured = capsys.readouterr()
             assert "SKIP" not in captured.err
         finally:
@@ -187,7 +187,7 @@ class TestCompressFiles:
         txt_file.write("data")
         txt_file.close()
         try:
-            result = compress_files([txt_file.name, py_file.name])
+            _ = compress_files([txt_file.name, py_file.name])
             captured = capsys.readouterr()
             assert "SKIP" not in captured.err
         finally:
