@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.33.0](https://github.com/Ogekuri/useReq/compare/v0.32.0..v0.33.0) - 2026-03-16
+### ⛰️  Features
+- Update prompt files.
+
+### 🚜  Changes
+- copy .venv in git-wt-create [useReq] *(cli)*
+  - Update requirements for .venv copy in --git-wt-create (SRS-335).\nImplement .venv copy from base-path/git-path before final cwd switch.\nPreserve .venv relative placement from git-path and skip when destination exists.\nExtend unit tests for .venv copy behavior in worktree roundtrip.\nUpdate WORKFLOW and regenerate REFERENCES.
+- update git worktree path transitions [useReq] *(cli)*
+  - Update SRS for git-check output and worktree path behavior.\nImplement --git-wt-exit command and parser wiring.\nMake --git-wt-create cd into new worktree only on full success.\nMake --git-wt-delete cd to base-path before deletion and use git-only deletion.\nAdjust CLI tests for new behaviors and add --git-wt-exit coverage.\nRegenerate workflow and references docs.
+
 ## [0.32.0](https://github.com/Ogekuri/useReq/compare/v0.31.0..v0.32.0) - 2026-03-16
 ### 🐛  Bug Fixes
 - Rimosso .req path.
@@ -793,6 +803,7 @@
 - \[0.30.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.30.0
 - \[0.31.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.31.0
 - \[0.32.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.32.0
+- \[0.33.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.33.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -826,3 +837,4 @@
 [0.30.0]: https://github.com/Ogekuri/useReq/compare/v0.29.0..v0.30.0
 [0.31.0]: https://github.com/Ogekuri/useReq/compare/v0.30.0..v0.31.0
 [0.32.0]: https://github.com/Ogekuri/useReq/compare/v0.31.0..v0.32.0
+[0.33.0]: https://github.com/Ogekuri/useReq/compare/v0.32.0..v0.33.0
