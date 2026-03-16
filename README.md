@@ -189,6 +189,7 @@ req \
     - `agents` artifact generates agent resources for the provider.
   - `--enable-static-check SPEC` Enable static check configuration for a language (repeatable). SPEC format: `LANG=MODULE[,CMD[,PARAM...]]`.
       - Supported `MODULE` values: `Dummy`, `Pylance`, `Ruff`, `Command` (case-insensitive).
+      - Entries are merged into `.req/config.json` without replacing existing ones: existing entries are preserved, identity-duplicates are ignored, and only new non-duplicate entries are appended per language.
 - You need to run `req` again if you add or remove requirement-related files in the documentation directory or any files in the `guidelines/` directory.
 - Option `prompts-use-agents` (within a `--provider` spec) generates prompt files as **agent-only references** (adds an `agent:` front matter field) where supported (GitHub prompts, Claude commands, and OpenCode commands).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
