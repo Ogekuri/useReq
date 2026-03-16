@@ -110,7 +110,7 @@
         - `_collect_source_files(...)`: select files via `git ls-files` + extension filtering (including JavaScript `.js` and `.mjs`) [`src/usereq/cli.py`]
         - `load_static_check_from_config(...)`: load static-check entries [`src/usereq/cli.py`]
         - `dispatch_static_check_for_file(...)`: dispatch checker for each selected file [`src/usereq/static_check.py`]
-      - `run_git_check(...)`: execute `--git-check` verifying clean git status and valid HEAD in configured `git-path` [`src/usereq/cli.py`]
+      - `run_git_check(...)`: execute `--git-check` verifying clean git status and valid HEAD in configured `git-path`, with output only on failure [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["bash", "-c", ...])` git status command
@@ -122,15 +122,18 @@
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - `sanitize_branch_name(...)`: replace path-incompatible characters with `-` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "branch", "--show-current"], ...)` branch name resolution
-      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch and copying `.req` and provider dirs [`src/usereq/cli.py`]
+      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch, copying `.req` and provider dirs, then changing cwd to created worktree path as final success operation [`src/usereq/cli.py`]
         - `validate_wt_name(...)`: validate worktree/branch name against invalid character regex [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "worktree", "add", ...])` worktree creation, `shutil.copytree(...)` directory copy
-      - `run_git_wt_delete(...)`: execute `--git-wt-delete` removing worktree and branch by name [`src/usereq/cli.py`]
+      - `run_git_wt_delete(...)`: execute `--git-wt-delete` by changing cwd to configured `base-path` before deletion, then removing worktree and branch via git commands only [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "worktree", "remove", ...])` and `subprocess.run(["git", "branch", "-D", ...])` worktree/branch removal
+      - `run_git_wt_exit(...)`: execute `--git-wt-exit` changing cwd to configured `base-path` [`src/usereq/cli.py`]
+        - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
+        - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
     - `run(...)`: initialization/update command path for resources and config persistence; validates git repository and persists base-path/git-path; requires at least one `--provider` spec in non-update mode (SRS-035) [`src/usereq/cli.py`]
       - `is_inside_git_repo(...)`: verify target path is inside a git work tree (SRS-305) [`src/usereq/cli.py`]
       - `resolve_git_root(...)`: resolve git repository root for base-path (SRS-305, SRS-306) [`src/usereq/cli.py`]

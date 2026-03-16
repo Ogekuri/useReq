@@ -294,7 +294,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
         "[--test-static-check {dummy,pylance,ruff,command} [FILES...]] "
-        "[--git-check] [--docs-check] [--git-wt-name] [--git-wt-create WT_NAME] [--git-wt-delete WT_NAME] "
+        "[--git-check] [--docs-check] [--git-wt-name] [--git-wt-create WT_NAME] [--git-wt-delete WT_NAME] [--git-wt-exit] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -525,6 +525,16 @@ def build_parser() -> argparse.ArgumentParser:
         dest="git_wt_delete",
         help=(
             "Remove a git worktree and branch by name "
+            "(here-only; --here implied; --base forbidden)."
+        ),
+    )
+    parser.add_argument(
+        "--git-wt-exit",
+        action="store_true",
+        default=False,
+        dest="git_wt_exit",
+        help=(
+            "Change current directory to configured base-path "
             "(here-only; --here implied; --base forbidden)."
         ),
     )
@@ -4046,7 +4056,7 @@ def _is_project_scan_command(args: Namespace) -> bool:
     @return True when any project-scan flag is present.
     @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`,
       `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`,
-      and `--git-wt-delete`.
+      `--git-wt-delete`, and `--git-wt-exit`.
     """
     return bool(
         getattr(args, "references", False)
@@ -4059,6 +4069,7 @@ def _is_project_scan_command(args: Namespace) -> bool:
         or getattr(args, "git_wt_name", False)
         or getattr(args, "git_wt_create", None)
         or getattr(args, "git_wt_delete", None)
+        or getattr(args, "git_wt_exit", False)
     )
 
 
@@ -4068,8 +4079,9 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
     @param args Parsed CLI namespace.
     @return True when command requires implicit `--here` and rejects `--base`.
     @details Includes `--references`, `--compress`, `--tokens`, `--find`, `--static-check`,
-      `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, and `--git-wt-delete`.
-    @satisfies SRS-311, SRS-313, SRS-318, SRS-320, SRS-326
+      `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`,
+      and `--git-wt-exit`.
+    @satisfies SRS-311, SRS-313, SRS-318, SRS-320, SRS-326, SRS-333
     """
     return bool(
         getattr(args, "references", False)
@@ -4082,6 +4094,7 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
         or getattr(args, "git_wt_name", False)
         or getattr(args, "git_wt_create", None)
         or getattr(args, "git_wt_delete", None)
+        or getattr(args, "git_wt_exit", False)
     )
 
 
@@ -4112,12 +4125,9 @@ def run_git_check(args: Namespace) -> None:
             timeout=30,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-        print("ERROR: Git status unclear!")
         raise ReqError("ERROR: Git status unclear!", 1)
     if result.returncode != 0:
-        print("ERROR: Git status unclear!")
         raise ReqError("ERROR: Git status unclear!", 1)
-    print(result.stdout, end="")
 
 
 def run_docs_check(args: Namespace) -> None:
@@ -4185,7 +4195,7 @@ def run_git_wt_create(args: Namespace) -> None:
     @param args Parsed CLI namespace.
     @return {None} Function return value.
     @throws ReqError On invalid name, git command failure, or config errors.
-    @satisfies SRS-320, SRS-321, SRS-322, SRS-323, SRS-324, SRS-325
+    @satisfies SRS-320, SRS-321, SRS-322, SRS-323, SRS-324, SRS-325, SRS-331
     """
     wt_name: str = args.git_wt_create
     if not validate_wt_name(wt_name):
@@ -4245,6 +4255,7 @@ def run_git_wt_create(args: Namespace) -> None:
             dst_dir = wt_base_dir / rel_dir
             if src_dir.is_dir() and not dst_dir.is_dir():
                 shutil.copytree(str(src_dir), str(dst_dir))
+    os.chdir(wt_base_dir)
 
 
 def run_git_wt_delete(args: Namespace) -> None:
@@ -4253,7 +4264,7 @@ def run_git_wt_delete(args: Namespace) -> None:
     @param args Parsed CLI namespace.
     @return {None} Function return value.
     @throws ReqError On invalid name or git removal failure.
-    @satisfies SRS-326, SRS-327, SRS-328
+    @satisfies SRS-326, SRS-327, SRS-328, SRS-332
     """
     wt_name: str = args.git_wt_delete
     project_base = _resolve_project_base(args)
@@ -4297,12 +4308,17 @@ def run_git_wt_delete(args: Namespace) -> None:
     # SRS-328: remove worktree and branch.
     wt_path = parent_path / wt_name
     error_occurred = False
+    base_path_str = full_cfg.get("base-path", str(project_base))
+    base_path = Path(base_path_str)
+    if not base_path.is_dir():
+        raise ReqError("Error: base-path not configured or does not exist.", 11)
+    os.chdir(base_path)
     try:
         r1 = subprocess.run(
             ["git", "worktree", "remove", str(wt_path), "--force"],
             capture_output=True,
             text=True,
-            cwd=str(git_path),
+            cwd=str(base_path),
             timeout=30,
         )
         if r1.returncode != 0:
@@ -4314,7 +4330,7 @@ def run_git_wt_delete(args: Namespace) -> None:
             ["git", "branch", "-D", wt_name],
             capture_output=True,
             text=True,
-            cwd=str(git_path),
+            cwd=str(base_path),
             timeout=10,
         )
         if r2.returncode != 0:
@@ -4325,6 +4341,23 @@ def run_git_wt_delete(args: Namespace) -> None:
         msg = f"ERROR: Unable to remove worktree or branch {wt_name}."
         print(msg)
         raise ReqError(msg, 1)
+
+
+def run_git_wt_exit(args: Namespace) -> None:
+    """!
+    @brief Execute --git-wt-exit: change current directory to configured base-path.
+    @param args Parsed CLI namespace.
+    @return {None} Function return value.
+    @throws ReqError On missing or invalid base-path configuration.
+    @satisfies SRS-333, SRS-334
+    """
+    project_base = _resolve_project_base(args)
+    full_cfg = load_full_config(project_base)
+    base_path_str = full_cfg.get("base-path", str(project_base))
+    base_path = Path(base_path_str)
+    if not base_path.is_dir():
+        raise ReqError("Error: base-path not configured or does not exist.", 11)
+    os.chdir(base_path)
 
 
 def run_files_tokens(files: list[str]) -> None:
@@ -4734,7 +4767,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 raise ReqError(
                     "Error: --references, --compress, --tokens, --find, --static-check, "
                     "--git-check, --docs-check, --git-wt-name, --git-wt-create, and "
-                    "--git-wt-delete do not allow --base; use --here.",
+                    "--git-wt-delete, and --git-wt-exit do not allow --base; use --here.",
                     1,
                 )
             args.here = True
@@ -4786,6 +4819,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                 run_git_wt_create(args)
             elif getattr(args, "git_wt_delete", None):
                 run_git_wt_delete(args)
+            elif getattr(args, "git_wt_exit", False):
+                run_git_wt_exit(args)
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):
