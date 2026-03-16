@@ -471,7 +471,7 @@ class TestStaticCheckCommand(unittest.TestCase):
         self.assertIn(str(f.resolve()), cmd_used)
 
     def test_extra_args_forwarded(self) -> None:
-        """extra_args are forwarded to the subprocess call."""
+        """extra_args are forwarded before filepath in subprocess call."""
         f = _make_temp_file(self.tmp, "extra.py")
         with patch("shutil.which", return_value="/usr/bin/mytool"):
             with patch("subprocess.run", return_value=self._make_completed(0)) as mock_run:
@@ -479,7 +479,7 @@ class TestStaticCheckCommand(unittest.TestCase):
                 with patch("builtins.print"):
                     checker.run()
         cmd_used = mock_run.call_args[0][0]
-        self.assertIn("--flag", cmd_used)
+        self.assertEqual(cmd_used, ["mytool", "--flag", str(f.resolve())])
 
 
 # ---------------------------------------------------------------------------
@@ -1088,6 +1088,26 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
         self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
         self.assertEqual(mock_dispatch.call_args_list[1].args[1]["cmd"], "clang-format")
 
+    def test_files_static_check_command_invokes_params_before_filename(self) -> None:
+        """Command entry runs as cmd + params + filepath for --files-static-check."""
+        from usereq import cli
+
+        f = _make_temp_file(self.tmp, "order.js", "const x = 1;\n")
+        self._write_config(
+            {"JavaScript": [{"module": "Command", "cmd": "node", "params": ["--check"]}]}
+        )
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = ""
+        mock_result.stderr = ""
+        with patch("shutil.which", return_value="/usr/bin/node"):
+            with patch("subprocess.run", return_value=mock_result) as mock_run:
+                with patch("builtins.print"):
+                    rc = cli.main(["--base", str(self.tmp), "--files-static-check", str(f)])
+        self.assertEqual(rc, 0)
+        cmd_used = mock_run.call_args[0][0]
+        self.assertEqual(cmd_used, ["node", "--check", str(f.resolve())])
+
 
 # ---------------------------------------------------------------------------
 # --static-check project-scan dispatch tests (SRS-256, SRS-257, SRS-262)
@@ -1237,6 +1257,48 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         self.assertEqual(mock_dispatch.call_count, 2)
         self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
         self.assertEqual(mock_dispatch.call_args_list[1].args[1]["cmd"], "clang-format")
+
+    def test_static_check_command_invokes_params_before_filename(self) -> None:
+        """Project scan Command entry runs as cmd + params + filepath."""
+        from usereq import cli
+
+        f = _make_temp_file(self.tmp / "src", "order.js", "const y = 2;\n")
+        self._write_config(
+            {"JavaScript": [{"module": "Command", "cmd": "node", "params": ["--check"]}]}
+        )
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = ""
+        mock_result.stderr = ""
+
+        real_subprocess_run = subprocess.run
+
+        def _run_side_effect(*args, **kwargs):
+            cmd = args[0]
+            if isinstance(cmd, list) and cmd and cmd[0] == "git":
+                return real_subprocess_run(*args, **kwargs)
+            return mock_result
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("shutil.which", return_value="/usr/bin/node"):
+                with patch(
+                    "subprocess.run", side_effect=_run_side_effect
+                ) as mock_run:
+                    with patch("builtins.print"):
+                        rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
+        self.assertEqual(rc, 0)
+        non_git_calls = [
+            call.args[0]
+            for call in mock_run.call_args_list
+            if isinstance(call.args[0], list) and call.args[0] and call.args[0][0] != "git"
+        ]
+        self.assertEqual(len(non_git_calls), 1)
+        cmd_used = non_git_calls[0]
+        self.assertEqual(cmd_used, ["node", "--check", str(f.resolve())])
 
 
 # ---------------------------------------------------------------------------

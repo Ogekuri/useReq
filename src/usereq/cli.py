@@ -4693,6 +4693,7 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
       - Looks up language in the `"static-check"` config section; skips silently if absent.
       - Executes each configured language entry sequentially via
         `dispatch_static_check_for_file(filepath, lang_config)`.
+      - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
     @see SRS-253, SRS-254, SRS-255
     """
@@ -4759,6 +4760,7 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       - Skips silently when no tool is configured for the file's language.
       - Executes each configured language entry sequentially via
         `dispatch_static_check_for_file(filepath, lang_config)`.
+      - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
     @throws ReqError If no source files are found.
     @see SRS-256, SRS-257

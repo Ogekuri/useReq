@@ -566,13 +566,14 @@ class StaticCheckCommand(StaticCheckBase):
         @param filepath Absolute path of the file to analyse.
         @return 0 when the command exits 0, 1 otherwise.
         @details
-          Invokes `<cmd> <filepath> [extra_args...]`.
+          Invokes `<cmd> [extra_args...] <filepath>`.
           Captures combined stdout+stderr.
           On exit code 0 prints `Result: OK`.
           On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
+        @satisfies SRS-244, SRS-253, SRS-256
         """
         self._emit_line(self._header_line(filepath))
-        cmd = [self._cmd, filepath] + self._extra_args
+        cmd = [self._cmd] + self._extra_args + [filepath]
         try:
             result = subprocess.run(
                 cmd,

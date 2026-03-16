@@ -179,7 +179,7 @@ import sys
 
 ---
 
-# cli.py | Python | 4967L | 151 symbols | 32 imports | 240 comments
+# cli.py | Python | 4969L | 151 symbols | 32 imports | 240 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -1104,47 +1104,47 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @return None.
 - @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L4677-4746)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L4677-4747)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
-- @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
+- @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. - For `Command` module entries, execution order is `<cmd> [params...] <filename>`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
 - @param args Parsed CLI namespace; `--here`/`--base` are used to locate config.json.
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4747-4792)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4748-4794)
 - @brief Execute `--static-check`: run static analysis on all project source files.
-- @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
+- @details Uses the same file-collection logic as `--references` and `--compress` (SRS-177, SRS-179, SRS-180, SRS-181): collects files from configured `src-dir` directories, applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config)`. - For `Command` module entries, execution order is `<cmd> [params...] <filename>`. Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4793-4813)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4795-4815)
 - @brief Resolve project base path for project-level commands.
 - @details Implements the _resolve_project_base function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4814-4866)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4816-4868)
 - @brief Resolve project base and src-dirs for project source commands.
 - @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L4867-4967)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L4869-4969)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L4891)
+- var `VERBOSE = getattr(args, "verbose", False)` (L4893)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
-- var `DEBUG = getattr(args, "debug", False)` (L4892)
+- var `DEBUG = getattr(args, "debug", False)` (L4894)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -1292,13 +1292,13 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 |`run_compress_cmd`|fn|pub|4597-4618|def run_compress_cmd(args: Namespace) -> None|
 |`run_find`|fn|pub|4619-4648|def run_find(args: Namespace) -> None|
 |`run_tokens`|fn|pub|4649-4676|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|4677-4746|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|4747-4792|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|4793-4813|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|4814-4866|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|4867-4967|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|4891||
-|`DEBUG`|var|pub|4892||
+|`run_files_static_check_cmd`|fn|pub|4677-4747|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|4748-4794|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|4795-4815|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|4816-4868|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|4869-4969|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|4893||
+|`DEBUG`|var|pub|4894||
 
 
 ---
@@ -2044,7 +2044,7 @@ from usereq.doxygen_parser import format_doxygen_fields_as_markdown
 
 ---
 
-# static_check.py | Python | 667L | 20 symbols | 8 imports | 58 comments
+# static_check.py | Python | 668L | 20 symbols | 8 imports | 58 comments
 > Path: `src/usereq/static_check.py`
 - @brief Static code analysis dispatch module implementing Dummy/Pylance/Ruff/Command check classes.
 - @details Provides a class hierarchy for running static analysis tools against resolved file lists.
@@ -2167,7 +2167,7 @@ Evidence block is emitted on failure by concatenating stdout and stderr from ruf
   - @return 0 when ruff exits 0, 1 otherwise.
   - @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
 
-### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L528-598)
+### class `class StaticCheckCommand(StaticCheckBase)` : StaticCheckBase (L528-599)
 - @brief Command static-check class; runs an arbitrary external command on each resolved file.
 - @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke the user-supplied `cmd` as a subprocess. Header label: `Command[<cmd>]`. Before processing files the constructor verifies that `cmd` is available on PATH via `shutil.which`; raises `ReqError(code=1)` if the command is not found.
 - @see StaticCheckBase
@@ -2179,12 +2179,12 @@ Header label: `Command[<cmd>]`.
 Before processing files the constructor verifies that `cmd` is available on PATH via
 `shutil.which`; raises `ReqError(code=1)` if the command is not found.
   - @see StaticCheckBase
-- fn `def _check_file(self, filepath: str) -> int` `priv` (L563-598)
+- fn `def _check_file(self, filepath: str) -> int` `priv` (L563-599)
   - @brief Initialize the command checker and verify tool availability.
   - @brief Run the external command on `filepath` and emit OK or FAIL with evidence.
   - @details Calls `shutil.which(cmd)` before delegating to the parent constructor.
 Sets `LABEL` dynamically to `Command[<cmd>]`.
-  - @details Invokes `<cmd> <filepath> [extra_args...]`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
+  - @details Invokes `<cmd> [extra_args...] <filepath>`. Captures combined stdout+stderr. On exit code 0 prints `Result: OK`. On non-zero exit code prints `Result: FAIL`, `Evidence:`, and the captured output.
   - @param cmd External command name (must be available on PATH).
   - @param inputs Raw path/pattern/directory entries from CLI.
   - @param extra_args Additional CLI arguments forwarded to the external command.
@@ -2192,8 +2192,9 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
   - @return {None} Function return value.
   - @return 0 when the command exits 0, 1 otherwise.
   - @throws ReqError If `cmd` is not found on PATH (exit code 1).
+  - @satisfies SRS-244, SRS-253, SRS-256
 
-### fn `def run_static_check(argv: Sequence[str]) -> int` (L603-667)
+### fn `def run_static_check(argv: Sequence[str]) -> int` (L604-668)
 - @brief Parse `--test-static-check` sub-argv and dispatch to the appropriate checker class.
 - @details Expected argument format: - `dummy [FILES...]` - `pylance [FILES...]` - `ruff [FILES...]` - `command <cmd> [FILES...]` No custom `--recursive` flag is parsed; recursive traversal is expressed via `**` glob patterns in `[FILES]` (e.g., `src/**/*.py`). For `command`, the first token after `command` is treated as `<cmd>`. All remaining tokens (after subcommand and optional cmd) are treated as FILES. Dispatches to: - `dummy` -> `StaticCheckBase` - `pylance` -> `StaticCheckPylance` - `ruff` -> `StaticCheckRuff` - `command` -> `StaticCheckCommand`
 - @param argv Remaining argument tokens after `--test-static-check` (i.e. [subcommand, ...]).
@@ -2219,10 +2220,10 @@ Sets `LABEL` dynamically to `Command[<cmd>]`.
 |`StaticCheckRuff`|class|pub|475-523|class StaticCheckRuff(StaticCheckBase)|
 |`StaticCheckRuff.LABEL`|var|pub|485||
 |`StaticCheckRuff._check_file`|fn|priv|487-523|def _check_file(self, filepath: str) -> int|
-|`StaticCheckCommand`|class|pub|528-598|class StaticCheckCommand(StaticCheckBase)|
+|`StaticCheckCommand`|class|pub|528-599|class StaticCheckCommand(StaticCheckBase)|
 |`StaticCheckCommand.__init__`|fn|priv|539-543|def __init__(|
-|`StaticCheckCommand._check_file`|fn|priv|563-598|def _check_file(self, filepath: str) -> int|
-|`run_static_check`|fn|pub|603-667|def run_static_check(argv: Sequence[str]) -> int|
+|`StaticCheckCommand._check_file`|fn|priv|563-599|def _check_file(self, filepath: str) -> int|
+|`run_static_check`|fn|pub|604-668|def run_static_check(argv: Sequence[str]) -> int|
 
 
 ---
