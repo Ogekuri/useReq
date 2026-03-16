@@ -1556,6 +1556,30 @@ def load_static_check_from_config(project_base: Path) -> dict:
     return normalized
 
 
+def _static_check_entry_identity(
+    canonical_lang: str, entry: Mapping[str, Any]
+) -> tuple[str, str, Optional[str], tuple[str, ...]]:
+    """!
+    @brief Build the canonical identity tuple for one static-check entry.
+    @param canonical_lang Canonical language key that owns the entry.
+    @param entry Static-check entry mapping loaded from config or parsed from CLI.
+    @return Tuple ``(canonical_lang, module, cmd, params_tuple)``.
+    @details Identity is defined strictly by language, module, cmd, and params.
+      Unknown/additional keys in ``entry`` are ignored; ``params`` is normalized
+      to a tuple preserving order, and non-list params are treated as empty.
+    @satisfies SRS-301
+    """
+    module_raw = entry.get("module")
+    cmd_raw = entry.get("cmd")
+    params_raw = entry.get("params")
+    module = module_raw if isinstance(module_raw, str) else ""
+    cmd = cmd_raw if isinstance(cmd_raw, str) else None
+    params: tuple[str, ...] = ()
+    if isinstance(params_raw, list):
+        params = tuple(item for item in params_raw if isinstance(item, str))
+    return (canonical_lang, module, cmd, params)
+
+
 def build_persisted_update_flags(args: Namespace) -> dict[str, bool]:
     """!
     @brief Build persistent update flags from parsed CLI arguments.
@@ -2842,8 +2866,14 @@ def run(args: Namespace) -> None:
 
         for spec in enable_static_check_specs:
             canonical_lang, lang_cfg = _parse_sc(spec)
-            # SRS-251: discard structurally identical entry already accumulated for this language.
-            if lang_cfg not in new_static_check.get(canonical_lang, []):
+            # SRS-251: discard identity-duplicate entries within one invocation.
+            identity = _static_check_entry_identity(canonical_lang, lang_cfg)
+            existing = new_static_check.get(canonical_lang, [])
+            has_duplicate = any(
+                _static_check_entry_identity(canonical_lang, entry) == identity
+                for entry in existing
+            )
+            if not has_duplicate:
                 new_static_check.setdefault(canonical_lang, []).append(lang_cfg)
     _validate_enable_static_check_command_executables(
         new_static_check,
@@ -2856,10 +2886,17 @@ def run(args: Namespace) -> None:
         merged_static_check: dict = {k: list(v) for k, v in existing_sc.items()}
         for lang, entries in new_static_check.items():
             existing_for_lang = merged_static_check.get(lang, [])
+            existing_identities = {
+                _static_check_entry_identity(lang, entry)
+                for entry in existing_for_lang
+                if isinstance(entry, dict)
+            }
             for entry in entries:
-                # SRS-301: skip new entry if structurally identical entry already exists.
-                if entry not in existing_for_lang:
+                # SRS-301: skip new entry if same (language, module, cmd, params) already exists.
+                identity = _static_check_entry_identity(lang, entry)
+                if identity not in existing_identities:
                     merged_static_check.setdefault(lang, []).append(entry)
+                    existing_identities.add(identity)
     else:
         merged_static_check = new_static_check
 
