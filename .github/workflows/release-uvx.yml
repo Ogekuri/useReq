@@ -57,7 +57,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Build distributions
-        run: uv run --frozen python -m build
+        run: uv run --frozen --with build python -m build
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v1
