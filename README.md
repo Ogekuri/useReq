@@ -35,6 +35,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 ## Requirements
 
 - Astral `uv` tool is required to run `scripts/req.sh` and project CLI workflows.
+- When needed, you can generate a `requirements.txt` file with `uv export --format requirements-txt > requirements.txt`.
 - Supported environment: `linux`
 - Python 3.11+
 
