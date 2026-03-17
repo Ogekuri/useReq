@@ -1,5 +1,65 @@
 # Changelog
 
+## [0.39.0](https://github.com/Ogekuri/useReq/compare/v0.38.0..v0.39.0) - 2026-03-17
+### ⛰️  Features
+- Update prompts files.
+
+### 🐛  Bug Fixes
+- skip tests fixtures during project scan [useReq] *(static-check)*
+  - Ignore tests/fixtures and <tests-dir>/fixtures in --static-check selection.
+  - Add failing reproducer test and verify wrapper static-check succeeds.
+  - Update WORKFLOW and regenerate REFERENCES for runtime/index alignment.
+- preserve caller cwd with uv project execution [useReq] *(req.sh)*
+  - Fix wrapper context leak for here-mode commands launched outside useReq.
+  - Use uv run --project <repo-root> without changing current working directory.
+  - Add reproducer test for external-cwd --git-check behavior.
+  - Update WORKFLOW and regenerate REFERENCES docs.
+- execute main on module run [useReq] *(cli)*
+  - add __main__ guard in usereq.cli for python -m usereq.cli
+  - add regression test for --ver stdout in module execution
+  - update workflow/references runtime documentation
+- defer cli import to avoid runpy warning [useReq] *(usereq-init)*
+  - add reproducer test for python -m usereq.cli RuntimeWarning
+  - lazy-load usereq.cli in package __init__ preserving public API
+  - update WORKFLOW/REFERENCES documentation
+- remove unsupported uv forms section [useReq] *(pyproject)*
+  - remove deprecated [tool.uv.forms.use-req-init] from pyproject.toml
+  - add regression test blocking unsupported uv forms settings
+- resolve all static-check failures [useReq] *(static-check)*
+  - Add _detect_venv_python() to detect project .venv Python for pyright
+  - --pythonpath, fixing reportMissingImports false positives when req is
+  - installed globally via uv tools
+  - Fix all Ruff errors: F401 unused imports, F841 unused variables,
+  - E741 ambiguous variable name, E731 lambda assignment, f-string
+  - backslash expressions incompatible with Python 3.11
+  - Fix Pylance errors: reportOptionalMemberAccess, reportArgumentType
+  - Fix C/C++ fixtures: cppcheck-suppress directives, clang-format
+  - Update fixture expected counts and line numbers in test helpers
+
+### 🚜  Changes
+- remove pyright extra-path forwarding [useReq] *(static-check)*
+  - Update SRS-247/SRS-253/SRS-256/SRS-261/SRS-341 for no --extra-path behavior.
+  - Remove src_dirs forwarding from static-check dispatch and CLI command paths.
+  - Drop StaticCheckPylance extra-path command building logic.
+  - Adapt static-check unit tests to assert absence of --extra-path.
+  - Refresh WORKFLOW and REFERENCES docs for updated runtime model.
+- BREAKING CHANGE: migrate dependency policy to uv.lock [useReq] *(dependencies)*
+  - update SRS-055 and SRS-264 for uv.lock canonical lockfile policy
+  - remove root requirements.txt and unignore uv.lock in .gitignore
+  - switch release workflow build step to uv run --frozen python -m build
+  - update dependency manifest tests and regenerate docs/REFERENCES.md
+- BREAKING CHANGE: switch req.sh launcher to uv runtime [useReq] *(scripts)*
+  - Update SRS-056 from .venv bootstrap to uv run CLI dispatch.
+  - Add SRS-342 requiring README Requirements section for uv prerequisite.
+  - Refactor scripts/req.sh to use uv run python -m usereq.cli with argv passthrough.
+  - Update dependency-manifest tests for uv-based wrapper behavior and README requirement.
+  - Update WORKFLOW model and regenerate REFERENCES.md.
+
+### 📚  Documentation
+- document requirements export command [useReq] *(readme)*
+  - add Requirements note for generating requirements.txt via uv export
+  - keep existing README structure and usage guidance unchanged
+
 ## [0.38.0](https://github.com/Ogekuri/useReq/compare/v0.37.0..v0.38.0) - 2026-03-16
 ### 🐛  Bug Fixes
 - remove pytest from requirements.txt [useReq] *(dependencies)*
@@ -918,6 +978,7 @@
 - \[0.36.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.36.0
 - \[0.37.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.37.0
 - \[0.38.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.38.0
+- \[0.39.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.39.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -957,3 +1018,4 @@
 [0.36.0]: https://github.com/Ogekuri/useReq/compare/v0.35.0..v0.36.0
 [0.37.0]: https://github.com/Ogekuri/useReq/compare/v0.36.0..v0.37.0
 [0.38.0]: https://github.com/Ogekuri/useReq/compare/v0.37.0..v0.38.0
+[0.39.0]: https://github.com/Ogekuri/useReq/compare/v0.38.0..v0.39.0
