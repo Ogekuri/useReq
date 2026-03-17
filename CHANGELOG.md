@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.0](https://github.com/Ogekuri/useReq/compare/v0.39.0..v0.40.0) - 2026-03-17
+### 🐛  Bug Fixes
+- ensure build module for release build [useReq] *(release-workflow)*
+  - Fix CI release workflow failure: python -m build missing module.
+  - Use uv run --frozen --with build in release workflow.
+  - Add regression test for build step command in workflow file.
+  - Update WORKFLOW runtime model for release build trace.
+
 ## [0.39.0](https://github.com/Ogekuri/useReq/compare/v0.38.0..v0.39.0) - 2026-03-17
 ### ⛰️  Features
 - Update prompts files.
@@ -979,6 +987,7 @@
 - \[0.37.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.37.0
 - \[0.38.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.38.0
 - \[0.39.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.39.0
+- \[0.40.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.40.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1019,3 +1028,4 @@
 [0.37.0]: https://github.com/Ogekuri/useReq/compare/v0.36.0..v0.37.0
 [0.38.0]: https://github.com/Ogekuri/useReq/compare/v0.37.0..v0.38.0
 [0.39.0]: https://github.com/Ogekuri/useReq/compare/v0.38.0..v0.39.0
+[0.40.0]: https://github.com/Ogekuri/useReq/compare/v0.39.0..v0.40.0
