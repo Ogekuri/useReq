@@ -63,24 +63,51 @@
 
 ---
 
-# __init__.py | Python | 26L | 0 symbols | 8 imports | 3 comments
+# __init__.py | Python | 62L | 2 symbols | 10 imports | 5 comments
 > Path: `src/usereq/__init__.py`
 - @brief Initialization module for the `usereq` package.
-- @details Exposes the package version, main entry point, and key submodules. Designed to be lightweight.
+- @details Exposes package metadata and lazily-resolved CLI entrypoints while avoiding eager
+import of `usereq.cli` during package initialization.
 @author GitHub Copilot
 @version 0.0.70
 
 ## Imports
 ```
-from . import cli  # usereq.cli submodule
-from . import source_analyzer  # usereq.source_analyzer submodule
-from . import token_counter  # usereq.token_counter submodule
-from . import generate_markdown  # usereq.generate_markdown submodule
+from __future__ import annotations
+import importlib
 from . import compress  # usereq.compress submodule
 from . import compress_files  # usereq.compress_files submodule
 from . import find_constructs  # usereq.find_constructs submodule
-from .cli import main  # re-export of CLI entry point
+from . import generate_markdown  # usereq.generate_markdown submodule
+from . import source_analyzer  # usereq.source_analyzer submodule
+from . import token_counter  # usereq.token_counter submodule
+from typing import Any
+from .cli import main as cli_main
 ```
+
+## Definitions
+
+### fn `def main(argv: list[str] | None = None) -> int` (L25-40)
+- @brief Semantic version string of the package."""
+- @brief Execute the package CLI entrypoint without eager module import side effects.
+- @details Lazily imports `usereq.cli.main` on call to avoid pre-loading `usereq.cli` during package initialization, preventing runpy module-execution RuntimeWarning for `python -m usereq.cli`.
+- @param argv {list[str] | None} Optional CLI arguments list forwarded to `usereq.cli.main`.
+- @return {int} CLI process exit code produced by `usereq.cli.main`.
+- @satisfies SRS-056
+
+### fn `def __getattr__(name: str) -> Any` `priv` (L41-56)
+- @brief Lazily resolve deferred public package attributes.
+- @details Resolves `cli` on first access to preserve backward-compatible attribute access (`usereq.cli`) while keeping package initialization free from eager CLI import.
+- @param name {str} Requested attribute name.
+- @return {Any} Resolved attribute object.
+- @throws {AttributeError} Raised when the attribute is not a supported deferred symbol.
+- @satisfies SRS-056
+
+## Symbol Index
+|Symbol|Kind|Vis|Lines|Sig|
+|---|---|---|---|---|
+|`main`|fn|pub|25-40|def main(argv: list[str] | None = None) -> int|
+|`__getattr__`|fn|priv|41-56|def __getattr__(name: str) -> Any|
 
 
 ---

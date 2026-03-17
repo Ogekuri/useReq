@@ -154,7 +154,7 @@
 - **Lifecycle/Trigger**: starts on shell invocation, validates `uv` command availability, and then replaces process image with repository CLI execution through `uv run`.
 - **Internal Call-Trace Tree**
   - `req.sh(...)`: shell bootstrap for uv-based CLI dispatch [`scripts/req.sh`]
-    - external boundaries: `uv run`, `exec`
+    - external boundaries: `uv run`, `exec`, Python module loader import/exec sequence for `usereq` package and `usereq.cli` module [`src/usereq/__init__.py`, `src/usereq/cli.py`]
 
 ### `PROC:gha-release-uvx`
 - **Type**: Process
@@ -171,5 +171,5 @@
 - `PROC:req-sh -> PROC:main`
   - `mechanism`: `OS exec handoff`
   - `endpoint/channel`: ``uv run python -m usereq.cli``
-  - `payload`: `argv passthrough from shell process to Python CLI main entrypoint`
+  - `payload`: `argv passthrough from shell process to Python CLI main entrypoint; package initialization preserves deferred CLI loading before module execution`
 - No additional explicit `Communication Edge` detected between execution units.

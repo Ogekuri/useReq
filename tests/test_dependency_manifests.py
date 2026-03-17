@@ -12,7 +12,10 @@
 from __future__ import annotations
 
 import fnmatch
+import os
 import re
+import subprocess
+import sys
 import tomllib
 from pathlib import Path
 
@@ -137,6 +140,34 @@ def test_req_sh_executes_cli_with_uv_run() -> None:
     assert "${VENVDIR}/bin/python3" not in content
     assert "REQ_HASH_FILE=" not in content
     assert "sha256sum" not in content
+
+
+def test_python_module_cli_entrypoint_emits_no_runpy_runtimewarning() -> None:
+    """@brief Verify module-mode CLI execution does not emit runpy pre-import warning.
+    @details Executes `python -m usereq.cli --ver` under repository PYTHONPATH and
+    asserts stderr does not contain the known runpy RuntimeWarning emitted when
+    `usereq.cli` is imported by package initialization before module execution.
+    @return {None} No return value.
+    @satisfies SRS-056
+    """
+
+    existing_pythonpath = os.environ.get("PYTHONPATH")
+    composed_pythonpath = str(REPO_ROOT / "src")
+    if existing_pythonpath:
+        composed_pythonpath = f"{composed_pythonpath}:{existing_pythonpath}"
+    env = {**os.environ, "PYTHONPATH": composed_pythonpath}
+    result = subprocess.run(
+        [sys.executable, "-m", "usereq.cli", "--ver"],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "RuntimeWarning" not in result.stderr, result.stderr
+    assert "usereq.cli" not in result.stderr, result.stderr
 
 
 def test_readme_includes_requirements_section_with_uv_tool() -> None:
