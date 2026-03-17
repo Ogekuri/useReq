@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import glob
-import os
 import shutil
 import subprocess
 import sys
@@ -25,25 +24,6 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 from .cli import ReqError
-
-
-def _detect_venv_python() -> str:
-    """!
-    @brief Detect the project virtual-environment Python interpreter.
-    @return Absolute path to the venv Python if found, otherwise `sys.executable`.
-    @details Searches for `.venv/bin/python` (Unix) or `.venv/Scripts/python.exe` (Windows)
-      relative to `os.getcwd()`. Falls back to `sys.executable` when no project venv is detected.
-      Used by `StaticCheckPylance` to pass `--pythonpath` so that pyright resolves imports
-      against the project environment rather than the tool-installation environment.
-    """
-    cwd = Path(os.getcwd())
-    for candidate in (
-        cwd / ".venv" / "bin" / "python",
-        cwd / ".venv" / "Scripts" / "python.exe",
-    ):
-        if candidate.is_file():
-            return str(candidate.resolve())
-    return sys.executable
 
 
 # ---------------------------------------------------------------------------
@@ -250,6 +230,8 @@ def dispatch_static_check_for_file(
     lang_config: dict,
     *,
     fail_only: bool = False,
+    project_base: Optional[Path] = None,
+    src_dirs: Optional[Sequence[str]] = None,
 ) -> int:
     """!
     @brief Dispatch static-check for a single file based on a language config dict.
@@ -257,6 +239,8 @@ def dispatch_static_check_for_file(
     @param lang_config Dict with keys `"module"` (str), optional `"cmd"` (str, Command only),
       optional `"params"` (list[str]).
     @param fail_only When True, suppress all stdout output for passing checks (SRS-253, SRS-256).
+    @param project_base Absolute project root used to resolve configured `src-dir` values.
+    @param src_dirs Configured `src-dir` values from `.req/config.json` used by Pylance.
     @return Exit code: 0 on pass, 1 on fail.
     @throws ReqError If module is unknown, or Command module is missing `"cmd"`.
     @details
@@ -266,8 +250,9 @@ def dispatch_static_check_for_file(
       - `"Ruff"` -> `StaticCheckRuff`
       - `"Command"` -> `StaticCheckCommand` (requires `"cmd"` key)
       Instantiates the checker with `inputs=[filepath]`, `extra_args=params`, and `fail_only`.
+      For Pylance, forwards `project_base` and `src_dirs` to derive pyright `--extra-path`.
       Delegates actual check to `checker.run()`.
-    @see SRS-261, SRS-253, SRS-256
+    @see SRS-261, SRS-253, SRS-256, SRS-341
     """
     module = lang_config.get("module", "")
     params: List[str] = lang_config.get("params", [])
@@ -278,7 +263,13 @@ def dispatch_static_check_for_file(
     if module_key == "dummy":
         checker = StaticCheckBase(inputs=[filepath], extra_args=params, fail_only=fail_only)
     elif module_key == "pylance":
-        checker = StaticCheckPylance(inputs=[filepath], extra_args=params, fail_only=fail_only)
+        checker = StaticCheckPylance(
+            inputs=[filepath],
+            extra_args=params,
+            fail_only=fail_only,
+            project_base=project_base,
+            src_dirs=src_dirs,
+        )
     elif module_key == "ruff":
         checker = StaticCheckRuff(inputs=[filepath], extra_args=params, fail_only=fail_only)
     elif module_key == "command":
@@ -459,15 +450,62 @@ class StaticCheckPylance(StaticCheckBase):
     """!
     @brief Pylance static-check class; runs pyright on each resolved file via `sys.executable -m pyright`.
     @details Derived from `StaticCheckBase`; overrides `_check_file` to invoke `pyright`
-      via `[sys.executable, '-m', 'pyright']` subprocess using the package-installed pyright module,
+      via `[sys.executable, '-m', 'pyright']` subprocess using the active runtime interpreter,
       without requiring external PATH availability, and parse its exit code.
       Header label: `Pylance`.
       Evidence block is emitted on failure by concatenating stdout and stderr from pyright.
     @see StaticCheckBase
-    @satisfies SRS-242, SRS-339
+    @satisfies SRS-242, SRS-339, SRS-341
     """
 
     LABEL = "Pylance"
+
+    def __init__(
+        self,
+        inputs: Sequence[str],
+        extra_args: Optional[Sequence[str]] = None,
+        *,
+        fail_only: bool = False,
+        project_base: Optional[Path] = None,
+        src_dirs: Optional[Sequence[str]] = None,
+    ) -> None:
+        """!
+        @brief Initialize Pylance checker with runtime and source-directory context.
+        @param inputs Raw path/pattern/directory entries from CLI.
+        @param extra_args Additional CLI arguments forwarded to pyright.
+        @param fail_only When True, suppress all stdout output for passing checks.
+        @param project_base Absolute project root used to resolve relative `src-dir` entries.
+        @param src_dirs Configured source directories used to derive pyright `--extra-path`.
+        @return {None} Function return value.
+        @details Stores runtime context for uv-first pyright invocation. No `.venv` probing is used.
+        @satisfies SRS-242, SRS-339, SRS-341
+        """
+        super().__init__(inputs=inputs, extra_args=extra_args, fail_only=fail_only)
+        self._project_base = project_base.resolve() if project_base is not None else None
+        self._src_dirs: list[str] = list(src_dirs) if src_dirs else []
+
+    def _build_extra_path_args(self) -> List[str]:
+        """!
+        @brief Build pyright `--extra-path` arguments from configured source directories.
+        @return Ordered CLI argument list as repeated `['--extra-path', '<abs_path>']` pairs.
+        @details Resolves each `src-dir` against `project_base` when relative, keeps only
+          existing directories, and removes duplicates while preserving first-seen order.
+        @satisfies SRS-341
+        """
+        if self._project_base is None:
+            return []
+        seen: set[str] = set()
+        args: list[str] = []
+        for raw_dir in self._src_dirs:
+            candidate = Path(raw_dir)
+            if not candidate.is_absolute():
+                candidate = self._project_base / candidate
+            resolved = str(candidate.resolve())
+            if not Path(resolved).is_dir() or resolved in seen:
+                continue
+            seen.add(resolved)
+            args.extend(["--extra-path", resolved])
+        return args
 
     def _check_file(self, filepath: str) -> int:
         """!
@@ -475,20 +513,28 @@ class StaticCheckPylance(StaticCheckBase):
         @param filepath Absolute path of the file to analyse with pyright.
         @return 0 when pyright exits 0, 1 otherwise.
         @details
-          Invokes `[sys.executable, '-m', 'pyright', '--pythonpath', <venv_python>,
-          <filepath>, <extra_args>...]` to use the package-installed pyright module
-          without requiring external PATH availability. The `--pythonpath` flag points
-          to the project virtual-environment Python (detected by `_detect_venv_python`)
-          so that pyright resolves imports against the project environment, preventing
-          `reportMissingImports` false positives for project-installed packages.
+          Invokes `[sys.executable, '-m', 'pyright', '--pythonpath', sys.executable,
+          <extra_path_args>, <filepath>, <extra_args>...]` to use the active runtime interpreter
+          without requiring external PATH availability or project `.venv` detection.
+          `--extra-path` arguments are derived from configured `src-dir` values so checks
+          on `tests-dir` files can resolve imports from source directories.
           Captures combined stdout+stderr.
           When `fail_only` is False: prints header, then `Result: OK` or `Result: FAIL` with evidence.
           When `fail_only` is True: on pass produces no output; on fail emits header, FAIL, evidence (SRS-242).
         @exception ReqError Not raised; subprocess errors are surfaced as FAIL evidence.
-        @satisfies SRS-242, SRS-339
+        @satisfies SRS-242, SRS-339, SRS-341
         """
-        venv_python = _detect_venv_python()
-        cmd = [sys.executable, "-m", "pyright", "--pythonpath", venv_python, filepath] + self._extra_args
+        extra_path_args = self._build_extra_path_args()
+        cmd = [
+            sys.executable,
+            "-m",
+            "pyright",
+            "--pythonpath",
+            sys.executable,
+            *extra_path_args,
+            filepath,
+            *self._extra_args,
+        ]
         try:
             result = subprocess.run(
                 cmd,
