@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.41.0](https://github.com/Ogekuri/useReq/compare/v0.40.0..v0.41.0) - 2026-03-17
+### ⛰️  Features
+- Update prompts files.
+- Update prompts.
+
+### 🚜  Changes
+- remove legacy and over-specific SRS rules [useReq] *(requirements)*
+  - Removed requirement IDs classified as legacy/over-specific vs current implementation state.\n- Kept only requirements with direct repository evidence linkage.\n- Preserved SRS structure while reducing normative surface to implemented behavior.
+
+### 📚  Documentation
+- recreate SRS structure from repository evidence [useReq] *(requirements)*
+  - Reorganized and normalized requirement statements.\n- Preserved all existing SRS IDs without renumbering.\n- Aligned requirement-line syntax to RFC2119 keyword-first form.\n- Updated SRS metadata date/version for this rewrite.
+
 ## [0.40.0](https://github.com/Ogekuri/useReq/compare/v0.39.0..v0.40.0) - 2026-03-17
 ### 🐛  Bug Fixes
 - ensure build module for release build [useReq] *(release-workflow)*
@@ -988,6 +1001,7 @@
 - \[0.38.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.38.0
 - \[0.39.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.39.0
 - \[0.40.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.40.0
+- \[0.41.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.41.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1029,3 +1043,4 @@
 [0.38.0]: https://github.com/Ogekuri/useReq/compare/v0.37.0..v0.38.0
 [0.39.0]: https://github.com/Ogekuri/useReq/compare/v0.38.0..v0.39.0
 [0.40.0]: https://github.com/Ogekuri/useReq/compare/v0.39.0..v0.40.0
+[0.41.0]: https://github.com/Ogekuri/useReq/compare/v0.40.0..v0.41.0
