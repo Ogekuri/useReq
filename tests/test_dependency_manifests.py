@@ -144,13 +144,14 @@ def test_pyproject_dependencies_include_ruff_and_pyright() -> None:
 
 def test_req_sh_executes_cli_with_uv_run() -> None:
     """@brief Validate req.sh executes CLI through uv-managed runtime without virtualenv bootstrap.
-    @details Confirms req.sh forwards CLI arguments unchanged to `uv run python -m usereq.cli`
-    and does not create or activate `.venv` manually.
+    @details Confirms req.sh forwards CLI arguments unchanged through `uv run`,
+    executes `python -m usereq.cli`, and does not create or activate `.venv` manually.
     @return {None} No return value.
     """
 
     content = REQ_SCRIPT_PATH.read_text(encoding="utf-8")
-    assert "exec uv run python -m usereq.cli" in content
+    assert "exec uv run" in content
+    assert "python -m usereq.cli" in content
     assert '"$@"' in content
     assert "virtualenv" not in content
     assert "pip install -r" not in content
@@ -158,6 +159,31 @@ def test_req_sh_executes_cli_with_uv_run() -> None:
     assert "${VENVDIR}/bin/python3" not in content
     assert "REQ_HASH_FILE=" not in content
     assert "sha256sum" not in content
+
+
+def test_req_sh_preserves_invocation_cwd_for_here_commands(tmp_path: Path) -> None:
+    """@brief Verify req.sh does not force CLI here-mode commands to repository root.
+    @details Executes req.sh from an isolated directory without `.req/config.json`
+    and calls `--git-check`; expected behavior is failure in caller context with
+    missing-config diagnostic from here-only command execution.
+    @param tmp_path {Path} Pytest-provided isolated temporary directory.
+    @return {None} No return value.
+    @satisfies SRS-056
+    @satisfies SRS-311
+    """
+
+    target_cwd = tmp_path / "external-project"
+    target_cwd.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(
+        [str(REQ_SCRIPT_PATH), "--git-check"],
+        cwd=target_cwd,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert ".req/config.json not found in the project root" in result.stderr
 
 
 def test_python_module_cli_entrypoint_emits_no_runpy_runtimewarning() -> None:

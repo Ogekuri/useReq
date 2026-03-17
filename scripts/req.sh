@@ -14,6 +14,5 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 1
 fi
 
-cd "${BASE_DIR}"
 PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH:-}" \
-  exec uv run python -m usereq.cli "$@"
+  exec uv run --project "${BASE_DIR}" python -m usereq.cli "$@"

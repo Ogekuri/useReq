@@ -148,7 +148,7 @@
 - **Type**: Process
 - **Parent Process**: `-`
 - **Entrypoint(s)**: `scripts/req.sh` [`scripts/req.sh`]
-- **Lifecycle/Trigger**: starts on shell invocation, validates `uv` command availability, and then replaces process image with repository CLI execution through `uv run`.
+- **Lifecycle/Trigger**: starts on shell invocation, validates `uv` command availability, and then replaces process image with repository CLI execution through `uv run --project`, preserving caller working directory as CLI runtime context.
 - **Internal Call-Trace Tree**
   - `req.sh(...)`: shell bootstrap for uv-based CLI dispatch [`scripts/req.sh`]
     - external boundaries: `uv run`, `exec`, Python module loader import/exec sequence for `usereq` package and `usereq.cli` module [`src/usereq/__init__.py`, `src/usereq/cli.py`]
@@ -167,6 +167,6 @@
 ## Communication Edges
 - `PROC:req-sh -> PROC:main`
   - `mechanism`: `OS exec handoff`
-  - `endpoint/channel`: ``uv run python -m usereq.cli``
-  - `payload`: `argv passthrough from shell process to Python CLI main entrypoint; package initialization preserves deferred CLI loading before module execution`
+  - `endpoint/channel`: ``uv run --project <repo-root> python -m usereq.cli``
+  - `payload`: `argv passthrough from shell process to Python CLI main entrypoint with repository project resolution and preserved caller working directory for here-mode command context`
 - No additional explicit `Communication Edge` detected between execution units.

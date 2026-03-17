@@ -19,7 +19,7 @@
         └── token_counter.py
 ```
 
-# req.sh | Shell | 19L | 4 symbols | 0 imports | 4 comments
+# req.sh | Shell | 18L | 4 symbols | 0 imports | 4 comments
 > Path: `scripts/req.sh`
 
 ## Definitions
@@ -27,14 +27,14 @@
 - var `FULL_PATH="$(readlink -f "$0")"` (L8)
 - var `SCRIPT_PATH="$(dirname "$FULL_PATH")"` (L9)
 - var `BASE_DIR="$(dirname "$SCRIPT_PATH")"` (L10)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH:-}" \` (L18)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH:-}" \` (L17)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
 |`FULL_PATH`|var||8||
 |`SCRIPT_PATH`|var||9||
 |`BASE_DIR`|var||10||
-|`PYTHONPATH`|var||18||
+|`PYTHONPATH`|var||17||
 
 
 ---
