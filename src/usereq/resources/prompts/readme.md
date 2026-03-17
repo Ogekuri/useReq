@@ -50,7 +50,7 @@ In scope: static analysis of user-visible behavior from %%SRC_PATHS%% and relate
 - Keep non-analysis documentary sections unchanged, including document headers, versioning metadata, context/scope descriptions, personal motivations, related projects, and high-level conceptual or graphical descriptions that do not alter interface usage.
 - Preserve existing README structure and formatting patterns (section order, heading hierarchy, bullet/list style, table style) whenever possible.
 - Exclude internal implementation details, internal architecture logic, private symbols, and algorithm internals from `README.md`.
-- If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
+- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update root `README.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 
@@ -112,7 +112,7 @@ Add --enable-line-numbers (code lines prefixed as `<n>:`):
 - Tags are language-dependent; unsupported tags are ignored. Run `req -h` for supported TAGs per language.
 - Broad cross-language TAG_FILTER: `CLASS|STRUCT|ENUM|INTERFACE|TRAIT|IMPL|FUNCTION|METHOD|MODULE|NAMESPACE|TYPE_ALIAS|TYPEDEF|IMPORT|CONSTANT|VARIABLE|MACRO|DECORATOR|COMPONENT|PROPERTY|PROTOCOL|EXTENSION|UNION`
 #### Regex rules (NAME_REGEX)
-- Python-style regex via `re.search()` against construct name.
+- Regex matching follows `re.search()` semantics against construct names (tool behavior, independent of repository language).
 - Prefer anchored patterns: exact `^Foo$`, prefix `^parse_`, suffix `Service$`. Use `.*` only when scope is already constrained by files/TAGs.
 #### Failure modes you must handle
 - "No constructs found": adjust TAGs (supported?), file paths, or NAME_REGEX (valid regex?).

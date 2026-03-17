@@ -48,7 +48,7 @@ In scope: patch-style edits to `%%DOC_PATH%%/REQUIREMENTS.md`, an implementation
 - All newly written or edited content MUST be in English. Do NOT translate existing text outside the minimal change surface required by this workflow; if you detect non-English text elsewhere, report it in **Evidence** instead of rewriting it.
 - Prefer clean implementation over legacy support. Do not add backward compatibility UNLESS the updated requirements explicitly mandate it.
 - Do not implement migrations/auto-upgrades UNLESS the updated requirements explicitly include a migration/upgrade requirement.
-- If `.venv/bin/python` exists in the project root, use it for Python executions (e.g., `PYTHONPATH=src .venv/bin/python -m pytest`, `PYTHONPATH=src .venv/bin/python -m <program name>`). Non-Python tooling should use the project's standard commands.
+- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
 
@@ -109,7 +109,7 @@ Add --enable-line-numbers (code lines prefixed as `<n>:`):
 - Tags are language-dependent; unsupported tags are ignored. Run `req -h` for supported TAGs per language.
 - Broad cross-language TAG_FILTER: `CLASS|STRUCT|ENUM|INTERFACE|TRAIT|IMPL|FUNCTION|METHOD|MODULE|NAMESPACE|TYPE_ALIAS|TYPEDEF|IMPORT|CONSTANT|VARIABLE|MACRO|DECORATOR|COMPONENT|PROPERTY|PROTOCOL|EXTENSION|UNION`
 #### Regex rules (NAME_REGEX)
-- Python-style regex via `re.search()` against construct name.
+- Regex matching follows `re.search()` semantics against construct names (tool behavior, independent of repository language).
 - Prefer anchored patterns: exact `^Foo$`, prefix `^parse_`, suffix `Service$`. Use `.*` only when scope is already constrained by files/TAGs.
 #### Failure modes you must handle
 - "No constructs found": adjust TAGs (supported?), file paths, or NAME_REGEX (valid regex?).
