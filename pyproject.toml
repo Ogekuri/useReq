@@ -12,6 +12,7 @@ license = { file = "LICENSE" }
 dependencies = [
   "tiktoken",
   "pyyaml",
+  "pytest",
   "ruff",
   "pyright",
 ]

@@ -1,5 +1,5 @@
 """@brief Validate repository dependency manifest invariants.
-@details Enforces alignment between requirements.txt and packaging metadata plus req.sh invocation semantics for uv-based execution behavior. Includes package-data coverage validation for resource subdirectories.
+@details Enforces alignment between uv.lock and packaging metadata plus req.sh invocation semantics for uv-based execution behavior. Includes package-data coverage validation for resource subdirectories.
 @satisfies SRS-055
 @satisfies SRS-056
 @satisfies SRS-342
@@ -22,14 +22,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
+UV_LOCK_PATH = REPO_ROOT / "uv.lock"
+GITIGNORE_PATH = REPO_ROOT / ".gitignore"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 REQ_SCRIPT_PATH = REPO_ROOT / "scripts" / "req.sh"
 README_PATH = REPO_ROOT / "README.md"
 RESOURCES_DIR = REPO_ROOT / "src" / "usereq" / "resources"
-ALL_PROJECT_PACKAGES = {
-    "build", "setuptools", "wheel", "tiktoken", "pyyaml",
-    "pytest", "pyright", "ruff",
-}
 REQUIRED_OPERATIONAL_RESOURCE_SUBDIRS = {
     "common",
     "prompts",
@@ -42,7 +40,7 @@ REQUIRED_OPERATIONAL_RESOURCE_SUBDIRS = {
 def _normalize_requirement_name(requirement: str) -> str:
     """@brief Extract canonical package name token from requirement entry.
     @details Uses a deterministic regex to capture the leading PEP 508 package token and normalizes underscores to hyphens.
-    @param requirement {str} Raw requirement/specifier entry from requirements.txt or pyproject lists.
+    @param requirement {str} Raw requirement/specifier entry from pyproject lists or uv.lock package names.
     @return {str} Normalized package name in lowercase.
     @throws {ValueError} Raised when the entry cannot be parsed into a package token.
     """
@@ -53,51 +51,71 @@ def _normalize_requirement_name(requirement: str) -> str:
     return match.group(1).replace("_", "-").lower()
 
 
-def _read_requirements_packages() -> set[str]:
-    """@brief Parse requirements.txt into normalized package set.
-    @details Drops blank/comment lines and normalizes each requirement token for set-level equality checks against pyproject dependency declarations.
-    @return {set[str]} Distinct normalized package names declared in requirements.txt.
+def _read_uv_lock_packages() -> set[str]:
+    """@brief Parse uv.lock into a normalized package-name set.
+    @details Reads the lockfile TOML and collects every `[[package]].name` token
+    after deterministic normalization for set-level checks against pyproject declarations.
+    @return {set[str]} Distinct normalized package names declared in uv.lock.
     """
 
-    lines = REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
-    return {
-        _normalize_requirement_name(line)
-        for line in lines
-        if line.strip() and not line.lstrip().startswith("#")
+    lock_data = tomllib.loads(UV_LOCK_PATH.read_text(encoding="utf-8"))
+    package_entries = lock_data.get("package", [])
+    assert isinstance(package_entries, list), "uv.lock must define a [[package]] list"
+    package_names = {
+        _normalize_requirement_name(entry["name"])
+        for entry in package_entries
+        if isinstance(entry, dict) and isinstance(entry.get("name"), str)
     }
+    assert package_names, "uv.lock must define at least one package name"
+    return package_names
 
 
-def test_requirements_contains_only_project_packages() -> None:
-    """@brief Assert requirements.txt matches allowed project dependency set.
-    @details Prevents drift by enforcing exact package set required for
-    application execution, build, development, testing, and static analysis.
+def test_repository_uses_uv_lock_and_omits_requirements_txt() -> None:
+    """@brief Assert repository dependency-manifest policy uses uv.lock only.
+    @details Ensures uv.lock exists as canonical lockfile and root requirements.txt
+    is absent from tracked project files.
     @return {None} No return value.
     @satisfies SRS-055
     """
 
-    assert _read_requirements_packages() == ALL_PROJECT_PACKAGES
+    assert UV_LOCK_PATH.exists(), "uv.lock must exist at repository root"
+    assert not REQUIREMENTS_PATH.exists(), "requirements.txt must not exist at repository root"
 
 
-def test_pyproject_dependencies_are_subset_of_requirements() -> None:
-    """@brief Verify pyproject dependency declarations are a subset of requirements.txt.
-    @details Compares union(build-system.requires, project.dependencies) after
-    normalization against requirements.txt packages. pyproject.toml runtime/build
-    deps MUST be a subset; requirements.txt MAY additionally list dev/test/tool packages.
+def test_gitignore_unignores_uv_lock_and_not_requirements_txt() -> None:
+    """@brief Assert .gitignore tracks uv.lock and no longer unignores requirements.txt.
+    @details Validates root .gitignore contains `!uv.lock` and excludes obsolete
+    `!requirements.txt` unignore rule to keep lockfile tracking policy deterministic.
+    @return {None} No return value.
+    @satisfies SRS-055
+    """
+
+    content = GITIGNORE_PATH.read_text(encoding="utf-8")
+    assert "!uv.lock" in content, ".gitignore must include !uv.lock unignore rule"
+    assert (
+        "!requirements.txt" not in content
+    ), ".gitignore must not include !requirements.txt unignore rule"
+
+
+def test_pyproject_dependencies_are_present_in_uv_lock() -> None:
+    """@brief Verify pyproject dependency declarations are present in uv.lock.
+    @details Compares project.dependencies after normalization against uv.lock
+    package names. Runtime declarations MUST be represented by locked packages.
+    Build-system requirements are validated independently of lock membership.
     @return {None} No return value.
     @satisfies SRS-264
     """
 
     pyproject_data = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
-    build_requires = pyproject_data["build-system"]["requires"]
     project_dependencies = pyproject_data["project"]["dependencies"]
     pyproject_packages = {
         _normalize_requirement_name(entry)
-        for entry in [*build_requires, *project_dependencies]
+        for entry in project_dependencies
     }
-    requirements_packages = _read_requirements_packages()
-    assert pyproject_packages <= requirements_packages, (
-        f"pyproject.toml declares packages not in requirements.txt: "
-        f"{sorted(pyproject_packages - requirements_packages)}"
+    uv_lock_packages = _read_uv_lock_packages()
+    assert pyproject_packages <= uv_lock_packages, (
+        f"pyproject.toml declares packages not represented in uv.lock: "
+        f"{sorted(pyproject_packages - uv_lock_packages)}"
     )
 
 

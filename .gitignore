@@ -23,7 +23,7 @@
 !LICENSE.txt
 !setup.py
 !pyproject.toml
-!requirements.txt
+!uv.lock
 !.g.conf
 !package-lock.json
 !package.json

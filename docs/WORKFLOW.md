@@ -164,8 +164,8 @@
 - **Internal Call-Trace Tree**
   - `release-uvx.yml(...)`: workflow coordinator for release automation [`.github/workflows/release-uvx.yml`]
     - `check-branch(...)`: verify tagged commit is reachable from `origin/master` before release [`.github/workflows/release-uvx.yml`]
-    - `build-release(...)`: run Python build, provenance attestation, and GitHub release publication when branch check passes [`.github/workflows/release-uvx.yml`]
-      - external boundaries: GitHub-hosted runners, checkout/setup actions, uv/pip/build tooling, GitHub release APIs
+    - `build-release(...)`: run frozen-lock `uv run` Python build, provenance attestation, and GitHub release publication when branch check passes [`.github/workflows/release-uvx.yml`]
+      - external boundaries: GitHub-hosted runners, checkout/setup actions, uv lock-resolved runtime/build tooling, GitHub release APIs
 
 ## Communication Edges
 - `PROC:req-sh -> PROC:main`
