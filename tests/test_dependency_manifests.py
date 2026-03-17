@@ -249,3 +249,19 @@ def test_package_data_matches_actual_resource_files() -> None:
     assert not unmatched, (
         f"Resource files not matched by any package-data pattern: {sorted(unmatched)}"
     )
+
+
+def test_pyproject_does_not_define_unsupported_uv_forms_section() -> None:
+    """@brief Ensure pyproject.toml does not declare unsupported uv settings keys.
+    @details Guards req.sh uv-managed execution from settings-discovery warnings by
+    forbidding the deprecated `[tool.uv.forms.*]` subtree in pyproject metadata.
+    @return {None} No return value.
+    @satisfies SRS-056
+    """
+
+    pyproject_data = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
+    uv_settings = pyproject_data.get("tool", {}).get("uv", {})
+    assert "forms" not in uv_settings, (
+        "pyproject.toml MUST NOT define [tool.uv.forms.*] because current uv "
+        "settings schema rejects `forms` and emits runtime warnings."
+    )
