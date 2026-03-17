@@ -4133,3 +4133,70 @@ class TestGitWtExitCommand(unittest.TestCase):
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             rc = cli.main(["--git-wt-exit", "--base", str(self.TEST_DIR)])
         self.assertNotEqual(rc, 0)
+
+    def test_upgrade_on_linux_executes_uv_install(self) -> None:
+        """SRS-343: --upgrade executes uv install on Linux."""
+        with (
+            patch("platform.system", return_value="Linux"),
+            patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+        ):
+            mocked_run.return_value = subprocess.CompletedProcess(
+                args=[], returncode=0
+            )
+            cli.run_upgrade()
+        mocked_run.assert_called_once_with(
+            [
+                "uv",
+                "tool",
+                "install",
+                "usereq",
+                "--force",
+                "--from",
+                "git+https://github.com/Ogekuri/useReq.git",
+            ],
+            check=False,
+        )
+
+    def test_upgrade_on_non_linux_prints_manual_command(self) -> None:
+        """SRS-343: --upgrade on non-Linux prints guidance and skips uv execution."""
+        with (
+            patch("platform.system", return_value="Windows"),
+            patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+            patch("sys.stdout", new_callable=io.StringIO) as mocked_stdout,
+        ):
+            cli.run_upgrade()
+        mocked_run.assert_not_called()
+        output = mocked_stdout.getvalue()
+        self.assertIn("supported only on Linux", output)
+        self.assertIn(
+            "uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git",
+            output,
+        )
+
+    def test_uninstall_on_linux_executes_uv_uninstall(self) -> None:
+        """SRS-344: --uninstall executes uv uninstall on Linux."""
+        with (
+            patch("platform.system", return_value="Linux"),
+            patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+        ):
+            mocked_run.return_value = subprocess.CompletedProcess(
+                args=[], returncode=0
+            )
+            cli.run_uninstall()
+        mocked_run.assert_called_once_with(
+            ["uv", "tool", "uninstall", "usereq"],
+            check=False,
+        )
+
+    def test_uninstall_on_non_linux_prints_manual_command(self) -> None:
+        """SRS-344: --uninstall on non-Linux prints guidance and skips uv execution."""
+        with (
+            patch("platform.system", return_value="Darwin"),
+            patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+            patch("sys.stdout", new_callable=io.StringIO) as mocked_stdout,
+        ):
+            cli.run_uninstall()
+        mocked_run.assert_not_called()
+        output = mocked_stdout.getvalue()
+        self.assertIn("supported only on Linux", output)
+        self.assertIn("uv tool uninstall usereq", output)

@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 import json
 import os
+import platform
 import re
 import shutil
 import sys
@@ -585,6 +586,7 @@ def run_upgrade() -> None:
         @throws ReqError If upgrade fails.
     @details Implements the run_upgrade function behavior with deterministic control flow.
     @return {None} Function return value.
+    @satisfies SRS-343
     """
     command = [
         "uv",
@@ -595,6 +597,13 @@ def run_upgrade() -> None:
         "--from",
         GITHUB_UPGRADE_SOURCE,
     ]
+    detected_system = platform.system() or "Unknown"
+    if detected_system != "Linux":
+        print(
+            "Warning: --upgrade automatic execution is supported only on Linux "
+            f"(detected: {detected_system}). Run manually: {' '.join(command)}"
+        )
+        return
     try:
         result = subprocess.run(command, check=False)
     except FileNotFoundError as exc:
@@ -612,6 +621,7 @@ def run_uninstall() -> None:
         @throws ReqError If uninstall fails.
     @details Implements the run_uninstall function behavior with deterministic control flow.
     @return {None} Function return value.
+    @satisfies SRS-344
     """
     command = [
         "uv",
@@ -619,6 +629,13 @@ def run_uninstall() -> None:
         "uninstall",
         TOOL_PROGRAM_NAME,
     ]
+    detected_system = platform.system() or "Unknown"
+    if detected_system != "Linux":
+        print(
+            "Warning: --uninstall automatic execution is supported only on Linux "
+            f"(detected: {detected_system}). Run manually: {' '.join(command)}"
+        )
+        return
     try:
         result = subprocess.run(command, check=False)
     except FileNotFoundError as exc:

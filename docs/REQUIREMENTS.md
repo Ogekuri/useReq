@@ -87,7 +87,7 @@ No explicit performance optimizations identified.
 ### 3.1 Design and Implementation Constraints
 
 ### 3.2 CLI Interface and Lifecycle
-- **SRS-034**: MUST implement the following behavior: The CLI MUST accept the boolean flag `--preserve-models` and the repeatable `--provider SPEC` argument as the sole mechanism for provider enablement, artifact selection, and per-provider option configuration. The legacy global flags `--enable-claude`, `--enable-codex`, `--enable-gemini`, `--enable-github`, `--enable-kiro`, `--enable-opencode`, `--install-prompts`, `--install-agents`, `--install-skills`, `--enable-models`, `--enable-tools`, `--prompts-use-agents`, and `--legacy` MUST NOT be accepted by the argument parser. When `--preserve-models` is active in combination with `--update`, the CLI MUST preserve the existing `.req/models.json` file.
+- **SRS-034**: MUST implement the following behavior: The CLI MUST accept `--upgrade`, `--uninstall`, the boolean flag `--preserve-models`, and repeatable `--provider SPEC`; provider configuration MUST remain exclusive to `--provider SPEC`; listed legacy global flags MUST NOT be parsed; with `--update` + `--preserve-models`, `.req/models.json` MUST be preserved.
 - **SRS-035**: MUST implement the following behavior: During installation without `--update`, the CLI MUST require at least one `--provider` spec; otherwise it MUST print an English error and exit code 4. Each `--provider` spec implicitly enables the named provider and the listed artifact types.
 - **SRS-036**: MUST implement the following behavior: The installation summary table MUST include rows only for providers whose prompts were installed during the current invocation.
 - **SRS-049**: MUST implement the following behavior: Immediately after the file list, CLI MUST print a Unicode box-drawing installation summary table with bright-red border lines.
@@ -108,6 +108,8 @@ No explicit performance optimizations identified.
 - **SRS-280**: MUST implement the following behavior: When `--update` loads `.req/config.json`, the CLI MUST restore persisted `"providers"` array entries; CLI-supplied `--provider` specs MUST replace (not merge with) persisted entries when at least one `--provider` flag is present on the command line.
 - **SRS-281**: MUST treat this requirement as a removed legacy behavior and keep it unsupported.
 - **SRS-282**: MUST treat this requirement as a removed legacy behavior and keep it unsupported.
+- **SRS-343**: MUST implement the following behavior: `--upgrade` MUST execute `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` only on Linux; on non-Linux, it MUST NOT execute `uv` and MUST print the manual command.
+- **SRS-344**: MUST implement the following behavior: `--uninstall` MUST execute `uv tool uninstall usereq` only on Linux; on non-Linux, it MUST NOT execute `uv` and MUST print the manual command.
 
 ### 3.3 Provider Resource Generation
 - **SRS-095**: MUST implement the following behavior: For each skill subdirectory of every enabled provider, the CLI MUST generate `SKILL.md` with YAML front matter containing: `name: req-<prompt_name>`; `description` populated by `extract_skill_description(prompt_frontmatter)` (see SRS-113) escaped for YAML double-quoted strings; `model` and `tools` fields populated using the provider-specific configuration from `models.json` or `models-legacy.json` according to the per-provider `legacy` option, subject to per-provider `enable-models` and `enable-tools` options; the prompt body with token substitutions applied.
