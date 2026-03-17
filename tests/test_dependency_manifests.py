@@ -1,7 +1,8 @@
 """@brief Validate repository dependency manifest invariants.
-@details Enforces alignment between requirements.txt and packaging metadata plus req.sh invocation semantics for .venv execution behavior. Includes package-data coverage validation for resource subdirectories.
+@details Enforces alignment between requirements.txt and packaging metadata plus req.sh invocation semantics for uv-based execution behavior. Includes package-data coverage validation for resource subdirectories.
 @satisfies SRS-055
 @satisfies SRS-056
+@satisfies SRS-342
 @satisfies SRS-264
 @satisfies SRS-272
 @satisfies SRS-273
@@ -20,6 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIREMENTS_PATH = REPO_ROOT / "requirements.txt"
 PYPROJECT_PATH = REPO_ROOT / "pyproject.toml"
 REQ_SCRIPT_PATH = REPO_ROOT / "scripts" / "req.sh"
+README_PATH = REPO_ROOT / "README.md"
 RESOURCES_DIR = REPO_ROOT / "src" / "usereq" / "resources"
 ALL_PROJECT_PACKAGES = {
     "build", "setuptools", "wheel", "tiktoken", "pyyaml",
@@ -119,18 +121,34 @@ def test_pyproject_dependencies_include_ruff_and_pyright() -> None:
     )
 
 
-def test_req_sh_executes_cli_with_venv_python() -> None:
-    """@brief Validate req.sh executes CLI through .venv Python without hash-refresh logic.
-    @details Confirms req.sh forwards CLI arguments unchanged to the .venv Python entrypoint and does not contain requirements-hash synchronization behavior.
+def test_req_sh_executes_cli_with_uv_run() -> None:
+    """@brief Validate req.sh executes CLI through uv-managed runtime without virtualenv bootstrap.
+    @details Confirms req.sh forwards CLI arguments unchanged to `uv run python -m usereq.cli`
+    and does not create or activate `.venv` manually.
     @return {None} No return value.
     """
 
     content = REQ_SCRIPT_PATH.read_text(encoding="utf-8")
-    assert 'exec "${VENVDIR}/bin/python3"' in content
-    assert "raise SystemExit(main())" in content
+    assert "exec uv run python -m usereq.cli" in content
     assert '"$@"' in content
+    assert "virtualenv" not in content
+    assert "pip install -r" not in content
+    assert "/bin/activate" not in content
+    assert "${VENVDIR}/bin/python3" not in content
     assert "REQ_HASH_FILE=" not in content
     assert "sha256sum" not in content
+
+
+def test_readme_includes_requirements_section_with_uv_tool() -> None:
+    """@brief Validate README declares Astral uv tool requirement in a dedicated Requirements section.
+    @details Confirms README includes the `## Requirements` heading and explicitly states Astral `uv` tool is required.
+    @return {None} No return value.
+    @satisfies SRS-342
+    """
+
+    content = README_PATH.read_text(encoding="utf-8")
+    assert "## Requirements" in content
+    assert "Astral `uv` tool is required" in content
 
 
 def _get_package_data_patterns() -> list[str]:

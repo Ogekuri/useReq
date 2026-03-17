@@ -32,6 +32,13 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 <p>
 
 
+## Requirements
+
+- Astral `uv` tool is required to run `scripts/req.sh` and project CLI workflows.
+- Supported environment: `linux`
+- Python 3.11+
+
+
 ## Feature Highlights
 - You will no longer need to read the codebase.
 - It stops the Agent from asking more questions and makes it just do it.

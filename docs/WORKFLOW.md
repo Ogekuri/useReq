@@ -9,7 +9,7 @@
 - `PROC:req-sh`
   - `type`: `Process`
   - `parent_process`: `-`
-  - `role`: `Repository runner bootstrap that ensures .venv availability before launching CLI`
+  - `role`: `Repository runner bootstrap that dispatches CLI execution through Astral uv runtime`
   - `entrypoints`: `scripts/req.sh`
   - `defining_files`: `scripts/req.sh`
   - `threads`: `no explicit threads detected`
@@ -151,10 +151,10 @@
 - **Type**: Process
 - **Parent Process**: `-`
 - **Entrypoint(s)**: `scripts/req.sh` [`scripts/req.sh`]
-- **Lifecycle/Trigger**: starts on shell invocation, creates `.venv` only when missing, and then replaces process image with repository CLI execution.
+- **Lifecycle/Trigger**: starts on shell invocation, validates `uv` command availability, and then replaces process image with repository CLI execution through `uv run`.
 - **Internal Call-Trace Tree**
-  - `req.sh(...)`: shell bootstrap for virtualenv initialization and CLI dispatch [`scripts/req.sh`]
-    - external boundaries: `virtualenv`, `pip install -r`, `exec .../python3`
+  - `req.sh(...)`: shell bootstrap for uv-based CLI dispatch [`scripts/req.sh`]
+    - external boundaries: `uv run`, `exec`
 
 ### `PROC:gha-release-uvx`
 - **Type**: Process
@@ -170,6 +170,6 @@
 ## Communication Edges
 - `PROC:req-sh -> PROC:main`
   - `mechanism`: `OS exec handoff`
-  - `endpoint/channel`: ``.venv/bin/python3 -c 'from usereq.cli import main; raise SystemExit(main())'``
+  - `endpoint/channel`: ``uv run python -m usereq.cli``
   - `payload`: `argv passthrough from shell process to Python CLI main entrypoint`
 - No additional explicit `Communication Edge` detected between execution units.

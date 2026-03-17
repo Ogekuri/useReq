@@ -3,50 +3,17 @@
 # VERSION: 0.38.0
 # AUTHORS: Ogekuri
 
-now=$(date '+%Y-%m-%d_%H-%M-%S')
+set -euo pipefail
 
-# 1. Get the full absolute path of the file (resolving symbolic links)
-FULL_PATH=$(readlink -f "$0")
+FULL_PATH="$(readlink -f "$0")"
+SCRIPT_PATH="$(dirname "$FULL_PATH")"
+BASE_DIR="$(dirname "$SCRIPT_PATH")"
 
-# 2. Extract the directory (the path without the filename)
-SCRIPT_PATH=$(dirname "$FULL_PATH")
-
-# 3. Extract the filename
-SCRIPT_NAME=$(basename "$FULL_PATH")
-
-# 4. Extract the base directory
-BASE_DIR=$(dirname "$SCRIPT_PATH")
-
-# --- Output tests (can be removed) ---
-#echo "Full path:          $FULL_PATH"
-#echo "Directory:          $SCRIPT_PATH"
-#echo "Script name:        $SCRIPT_NAME"
-#echo "Base Directory:     $BASE_DIR"
-
-
-VENVDIR="${BASE_DIR}/.venv"
-REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"
-
-if ! [ -f "${REQUIREMENTS_FILE}" ]; then
-  echo "ERROR: requirements.txt not found at ${REQUIREMENTS_FILE}" >&2
+if ! command -v uv >/dev/null 2>&1; then
+  echo "ERROR: uv command not found in PATH" >&2
   exit 1
 fi
 
-if ! [ -d "${VENVDIR}/" ]; then
-  echo -n "Create virtual environment ..."
-  mkdir -p "${VENVDIR}/"
-  virtualenv --python=python3 "${VENVDIR}/" >/dev/null
-  echo "done."
-
-  source "${VENVDIR}/bin/activate"
-
-  echo -n "Install python requirements ..."
-  "${VENVDIR}/bin/pip" install -r "${REQUIREMENTS_FILE}" >/dev/null
-  echo "done."
-else
-  source "${VENVDIR}/bin/activate"
-fi
-
-# Execute the application:
-PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \
-    exec "${VENVDIR}/bin/python3" -c 'from usereq.cli import main; raise SystemExit(main())' "$@"
+cd "${BASE_DIR}"
+PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH:-}" \
+  exec uv run python -m usereq.cli "$@"

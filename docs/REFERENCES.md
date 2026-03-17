@@ -19,34 +19,22 @@
         └── token_counter.py
 ```
 
-# req.sh | Shell | 52L | 7 symbols | 2 imports | 14 comments
+# req.sh | Shell | 19L | 4 symbols | 0 imports | 4 comments
 > Path: `scripts/req.sh`
-
-## Imports
-```
-source "${VENVDIR}/bin/activate"
-source "${VENVDIR}/bin/activate"
-```
 
 ## Definitions
 
-- var `FULL_PATH=$(readlink -f "$0")` (L9)
-- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
-- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
-- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
-- var `VENVDIR="${BASE_DIR}/.venv"` (L27)
-- var `REQUIREMENTS_FILE="${BASE_DIR}/requirements.txt"` (L28)
-- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH}" \` (L51)
+- var `FULL_PATH="$(readlink -f "$0")"` (L8)
+- var `SCRIPT_PATH="$(dirname "$FULL_PATH")"` (L9)
+- var `BASE_DIR="$(dirname "$SCRIPT_PATH")"` (L10)
+- var `PYTHONPATH="${BASE_DIR}/src:${PYTHONPATH:-}" \` (L18)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`FULL_PATH`|var||9||
-|`SCRIPT_PATH`|var||12||
-|`SCRIPT_NAME`|var||15||
-|`BASE_DIR`|var||18||
-|`VENVDIR`|var||27||
-|`REQUIREMENTS_FILE`|var||28||
-|`PYTHONPATH`|var||51||
+|`FULL_PATH`|var||8||
+|`SCRIPT_PATH`|var||9||
+|`BASE_DIR`|var||10||
+|`PYTHONPATH`|var||18||
 
 
 ---

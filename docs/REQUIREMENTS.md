@@ -152,7 +152,8 @@ No explicit performance optimizations identified.
 - **SRS-053**: The CLI MUST NOT create `requirements.md` under `--docs-dir`, including when `--docs-dir` is empty; the `Requirements_Template.md` template MUST be copied only into `.req/docs`.
 - **SRS-054**: The repository MUST include `scripts/req.sh` as the development launcher wrapper for the CLI.
 - **SRS-055**: The repository MUST keep `requirements.txt` as the canonical project dependency list containing all and only packages required to execute, build, develop, test, or statically analyze the application.
-- **SRS-056**: `scripts/req.sh` MUST execute the CLI via `.venv/bin/python3` for local development/debug workflows and MUST forward all user-provided CLI arguments unchanged.
+- **SRS-056**: `scripts/req.sh` MUST execute the CLI via `uv run python -m usereq.cli` from repository root, MUST forward all user-provided CLI arguments unchanged, and MUST rely on uv-managed runtime environments.
+- **SRS-342**: `README.md` MUST include a `Requirements` section stating that Astral `uv` tool is required for `scripts/req.sh` and recommended project CLI execution workflows.
 - **SRS-264**: Runtime and build dependency declarations in `pyproject.toml` (`[build-system].requires` union `[project].dependencies`) MUST be a subset of `requirements.txt`; `[project].dependencies` MUST include `ruff` and `pyright` to ensure static-analysis tools are installed with the package; `requirements.txt` MAY additionally list development and testing packages not declared in `pyproject.toml`.
 - **SRS-057**: The current implementation MUST be treated as not providing a root-level `doxygen.sh` script for automated Doxygen generation.
 - **SRS-058**: Any workflow that invokes `doxygen.sh` from repository root MUST fail fast because no such script path exists in the repository.
