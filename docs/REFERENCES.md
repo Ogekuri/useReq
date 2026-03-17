@@ -128,7 +128,7 @@ import sys
 
 ---
 
-# cli.py | Python | 5011L | 151 symbols | 32 imports | 241 comments
+# cli.py | Python | 5015L | 151 symbols | 32 imports | 241 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -1082,7 +1082,7 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L4911-5011)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L4911-5013)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
@@ -1245,7 +1245,7 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 |`run_project_static_check_cmd`|fn|pub|4769-4836|def run_project_static_check_cmd(args: Namespace) -> int|
 |`_resolve_project_base`|fn|priv|4837-4857|def _resolve_project_base(args: Namespace) -> Path|
 |`_resolve_project_src_dirs`|fn|priv|4858-4910|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|4911-5011|def main(argv: Optional[list[str]] = None) -> int|
+|`main`|fn|pub|4911-5013|def main(argv: Optional[list[str]] = None) -> int|
 |`VERBOSE`|var|pub|4935||
 |`DEBUG`|var|pub|4936||
 

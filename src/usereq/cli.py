@@ -5009,3 +5009,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             traceback.print_exc()
         return 1
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

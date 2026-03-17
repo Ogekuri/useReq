@@ -26,7 +26,7 @@
 - **Type**: Process
 - **Parent Process**: `-`
 - **Entrypoint(s)**: `main(argv: Optional[list[str]] = None) -> int` [`src/usereq/cli.py`]
-- **Lifecycle/Trigger**: starts on OS process invocation (`req`, `use-req`, `usereq`), executes argument parsing and one command path, exits with integer status code.
+- **Lifecycle/Trigger**: starts on OS process invocation (`req`, `use-req`, `usereq`) or module execution (`python -m usereq.cli`), executes argument parsing and one command path, exits with integer status code.
 - **Internal Call-Trace Tree**
   - `main(...)`: command router and execution coordinator [`src/usereq/cli.py`]
     - `maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)`: perform startup idle-gated online release-check before argument parsing and validation with fixed 300-second idle-delay [`src/usereq/cli.py`]

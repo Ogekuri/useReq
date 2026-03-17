@@ -188,6 +188,32 @@ def test_python_module_cli_entrypoint_emits_no_runpy_runtimewarning() -> None:
     assert "usereq.cli" not in result.stderr, result.stderr
 
 
+def test_python_module_cli_executes_main_for_ver_flag() -> None:
+    """@brief Verify `python -m usereq.cli` executes CLI main for version requests.
+    @details Executes module mode with `--ver` and asserts version text is printed
+    on stdout, proving module execution invokes `main()` rather than importing only.
+    @return {None} No return value.
+    @satisfies SRS-056
+    """
+
+    existing_pythonpath = os.environ.get("PYTHONPATH")
+    composed_pythonpath = str(REPO_ROOT / "src")
+    if existing_pythonpath:
+        composed_pythonpath = f"{composed_pythonpath}:{existing_pythonpath}"
+    env = {**os.environ, "PYTHONPATH": composed_pythonpath}
+    result = subprocess.run(
+        [sys.executable, "-m", "usereq.cli", "--ver"],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip(), "Expected version output on stdout for --ver"
+
+
 def test_readme_includes_requirements_section_with_uv_tool() -> None:
     """@brief Validate README declares Astral uv tool requirement in a dedicated Requirements section.
     @details Confirms README includes the `## Requirements` heading and explicitly states Astral `uv` tool is required.
