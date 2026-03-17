@@ -1536,6 +1536,35 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         self.assertIn("main.py", dispatched_str)
         self.assertIn("test_main.py", dispatched_str)
 
+    def test_static_check_ignores_tests_fixtures_subtree(self) -> None:
+        """!
+        @brief --static-check excludes files under tests-dir/fixtures from dispatch.
+        @details Verifies project scan includes regular tests-dir files while skipping
+          fixture corpus files used for parser/static-check test data to avoid false
+          positives from intentionally heterogeneous fixture sources.
+        """
+        from usereq import cli
+
+        fixtures_dir = self.tmp / "tests" / "fixtures"
+        fixtures_dir.mkdir(parents=True, exist_ok=True)
+        _make_temp_file(self.tmp / "src", "main.py")
+        _make_temp_file(self.tmp / "tests", "test_main.py")
+        fixture_file = _make_temp_file(fixtures_dir, "fixture_c.c", "int main(void){return 0;}\n")
+        self._write_config({"Python": [{"module": "Dummy"}], "C": [{"module": "Dummy"}]})
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(str(self.tmp))
+            with patch("usereq.static_check.dispatch_static_check_for_file", return_value=0) as mock_dispatch:
+                rc = cli.main(["--static-check"])
+        finally:
+            os.chdir(old_cwd)
+        self.assertEqual(rc, 0)
+        dispatched_files = [c.args[0] for c in mock_dispatch.call_args_list]
+        dispatched_str = "\n".join(dispatched_files)
+        self.assertIn("main.py", dispatched_str)
+        self.assertIn("test_main.py", dispatched_str)
+        self.assertNotIn(str(fixture_file.resolve()), dispatched_files)
+
     def test_static_check_tests_dir_only(self) -> None:
         """!
         @brief --static-check processes test files even when src-dir has no supported files (SRS-336).

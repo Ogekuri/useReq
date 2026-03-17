@@ -4762,6 +4762,9 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       (SRS-256, SRS-336), applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching.
       If `tests-dir` is missing or invalid in `.req/config.json`, test directory inclusion is
       skipped silently without error (SRS-336).
+      Files under `<tests-dir>/fixtures/` are excluded from static-check selection because they
+      are fixture corpus inputs for parser/static-check tests and can intentionally contain
+      diagnostics unrelated to project code quality gates.
       For each collected file:
       - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension.
       - Looks up language in the `"static-check"` section of `.req/config.json`.
@@ -4780,6 +4783,7 @@ def run_project_static_check_cmd(args: Namespace) -> int:
     project_base, src_dirs = _resolve_project_src_dirs(args)
     sc_config = load_static_check_from_config(project_base)
     selection_dirs = list(src_dirs)
+    tests_dir_rel: Optional[str] = None
 
     # SRS-336: append tests-dir to file selection; skip silently if missing/invalid
     try:
@@ -4787,10 +4791,37 @@ def run_project_static_check_cmd(args: Namespace) -> int:
         tests_dir_val = full_cfg.get("tests-dir") or full_cfg.get("test-dir")
         if isinstance(tests_dir_val, str) and tests_dir_val.strip():
             selection_dirs.append(tests_dir_val)
+            tests_dir_rel = Path(
+                make_relative_if_contains_project(tests_dir_val, project_base)
+            ).as_posix().strip("/")
     except ReqError:
         pass
 
     files = _collect_source_files(selection_dirs, project_base)
+    fixture_roots: list[str] = ["tests/fixtures"]
+    if tests_dir_rel is not None:
+        configured_root = "fixtures" if tests_dir_rel in {"", "."} else f"{tests_dir_rel}/fixtures"
+        if configured_root not in fixture_roots:
+            fixture_roots.append(configured_root)
+    filtered_files: list[str] = []
+    for filepath in files:
+        try:
+            rel_posix = (
+                Path(filepath).resolve().relative_to(project_base.resolve()).as_posix()
+            )
+        except ValueError:
+            filtered_files.append(filepath)
+            continue
+        should_skip = False
+        for fixture_root in fixture_roots:
+            fixture_prefix = f"{fixture_root}/"
+            if rel_posix == fixture_root or rel_posix.startswith(fixture_prefix):
+                should_skip = True
+                break
+        if should_skip:
+            continue
+        filtered_files.append(filepath)
+    files = filtered_files
     if not files:
         raise ReqError("Error: no source files found in configured directories.", 1)
 
