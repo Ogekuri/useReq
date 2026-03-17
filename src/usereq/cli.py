@@ -4692,10 +4692,9 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
       - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension.
       - Looks up language in the `"static-check"` config section; skips silently if absent.
       - Executes each configured language entry sequentially via
-        `dispatch_static_check_for_file(filepath, lang_config, fail_only=True, project_base=..., src_dirs=...)`.
+        `dispatch_static_check_for_file(filepath, lang_config, fail_only=True, project_base=...)`.
       - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
-      Dispatch context provides project root and configured `src-dir` values for
-      uv-first Pylance `--extra-path` resolution.
+      Dispatch context provides project root for checker runtime execution.
       All checks execute with `fail_only=True`: passing checks produce no stdout output (SRS-253).
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
     @see SRS-253, SRS-254, SRS-255, SRS-341
@@ -4713,18 +4712,6 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
         project_base = Path.cwd().resolve()
 
     sc_config = load_static_check_from_config(project_base)
-    configured_src_dirs: list[str] = []
-    try:
-        full_cfg = load_full_config(project_base)
-        raw_src_dirs = full_cfg.get("src-dir")
-        if isinstance(raw_src_dirs, list):
-            configured_src_dirs = [
-                value for value in raw_src_dirs if isinstance(value, str) and value.strip()
-            ]
-        elif isinstance(raw_src_dirs, str) and raw_src_dirs.strip():
-            configured_src_dirs = [raw_src_dirs]
-    except ReqError:
-        configured_src_dirs = []
     if not sc_config:
         config_path = project_base / ".req" / "config.json"
         if not config_path.is_file():
@@ -4759,7 +4746,6 @@ def run_files_static_check_cmd(files: list[str], args: Namespace) -> int:
                 lang_config,
                 fail_only=True,
                 project_base=project_base,
-                src_dirs=configured_src_dirs,
             )
             if rc != 0:
                 overall = 1
@@ -4781,10 +4767,9 @@ def run_project_static_check_cmd(args: Namespace) -> int:
       - Looks up language in the `"static-check"` section of `.req/config.json`.
       - Skips silently when no tool is configured for the file's language.
       - Executes each configured language entry sequentially via
-        `dispatch_static_check_for_file(filepath, lang_config, fail_only=True, project_base=..., src_dirs=...)`.
+        `dispatch_static_check_for_file(filepath, lang_config, fail_only=True, project_base=...)`.
       - For `Command` module entries, execution order is `<cmd> [params...] <filename>`.
-      Dispatch context provides project root and configured `src-dir` values for
-      uv-first Pylance `--extra-path` resolution.
+      Dispatch context provides project root for checker runtime execution.
       All checks execute with `fail_only=True`: passing checks produce no stdout output (SRS-256).
       Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
     @throws ReqError If no source files are found.
@@ -4793,7 +4778,6 @@ def run_project_static_check_cmd(args: Namespace) -> int:
     from .static_check import STATIC_CHECK_EXT_TO_LANG, dispatch_static_check_for_file
 
     project_base, src_dirs = _resolve_project_src_dirs(args)
-    configured_src_dirs = list(src_dirs)
     sc_config = load_static_check_from_config(project_base)
     selection_dirs = list(src_dirs)
 
@@ -4827,7 +4811,6 @@ def run_project_static_check_cmd(args: Namespace) -> int:
                 lang_config,
                 fail_only=True,
                 project_base=project_base,
-                src_dirs=configured_src_dirs,
             )
             if rc != 0:
                 overall = 1

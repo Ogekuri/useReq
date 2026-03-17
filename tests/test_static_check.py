@@ -307,14 +307,10 @@ class TestStaticCheckPylance(unittest.TestCase):
             [sys.executable, "-m", "pyright", "--pythonpath", sys.executable],
         )
 
-    def test_invokes_pyright_with_src_dir_extra_paths(self) -> None:
-        """Pylance adds `--extra-path` entries resolved from configured src-dir values (SRS-341)."""
+    def test_invokes_pyright_without_extra_path(self) -> None:
+        """Pylance does not pass `--extra-path` (SRS-341)."""
         project_base = self.tmp / "project"
-        src_dir = project_base / "src"
-        lib_dir = project_base / "lib"
         test_dir = project_base / "tests"
-        src_dir.mkdir(parents=True, exist_ok=True)
-        lib_dir.mkdir(parents=True, exist_ok=True)
         test_dir.mkdir(parents=True, exist_ok=True)
         f = _make_temp_file(test_dir, "test_imports.py")
 
@@ -322,22 +318,12 @@ class TestStaticCheckPylance(unittest.TestCase):
             checker = StaticCheckPylance(
                 inputs=[str(f)],
                 project_base=project_base,
-                src_dirs=["src", "lib", "missing"],
             )
             with patch("builtins.print"):
                 checker.run()
         cmd_used = mock_run.call_args[0][0]
-        file_idx = cmd_used.index(str(f.resolve()))
-        extra_path_segment = cmd_used[5:file_idx]
-        self.assertEqual(
-            extra_path_segment,
-            [
-                "--extra-path",
-                str(src_dir.resolve()),
-                "--extra-path",
-                str(lib_dir.resolve()),
-            ],
-        )
+        self.assertNotIn("--extra-path", cmd_used)
+        self.assertIn(str(f.resolve()), cmd_used)
 
 # ---------------------------------------------------------------------------
 # StaticCheckRuff
@@ -1083,7 +1069,7 @@ class TestDispatchStaticCheckForFile(unittest.TestCase):
         self.assertEqual(rc, 0)
 
     def test_dispatch_pylance_forwards_runtime_context(self) -> None:
-        """Pylance dispatch forwards project_base and src_dirs into pyright invocation."""
+        """Pylance dispatch forwards project_base runtime context without `--extra-path`."""
         f = _make_temp_file(self.tmp, "b_ctx.py")
         (self.tmp / "src").mkdir(exist_ok=True)
         cfg = {"module": "Pylance"}
@@ -1093,12 +1079,10 @@ class TestDispatchStaticCheckForFile(unittest.TestCase):
                     str(f),
                     cfg,
                     project_base=self.tmp,
-                    src_dirs=["src"],
                 )
         self.assertEqual(rc, 0)
         cmd_used = mock_run.call_args[0][0]
-        self.assertIn("--extra-path", cmd_used)
-        self.assertIn(str((self.tmp / "src").resolve()), cmd_used)
+        self.assertNotIn("--extra-path", cmd_used)
 
     def test_dispatch_pylance_module_fail(self) -> None:
         """Pylance module returns 1 when pyright exits non-zero."""
@@ -1310,7 +1294,7 @@ class TestFilesStaticCheckCLI(unittest.TestCase):
         self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
         self.assertEqual(mock_dispatch.call_args_list[1].args[1]["cmd"], "clang-format")
         self.assertEqual(mock_dispatch.call_args_list[0].kwargs["project_base"], self.tmp.resolve())
-        self.assertEqual(mock_dispatch.call_args_list[0].kwargs["src_dirs"], ["src"])
+        self.assertNotIn("src_dirs", mock_dispatch.call_args_list[0].kwargs)
 
     def test_files_static_check_command_invokes_params_before_filename(self) -> None:
         """Command entry runs as cmd + params + filepath for --files-static-check."""
@@ -1482,7 +1466,7 @@ class TestStaticCheckProjectScan(unittest.TestCase):
         self.assertEqual(mock_dispatch.call_args_list[0].args[1]["cmd"], "cppcheck")
         self.assertEqual(mock_dispatch.call_args_list[1].args[1]["cmd"], "clang-format")
         self.assertEqual(mock_dispatch.call_args_list[0].kwargs["project_base"], self.tmp.resolve())
-        self.assertEqual(mock_dispatch.call_args_list[0].kwargs["src_dirs"], ["src"])
+        self.assertNotIn("src_dirs", mock_dispatch.call_args_list[0].kwargs)
 
     def test_static_check_command_invokes_params_before_filename(self) -> None:
         """Project scan Command entry runs as cmd + params + filepath."""
