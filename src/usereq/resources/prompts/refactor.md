@@ -154,7 +154,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Check required docs presence with `req --docs-check`. If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Required docs check failed!", and then terminate the execution.
 3. **CRITICAL**: Worktree Generation & Isolation
    - Generate <WORKTREE_NAME> with `req --git-wt-name`.
-   - Create and enter the dedicated isolated worktree with `req --git-wt-create <WORKTREE_NAME>`.
+   - Create and enter the dedicated isolated worktree with `req --git-wt-create <WORKTREE_NAME>`; after successful execution, the current working directory is changed (`cd`/`chdir`) to the created worktree path for subsequent steps.
    - If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Worktree generation failed!", and then terminate the execution.
 
 4. Generate **Design Delta** and implement the **Implementation Delta** to implement the refactor
