@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.45.0](https://github.com/Ogekuri/useReq/compare/v0.44.0..v0.45.0) - 2026-03-18
+### ⛰️  Features
+- Update promts files.
+
+### 🐛  Bug Fixes
+- resolve relative path config before chdir [useReq] *(git-wt-create)*
+  - Add reproducer for relative git/base path config in --git-wt-create.
+  - Resolve configured git-path/base-path against project base before worktree destination derivation.
+  - Keep successful final cwd at <parent-path>/<WT_NAME> while restoring sibling destination behavior.
+  - Update WORKFLOW runtime note and regenerate REFERENCES.
+
+### 🚜  Changes
+- replace git-parent-path with get-base-path [useReq] *(cli)*
+  - Update SRS-333/SRS-334/SRS-347 and SRS-330 for path command scope.
+  - Remove --git-parent-path and add --get-base-path in parser, routing, and docs.
+  - Make --git-path read configured git-path and --get-base-path read base-path.
+  - Adjust CLI tests for config-driven behavior and missing-config errors.
+  - Regenerate WORKFLOW and REFERENCES documentation.
+- replace git-wt-exit with git path commands [useReq] *(cli)*
+  - Update SRS-333/SRS-334 and add SRS-347 for --git-path and --git-parent-path.
+  - Remove --git-wt-exit parser/dispatch implementation from CLI.
+  - Add command handlers and tests for git-root and git-parent-path resolution.
+  - Refresh README, WORKFLOW, and REFERENCES documentation.
+- BREAKING CHANGE: remove cwd mutation on create [useReq] *(git-wt-create)*
+  - Update SRS-331 to require no cwd change for --git-wt-create.
+  - Adjust SRS-335 wording to remove dependency on final directory change.
+  - Remove chdir side effect from run_git_wt_create while preserving existing checks.
+  - Update git-wt-create tests to assert unchanged cwd on success and failure.
+  - Keep rollback verification by forcing post-create copy failure in tests.
+  - Update WORKFLOW and regenerate REFERENCES for traceability.
+- set success cwd to worktree root [useReq] *(git-wt-create)*
+  - Update SRS-331 to require final cwd at <parent-path>/<WT_NAME>.
+  - Adjust run_git_wt_create to chdir to worktree root on success.
+  - Add nested base-path unit test to verify new cwd behavior.
+  - Update WORKFLOW runtime model for git-wt-create success path.
+
+### 📚  Documentation
+- clarify git-path and get-base-path behavior [useReq] *(readme)*
+  - Update CLI command descriptions for --git-path and --get-base-path.
+  - Document config-driven output and missing-config error message.
+
 ## [0.44.0](https://github.com/Ogekuri/useReq/compare/v0.43.0..v0.44.0) - 2026-03-18
 ### ⛰️  Features
 - Update prompts.
@@ -1031,6 +1072,7 @@
 - \[0.42.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.42.0
 - \[0.43.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.43.0
 - \[0.44.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.44.0
+- \[0.45.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.45.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1076,3 +1118,4 @@
 [0.42.0]: https://github.com/Ogekuri/useReq/compare/v0.41.0..v0.42.0
 [0.43.0]: https://github.com/Ogekuri/useReq/compare/v0.42.0..v0.43.0
 [0.44.0]: https://github.com/Ogekuri/useReq/compare/v0.43.0..v0.44.0
+[0.45.0]: https://github.com/Ogekuri/useReq/compare/v0.44.0..v0.45.0
