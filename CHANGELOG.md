@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.44.0](https://github.com/Ogekuri/useReq/compare/v0.43.0..v0.44.0) - 2026-03-18
+### ⛰️  Features
+- Update prompts.
+
 ## [0.43.0](https://github.com/Ogekuri/useReq/compare/v0.42.0..v0.43.0) - 2026-03-18
 ### 🚜  Changes
 - move release-check idle cache path [useReq] *(cli)*
@@ -1026,6 +1030,7 @@
 - \[0.41.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.41.0
 - \[0.42.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.42.0
 - \[0.43.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.43.0
+- \[0.44.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.44.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1070,3 +1075,4 @@
 [0.41.0]: https://github.com/Ogekuri/useReq/compare/v0.40.0..v0.41.0
 [0.42.0]: https://github.com/Ogekuri/useReq/compare/v0.41.0..v0.42.0
 [0.43.0]: https://github.com/Ogekuri/useReq/compare/v0.42.0..v0.43.0
+[0.44.0]: https://github.com/Ogekuri/useReq/compare/v0.43.0..v0.44.0
