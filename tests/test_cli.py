@@ -4018,6 +4018,30 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
         finally:
             os.chdir(prev_cwd)
 
+    def test_wt_create_resolves_relative_config_paths_for_final_cwd(self) -> None:
+        """SRS-322, SRS-331: relative git/base paths in config must resolve to absolute worktree destination."""
+        wt_name = "test-wt-relative-config-paths"
+        config_path = self.TEST_DIR / ".req" / "config.json"
+        config_payload = json.loads(config_path.read_text(encoding="utf-8"))
+        config_payload["git-path"] = "."
+        config_payload["base-path"] = "."
+        config_path.write_text(
+            f"{json.dumps(config_payload, indent=2, sort_keys=True)}\n",
+            encoding="utf-8",
+        )
+
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-create", wt_name])
+            self.assertEqual(rc, 0)
+            expected_wt_dir = self.TEST_DIR.parent / wt_name
+            self.assertTrue(expected_wt_dir.is_dir(), "Worktree must be created as sibling")
+            self.assertEqual(Path.cwd(), expected_wt_dir)
+        finally:
+            os.chdir(prev_cwd)
+
     def test_wt_delete_dirty_worktree_forced(self) -> None:
         """SRS-328: delete must force-remove target worktree with pending changes."""
         wt_name = "test-wt-dirty"

@@ -110,7 +110,7 @@
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]
         - `sanitize_branch_name(...)`: replace path-incompatible characters with `-` [`src/usereq/cli.py`]
         - external boundaries: `subprocess.run(["git", "branch", "--show-current"], ...)` branch name resolution
-      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch, running copy steps, changing cwd to `<parent-path>/<WT_NAME>` only on success, and rolling back exact created worktree/branch on post-create failure [`src/usereq/cli.py`]
+      - `run_git_wt_create(...)`: execute `--git-wt-create` creating worktree+branch, resolving configured git/base paths against project base before destination derivation, running copy steps, changing cwd to `<parent-path>/<WT_NAME>` only on success, and rolling back exact created worktree/branch on post-create failure [`src/usereq/cli.py`]
         - `validate_wt_name(...)`: validate worktree/branch name against invalid character regex [`src/usereq/cli.py`]
         - `_resolve_project_base(...)`: resolve project root in here-mode path [`src/usereq/cli.py`]
         - `load_full_config(...)`: load all parameters from `.req/config.json` [`src/usereq/cli.py`]

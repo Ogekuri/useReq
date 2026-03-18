@@ -4369,10 +4369,19 @@ def run_git_wt_create(args: Namespace) -> None:
     full_cfg = load_full_config(project_base)
     git_path_str = full_cfg.get("git-path")
     base_path_str = full_cfg.get("base-path", str(project_base))
-    if not git_path_str or not Path(git_path_str).is_dir():
+    if not git_path_str:
         raise ReqError("Error: git-path not configured or does not exist.", 11)
     git_path = Path(git_path_str)
+    if not git_path.is_absolute():
+        git_path = project_base / git_path
+    if not git_path.is_dir():
+        raise ReqError("Error: git-path not configured or does not exist.", 11)
+    git_path = git_path.resolve()
+
     base_path = Path(base_path_str)
+    if not base_path.is_absolute():
+        base_path = project_base / base_path
+    base_path = base_path.resolve()
     parent_path = git_path.parent
     # SRS-309: base-dir = relative path from git-path to base-path.
     try:
