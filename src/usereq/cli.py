@@ -298,7 +298,7 @@ def build_parser() -> argparse.ArgumentParser:
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
         "[--test-static-check {dummy,pylance,ruff,command} [FILES...]] "
-        "[--git-check] [--docs-check] [--git-wt-name] [--git-wt-create WT_NAME] [--git-wt-delete WT_NAME] [--git-wt-exit] "
+        "[--git-check] [--docs-check] [--git-wt-name] [--git-wt-create WT_NAME] [--git-wt-delete WT_NAME] [--git-path] [--git-parent-path] "
         f"({version})"
     )
     parser = argparse.ArgumentParser(
@@ -533,12 +533,22 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
-        "--git-wt-exit",
+        "--git-path",
         action="store_true",
         default=False,
-        dest="git_wt_exit",
+        dest="git_path_cmd",
         help=(
-            "Change current directory to configured base-path "
+            "Print absolute git repository root for current execution context "
+            "(here-only; --here implied; --base forbidden)."
+        ),
+    )
+    parser.add_argument(
+        "--git-parent-path",
+        action="store_true",
+        default=False,
+        dest="git_parent_path_cmd",
+        help=(
+            "Print absolute parent directory of current git repository root "
             "(here-only; --here implied; --base forbidden)."
         ),
     )
@@ -4152,7 +4162,7 @@ def _is_project_scan_command(args: Namespace) -> bool:
     @return True when any project-scan flag is present.
     @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`,
       `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`,
-      `--git-wt-delete`, and `--git-wt-exit`.
+      `--git-wt-delete`, `--git-path`, and `--git-parent-path`.
     """
     return bool(
         getattr(args, "references", False)
@@ -4165,7 +4175,8 @@ def _is_project_scan_command(args: Namespace) -> bool:
         or getattr(args, "git_wt_name", False)
         or getattr(args, "git_wt_create", None)
         or getattr(args, "git_wt_delete", None)
-        or getattr(args, "git_wt_exit", False)
+        or getattr(args, "git_path_cmd", False)
+        or getattr(args, "git_parent_path_cmd", False)
     )
 
 
@@ -4176,7 +4187,7 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
     @return True when command requires implicit `--here` and rejects `--base`.
     @details Includes `--references`, `--compress`, `--tokens`, `--find`, `--static-check`,
       `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`,
-      and `--git-wt-exit`.
+      `--git-path`, and `--git-parent-path`.
     @satisfies SRS-311, SRS-313, SRS-318, SRS-320, SRS-326, SRS-333
     """
     return bool(
@@ -4190,7 +4201,8 @@ def _is_here_only_project_scan_command(args: Namespace) -> bool:
         or getattr(args, "git_wt_name", False)
         or getattr(args, "git_wt_create", None)
         or getattr(args, "git_wt_delete", None)
-        or getattr(args, "git_wt_exit", False)
+        or getattr(args, "git_path_cmd", False)
+        or getattr(args, "git_parent_path_cmd", False)
     )
 
 
@@ -4530,21 +4542,44 @@ def run_git_wt_delete(args: Namespace) -> None:
         raise ReqError(msg, 1)
 
 
-def run_git_wt_exit(args: Namespace) -> None:
+def _resolve_git_repository_root_from_cwd() -> Path:
     """!
-    @brief Execute --git-wt-exit: change current directory to configured base-path.
-    @param args Parsed CLI namespace.
+    @brief Resolve git repository root from current working directory context.
+    @return Absolute git repository root path.
+    @throws ReqError If git repository root cannot be resolved from current context.
+    """
+    try:
+        current_dir = Path.cwd().resolve()
+    except OSError:
+        current_dir = Path.cwd()
+    try:
+        return resolve_git_root(current_dir)
+    except ReqError as exc:
+        raise ReqError("ERROR: unable to find git repository", 1) from exc
+
+
+def run_git_path(_args: Namespace) -> None:
+    """!
+    @brief Execute --git-path: print absolute git repository root path.
+    @param _args Parsed CLI namespace.
     @return {None} Function return value.
-    @throws ReqError On missing or invalid base-path configuration.
+    @throws ReqError If current context is outside a git repository.
     @satisfies SRS-333, SRS-334
     """
-    project_base = _resolve_project_base(args)
-    full_cfg = load_full_config(project_base)
-    base_path_str = full_cfg.get("base-path", str(project_base))
-    base_path = Path(base_path_str)
-    if not base_path.is_dir():
-        raise ReqError("Error: base-path not configured or does not exist.", 11)
-    os.chdir(base_path)
+    git_root = _resolve_git_repository_root_from_cwd()
+    print(str(git_root))
+
+
+def run_git_parent_path(_args: Namespace) -> None:
+    """!
+    @brief Execute --git-parent-path: print absolute parent path of git repository root.
+    @param _args Parsed CLI namespace.
+    @return {None} Function return value.
+    @throws ReqError If current context is outside a git repository.
+    @satisfies SRS-333, SRS-347
+    """
+    git_root = _resolve_git_repository_root_from_cwd()
+    print(str(git_root.parent))
 
 
 def run_files_tokens(files: list[str]) -> None:
@@ -5012,7 +5047,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 raise ReqError(
                     "Error: --references, --compress, --tokens, --find, --static-check, "
                     "--git-check, --docs-check, --git-wt-name, --git-wt-create, and "
-                    "--git-wt-delete, and --git-wt-exit do not allow --base; use --here.",
+                    "--git-wt-delete, --git-path, and --git-parent-path do not allow --base; use --here.",
                     1,
                 )
             args.here = True
@@ -5064,8 +5099,10 @@ def main(argv: Optional[list[str]] = None) -> int:
                 run_git_wt_create(args)
             elif getattr(args, "git_wt_delete", None):
                 run_git_wt_delete(args)
-            elif getattr(args, "git_wt_exit", False):
-                run_git_wt_exit(args)
+            elif getattr(args, "git_path_cmd", False):
+                run_git_path(args)
+            elif getattr(args, "git_parent_path_cmd", False):
+                run_git_parent_path(args)
             return 0
         # Standard init flow requires --base or --here
         if not getattr(args, "base", None) and not getattr(args, "here", False):

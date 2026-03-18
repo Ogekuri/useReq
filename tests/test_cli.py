@@ -4178,11 +4178,11 @@ class TestGitWtCreateNestedBasePath(unittest.TestCase):
             os.chdir(prev_cwd)
 
 
-class TestGitWtExitCommand(unittest.TestCase):
-    """SRS-333, SRS-334, SRS-330: Verifies --git-wt-exit behavior."""
+class TestGitRepositoryPathCommands(unittest.TestCase):
+    """SRS-333, SRS-334, SRS-347, SRS-330: Verifies --git-path commands."""
 
     def setUp(self) -> None:
-        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-exit-"))
+        self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-path-"))
         (self.TEST_DIR / "docs").mkdir(exist_ok=True)
         (self.TEST_DIR / "guidelines").mkdir(exist_ok=True)
         (self.TEST_DIR / "tests").mkdir(exist_ok=True)
@@ -4221,37 +4221,96 @@ class TestGitWtExitCommand(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
 
-    def test_git_wt_exit_changes_cwd_to_base_path(self) -> None:
-        """SRS-334: --git-wt-exit changes cwd to configured base-path."""
-        wt_dir = self.TEST_DIR.parent / "test-wt-exit"
-        shutil.copytree(self.TEST_DIR / ".req", wt_dir / ".req")
+    def test_git_path_prints_absolute_repository_root(self) -> None:
+        """SRS-334: --git-path prints absolute git repository root path."""
         prev_cwd = Path.cwd()
         try:
-            os.chdir(wt_dir)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-                rc = cli.main(["--git-wt-exit"])
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                "sys.stdout", new_callable=io.StringIO
+            ) as mock_stdout:
+                rc = cli.main(["--git-path"])
             self.assertEqual(rc, 0)
-            self.assertEqual(Path.cwd(), self.TEST_DIR)
+            self.assertEqual(mock_stdout.getvalue().strip(), str(self.TEST_DIR.resolve()))
         finally:
             os.chdir(prev_cwd)
-            shutil.rmtree(wt_dir, ignore_errors=True)
 
-    def test_git_wt_exit_rejects_base(self) -> None:
-        """SRS-333: --git-wt-exit must reject --base."""
+    def test_git_parent_path_prints_absolute_repository_parent_path(self) -> None:
+        """SRS-347: --git-parent-path prints absolute parent path of git root."""
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                "sys.stdout", new_callable=io.StringIO
+            ) as mock_stdout:
+                rc = cli.main(["--git-parent-path"])
+            self.assertEqual(rc, 0)
+            self.assertEqual(
+                mock_stdout.getvalue().strip(),
+                str(self.TEST_DIR.resolve().parent),
+            )
+        finally:
+            os.chdir(prev_cwd)
+
+    def test_git_path_rejects_base(self) -> None:
+        """SRS-333: --git-path must reject --base."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            rc = cli.main(["--git-wt-exit", "--base", str(self.TEST_DIR)])
+            rc = cli.main(["--git-path", "--base", str(self.TEST_DIR)])
         self.assertNotEqual(rc, 0)
+
+    def test_git_parent_path_rejects_base(self) -> None:
+        """SRS-333: --git-parent-path must reject --base."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            rc = cli.main(["--git-parent-path", "--base", str(self.TEST_DIR)])
+        self.assertNotEqual(rc, 0)
+
+    def test_git_path_outside_repository_fails_with_expected_error(self) -> None:
+        """SRS-334: --git-path fails with canonical error outside git repository."""
+        prev_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory(prefix="usereq-git-path-nongit-") as non_git:
+            try:
+                os.chdir(non_git)
+                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                    "sys.stderr", new_callable=io.StringIO
+                ) as mock_stderr:
+                    rc = cli.main(["--git-path"])
+                self.assertNotEqual(rc, 0)
+                self.assertEqual(
+                    mock_stderr.getvalue().strip(),
+                    "ERROR: unable to find git repository",
+                )
+            finally:
+                os.chdir(prev_cwd)
+
+    def test_git_parent_path_outside_repository_fails_with_expected_error(self) -> None:
+        """SRS-347: --git-parent-path fails with canonical error outside git repository."""
+        prev_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory(prefix="usereq-git-parent-path-nongit-") as non_git:
+            try:
+                os.chdir(non_git)
+                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                    "sys.stderr", new_callable=io.StringIO
+                ) as mock_stderr:
+                    rc = cli.main(["--git-parent-path"])
+                self.assertNotEqual(rc, 0)
+                self.assertEqual(
+                    mock_stderr.getvalue().strip(),
+                    "ERROR: unable to find git repository",
+                )
+            finally:
+                os.chdir(prev_cwd)
 
     def test_upgrade_on_linux_executes_uv_install(self) -> None:
         """SRS-343: --upgrade executes uv install on Linux."""
-        with (
-            patch("platform.system", return_value="Linux"),
-            patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
-        ):
-            mocked_run.return_value = subprocess.CompletedProcess(
-                args=[], returncode=0
-            )
-            cli.run_upgrade()
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            with (
+                patch("platform.system", return_value="Linux"),
+                patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+            ):
+                mocked_run.return_value = subprocess.CompletedProcess(
+                    args=[], returncode=0
+                )
+                cli.run_upgrade()
         mocked_run.assert_called_once_with(
             [
                 "uv",

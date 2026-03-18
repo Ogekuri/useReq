@@ -257,8 +257,11 @@ req \
 - Remove the git worktree and branch identified by name (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--git-wt-delete WT_NAME`
 
-- Exit from a worktree session by changing the current directory to the configured `base-path` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
-  `--git-wt-exit`
+- Print the absolute path of the current git repository root (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--git-path`
+
+- Print the absolute parent path of the current git repository root (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+  `--git-parent-path`
 
 
 - Add `--enable-line-numbers` to include `<n>:` prefixes in `--files-compress`, `--compress`, `--files-find`, and `--find` output.

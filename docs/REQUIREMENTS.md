@@ -254,10 +254,11 @@ No explicit performance optimizations identified.
 - **SRS-328**: MUST implement the following behavior: The `--git-wt-delete` command MUST change current directory to `"base-path"` before deletion, then force-remove only exact target worktree and exact target branch using git commands, remaining robust when target worktree contains pending/uncommitted changes.
 - **SRS-332**: MUST implement the following behavior: The `--git-wt-delete` command MUST NOT execute explicit file-system deletions of worktree content paths (for example `.req`, `.claude`, `.codex`), and MUST rely only on `git worktree remove` and `git branch -D`.
 
-### 6.7 Git Worktree Exit Command
-- **SRS-333**: MUST implement the following behavior: The CLI MUST support `--git-wt-exit` as a `--here`-only command that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
-- **SRS-334**: MUST implement the following behavior: The `--git-wt-exit` command MUST change the current directory to `"base-path"` and MUST terminate successfully when the path change succeeds.
+### 6.7 Git Repository Path Commands
+- **SRS-333**: MUST implement the following behavior: The CLI MUST support `--git-path` and `--git-parent-path` as `--here`-only commands that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
+- **SRS-334**: MUST implement the following behavior: The `--git-path` command MUST print the absolute git repository root path for the current execution context; if no git repository is found, it MUST fail with `ERROR: unable to find git repository`.
+- **SRS-347**: MUST implement the following behavior: The `--git-parent-path` command MUST print the absolute parent path of the current git repository root; if no git repository is found, it MUST fail with `ERROR: unable to find git repository`.
 
 ### 6.8 Git Integration Test Requirements
 - **SRS-329**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that `"base-path"` and `"git-path"` are persisted to `.req/config.json` during installation and updated during `--update` when paths change.
-- **SRS-330**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create` (including `.venv` copy behavior), `--git-wt-delete`, and `--git-wt-exit` commands behave per their respective requirements.
+- **SRS-330**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create` (including `.venv` copy behavior), `--git-wt-delete`, `--git-path`, and `--git-parent-path` commands behave per their respective requirements.
