@@ -23,6 +23,7 @@ In scope: renumbering requirement identifiers in `%%DOC_PATH%%/REQUIREMENTS.md` 
 
 
 ## Pre-requisite: Execution Context
+- **CRITICAL**: All information declared in this `Pre-requisite: Execution Context` section MUST remain continuously available in the active execution context for the entire workflow and MUST NEVER be dropped, forgotten, or overwritten.
 - Generate <WORKTREE_NAME> with `req --git-wt-name` and use this identifier for all worktree operations in this workflow.
 
 
@@ -73,8 +74,8 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
    - Check required docs presence with `req --docs-check`. If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Required docs check failed!", and then terminate the execution.
 3. **CRITICAL**: Worktree Generation & Isolation
-   - Generate <WORKTREE_NAME> with `req --git-wt-name`.
-   - Create and enter the dedicated isolated worktree with `req --git-wt-create <WORKTREE_NAME>`; after successful execution, the current working directory is changed (`cd`/`chdir`) to the created worktree path for subsequent steps.
+   - Derive <BASE_PATH> with `req --get-base-path`, <GIT_PATH> with `req --git-path`, and generate <WORKTREE_NAME> with `req --git-wt-name`.
+   - Create the dedicated isolated worktree with `req --git-wt-create <WORKTREE_NAME>`, then execute `cd <GIT_PATH>/../<WORKTREE_NAME>` before proceeding to the next step.
    - If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Worktree generation failed!", and then terminate the execution.
 
 4. **CRITICAL**: Renumber requirement IDs in the **Software Requirements Specification**
@@ -108,7 +109,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Confirm the repo is clean with `req --git-check`. If the command returns an error code or prints any text containing "ERROR", override the final line with EXACTLY "WARNING: Renumber request completed with unclean git repository!".
 7. **CRITICAL**: Merge Conflict Management
    - Return to the original repository directory (the sibling directory of the worktree).
-   - Ensure you are on the original branch used before worktree creation by running `req --git-wt-exit`.
+   - Ensure you are on the original branch used before worktree creation by deriving `<BASE_PATH>` with `req --get-base-path` if needed and executing `cd <BASE_PATH>`.
    - Merge the isolated branch into the original branch: `git merge <WORKTREE_NAME>`
    - If the merge completes successfully, delete the isolated worktree and branch with `req --git-wt-delete <WORKTREE_NAME>`; if the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Worktree cleanup verification failed!", and then terminate the execution.
    - If the merge fails or results in conflicts, do NOT remove the worktree directory and override the final line with EXACTLY "WARNING: Renumber request completed with merge conflicting!".
