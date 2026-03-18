@@ -4179,7 +4179,7 @@ class TestGitWtCreateNestedBasePath(unittest.TestCase):
 
 
 class TestGitRepositoryPathCommands(unittest.TestCase):
-    """SRS-333, SRS-334, SRS-347, SRS-330: Verifies --git-path commands."""
+    """SRS-333, SRS-334, SRS-347, SRS-330: Verifies --git-path and --get-base-path."""
 
     def setUp(self) -> None:
         self.TEST_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-path-"))
@@ -4221,8 +4221,8 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
 
-    def test_git_path_prints_absolute_repository_root(self) -> None:
-        """SRS-334: --git-path prints absolute git repository root path."""
+    def test_git_path_prints_configured_git_path(self) -> None:
+        """SRS-334: --git-path prints configured git-path from .req/config.json."""
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
@@ -4235,19 +4235,19 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
         finally:
             os.chdir(prev_cwd)
 
-    def test_git_parent_path_prints_absolute_repository_parent_path(self) -> None:
-        """SRS-347: --git-parent-path prints absolute parent path of git root."""
+    def test_get_base_path_prints_configured_base_path(self) -> None:
+        """SRS-347: --get-base-path prints configured base-path from .req/config.json."""
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
             with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
                 "sys.stdout", new_callable=io.StringIO
             ) as mock_stdout:
-                rc = cli.main(["--git-parent-path"])
+                rc = cli.main(["--get-base-path"])
             self.assertEqual(rc, 0)
             self.assertEqual(
                 mock_stdout.getvalue().strip(),
-                str(self.TEST_DIR.resolve().parent),
+                str(self.TEST_DIR.resolve()),
             )
         finally:
             os.chdir(prev_cwd)
@@ -4258,16 +4258,16 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
             rc = cli.main(["--git-path", "--base", str(self.TEST_DIR)])
         self.assertNotEqual(rc, 0)
 
-    def test_git_parent_path_rejects_base(self) -> None:
-        """SRS-333: --git-parent-path must reject --base."""
+    def test_get_base_path_rejects_base(self) -> None:
+        """SRS-333: --get-base-path must reject --base."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            rc = cli.main(["--git-parent-path", "--base", str(self.TEST_DIR)])
+            rc = cli.main(["--get-base-path", "--base", str(self.TEST_DIR)])
         self.assertNotEqual(rc, 0)
 
-    def test_git_path_outside_repository_fails_with_expected_error(self) -> None:
-        """SRS-334: --git-path fails with canonical error outside git repository."""
+    def test_git_path_without_config_fails_with_expected_error(self) -> None:
+        """SRS-334: --git-path fails only when .req/config.json is missing."""
         prev_cwd = Path.cwd()
-        with tempfile.TemporaryDirectory(prefix="usereq-git-path-nongit-") as non_git:
+        with tempfile.TemporaryDirectory(prefix="usereq-git-path-missing-config-") as non_git:
             try:
                 os.chdir(non_git)
                 with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
@@ -4277,26 +4277,78 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
                 self.assertNotEqual(rc, 0)
                 self.assertEqual(
                     mock_stderr.getvalue().strip(),
-                    "ERROR: unable to find git repository",
+                    "Error: .req/config.json not found in the project root",
                 )
             finally:
                 os.chdir(prev_cwd)
 
-    def test_git_parent_path_outside_repository_fails_with_expected_error(self) -> None:
-        """SRS-347: --git-parent-path fails with canonical error outside git repository."""
+    def test_get_base_path_without_config_fails_with_expected_error(self) -> None:
+        """SRS-347: --get-base-path fails only when .req/config.json is missing."""
         prev_cwd = Path.cwd()
-        with tempfile.TemporaryDirectory(prefix="usereq-git-parent-path-nongit-") as non_git:
+        with tempfile.TemporaryDirectory(prefix="usereq-get-base-path-missing-config-") as non_git:
             try:
                 os.chdir(non_git)
                 with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
                     "sys.stderr", new_callable=io.StringIO
                 ) as mock_stderr:
-                    rc = cli.main(["--git-parent-path"])
+                    rc = cli.main(["--get-base-path"])
                 self.assertNotEqual(rc, 0)
                 self.assertEqual(
                     mock_stderr.getvalue().strip(),
-                    "ERROR: unable to find git repository",
+                    "Error: .req/config.json not found in the project root",
                 )
+            finally:
+                os.chdir(prev_cwd)
+
+    def test_git_path_reads_configured_value_outside_git_repository(self) -> None:
+        """SRS-334: --git-path reads config value even outside a git repository."""
+        prev_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory(prefix="usereq-git-path-config-nongit-") as non_git:
+            non_git_path = Path(non_git)
+            (non_git_path / ".req").mkdir(parents=True, exist_ok=True)
+            (non_git_path / ".req" / "config.json").write_text(
+                json.dumps(
+                    {
+                        "git-path": "/configured/git/path",
+                        "base-path": "/configured/base/path",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            try:
+                os.chdir(non_git_path)
+                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                    "sys.stdout", new_callable=io.StringIO
+                ) as mock_stdout:
+                    rc = cli.main(["--git-path"])
+                self.assertEqual(rc, 0)
+                self.assertEqual(mock_stdout.getvalue().strip(), "/configured/git/path")
+            finally:
+                os.chdir(prev_cwd)
+
+    def test_get_base_path_reads_configured_value_outside_git_repository(self) -> None:
+        """SRS-347: --get-base-path reads config value even outside a git repository."""
+        prev_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory(prefix="usereq-base-path-config-nongit-") as non_git:
+            non_git_path = Path(non_git)
+            (non_git_path / ".req").mkdir(parents=True, exist_ok=True)
+            (non_git_path / ".req" / "config.json").write_text(
+                json.dumps(
+                    {
+                        "git-path": "/configured/git/path",
+                        "base-path": "/configured/base/path",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            try:
+                os.chdir(non_git_path)
+                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
+                    "sys.stdout", new_callable=io.StringIO
+                ) as mock_stdout:
+                    rc = cli.main(["--get-base-path"])
+                self.assertEqual(rc, 0)
+                self.assertEqual(mock_stdout.getvalue().strip(), "/configured/base/path")
             finally:
                 os.chdir(prev_cwd)
 

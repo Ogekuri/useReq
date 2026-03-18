@@ -128,7 +128,7 @@ import sys
 
 ---
 
-# cli.py | Python | 5125L | 155 symbols | 33 imports | 245 comments
+# cli.py | Python | 5111L | 154 symbols | 33 imports | 244 comments
 > Path: `src/usereq/cli.py`
 - @brief CLI entry point implementing the useReq initialization flow.
 - @details Handles argument parsing, configuration management, and execution of useReq commands.
@@ -945,13 +945,13 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 
 ### fn `def _is_project_scan_command(args: Namespace) -> bool` `priv` (L4158-4182)
 - @brief Check if the parsed args contain a project-scan command.
-- @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`, `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`, `--git-path`, and `--git-parent-path`.
+- @details Project-scan commands: `--references`, `--compress`, `--tokens`, `--find`, `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`, `--git-path`, and `--get-base-path`.
 - @param args Parsed CLI namespace.
 - @return True when any project-scan flag is present.
 
 ### fn `def _is_here_only_project_scan_command(args: Namespace) -> bool` `priv` (L4183-4208)
 - @brief Check if args request a project-scan command restricted to `--here` mode.
-- @details Includes `--references`, `--compress`, `--tokens`, `--find`, `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`, `--git-path`, and `--git-parent-path`.
+- @details Includes `--references`, `--compress`, `--tokens`, `--find`, `--static-check`, `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create`, `--git-wt-delete`, `--git-path`, and `--get-base-path`.
 - @param args Parsed CLI namespace.
 - @return True when command requires implicit `--here` and rejects `--base`.
 - @satisfies SRS-311, SRS-313, SRS-318, SRS-320, SRS-326, SRS-333
@@ -1007,78 +1007,73 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @throws ReqError On invalid name or git removal failure.
 - @satisfies SRS-326, SRS-327, SRS-328, SRS-332
 
-### fn `def _resolve_git_repository_root_from_cwd() -> Path` `priv` (L4545-4560)
-- @brief Resolve git repository root from current working directory context.
-- @return Absolute git repository root path.
-- @throws ReqError If git repository root cannot be resolved from current context.
-
-### fn `def run_git_path(_args: Namespace) -> None` (L4561-4572)
-- @brief Execute --git-path: print absolute git repository root path.
-- @param _args Parsed CLI namespace.
+### fn `def run_git_path(args: Namespace) -> None` (L4545-4557)
+- @brief Execute --git-path: print configured git-path from `.req/config.json`.
+- @param args Parsed CLI namespace.
 - @return {None} Function return value.
-- @throws ReqError If current context is outside a git repository.
+- @throws ReqError If `.req/config.json` is not present.
 - @satisfies SRS-333, SRS-334
 
-### fn `def run_git_parent_path(_args: Namespace) -> None` (L4573-4584)
-- @brief Execute --git-parent-path: print absolute parent path of git repository root.
-- @param _args Parsed CLI namespace.
+### fn `def run_get_base_path(args: Namespace) -> None` (L4558-4570)
+- @brief Execute --get-base-path: print configured base-path from `.req/config.json`.
+- @param args Parsed CLI namespace.
 - @return {None} Function return value.
-- @throws ReqError If current context is outside a git repository.
+- @throws ReqError If `.req/config.json` is not present.
 - @satisfies SRS-333, SRS-347
 
-### fn `def run_files_tokens(files: list[str]) -> None` (L4585-4607)
+### fn `def run_files_tokens(files: list[str]) -> None` (L4571-4593)
 - @brief Execute --files-tokens: count tokens for arbitrary files.
 - @details Implements the run_files_tokens function behavior with deterministic control flow.
 - @param files Input parameter `files`.
 - @return {None} Function return value.
 
-### fn `def run_files_references(files: list[str]) -> None` (L4608-4624)
+### fn `def run_files_references(files: list[str]) -> None` (L4594-4610)
 - @brief Execute --files-references: generate markdown for arbitrary files.
 - @details Implements the run_files_references function behavior with deterministic control flow.
 - @param files Input parameter `files`.
 - @return {None} Function return value.
 
-### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L4625-4643)
+### fn `def run_files_compress(files: list[str], enable_line_numbers: bool = False) -> None` (L4611-4629)
 - @brief Execute --files-compress: compress arbitrary files.
 - @details Renders output header paths relative to current working directory.
 - @param files List of source file paths to compress.
 - @param enable_line_numbers If True, emits <n>: prefixes in compressed entries.
 - @return {None} Function return value.
 
-### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L4644-4672)
+### fn `def run_files_find(args_list: list[str], enable_line_numbers: bool = False) -> None` (L4630-4658)
 - @brief Execute --files-find: find constructs in arbitrary files.
 - @details Implements the run_files_find function behavior with deterministic control flow.
 - @param args_list Combined list: [TAG, PATTERN, FILE1, FILE2, ...].
 - @param enable_line_numbers If True, emits <n>: prefixes in output.
 - @return {None} Function return value.
 
-### fn `def run_references(args: Namespace) -> None` (L4673-4690)
+### fn `def run_references(args: Namespace) -> None` (L4659-4676)
 - @brief Execute --references: generate markdown for project source files.
 - @details Implements the run_references function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {None} Function return value.
 
-### fn `def run_compress_cmd(args: Namespace) -> None` (L4691-4712)
+### fn `def run_compress_cmd(args: Namespace) -> None` (L4677-4698)
 - @brief Execute --compress: compress project source files.
 - @details Implements the run_compress_cmd function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return {None} Function return value.
 
-### fn `def run_find(args: Namespace) -> None` (L4713-4742)
+### fn `def run_find(args: Namespace) -> None` (L4699-4728)
 - @brief Execute --find: find constructs in project source files.
 - @details Implements the run_find function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return {None} Function return value.
 - @throws ReqError If no source files found or no constructs match criteria with available TAGs listing.
 
-### fn `def run_tokens(args: Namespace) -> None` (L4743-4770)
+### fn `def run_tokens(args: Namespace) -> None` (L4729-4756)
 - @brief Execute --tokens on the canonical documentation files in --docs-dir.
 - @details Uses docs-dir from .req/config.json in here-only mode, ignores explicit --docs-dir, selects only REQUIREMENTS.md/WORKFLOW.md/REFERENCES.md as direct regular files in fixed order, and delegates summary rendering to run_files_tokens.
 - @param args Parsed CLI arguments namespace.
 - @return None.
 - @exception ReqError Raised when no canonical documentation file exists in configured docs-dir.
 
-### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L4771-4848)
+### fn `def run_files_static_check_cmd(files: list[str], args: Namespace) -> int` (L4757-4834)
 - @brief Execute `--files-static-check`: run static analysis on an explicit file list.
 - @details Project-base resolution order: 1. `--base PATH` -> use PATH. 2. `--here` -> use CWD. 3. Fallback -> use CWD. If `.req/config.json` is not found at the resolved project base, emits a warning to stderr and returns 0 (SRS-254). For each file: - Resolves absolute path; skips with warning if not a regular file. - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on the lowercase extension. - Looks up language in the `"static-check"` config section; skips silently if absent. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config, fail_only=True, project_base=...)`. - For `Command` module entries, execution order is `<cmd> [params...] <filename>`. Dispatch context provides project root for checker runtime execution. All checks execute with `fail_only=True`: passing checks produce no stdout output (SRS-253). Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-253, SRS-255)
 - @param files List of raw file paths supplied by the user.
@@ -1086,7 +1081,7 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @return Exit code: 0 if all checked files pass (or none are checked), 1 if any fail.
 - @see SRS-253, SRS-254, SRS-255, SRS-341
 
-### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4849-4944)
+### fn `def run_project_static_check_cmd(args: Namespace) -> int` (L4835-4930)
 - @brief Execute `--static-check`: run static analysis on project source and test files.
 - @details Collects files from configured `src-dir` directories and the `tests-dir` directory (SRS-256, SRS-336), applies `EXCLUDED_DIRS` filtering and `SUPPORTED_EXTENSIONS` matching. If `tests-dir` is missing or invalid in `.req/config.json`, test directory inclusion is skipped silently without error (SRS-336). Files under `<tests-dir>/fixtures/` are excluded from static-check selection because they are fixture corpus inputs for parser/static-check tests and can intentionally contain diagnostics unrelated to project code quality gates. For each collected file: - Detects language via `STATIC_CHECK_EXT_TO_LANG` keyed on lowercase extension. - Looks up language in the `"static-check"` section of `.req/config.json`. - Skips silently when no tool is configured for the file's language. - Executes each configured language entry sequentially via `dispatch_static_check_for_file(filepath, lang_config, fail_only=True, project_base=...)`. - For `Command` module entries, execution order is `<cmd> [params...] <filename>`. Dispatch context provides project root for checker runtime execution. All checks execute with `fail_only=True`: passing checks produce no stdout output (SRS-256). Overall exit code: max of all per-file codes (0=all pass, 1=any fail). (SRS-256, SRS-257)
 - @param args Parsed CLI namespace; here-only project scan (`--here` implied; `--base` rejected).
@@ -1094,31 +1089,31 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 - @throws ReqError If no source files are found.
 - @see SRS-256, SRS-257, SRS-336, SRS-341
 
-### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4945-4965)
+### fn `def _resolve_project_base(args: Namespace) -> Path` `priv` (L4931-4951)
 - @brief Resolve project base path for project-level commands.
 - @details Implements the _resolve_project_base function behavior with deterministic control flow.
 - @param args Parsed CLI arguments namespace.
 - @return Absolute path of project base.
 - @throws ReqError If --base/--here is missing or the resolved path does not exist.
 
-### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4966-5018)
+### fn `def _resolve_project_src_dirs(args: Namespace) -> tuple[Path, list[str]]` `priv` (L4952-5004)
 - @brief Resolve project base and src-dirs for project source commands.
 - @details Implements the _resolve_project_src_dirs function behavior with deterministic control flow.
 - @param args Input parameter `args`.
 - @return {tuple[Path, list[str]]} Function return value.
 
-### fn `def main(argv: Optional[list[str]] = None) -> int` (L5019-5123)
+### fn `def main(argv: Optional[list[str]] = None) -> int` (L5005-5109)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
 
-- var `VERBOSE = getattr(args, "verbose", False)` (L5043)
+- var `VERBOSE = getattr(args, "verbose", False)` (L5029)
 - @brief CLI entry point for console_scripts and `-m` execution.
 - @details Returns an exit code (0 success, non-zero on error).
 - @param argv Input parameter `argv`.
 - @return {int} Function return value.
-- var `DEBUG = getattr(args, "debug", False)` (L5044)
+- var `DEBUG = getattr(args, "debug", False)` (L5030)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
@@ -1259,24 +1254,23 @@ Borders are emitted with Unicode line-drawing characters and bright-red ANSI sty
 |`_rollback_worktree_create`|fn|priv|4330-4366|def _rollback_worktree_create(git_path: Path, wt_path: Pa...|
 |`run_git_wt_create`|fn|pub|4367-4466|def run_git_wt_create(args: Namespace) -> None|
 |`run_git_wt_delete`|fn|pub|4467-4544|def run_git_wt_delete(args: Namespace) -> None|
-|`_resolve_git_repository_root_from_cwd`|fn|priv|4545-4560|def _resolve_git_repository_root_from_cwd() -> Path|
-|`run_git_path`|fn|pub|4561-4572|def run_git_path(_args: Namespace) -> None|
-|`run_git_parent_path`|fn|pub|4573-4584|def run_git_parent_path(_args: Namespace) -> None|
-|`run_files_tokens`|fn|pub|4585-4607|def run_files_tokens(files: list[str]) -> None|
-|`run_files_references`|fn|pub|4608-4624|def run_files_references(files: list[str]) -> None|
-|`run_files_compress`|fn|pub|4625-4643|def run_files_compress(files: list[str], enable_line_numb...|
-|`run_files_find`|fn|pub|4644-4672|def run_files_find(args_list: list[str], enable_line_numb...|
-|`run_references`|fn|pub|4673-4690|def run_references(args: Namespace) -> None|
-|`run_compress_cmd`|fn|pub|4691-4712|def run_compress_cmd(args: Namespace) -> None|
-|`run_find`|fn|pub|4713-4742|def run_find(args: Namespace) -> None|
-|`run_tokens`|fn|pub|4743-4770|def run_tokens(args: Namespace) -> None|
-|`run_files_static_check_cmd`|fn|pub|4771-4848|def run_files_static_check_cmd(files: list[str], args: Na...|
-|`run_project_static_check_cmd`|fn|pub|4849-4944|def run_project_static_check_cmd(args: Namespace) -> int|
-|`_resolve_project_base`|fn|priv|4945-4965|def _resolve_project_base(args: Namespace) -> Path|
-|`_resolve_project_src_dirs`|fn|priv|4966-5018|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
-|`main`|fn|pub|5019-5123|def main(argv: Optional[list[str]] = None) -> int|
-|`VERBOSE`|var|pub|5043||
-|`DEBUG`|var|pub|5044||
+|`run_git_path`|fn|pub|4545-4557|def run_git_path(args: Namespace) -> None|
+|`run_get_base_path`|fn|pub|4558-4570|def run_get_base_path(args: Namespace) -> None|
+|`run_files_tokens`|fn|pub|4571-4593|def run_files_tokens(files: list[str]) -> None|
+|`run_files_references`|fn|pub|4594-4610|def run_files_references(files: list[str]) -> None|
+|`run_files_compress`|fn|pub|4611-4629|def run_files_compress(files: list[str], enable_line_numb...|
+|`run_files_find`|fn|pub|4630-4658|def run_files_find(args_list: list[str], enable_line_numb...|
+|`run_references`|fn|pub|4659-4676|def run_references(args: Namespace) -> None|
+|`run_compress_cmd`|fn|pub|4677-4698|def run_compress_cmd(args: Namespace) -> None|
+|`run_find`|fn|pub|4699-4728|def run_find(args: Namespace) -> None|
+|`run_tokens`|fn|pub|4729-4756|def run_tokens(args: Namespace) -> None|
+|`run_files_static_check_cmd`|fn|pub|4757-4834|def run_files_static_check_cmd(files: list[str], args: Na...|
+|`run_project_static_check_cmd`|fn|pub|4835-4930|def run_project_static_check_cmd(args: Namespace) -> int|
+|`_resolve_project_base`|fn|priv|4931-4951|def _resolve_project_base(args: Namespace) -> Path|
+|`_resolve_project_src_dirs`|fn|priv|4952-5004|def _resolve_project_src_dirs(args: Namespace) -> tuple[P...|
+|`main`|fn|pub|5005-5109|def main(argv: Optional[list[str]] = None) -> int|
+|`VERBOSE`|var|pub|5029||
+|`DEBUG`|var|pub|5030||
 
 
 ---

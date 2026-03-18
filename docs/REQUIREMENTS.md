@@ -255,10 +255,10 @@ No explicit performance optimizations identified.
 - **SRS-332**: MUST implement the following behavior: The `--git-wt-delete` command MUST NOT execute explicit file-system deletions of worktree content paths (for example `.req`, `.claude`, `.codex`), and MUST rely only on `git worktree remove` and `git branch -D`.
 
 ### 6.7 Git Repository Path Commands
-- **SRS-333**: MUST implement the following behavior: The CLI MUST support `--git-path` and `--git-parent-path` as `--here`-only commands that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
-- **SRS-334**: MUST implement the following behavior: The `--git-path` command MUST print the absolute git repository root path for the current execution context; if no git repository is found, it MUST fail with `ERROR: unable to find git repository`.
-- **SRS-347**: MUST implement the following behavior: The `--git-parent-path` command MUST print the absolute parent path of the current git repository root; if no git repository is found, it MUST fail with `ERROR: unable to find git repository`.
+- **SRS-333**: MUST implement the following behavior: The CLI MUST support `--git-path` and `--get-base-path` as `--here`-only commands that MUST reject `--base`; `--here` MUST be implied if not explicitly provided.
+- **SRS-334**: MUST implement the following behavior: The `--git-path` command MUST print the `"git-path"` value loaded from `.req/config.json` and MUST fail only when `.req/config.json` is not present.
+- **SRS-347**: MUST implement the following behavior: The `--get-base-path` command MUST print the `"base-path"` value loaded from `.req/config.json` and MUST fail only when `.req/config.json` is not present.
 
 ### 6.8 Git Integration Test Requirements
 - **SRS-329**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that `"base-path"` and `"git-path"` are persisted to `.req/config.json` during installation and updated during `--update` when paths change.
-- **SRS-330**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create` (including `.venv` copy behavior), `--git-wt-delete`, `--git-path`, and `--git-parent-path` commands behave per their respective requirements.
+- **SRS-330**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying the `--git-check`, `--docs-check`, `--git-wt-name`, `--git-wt-create` (including `.venv` copy behavior), `--git-wt-delete`, `--git-path`, and `--get-base-path` commands behave per their respective requirements.
