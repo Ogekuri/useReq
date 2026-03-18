@@ -4444,7 +4444,6 @@ def run_git_wt_create(args: Namespace) -> None:
             if not dst_venv.is_dir():
                 dst_venv.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(str(src_venv), str(dst_venv))
-        os.chdir(wt_dest)
     except (OSError, ReqError):
         _rollback_worktree_create(git_path, wt_dest, wt_name)
         raise ReqError(

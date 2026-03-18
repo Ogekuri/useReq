@@ -3969,11 +3969,19 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
     def test_wt_create_post_create_failure_rolls_back(self) -> None:
         """SRS-331: post-create failures rollback created exact worktree and branch."""
         wt_name = "test-wt-rollback"
+        trigger_src = self.TEST_DIR / ".trigger-copy" / "data"
+        trigger_src.mkdir(parents=True, exist_ok=True)
+        (trigger_src / "marker.txt").write_text("trigger", encoding="utf-8")
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                "usereq.cli.os.chdir", side_effect=OSError("chdir failure")
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch(
+                    "usereq.cli.PROVIDER_DIR_MAP",
+                    {"claude": [".trigger-copy"]},
+                ),
+                patch("usereq.cli.shutil.copytree", side_effect=OSError("copy failure")),
             ):
                 rc = cli.main(["--git-wt-create", wt_name])
             self.assertNotEqual(rc, 0)
@@ -4009,7 +4017,7 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
                 (wt_dir / ".venv" / "bin" / "marker").read_text(encoding="utf-8"),
                 "venv-copy",
             )
-            self.assertEqual(Path.cwd(), wt_dir)
+            self.assertEqual(Path.cwd(), self.TEST_DIR)
             # Delete.
             with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
                 rc2 = cli.main(["--git-wt-delete", wt_name])
@@ -4038,7 +4046,7 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
             self.assertEqual(rc, 0)
             expected_wt_dir = self.TEST_DIR.parent / wt_name
             self.assertTrue(expected_wt_dir.is_dir(), "Worktree must be created as sibling")
-            self.assertEqual(Path.cwd(), expected_wt_dir)
+            self.assertEqual(Path.cwd(), self.TEST_DIR)
         finally:
             os.chdir(prev_cwd)
 
@@ -4095,7 +4103,7 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
 
 
 class TestGitWtCreateNestedBasePath(unittest.TestCase):
-    """SRS-331: Verifies --git-wt-create final cwd with non-root base-path."""
+    """SRS-331: Verifies --git-wt-create keeps cwd unchanged with non-root base-path."""
 
     def setUp(self) -> None:
         self.ROOT_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-nested-"))
@@ -4153,8 +4161,8 @@ class TestGitWtCreateNestedBasePath(unittest.TestCase):
     def tearDown(self) -> None:
         shutil.rmtree(self.ROOT_DIR)
 
-    def test_wt_create_success_changes_cwd_to_worktree_root(self) -> None:
-        """SRS-331: successful --git-wt-create changes cwd to <parent>/<WT_NAME>."""
+    def test_wt_create_success_keeps_current_working_directory(self) -> None:
+        """SRS-331: successful --git-wt-create keeps caller cwd unchanged."""
         wt_name = "test-wt-nested-root-cwd"
         prev_cwd = Path.cwd()
         try:
@@ -4165,7 +4173,7 @@ class TestGitWtCreateNestedBasePath(unittest.TestCase):
             wt_root = self.GIT_DIR.parent / wt_name
             wt_project = wt_root / "nested" / "project"
             self.assertTrue(wt_project.is_dir(), "Nested base-dir must exist in worktree")
-            self.assertEqual(Path.cwd(), wt_root)
+            self.assertEqual(Path.cwd(), self.BASE_DIR)
         finally:
             os.chdir(prev_cwd)
 
