@@ -257,10 +257,10 @@ req \
 - Remove the git worktree and branch identified by name (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--git-wt-delete WT_NAME`
 
-- Print the configured `git-path` value from `.req/config.json` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Print the configured `git-path` value from `.req/config.json`; if `.req/config.json` is missing, the command fails with `Error: .req/config.json not found in the project root` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--git-path`
 
-- Print the configured `base-path` value from `.req/config.json` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Print the configured `base-path` value from `.req/config.json`; if `.req/config.json` is missing, the command fails with `Error: .req/config.json not found in the project root` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--get-base-path`
 
 
