@@ -4188,6 +4188,53 @@ class TestGitWtExitCommand(unittest.TestCase):
             check=False,
         )
 
+    def test_uninstall_on_linux_removes_release_check_idle_file_and_empty_cache_dir(
+        self,
+    ) -> None:
+        """SRS-346: Linux uninstall removes idle-state file and empty ~/.cache/usereq."""
+        with tempfile.TemporaryDirectory() as temp_home:
+            idle_dir = Path(temp_home) / ".cache" / "usereq"
+            idle_dir.mkdir(parents=True, exist_ok=True)
+            idle_file = idle_dir / "check_version_idle-time.json"
+            idle_file.write_text("{}", encoding="utf-8")
+
+            with (
+                patch("platform.system", return_value="Linux"),
+                patch("usereq.cli.Path.home", return_value=Path(temp_home)),
+                patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+            ):
+                mocked_run.return_value = subprocess.CompletedProcess(
+                    args=[], returncode=0
+                )
+                cli.run_uninstall()
+
+            self.assertFalse(idle_file.exists())
+            self.assertFalse(idle_dir.exists())
+
+    def test_uninstall_on_linux_keeps_cache_dir_when_not_empty(self) -> None:
+        """SRS-346: Linux uninstall keeps ~/.cache/usereq when non-idle files remain."""
+        with tempfile.TemporaryDirectory() as temp_home:
+            idle_dir = Path(temp_home) / ".cache" / "usereq"
+            idle_dir.mkdir(parents=True, exist_ok=True)
+            idle_file = idle_dir / "check_version_idle-time.json"
+            extra_file = idle_dir / "keep.txt"
+            idle_file.write_text("{}", encoding="utf-8")
+            extra_file.write_text("keep", encoding="utf-8")
+
+            with (
+                patch("platform.system", return_value="Linux"),
+                patch("usereq.cli.Path.home", return_value=Path(temp_home)),
+                patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
+            ):
+                mocked_run.return_value = subprocess.CompletedProcess(
+                    args=[], returncode=0
+                )
+                cli.run_uninstall()
+
+            self.assertFalse(idle_file.exists())
+            self.assertTrue(extra_file.exists())
+            self.assertTrue(idle_dir.exists())
+
     def test_uninstall_on_non_linux_prints_manual_command(self) -> None:
         """SRS-344: --uninstall on non-Linux prints guidance and skips uv execution."""
         with (

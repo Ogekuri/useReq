@@ -109,7 +109,9 @@ No explicit performance optimizations identified.
 - **SRS-281**: MUST treat this requirement as a removed legacy behavior and keep it unsupported.
 - **SRS-282**: MUST treat this requirement as a removed legacy behavior and keep it unsupported.
 - **SRS-343**: MUST implement the following behavior: `--upgrade` MUST execute `uv tool install usereq --force --from git+https://github.com/Ogekuri/useReq.git` only on Linux; on non-Linux, it MUST NOT execute `uv` and MUST print the manual command.
-- **SRS-344**: MUST implement the following behavior: `--uninstall` MUST execute `uv tool uninstall usereq` only on Linux; on non-Linux, it MUST NOT execute `uv` and MUST print the manual command.
+- **SRS-344**: MUST implement the following behavior: `--uninstall` on Linux MUST execute `uv tool uninstall usereq` and MUST run release-check cache cleanup per SRS-346; on non-Linux, it MUST NOT execute `uv` and MUST print the manual command.
+- **SRS-345**: MUST implement the following behavior: Startup release-check idle-state MUST persist at `~/.cache/usereq/check_version_idle-time.json`, and release-check persistence writes MUST create missing parent directories before file serialization.
+- **SRS-346**: MUST implement the following behavior: On Linux, `--uninstall` MUST delete `~/.cache/usereq/check_version_idle-time.json` when present and MUST remove `~/.cache/usereq` only when the directory is empty.
 
 ### 3.3 Provider Resource Generation
 - **SRS-095**: MUST implement the following behavior: For each skill subdirectory of every enabled provider, the CLI MUST generate `SKILL.md` with YAML front matter containing: `name: req-<prompt_name>`; `description` populated by `extract_skill_description(prompt_frontmatter)` (see SRS-113) escaped for YAML double-quoted strings; `model` and `tools` fields populated using the provider-specific configuration from `models.json` or `models-legacy.json` according to the per-provider `legacy` option, subject to per-provider `enable-models` and `enable-tools` options; the prompt body with token substitutions applied.

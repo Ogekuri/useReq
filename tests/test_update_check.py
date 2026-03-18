@@ -181,6 +181,31 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         """Default release-check idle-delay constant must match five minutes."""
         self.assertEqual(cli.RELEASE_CHECK_IDLE_DELAY_SECONDS, 300)
 
+    def test_release_check_idle_file_path_uses_home_cache_directory(self) -> None:
+        """Idle-state path must be anchored under ~/.cache/usereq."""
+        fake_home = Path("/tmp/fake-home")
+        with patch("usereq.cli.Path.home", return_value=fake_home):
+            resolved_path = cli.get_release_check_idle_file_path()
+        self.assertEqual(
+            resolved_path,
+            fake_home / ".cache" / "usereq" / "check_version_idle-time.json",
+        )
+
+    def test_write_release_check_idle_state_creates_parent_directories(self) -> None:
+        """Idle-state writer must create missing parent cache directories."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = (
+                Path(temp_dir)
+                / ".cache"
+                / "usereq"
+                / "check_version_idle-time.json"
+            )
+            cli.write_release_check_idle_state(
+                file_path=idle_path,
+                now_timestamp=1700000000,
+            )
+            self.assertTrue(idle_path.exists())
+
     def test_release_check_executes_when_idle_until_expired(self) -> None:
         """Expired idle-until timestamp must allow a new remote release-check."""
         response_mock = MagicMock()

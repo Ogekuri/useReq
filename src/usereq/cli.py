@@ -193,7 +193,7 @@ TOOL_PROGRAM_NAME = "usereq"
 """! @brief Hardcoded configurable tool identifier used by uv install/uninstall commands."""
 
 RELEASE_CHECK_PROGRAM_NAME = TOOL_PROGRAM_NAME
-"""! @brief Program identifier used in release-check idle-state filename."""
+"""! @brief Program identifier used in release-check idle-state cache directory."""
 
 GITHUB_REPOSITORY_OWNER = "Ogekuri"
 """! @brief Hardcoded GitHub owner used by upgrade and release-check endpoints."""
@@ -201,8 +201,11 @@ GITHUB_REPOSITORY_OWNER = "Ogekuri"
 GITHUB_REPOSITORY_NAME = "useReq"
 """! @brief Hardcoded GitHub repository used by upgrade and release-check endpoints."""
 
-RELEASE_CHECK_IDLE_FILENAME_TEMPLATE = ".github_api_idle-time.{program_name}"
-"""! @brief Filename template for release-check idle-state JSON in `$HOME`."""
+RELEASE_CHECK_IDLE_CACHE_ROOT_DIRNAME = ".cache"
+"""! @brief Root cache directory name located under `$HOME`."""
+
+RELEASE_CHECK_IDLE_FILENAME = "check_version_idle-time.json"
+"""! @brief Canonical release-check idle-state JSON filename."""
 
 GITHUB_RELEASES_LATEST_URL = (
     f"https://api.github.com/repos/{GITHUB_REPOSITORY_OWNER}/"
@@ -621,7 +624,7 @@ def run_uninstall() -> None:
         @throws ReqError If uninstall fails.
     @details Implements the run_uninstall function behavior with deterministic control flow.
     @return {None} Function return value.
-    @satisfies SRS-344
+    @satisfies SRS-344, SRS-346
     """
     command = [
         "uv",
@@ -645,6 +648,7 @@ def run_uninstall() -> None:
             f"Error: uninstall failed (code {result.returncode})",
             result.returncode,
         )
+    cleanup_release_check_idle_state_cache()
 
 
 def normalize_release_tag(tag: str) -> str:
@@ -839,12 +843,41 @@ def get_release_check_idle_file_path(
 ) -> Path:
     """!
     @brief Resolve idle-state file path for startup release-check throttling.
-        @param program_name Program identifier appended to the filename suffix.
-        @return Absolute path `$HOME/.github_api_idle-time.<program_name>`.
+        @param program_name Program identifier used as cache subdirectory under `$HOME/.cache`.
+        @return Absolute path `$HOME/.cache/<program_name>/check_version_idle-time.json`.
     @details Builds the path using the effective home directory returned by `Path.home()`.
+    @satisfies SRS-345
     """
-    filename = RELEASE_CHECK_IDLE_FILENAME_TEMPLATE.format(program_name=program_name)
-    return Path.home() / filename
+    return (
+        Path.home()
+        / RELEASE_CHECK_IDLE_CACHE_ROOT_DIRNAME
+        / program_name
+        / RELEASE_CHECK_IDLE_FILENAME
+    )
+
+
+def cleanup_release_check_idle_state_cache(
+    program_name: str = RELEASE_CHECK_PROGRAM_NAME,
+) -> None:
+    """!
+    @brief Delete release-check idle-state file and remove empty cache directory.
+        @param program_name Program identifier used as cache subdirectory under `$HOME/.cache`.
+        @throws OSError If filesystem operations fail.
+    @details Deletes `$HOME/.cache/<program_name>/check_version_idle-time.json` when present; removes `$HOME/.cache/<program_name>` only when it exists and has no remaining entries.
+    @satisfies SRS-346
+    """
+    idle_state_file_path = get_release_check_idle_file_path(program_name=program_name)
+    idle_state_cache_dir = idle_state_file_path.parent
+
+    if idle_state_file_path.exists():
+        idle_state_file_path.unlink()
+
+    if (
+        idle_state_cache_dir.exists()
+        and idle_state_cache_dir.is_dir()
+        and not any(idle_state_cache_dir.iterdir())
+    ):
+        idle_state_cache_dir.rmdir()
 
 
 def read_release_check_idle_state(file_path: Path) -> dict[str, int | str] | None:
@@ -987,6 +1020,7 @@ def write_release_check_idle_state_payload(
             idle_until_timestamp
         ),
     }
+    file_path.parent.mkdir(parents=True, exist_ok=True)
     file_path.write_text(
         f"{json.dumps(payload, indent=2, sort_keys=True)}\n",
         encoding="utf-8",
@@ -1059,7 +1093,7 @@ def maybe_notify_newer_version(
     """!
     @brief Executes idle-gated online version check and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details Reads idle-state from `$HOME/.github_api_idle-time.usereq`, skips remote requests when idle window is active, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, writes idle-state after successful HTTP/JSON validation, and updates idle-state on HTTP 429 using `Retry-After`.
+        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, writes idle-state after successful HTTP/JSON validation, and updates idle-state on HTTP 429 using `Retry-After`.
     @return {None} Function return value.
     """
 
