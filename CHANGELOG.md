@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.43.0](https://github.com/Ogekuri/useReq/compare/v0.42.0..v0.43.0) - 2026-03-18
+### 🚜  Changes
+- move release-check idle cache path [useReq] *(cli)*
+  - Update SRS-344 and add SRS-345/SRS-346 for cache path and uninstall cleanup.
+  - Persist idle-state at ~/.cache/usereq/check_version_idle-time.json.
+  - Create cache directories automatically before idle-state writes.
+  - On Linux --uninstall, remove idle-state file and empty cache directory.
+  - Add unit tests for new path, directory creation, and uninstall cleanup.
+  - Update WORKFLOW.md and regenerate REFERENCES.md.
+
 ## [0.42.0](https://github.com/Ogekuri/useReq/compare/v0.41.0..v0.42.0) - 2026-03-17
 ### ⛰️  Features
 - Update .g.conf file.
@@ -1015,6 +1025,7 @@
 - \[0.40.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.40.0
 - \[0.41.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.41.0
 - \[0.42.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.42.0
+- \[0.43.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.43.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1058,3 +1069,4 @@
 [0.40.0]: https://github.com/Ogekuri/useReq/compare/v0.39.0..v0.40.0
 [0.41.0]: https://github.com/Ogekuri/useReq/compare/v0.40.0..v0.41.0
 [0.42.0]: https://github.com/Ogekuri/useReq/compare/v0.41.0..v0.42.0
+[0.43.0]: https://github.com/Ogekuri/useReq/compare/v0.42.0..v0.43.0
