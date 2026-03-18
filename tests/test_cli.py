@@ -4070,6 +4070,82 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
             os.chdir(prev_cwd)
 
 
+class TestGitWtCreateNestedBasePath(unittest.TestCase):
+    """SRS-331: Verifies --git-wt-create final cwd with non-root base-path."""
+
+    def setUp(self) -> None:
+        self.ROOT_DIR = Path(tempfile.mkdtemp(prefix="usereq-git-wt-nested-"))
+        self.GIT_DIR = self.ROOT_DIR / "repo"
+        self.BASE_DIR = self.GIT_DIR / "nested" / "project"
+        self.BASE_DIR.mkdir(parents=True, exist_ok=True)
+        (self.BASE_DIR / "docs").mkdir(exist_ok=True)
+        (self.BASE_DIR / "guidelines").mkdir(exist_ok=True)
+        (self.BASE_DIR / "tests").mkdir(exist_ok=True)
+        (self.BASE_DIR / "src").mkdir(exist_ok=True)
+        subprocess.run(["git", "init"], cwd=str(self.GIT_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "--allow-empty", "-m", "init"],
+            cwd=str(self.GIT_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
+        )
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            cli.main(
+                [
+                    "--base",
+                    str(self.BASE_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                ]
+            )
+        subprocess.run(["git", "add", "-A"], cwd=str(self.GIT_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "setup"],
+            cwd=str(self.GIT_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
+        )
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.ROOT_DIR)
+
+    def test_wt_create_success_changes_cwd_to_worktree_root(self) -> None:
+        """SRS-331: successful --git-wt-create changes cwd to <parent>/<WT_NAME>."""
+        wt_name = "test-wt-nested-root-cwd"
+        prev_cwd = Path.cwd()
+        try:
+            os.chdir(self.BASE_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                rc = cli.main(["--git-wt-create", wt_name])
+            self.assertEqual(rc, 0)
+            wt_root = self.GIT_DIR.parent / wt_name
+            wt_project = wt_root / "nested" / "project"
+            self.assertTrue(wt_project.is_dir(), "Nested base-dir must exist in worktree")
+            self.assertEqual(Path.cwd(), wt_root)
+        finally:
+            os.chdir(prev_cwd)
+
+
 class TestGitWtExitCommand(unittest.TestCase):
     """SRS-333, SRS-334, SRS-330: Verifies --git-wt-exit behavior."""
 
