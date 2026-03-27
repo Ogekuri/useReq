@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.46.0](https://github.com/Ogekuri/useReq/compare/v0.45.0..v0.46.0) - 2026-03-27
+### 🚜  Changes
+- force online release-check for version flags [useReq] *(cli)*
+  - update SRS-345 for forced online check on --ver/--version
+  - implement startup force override to bypass idle-state gating
+  - add regression test for active-idle bypass on --version
+  - update WORKFLOW and regenerate REFERENCES
+
 ## [0.45.0](https://github.com/Ogekuri/useReq/compare/v0.44.0..v0.45.0) - 2026-03-18
 ### ⛰️  Features
 - Update promts files.
@@ -1073,6 +1081,7 @@
 - \[0.43.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.43.0
 - \[0.44.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.44.0
 - \[0.45.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.45.0
+- \[0.46.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.46.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1119,3 +1128,4 @@
 [0.43.0]: https://github.com/Ogekuri/useReq/compare/v0.42.0..v0.43.0
 [0.44.0]: https://github.com/Ogekuri/useReq/compare/v0.43.0..v0.44.0
 [0.45.0]: https://github.com/Ogekuri/useReq/compare/v0.44.0..v0.45.0
+[0.46.0]: https://github.com/Ogekuri/useReq/compare/v0.45.0..v0.46.0
