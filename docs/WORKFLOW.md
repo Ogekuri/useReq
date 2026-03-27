@@ -29,10 +29,10 @@
 - **Lifecycle/Trigger**: starts on OS process invocation (`req`, `use-req`, `usereq`) or module execution (`python -m usereq.cli`), executes argument parsing and one command path, exits with integer status code.
 - **Internal Call-Trace Tree**
   - `main(...)`: command router and execution coordinator [`src/usereq/cli.py`]
-    - `maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)`: perform startup idle-gated online release-check before argument parsing and validation with fixed 300-second idle-delay [`src/usereq/cli.py`]
+    - `maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)`: perform startup online release-check before argument parsing and validation; `main(...)` enables `FORCE_ONLINE_RELEASE_CHECK` for `--ver`/`--version` to bypass idle-gating with fixed 300-second idle-delay persistence [`src/usereq/cli.py`]
       - `get_release_check_idle_file_path(...)`: resolve `$HOME/.cache/<program_name>/check_version_idle-time.json` target path [`src/usereq/cli.py`]
       - `read_release_check_idle_state(...)`: parse and validate persisted idle-state JSON fields [`src/usereq/cli.py`]
-      - `should_execute_release_check(...)`: decide whether remote check is due using persisted `idle_until_timestamp` gating [`src/usereq/cli.py`]
+      - `should_execute_release_check(...)`: decide whether remote check is due using persisted `idle_until_timestamp` gating when forced-online override is disabled [`src/usereq/cli.py`]
       - `resolve_latest_release_api_url()`: resolve hardcoded endpoint `https://api.github.com/repos/Ogekuri/useReq/releases/latest` [`src/usereq/cli.py`]
       - `write_release_check_idle_state(...)`: persist successful-check timestamp and idle-until timestamp using fixed 300-second delay [`src/usereq/cli.py`]
         - `write_release_check_idle_state_payload(...)`: serialize canonical idle-state JSON keys [`src/usereq/cli.py`]

@@ -218,6 +218,9 @@ GITHUB_UPGRADE_SOURCE = (
 )
 """! @brief Hardcoded git source used by uv self-upgrade command."""
 
+FORCE_ONLINE_RELEASE_CHECK = False
+"""! @brief Startup-scoped override that bypasses release-check idle-state gating when enabled."""
+
 
 class ReqError(Exception):
     """! @brief Dedicated exception for expected CLI errors.
@@ -1103,8 +1106,9 @@ def maybe_notify_newer_version(
     """!
     @brief Executes idle-gated online version check and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, writes idle-state after successful HTTP/JSON validation, and updates idle-state on HTTP 429 using `Retry-After`.
+        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints bright-green update message, prints bright-red diagnostics on failure, writes idle-state after successful HTTP/JSON validation, and updates idle-state on HTTP 429 using `Retry-After`.
     @return {None} Function return value.
+    @satisfies SRS-345
     """
 
     current_version = load_package_version()
@@ -1119,7 +1123,10 @@ def maybe_notify_newer_version(
             f"{ANSI_BRIGHT_RED}Release-check error: invalid idle-state ({exc}){ANSI_RESET}",
             file=sys.stderr,
         )
-    if not should_execute_release_check(idle_state, now_timestamp):
+    if not FORCE_ONLINE_RELEASE_CHECK and not should_execute_release_check(
+        idle_state,
+        now_timestamp,
+    ):
         return
 
     try:
@@ -5012,8 +5019,15 @@ def main(argv: Optional[list[str]] = None) -> int:
     try:
         global VERBOSE, DEBUG
         argv_list = sys.argv[1:] if argv is None else argv
+        force_online_release_check = "--ver" in argv_list or "--version" in argv_list
         # Run release-check at startup before argument parsing/validation.
-        maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)
+        global FORCE_ONLINE_RELEASE_CHECK
+        previous_force_online_release_check = FORCE_ONLINE_RELEASE_CHECK
+        FORCE_ONLINE_RELEASE_CHECK = force_online_release_check
+        try:
+            maybe_notify_newer_version(timeout_seconds=RELEASE_CHECK_TIMEOUT_SECONDS)
+        finally:
+            FORCE_ONLINE_RELEASE_CHECK = previous_force_online_release_check
         if not argv_list:
             build_parser().print_help()
             return 0

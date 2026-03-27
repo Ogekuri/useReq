@@ -45,6 +45,41 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         self.assertEqual(exit_code, 1)
         notify_mock.assert_called_once_with(timeout_seconds=2.0)
 
+    def test_version_forces_online_check_even_with_active_idle_state(self) -> None:
+        """Version-only command must force online release-check despite idle-state gating."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            now_timestamp = 1700000000
+            idle_state = {
+                "last_success_timestamp": now_timestamp - 10,
+                "last_success_human_readable_timestamp": "2023-11-14T22:13:10Z",
+                "idle_until_timestamp": now_timestamp + 3600,
+                "idle_until_human_readable_timestamp": "2023-11-15T00:13:20Z",
+            }
+            idle_path.write_text(json.dumps(idle_state), encoding="utf-8")
+            response_mock = MagicMock()
+            response_mock.read.return_value = json.dumps({"tag_name": "v0.0.1"}).encode(
+                "utf-8"
+            )
+            urlopen_cm = MagicMock()
+            urlopen_cm.__enter__.return_value = response_mock
+            urlopen_cm.__exit__.return_value = None
+
+            with patch("usereq.cli.time.time", return_value=now_timestamp):
+                with patch(
+                    "usereq.cli.get_release_check_idle_file_path",
+                    return_value=idle_path,
+                ):
+                    with patch(
+                        "usereq.cli.urllib.request.urlopen",
+                        return_value=urlopen_cm,
+                    ) as urlopen_mock:
+                        with patch("sys.stdout"):
+                            exit_code = cli.main(["--version"])
+
+        self.assertEqual(exit_code, 0)
+        urlopen_mock.assert_called_once()
+
     def test_release_api_url_is_hardcoded(self) -> None:
         """Release-check URL must resolve to the hardcoded repository endpoint."""
         resolved_url = cli.resolve_latest_release_api_url()
