@@ -18,6 +18,7 @@ flowchart TD
     CHANGE@{ shape: lean-r, label: "Req.**Change**"}
     CHECK@{ shape: lean-r, label: "Req.**Check**"}
     COVER@{ shape: lean-r, label: "Req.**Cover**"}
+    IMPLEMENT@{ shape: lean-r, label: "Req.**Implement**"}
     FIX@{ shape: lean-r, label: "Req.**Fix**"}
     NEW@{ shape: lean-r, label: "Req.**New**"}
     REFACTOR@{ shape: lean-r, label: "Req.**Refactor**"}
@@ -33,20 +34,19 @@ flowchart TD
     DOCS@{ shape: docs, label: "Source-Code Docs"}
     REPORT@{ shape: paper-tape, label: "Report"}
     
+
     %% New Project
     NP --> CMDNP
-    CMDNP -- **input** project's description --> WRITE
-    WRITE --> COVER
-    COVER --> REFERENCES
+    CMDNP -- **input** project's description ---> WRITE
+    WRITE ----> IMPLEMENT
+    IMPLEMENT --> REFERENCES
     REFERENCES --> WORKFLOW
     WORKFLOW --> START
 
-
     %% Existing Project
     EP --> CMDEP
-    CMDEP --> CREATE
-    CREATE--> REFERENCES
-
+    CMDEP ----> CREATE
+    CREATE --> REFERENCES
 
 
     %% Requirements
@@ -60,7 +60,7 @@ flowchart TD
     e5@{ animate: true }
     CREATE e6@-.-> REQ
     e6@{ animate: true }
-    REQ e7@-.-> COVER
+    REQ e7@-.-> IMPLEMENT
     e7@{ animate: true }
 
     %% Change
@@ -77,6 +77,10 @@ flowchart TD
     START --> CHECK
     CHECK ------> REQ_CHECK
 
+    %% Cover
+    START --> COVER
+    COVER ----> REQ_READ
+    
     %% Fix
     START --> FIX
     FIX -- **input** a defect to fix ----> REQ_READ
