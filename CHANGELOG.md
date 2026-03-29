@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.48.0](https://github.com/Ogekuri/useReq/compare/v0.47.0..v0.48.0) - 2026-03-29
+### 🐛  Bug Fixes
+- Update images.
+
 ## [0.47.0](https://github.com/Ogekuri/useReq/compare/v0.46.0..v0.47.0) - 2026-03-29
 ### ⛰️  Features
 - Update images.
@@ -1087,6 +1091,7 @@
 - \[0.45.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.45.0
 - \[0.46.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.46.0
 - \[0.47.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.47.0
+- \[0.48.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.48.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1135,3 +1140,4 @@
 [0.45.0]: https://github.com/Ogekuri/useReq/compare/v0.44.0..v0.45.0
 [0.46.0]: https://github.com/Ogekuri/useReq/compare/v0.45.0..v0.46.0
 [0.47.0]: https://github.com/Ogekuri/useReq/compare/v0.46.0..v0.47.0
+[0.48.0]: https://github.com/Ogekuri/useReq/compare/v0.47.0..v0.48.0
