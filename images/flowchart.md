@@ -9,12 +9,11 @@
 ```mermaid
 flowchart TD
     %% Flowchart
-    START((**Start**))
+    START@{ shape: circle, label: "**START**"}
     NP@{ shape: hex, label: "***New*** *Project*"}
     EP@{ shape: hex, label: "***Existing*** *Project*"}
     CMDNP@{ shape: subproc, label: "**req** --base project/ --docs-dir docs/ --src-dir src/.." }
     CMDEP@{ shape: subproc, label: "**req** --here --docs-dir docs/ --src-dir src/.." }
-    CMDUPDATE@{ shape: subproc, label: "**req** --update --here" }
     REQ[(Requiremets)]
     CHANGE@{ shape: lean-r, label: "Req.**Change**"}
     CHECK@{ shape: lean-r, label: "Req.**Check**"}
@@ -24,6 +23,8 @@ flowchart TD
     REFACTOR@{ shape: lean-r, label: "Req.**Refactor**"}
     WRITE@{ shape: lean-r, label: "Req.**Write**"}
     CREATE@{ shape: lean-r, label: "Req.**Create**"}
+    REFERENCES@{ shape: lean-r, label: "Req.**References**"}
+    WORKFLOW@{ shape: lean-r, label: "Req.**Workflow**"}
     REQ_CHANGE[[Change Requirement]]
     REQ_READ[/**Read Requirement**/]
     REQ_CHECK[/Check Requirement/]
@@ -31,17 +32,22 @@ flowchart TD
     CODE_CHANGE@{ shape: procs, label: "**Change Source Code**"}
     DOCS@{ shape: docs, label: "Source-Code Docs"}
     REPORT@{ shape: paper-tape, label: "Report"}
-
+    
     %% New Project
     NP --> CMDNP
-    CMDNP --> WRITE
-    WRITE -- **input** project's description --> CMDUPDATE
+    CMDNP -- **input** project's description --> WRITE
+    WRITE --> COVER
+    COVER --> REFERENCES
+    REFERENCES --> WORKFLOW
+    WORKFLOW --> START
+
 
     %% Existing Project
     EP --> CMDEP
     CMDEP --> CREATE
-    CREATE--> CMDUPDATE
-    CMDUPDATE --> START
+    CREATE--> REFERENCES
+
+
 
     %% Requirements
     REQ e1@-.-> REQ_READ
@@ -54,6 +60,8 @@ flowchart TD
     e5@{ animate: true }
     CREATE e6@-.-> REQ
     e6@{ animate: true }
+    REQ e7@-.-> COVER
+    e7@{ animate: true }
 
     %% Change
     START --> CHANGE
@@ -69,10 +77,6 @@ flowchart TD
     START --> CHECK
     CHECK ------> REQ_CHECK
 
-    %% Cover
-    START --> COVER
-    COVER ----> REQ_READ
-
     %% Fix
     START --> FIX
     FIX -- **input** a defect to fix ----> REQ_READ
@@ -86,8 +90,8 @@ flowchart TD
     NEW -- **input** a new requirements--> REQ_CHANGE 
 
     %% Source-Code Docs
-    UPDATE_DOCS e7@-.-> DOCS
-    e7@{ animate: true }
-    DOCS e8@-.-> CODE_CHANGE
+    UPDATE_DOCS e8@-.-> DOCS
     e8@{ animate: true }
+    DOCS e9@-.-> CODE_CHANGE
+    e9@{ animate: true }
 ```
