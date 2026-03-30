@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.50.0](https://github.com/Ogekuri/useReq/compare/v0.49.0..v0.50.0) - 2026-03-30
+### 🚜  Changes
+- always persist version-check idle state [useReq] *(cli)*
+  - Update SRS-350 and add SRS-351 for failure persistence.
+  - Rewrite idle-state JSON on every release-check failure.
+  - Use 86400 seconds for API call failures and 3600 seconds for other failures.
+  - Recompute idle-until from current time on failure writes.
+  - Refresh WORKFLOW and REFERENCES docs and extend tests.
+- raise version-check idle delays [useReq] *(cli)*
+  - Update SRS-349 and SRS-350 idle-delay values.
+  - Set successful version-check idle-delay to 3600 seconds.
+  - Set rate-limit error idle-delay to 86400 seconds.
+  - Refresh WORKFLOW and REFERENCES docs.
+  - Update release-check tests for new timing constants.
+- enforce 1h version-check backoff on rate limits [useReq] *(cli)*
+  - Update SRS-345 and add SRS-348..350.
+  - Persist 300s idle-delay after successful release-checks.
+  - Persist 3600s idle-delay for HTTP 429 and HTTP 403 API rate-limit failures.
+  - Refresh WORKFLOW and REFERENCES docs.
+  - Update release-check tests.
+
 ## [0.49.0](https://github.com/Ogekuri/useReq/compare/v0.48.0..v0.49.0) - 2026-03-30
 ### 🐛  Bug Fixes
 - Fix fix prompt.
@@ -1097,6 +1118,7 @@
 - \[0.47.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.47.0
 - \[0.48.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.48.0
 - \[0.49.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.49.0
+- \[0.50.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.50.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1147,3 +1169,4 @@
 [0.47.0]: https://github.com/Ogekuri/useReq/compare/v0.46.0..v0.47.0
 [0.48.0]: https://github.com/Ogekuri/useReq/compare/v0.47.0..v0.48.0
 [0.49.0]: https://github.com/Ogekuri/useReq/compare/v0.48.0..v0.49.0
+[0.50.0]: https://github.com/Ogekuri/useReq/compare/v0.49.0..v0.50.0
