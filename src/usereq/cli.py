@@ -1066,48 +1066,24 @@ def write_release_check_idle_state(
     )
 
 
-def is_release_check_rate_limited_http_error(
-    status_code: int,
-    response_message: str | None,
-) -> bool:
-    """!
-    @brief Determine whether a release-check HTTP failure requires rate-limit backoff persistence.
-        @param status_code {int} HTTP status code returned by the release API.
-        @param response_message {str | None} Parsed API error message when available.
-        @return {bool} True when the failure is HTTP 429 or HTTP 403 with `API rate limit exceeded`; otherwise False.
-    @details Matches all HTTP 429 responses and only those HTTP 403 responses whose parsed message contains `API rate limit exceeded` using case-insensitive normalization; complexity O(n) in `response_message` length.
-    @satisfies SRS-350
-    """
-    if status_code == 429:
-        return True
-    if status_code != 403 or response_message is None:
-        return False
-    return "api rate limit exceeded" in response_message.casefold()
-
-
-def write_rate_limited_release_check_idle_state(
+def write_failed_release_check_idle_state(
     file_path: Path,
     now_timestamp: int,
     idle_state: Mapping[str, Any] | None,
-    idle_delay_seconds: int = RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+    idle_delay_seconds: int = RELEASE_CHECK_IDLE_DELAY_SECONDS,
 ) -> None:
     """!
-    @brief Persist idle-state when GitHub responds with an API rate-limit failure.
+    @brief Persist idle-state after a startup release-check failure.
         @param file_path Absolute idle-state JSON path.
         @param now_timestamp Current Unix timestamp in seconds.
         @param idle_state Existing parsed idle-state payload or None.
-        @param idle_delay_seconds Fixed rate-limit idle-delay length in seconds.
+        @param idle_delay_seconds Fixed failure idle-delay length in seconds.
         @throws OSError If file write fails.
-    @details Computes `candidate_idle_until = now + idle_delay_seconds`, preserves any larger existing `idle_until_timestamp` to avoid shortening an already-active backoff window, and preserves the previous successful timestamp when available.
-    @satisfies SRS-350
+    @details Computes `idle_until_timestamp = now + idle_delay_seconds`, rewrites the canonical idle-state payload on every failure, and preserves the previous successful timestamp when available.
+    @satisfies SRS-350, SRS-351
     """
     effective_idle_delay = max(0, int(idle_delay_seconds))
-    candidate_idle_until = now_timestamp + effective_idle_delay
-
-    if isinstance(idle_state, Mapping):
-        current_idle_until = idle_state.get("idle_until_timestamp")
-        if isinstance(current_idle_until, (int, float)):
-            candidate_idle_until = max(candidate_idle_until, int(current_idle_until))
+    idle_until_timestamp = now_timestamp + effective_idle_delay
 
     last_success_timestamp = now_timestamp
     if isinstance(idle_state, Mapping):
@@ -1118,8 +1094,38 @@ def write_rate_limited_release_check_idle_state(
     write_release_check_idle_state_payload(
         file_path=file_path,
         last_success_timestamp=last_success_timestamp,
-        idle_until_timestamp=candidate_idle_until,
+        idle_until_timestamp=idle_until_timestamp,
     )
+
+
+def persist_failed_release_check_idle_state(
+    file_path: Path,
+    now_timestamp: int,
+    idle_state: Mapping[str, Any] | None,
+    idle_delay_seconds: int = RELEASE_CHECK_IDLE_DELAY_SECONDS,
+) -> None:
+    """!
+    @brief Persist failure idle-state and report write failures.
+        @param file_path Absolute idle-state JSON path.
+        @param now_timestamp Current Unix timestamp in seconds.
+        @param idle_state Existing parsed idle-state payload or None.
+        @param idle_delay_seconds Fixed failure idle-delay length in seconds.
+        @return {None} Function return value.
+    @details Delegates failure idle-state persistence to `write_failed_release_check_idle_state(...)`; converts `OSError` into the standard bright-red stderr diagnostic without swallowing the original release-check failure.
+    @satisfies SRS-350, SRS-351
+    """
+    try:
+        write_failed_release_check_idle_state(
+            file_path=file_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
+            idle_delay_seconds=idle_delay_seconds,
+        )
+    except OSError as idle_state_error:
+        print(
+            f"{ANSI_BRIGHT_RED}Release-check error: idle-state write failure ({idle_state_error}){ANSI_RESET}",
+            file=sys.stderr,
+        )
 
 
 def maybe_notify_newer_version(
@@ -1128,9 +1134,9 @@ def maybe_notify_newer_version(
     """!
     @brief Executes idle-gated online version check and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints a bright-green update message only for newer versions, persists a 3600-second idle-delay after successful HTTP/JSON validation, prints bright-red diagnostics on HTTP failures, and persists an 86400-second idle-delay for HTTP 429 or HTTP 403 responses whose API message contains `API rate limit exceeded`.
+        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints a bright-green update message only for newer versions, persists a 3600-second idle-delay after successful HTTP/JSON validation, prints bright-red diagnostics on every failure, rewrites idle-state JSON on every failure, uses an 86400-second idle-delay for `HTTPError`, `URLError`, and `TimeoutError`, and uses the default 3600-second idle-delay for other release-check failures.
     @return {None} Function return value.
-    @satisfies SRS-345, SRS-348, SRS-349, SRS-350
+    @satisfies SRS-345, SRS-348, SRS-349, SRS-350, SRS-351
     """
 
     current_version = load_package_version()
@@ -1145,6 +1151,11 @@ def maybe_notify_newer_version(
             f"{ANSI_BRIGHT_RED}Release-check error: invalid idle-state ({exc}){ANSI_RESET}",
             file=sys.stderr,
         )
+        persist_failed_release_check_idle_state(
+            file_path=idle_state_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
+        )
     if not FORCE_ONLINE_RELEASE_CHECK and not should_execute_release_check(
         idle_state,
         now_timestamp,
@@ -1157,6 +1168,11 @@ def maybe_notify_newer_version(
         print(
             f"{ANSI_BRIGHT_RED}Release-check error: {exc}{ANSI_RESET}",
             file=sys.stderr,
+        )
+        persist_failed_release_check_idle_state(
+            file_path=idle_state_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
         )
         return
 
@@ -1182,6 +1198,11 @@ def maybe_notify_newer_version(
                 ),
                 file=sys.stderr,
             )
+            persist_failed_release_check_idle_state(
+                file_path=idle_state_path,
+                now_timestamp=now_timestamp,
+                idle_state=idle_state,
+            )
             return
 
         latest_version = normalize_release_tag(tag)
@@ -1205,7 +1226,6 @@ def maybe_notify_newer_version(
         error_details = f"HTTP {exc.code}"
         raw_error_payload = exc.read().decode("utf-8", errors="replace")
         payload: Any = None
-        error_message: str | None = None
         try:
             payload = json.loads(raw_error_payload) if raw_error_payload else None
         except json.JSONDecodeError:
@@ -1213,20 +1233,13 @@ def maybe_notify_newer_version(
         if isinstance(payload, dict):
             message = payload.get("message")
             if isinstance(message, str) and message.strip():
-                error_message = message.strip()
-                error_details = f"{error_details}: {error_message}"
-        if is_release_check_rate_limited_http_error(exc.code, error_message):
-            try:
-                write_rate_limited_release_check_idle_state(
-                    file_path=idle_state_path,
-                    now_timestamp=now_timestamp,
-                    idle_state=idle_state,
-                )
-            except OSError as idle_state_error:
-                print(
-                    f"{ANSI_BRIGHT_RED}Release-check error: idle-state write failure ({idle_state_error}){ANSI_RESET}",
-                    file=sys.stderr,
-                )
+                error_details = f"{error_details}: {message.strip()}"
+        persist_failed_release_check_idle_state(
+            file_path=idle_state_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
+            idle_delay_seconds=RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+        )
         print(
             f"{ANSI_BRIGHT_RED}Release-check error: {error_details}{ANSI_RESET}",
             file=sys.stderr,
@@ -1237,17 +1250,34 @@ def maybe_notify_newer_version(
             f"{ANSI_BRIGHT_RED}Release-check error: network failure ({exc.reason}){ANSI_RESET}",
             file=sys.stderr,
         )
+        persist_failed_release_check_idle_state(
+            file_path=idle_state_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
+            idle_delay_seconds=RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+        )
         return
     except TimeoutError:
         print(
             f"{ANSI_BRIGHT_RED}Release-check error: timeout exceeded{ANSI_RESET}",
             file=sys.stderr,
         )
+        persist_failed_release_check_idle_state(
+            file_path=idle_state_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
+            idle_delay_seconds=RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+        )
         return
     except (json.JSONDecodeError, ValueError) as exc:
         print(
             f"{ANSI_BRIGHT_RED}Release-check error: invalid release payload ({exc}){ANSI_RESET}",
             file=sys.stderr,
+        )
+        persist_failed_release_check_idle_state(
+            file_path=idle_state_path,
+            now_timestamp=now_timestamp,
+            idle_state=idle_state,
         )
         return
 

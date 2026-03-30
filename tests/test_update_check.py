@@ -165,6 +165,40 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
         )
 
+    def test_release_check_network_failure_sets_extended_idle_delay(self) -> None:
+        """Network failures must persist one-day idle delay and rewrite the idle-state file."""
+        now_timestamp = 1700000000
+        network_error = urllib.error.URLError("offline")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                side_effect=network_error,
+                            ):
+                                with patch("sys.stderr") as fake_stderr:
+                                    cli.maybe_notify_newer_version(timeout_seconds=2.0)
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
+
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn("network failure (offline)", written)
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+        )
+
     def test_release_check_uses_hardcoded_url(self) -> None:
         """Release-check request must target the hardcoded GitHub endpoint URL."""
         response_mock = MagicMock()
@@ -331,6 +365,44 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             ),
         )
 
+    def test_release_check_invalid_payload_sets_default_idle_delay(self) -> None:
+        """Non-API release payload failures must rewrite idle-state using the default delay."""
+        response_mock = MagicMock()
+        response_mock.read.return_value = json.dumps({"missing": "tag"}).encode("utf-8")
+        urlopen_cm = MagicMock()
+        urlopen_cm.__enter__.return_value = response_mock
+        urlopen_cm.__exit__.return_value = None
+        now_timestamp = 1700000000
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            idle_path = Path(temp_dir) / "idle.json"
+            with patch("usereq.cli.load_package_version", return_value="0.0.1"):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
+                    with patch(
+                        "usereq.cli.get_release_check_idle_file_path",
+                        return_value=idle_path,
+                    ):
+                        with patch(
+                            "usereq.cli.resolve_latest_release_api_url",
+                            return_value=(
+                                "https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest"
+                            ),
+                        ):
+                            with patch(
+                                "usereq.cli.urllib.request.urlopen",
+                                return_value=urlopen_cm,
+                            ):
+                                with patch("sys.stderr") as fake_stderr:
+                                    cli.maybe_notify_newer_version(timeout_seconds=2.0)
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
+
+        written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
+        self.assertIn("invalid response payload (missing 'tag_name')", written)
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_IDLE_DELAY_SECONDS,
+        )
+
     def test_release_check_http_429_sets_extended_idle_delay_when_retry_after_is_higher(
         self,
     ) -> None:
@@ -416,8 +488,8 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
         )
 
-    def test_rate_limited_idle_state_keeps_larger_existing_idle_until(self) -> None:
-        """Rate-limit idle-state writer must preserve larger pre-existing idle-until timestamp."""
+    def test_failed_idle_state_recalculates_idle_until_from_now(self) -> None:
+        """Failure idle-state writer must recompute idle-until from current time."""
         now_timestamp = 1700000000
         idle_state = {
             "last_success_timestamp": now_timestamp - 7200,
@@ -428,10 +500,11 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             idle_path = Path(temp_dir) / "idle.json"
-            cli.write_rate_limited_release_check_idle_state(
+            cli.write_failed_release_check_idle_state(
                 file_path=idle_path,
                 now_timestamp=now_timestamp,
                 idle_state=idle_state,
+                idle_delay_seconds=cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
             )
             payload = json.loads(idle_path.read_text(encoding="utf-8"))
 
@@ -441,7 +514,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         )
         self.assertEqual(
             payload["idle_until_timestamp"],
-            idle_state["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
         )
 
     def test_upgrade_command_uses_hardcoded_owner_repository(self) -> None:
