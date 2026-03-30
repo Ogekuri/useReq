@@ -123,7 +123,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         self.assertIn(cli.ANSI_RESET, written)
 
     def test_release_check_http_403_rate_limit_sets_extended_idle_delay(self) -> None:
-        """403 API rate-limit failures must print diagnostics and persist one-hour idle delay."""
+        """403 API rate-limit failures must print diagnostics and persist one-day idle delay."""
         now_timestamp = 1700000000
         http_error = urllib.error.HTTPError(
             url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
@@ -218,13 +218,13 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         urlopen_mock.assert_not_called()
 
-    def test_release_check_idle_delay_default_is_300_seconds(self) -> None:
-        """Default release-check idle-delay constant must match five minutes."""
-        self.assertEqual(cli.RELEASE_CHECK_IDLE_DELAY_SECONDS, 300)
+    def test_release_check_idle_delay_default_is_3600_seconds(self) -> None:
+        """Default release-check idle-delay constant must match one hour."""
+        self.assertEqual(cli.RELEASE_CHECK_IDLE_DELAY_SECONDS, 3600)
 
-    def test_release_check_rate_limit_idle_delay_is_3600_seconds(self) -> None:
-        """Rate-limited release-check idle-delay constant must match one hour."""
-        self.assertEqual(cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS, 3600)
+    def test_release_check_rate_limit_idle_delay_is_86400_seconds(self) -> None:
+        """Rate-limited release-check idle-delay constant must match one day."""
+        self.assertEqual(cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS, 86400)
 
     def test_release_check_idle_file_path_uses_home_cache_directory(self) -> None:
         """Idle-state path must be anchored under ~/.cache/usereq."""
@@ -334,7 +334,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
     def test_release_check_http_429_sets_extended_idle_delay_when_retry_after_is_higher(
         self,
     ) -> None:
-        """HTTP 429 handling must ignore shorter policy differences and persist one-hour backoff."""
+        """HTTP 429 handling must ignore shorter policy differences and persist one-day backoff."""
         now_timestamp = 1700000000
         hdrs_429 = http.client.HTTPMessage()
         hdrs_429["Retry-After"] = "900"
@@ -377,7 +377,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
     def test_release_check_http_429_sets_extended_idle_delay_when_retry_after_is_lower(
         self,
     ) -> None:
-        """HTTP 429 handling must persist one-hour backoff even with short Retry-After values."""
+        """HTTP 429 handling must persist one-day backoff even with short Retry-After values."""
         now_timestamp = 1700000000
         hdrs_429_short = http.client.HTTPMessage()
         hdrs_429_short["Retry-After"] = "60"
@@ -422,8 +422,8 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         idle_state = {
             "last_success_timestamp": now_timestamp - 7200,
             "last_success_human_readable_timestamp": "2023-11-14T20:13:20Z",
-            "idle_until_timestamp": now_timestamp + 5400,
-            "idle_until_human_readable_timestamp": "2023-11-14T23:43:20Z",
+            "idle_until_timestamp": now_timestamp + 172800,
+            "idle_until_human_readable_timestamp": "2023-11-16T22:13:20Z",
         }
 
         with tempfile.TemporaryDirectory() as temp_dir:

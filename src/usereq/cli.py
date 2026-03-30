@@ -186,10 +186,10 @@ ANSI_RESET = "\033[0m"
 RELEASE_CHECK_TIMEOUT_SECONDS = 2.0
 """! @brief Hardcoded default timeout for startup release-check HTTP calls."""
 
-RELEASE_CHECK_IDLE_DELAY_SECONDS = 300
+RELEASE_CHECK_IDLE_DELAY_SECONDS = 3600
 """! @brief Hardcoded startup release-check idle-delay in seconds."""
 
-RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS = 3600
+RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS = 86400
 """! @brief Hardcoded startup release-check idle-delay in seconds for API rate limiting."""
 
 TOOL_PROGRAM_NAME = "usereq"
@@ -1128,7 +1128,7 @@ def maybe_notify_newer_version(
     """!
     @brief Executes idle-gated online version check and prints bright colored status messages.
         @param timeout_seconds Time to wait for the version check response.
-        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints a bright-green update message only for newer versions, persists a 300-second idle-delay after successful HTTP/JSON validation, prints bright-red diagnostics on HTTP failures, and persists a 3600-second idle-delay for HTTP 429 or HTTP 403 responses whose API message contains `API rate limit exceeded`.
+        @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints a bright-green update message only for newer versions, persists a 3600-second idle-delay after successful HTTP/JSON validation, prints bright-red diagnostics on HTTP failures, and persists an 86400-second idle-delay for HTTP 429 or HTTP 403 responses whose API message contains `API rate limit exceeded`.
     @return {None} Function return value.
     @satisfies SRS-345, SRS-348, SRS-349, SRS-350
     """

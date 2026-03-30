@@ -221,9 +221,9 @@ inactive; each spec enables its provider and activates listed artifacts and opti
 - @brief ANSI escape prefix for bright green terminal output."""
 - var `RELEASE_CHECK_TIMEOUT_SECONDS = 2.0` (L186)
 - @brief ANSI escape sequence that resets terminal style."""
-- var `RELEASE_CHECK_IDLE_DELAY_SECONDS = 300` (L189)
+- var `RELEASE_CHECK_IDLE_DELAY_SECONDS = 3600` (L189)
 - @brief Hardcoded default timeout for startup release-check HTTP calls."""
-- var `RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS = 3600` (L192)
+- var `RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS = 86400` (L192)
 - @brief Hardcoded startup release-check idle-delay in seconds."""
 - var `TOOL_PROGRAM_NAME = "usereq"` (L195)
 - @brief Hardcoded startup release-check idle-delay in seconds for API rate limiting."""
@@ -444,7 +444,7 @@ inactive; each spec enables its provider and activates listed artifacts and opti
 ### fn `def ensure_doc_directory(path: str, project_base: Path) -> None` (L1255-1277)
 - @brief Executes idle-gated online version check and prints bright colored status messages.
 - @brief Ensures the documentation directory exists under the project base.
-- @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints a bright-green update message only for newer versions, persists a 300-second idle-delay after successful HTTP/JSON validation, prints bright-red diagnostics on HTTP failures, and persists a 3600-second idle-delay for HTTP 429 or HTTP 403 responses whose API message contains `API rate limit exceeded`.
+- @details Reads idle-state from `$HOME/.cache/usereq/check_version_idle-time.json`, skips remote requests when idle window is active unless startup context enables `FORCE_ONLINE_RELEASE_CHECK`, resolves latest-release URL from hardcoded repository settings when due, compares versions, prints a bright-green update message only for newer versions, persists a 3600-second idle-delay after successful HTTP/JSON validation, prints bright-red diagnostics on HTTP failures, and persists an 86400-second idle-delay for HTTP 429 or HTTP 403 responses whose API message contains `API rate limit exceeded`.
 - @details Implements the ensure_doc_directory function behavior with deterministic control flow.
 - @param timeout_seconds Time to wait for the version check response.
 - @param path The relative path to the documentation directory.
