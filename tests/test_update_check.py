@@ -122,8 +122,9 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         self.assertIn("installed 0.0.1, latest 9.9.9.", written)
         self.assertIn(cli.ANSI_RESET, written)
 
-    def test_release_check_http_403_prints_bright_red_error(self) -> None:
-        """HTTP errors must print bright-red diagnostics without aborting execution."""
+    def test_release_check_http_403_rate_limit_sets_extended_idle_delay(self) -> None:
+        """403 API rate-limit failures must print diagnostics and persist one-hour idle delay."""
+        now_timestamp = 1700000000
         http_error = urllib.error.HTTPError(
             url="https://api.github.com/repos/ExampleOrg/ExampleRepo/releases/latest",
             code=403,
@@ -135,7 +136,7 @@ class TestOnlineUpdateCheck(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             idle_path = Path(temp_dir) / "idle.json"
             with patch("usereq.cli.load_package_version", return_value="0.0.1"):
-                with patch("usereq.cli.time.time", return_value=1700000000):
+                with patch("usereq.cli.time.time", return_value=now_timestamp):
                     with patch(
                         "usereq.cli.get_release_check_idle_file_path",
                         return_value=idle_path,
@@ -152,12 +153,17 @@ class TestOnlineUpdateCheck(unittest.TestCase):
                             ):
                                 with patch("sys.stderr") as fake_stderr:
                                     cli.maybe_notify_newer_version(timeout_seconds=2.0)
+            payload = json.loads(idle_path.read_text(encoding="utf-8"))
 
         written = "".join(call.args[0] for call in fake_stderr.write.call_args_list)
         self.assertIn(cli.ANSI_BRIGHT_RED, written)
         self.assertIn("HTTP 403", written)
         self.assertIn("API rate limit exceeded", written)
         self.assertIn(cli.ANSI_RESET, written)
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+        )
 
     def test_release_check_uses_hardcoded_url(self) -> None:
         """Release-check request must target the hardcoded GitHub endpoint URL."""
@@ -215,6 +221,10 @@ class TestOnlineUpdateCheck(unittest.TestCase):
     def test_release_check_idle_delay_default_is_300_seconds(self) -> None:
         """Default release-check idle-delay constant must match five minutes."""
         self.assertEqual(cli.RELEASE_CHECK_IDLE_DELAY_SECONDS, 300)
+
+    def test_release_check_rate_limit_idle_delay_is_3600_seconds(self) -> None:
+        """Rate-limited release-check idle-delay constant must match one hour."""
+        self.assertEqual(cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS, 3600)
 
     def test_release_check_idle_file_path_uses_home_cache_directory(self) -> None:
         """Idle-state path must be anchored under ~/.cache/usereq."""
@@ -321,10 +331,10 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             ),
         )
 
-    def test_release_check_http_429_uses_retry_after_when_greater_than_idle_delay(
+    def test_release_check_http_429_sets_extended_idle_delay_when_retry_after_is_higher(
         self,
     ) -> None:
-        """HTTP 429 handling must use Retry-After when it exceeds idle-delay."""
+        """HTTP 429 handling must ignore shorter policy differences and persist one-hour backoff."""
         now_timestamp = 1700000000
         hdrs_429 = http.client.HTTPMessage()
         hdrs_429["Retry-After"] = "900"
@@ -359,12 +369,15 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             payload = json.loads(idle_path.read_text(encoding="utf-8"))
 
         self.assertEqual(payload["last_success_timestamp"], now_timestamp)
-        self.assertEqual(payload["idle_until_timestamp"], now_timestamp + 900)
+        self.assertEqual(
+            payload["idle_until_timestamp"],
+            now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
+        )
 
-    def test_release_check_http_429_uses_idle_delay_when_retry_after_is_lower(
+    def test_release_check_http_429_sets_extended_idle_delay_when_retry_after_is_lower(
         self,
     ) -> None:
-        """HTTP 429 handling must enforce idle-delay floor for short Retry-After values."""
+        """HTTP 429 handling must persist one-hour backoff even with short Retry-After values."""
         now_timestamp = 1700000000
         hdrs_429_short = http.client.HTTPMessage()
         hdrs_429_short["Retry-After"] = "60"
@@ -400,17 +413,17 @@ class TestOnlineUpdateCheck(unittest.TestCase):
 
         self.assertEqual(
             payload["idle_until_timestamp"],
-            now_timestamp + cli.RELEASE_CHECK_IDLE_DELAY_SECONDS,
+            now_timestamp + cli.RELEASE_CHECK_RATE_LIMIT_IDLE_DELAY_SECONDS,
         )
 
     def test_rate_limited_idle_state_keeps_larger_existing_idle_until(self) -> None:
-        """429 idle-state writer must preserve larger pre-existing idle-until timestamp."""
+        """Rate-limit idle-state writer must preserve larger pre-existing idle-until timestamp."""
         now_timestamp = 1700000000
         idle_state = {
             "last_success_timestamp": now_timestamp - 7200,
             "last_success_human_readable_timestamp": "2023-11-14T20:13:20Z",
-            "idle_until_timestamp": now_timestamp + 1800,
-            "idle_until_human_readable_timestamp": "2023-11-14T22:43:20Z",
+            "idle_until_timestamp": now_timestamp + 5400,
+            "idle_until_human_readable_timestamp": "2023-11-14T23:43:20Z",
         }
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -418,7 +431,6 @@ class TestOnlineUpdateCheck(unittest.TestCase):
             cli.write_rate_limited_release_check_idle_state(
                 file_path=idle_path,
                 now_timestamp=now_timestamp,
-                retry_after_seconds=900,
                 idle_state=idle_state,
             )
             payload = json.loads(idle_path.read_text(encoding="utf-8"))
