@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.51.0](https://github.com/Ogekuri/useReq/compare/v0.50.0..v0.51.0) - 2026-04-01
+### ⛰️  Features
+- Update prompts with markdown report.
+
 ## [0.50.0](https://github.com/Ogekuri/useReq/compare/v0.49.0..v0.50.0) - 2026-03-30
 ### 🚜  Changes
 - always persist version-check idle state [useReq] *(cli)*
@@ -1119,6 +1123,7 @@
 - \[0.48.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.48.0
 - \[0.49.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.49.0
 - \[0.50.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.50.0
+- \[0.51.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.51.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1170,3 +1175,4 @@
 [0.48.0]: https://github.com/Ogekuri/useReq/compare/v0.47.0..v0.48.0
 [0.49.0]: https://github.com/Ogekuri/useReq/compare/v0.48.0..v0.49.0
 [0.50.0]: https://github.com/Ogekuri/useReq/compare/v0.49.0..v0.50.0
+[0.51.0]: https://github.com/Ogekuri/useReq/compare/v0.50.0..v0.51.0
