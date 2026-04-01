@@ -49,6 +49,7 @@
 # Exlude github agents and prompts
 .github/agents/
 .github/prompts/
+.github/skills/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
