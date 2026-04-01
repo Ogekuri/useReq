@@ -25,10 +25,11 @@ In scope: reproduce/triage the defect with concrete evidence and prefer a eviden
 
 ## Pre-requisite: Execution Context
 - **CRITICAL**: All information declared in this `Pre-requisite: Execution Context` section MUST remain continuously available in the active execution context for the entire workflow and MUST NEVER be dropped, forgotten, or overwritten.
-- Generate <WORKTREE_NAME> with `req --git-wt-name` and use this identifier for all worktree operations in this workflow.
+- Generate <WORKTREE_NAME> with `req --git-wt-name`, retain the literal result for later steps, and use simple sequential execution with only linear shell commands compatible with restrictive filtering systems for all worktree operations in this workflow.
 
 
 ## Absolute Rules, Non-Negotiable
+- **CRITICAL**: When instructions generate shell commands, they MUST generate only linear shell commands compatible with restrictive filtering systems and MUST NOT use command substitution (`$()` or backticks), complex variable expansion, nested substitution, shell-derived helper composition, nested shell logic, or nested pipelines.
 - **CRITICAL**: NEVER write, modify, edit, or delete files outside of the active git worktree directory, except under `/tmp`, and except for worktree operations executed through `req --git-wt-create <WORKTREE_NAME>` and `req --git-wt-delete <WORKTREE_NAME>`.
 - You MUST read `%%DOC_PATH%%/REQUIREMENTS.md`, but you MUST NOT modify it in this workflow.
 - Treat static analysis as safe. Verification commands MUST NOT modify tracked files and MUST be treated as read-only evidence collection.
@@ -159,7 +160,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 2. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
    - Check required docs presence with `req --docs-check`. If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Required docs check failed!", and then terminate the execution.
 3. **CRITICAL**: Worktree Generation & Isolation
-   - Derive <BASE_PATH> with `req --get-base-path`, <GIT_PATH> with `req --git-path`, and generate <WORKTREE_NAME> with `req --git-wt-name`.
+   - Derive <BASE_PATH> with `req --get-base-path`, derive <GIT_PATH> with `req --git-path`, and generate <WORKTREE_NAME> with `req --git-wt-name` using literal `req` commands executed sequentially without shell composition.
    - Create the dedicated isolated worktree with `req --git-wt-create <WORKTREE_NAME>`, then execute `cd <GIT_PATH>/../<WORKTREE_NAME>` before proceeding to the next step.
    - If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Worktree generation failed!", and then terminate the execution.
 
