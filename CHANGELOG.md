@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.53.0](https://github.com/Ogekuri/useReq/compare/v0.52.0..v0.53.0) - 2026-04-01
+### 🐛  Bug Fixes
+- Fix prompts.
+- Fix git repository.
+
 ## [0.52.0](https://github.com/Ogekuri/useReq/compare/v0.51.0..v0.52.0) - 2026-04-01
 ### 🐛  Bug Fixes
 - Fix prompts commits.
@@ -1129,6 +1134,7 @@
 - \[0.50.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.50.0
 - \[0.51.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.51.0
 - \[0.52.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.52.0
+- \[0.53.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.53.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1182,3 +1188,4 @@
 [0.50.0]: https://github.com/Ogekuri/useReq/compare/v0.49.0..v0.50.0
 [0.51.0]: https://github.com/Ogekuri/useReq/compare/v0.50.0..v0.51.0
 [0.52.0]: https://github.com/Ogekuri/useReq/compare/v0.51.0..v0.52.0
+[0.53.0]: https://github.com/Ogekuri/useReq/compare/v0.52.0..v0.53.0
