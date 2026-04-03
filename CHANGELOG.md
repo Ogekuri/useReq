@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.56.0](https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0) - 2026-04-03
+### 🐛  Bug Fixes
+- Fix prompts.
+
 ## [0.55.0](https://github.com/Ogekuri/useReq/compare/v0.54.0..v0.55.0) - 2026-04-02
 ### 🐛  Bug Fixes
 - Fix shell execution in prompts.
@@ -1141,6 +1145,7 @@
 - \[0.53.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.53.0
 - \[0.54.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.54.0
 - \[0.55.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.55.0
+- \[0.56.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.56.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1197,3 +1202,4 @@
 [0.53.0]: https://github.com/Ogekuri/useReq/compare/v0.52.0..v0.53.0
 [0.54.0]: https://github.com/Ogekuri/useReq/compare/v0.53.0..v0.54.0
 [0.55.0]: https://github.com/Ogekuri/useReq/compare/v0.54.0..v0.55.0
+[0.56.0]: https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0
