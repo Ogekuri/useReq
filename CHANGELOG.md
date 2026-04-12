@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.57.0](https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.57.0) - 2026-04-12
+### ⛰️  Features
+- add pi provider generation and config support [useReq] *(cli)*
+  - extend SRS with pi provider requirements and worktree mapping
+  - implement pi provider parsing, prompt/skill generation, and cleanup paths
+  - add pi entries to models.json and models-legacy.json
+  - expand CLI tests for provider parsing, persistence, and pi artifacts
+  - update WORKFLOW.md and regenerate REFERENCES.md for traceability
+- align README with current CLI and requirements [useReq] *(readme)*
+  - add SRS-352 to require README flag accuracy
+  - update Requirements and Legacy Mode sections to match current CLI
+
+### 🚜  Changes
+- apply install directory defaults and recursive creation [useReq] *(cli)*
+  - update SRS with install-only defaults for docs/guidelines/tests/src directories
+  - implement fresh-install default path resolution and parent-directory creation
+  - keep update behavior bound to .req/config.json without compatibility fallbacks
+  - add CLI tests for default-path install and install/update separation
+  - regenerate WORKFLOW and REFERENCES for updated symbols and traces
+- BREAKING CHANGE: align pi models/tools with copilot config [useReq] *(models)*
+  - Update SRS with pi model/tool parity requirements (SRS-357, SRS-358).
+  - Set pi prompt model mappings in models.json and models-legacy.json to match copilot per prompt key.
+  - Replace pi usage_modes tools arrays with the required bash/edit/find/ls schemas.
+
+### 📚  Documentation
+- Update README.md file.
+
 ## [0.56.0](https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0) - 2026-04-03
 ### 🐛  Bug Fixes
 - Fix prompts.
@@ -1146,6 +1173,7 @@
 - \[0.54.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.54.0
 - \[0.55.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.55.0
 - \[0.56.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.56.0
+- \[0.57.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.57.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1203,3 +1231,4 @@
 [0.54.0]: https://github.com/Ogekuri/useReq/compare/v0.53.0..v0.54.0
 [0.55.0]: https://github.com/Ogekuri/useReq/compare/v0.54.0..v0.55.0
 [0.56.0]: https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0
+[0.57.0]: https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.57.0
