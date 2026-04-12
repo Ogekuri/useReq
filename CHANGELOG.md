@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.0](https://github.com/Ogekuri/useReq/compare/v0.58.0..v0.59.0) - 2026-04-12
+### 📚  Documentation
+- align CLI behavior with implementation [useReq] *(readme)*
+  - document fresh-install defaults and --here config behavior
+  - add pi provider coverage and update provider spec guidance
+  - correct project-scan file selection and worktree copy details
+
 ## [0.58.0](https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.58.0) - 2026-04-12
 ### ⛰️  Features
 - add pi provider generation and config support [useReq] *(cli)*
@@ -1175,6 +1182,7 @@
 - \[0.55.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.55.0
 - \[0.56.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.56.0
 - \[0.58.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.58.0
+- \[0.59.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.59.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1233,3 +1241,4 @@
 [0.55.0]: https://github.com/Ogekuri/useReq/compare/v0.54.0..v0.55.0
 [0.56.0]: https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0
 [0.58.0]: https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.58.0
+[0.59.0]: https://github.com/Ogekuri/useReq/compare/v0.58.0..v0.59.0
