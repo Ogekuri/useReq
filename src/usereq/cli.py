@@ -45,8 +45,10 @@ REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
 PERSISTED_UPDATE_FLAG_KEYS = ("preserve-models",)
 """! @brief Config keys persisted for install/update boolean flags (SRS-288)."""
 
-VALID_PROVIDERS = frozenset({"codex", "claude", "gemini", "github", "kiro", "opencode"})
-"""! @brief Valid provider names accepted by ``--provider`` specs (SRS-275)."""
+VALID_PROVIDERS = frozenset(
+    {"codex", "claude", "gemini", "github", "kiro", "opencode", "pi"}
+)
+"""! @brief Valid provider names accepted by ``--provider`` specs (SRS-275, SRS-353, SRS-354)."""
 
 VALID_ARTIFACTS = frozenset({"prompts", "agents", "skills"})
 """! @brief Valid artifact type tokens accepted in ``--provider`` specs (SRS-275)."""
@@ -63,8 +65,9 @@ PROVIDER_DIR_MAP: dict[str, list[str]] = {
     "codex": [".codex/prompts", ".codex/skills"],
     "kiro": [".kiro/prompts", ".kiro/agents", ".kiro/skills"],
     "opencode": [".opencode/agent", ".opencode/command", ".opencode/skill"],
+    "pi": [".pi/prompts", ".pi/skills"],
 }
-"""! @brief Provider-to-directory mapping for worktree copy operations (SRS-325)."""
+"""! @brief Provider-to-directory mapping for worktree copy operations (SRS-325, SRS-353, SRS-354)."""
 
 INVALID_WT_NAME_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\s]')
 """! @brief Regex matching characters invalid in both Linux and Windows directory names."""
@@ -128,7 +131,7 @@ def resolve_provider_configs(
     """!
     @brief Resolve per-provider configurations from ``--provider`` specs only.
     @param provider_specs List of raw ``--provider`` SPEC strings.
-    @return Dict mapping each of the 6 provider names to a config dict with keys:
+    @return Dict mapping each supported provider name to a config dict with keys:
       ``enabled`` (bool), ``prompts`` (bool), ``agents`` (bool), ``skills`` (bool),
       ``enable-models`` (bool), ``enable-tools`` (bool), ``prompts-use-agents`` (bool),
       ``legacy`` (bool).
@@ -368,7 +371,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Per-provider artifact and option configuration (repeatable). "
             "Format: PROVIDER:ARTIFACTS[:OPTIONS]. "
-            "PROVIDER: codex|claude|gemini|github|kiro|opencode. "
+            "PROVIDER: codex|claude|gemini|github|kiro|opencode|pi. "
             "ARTIFACTS: comma-separated from {prompts,agents,skills}. "
             "OPTIONS: comma-separated from {enable-models,enable-tools,prompts-use-agents,legacy}."
         ),
@@ -2381,7 +2384,15 @@ def load_centralized_models(
             dlog(f"Models config not found: {config_file}")
             return {
                 name: None
-                for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")
+                for name in (
+                    "claude",
+                    "copilot",
+                    "opencode",
+                    "kiro",
+                    "gemini",
+                    "codex",
+                    "pi",
+                )
             }
 
     # Load the centralized configuration
@@ -2392,12 +2403,20 @@ def load_centralized_models(
         dlog(f"Failed loading centralized models from {config_file}: {exc}")
         return {
             name: None
-            for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex")
+            for name in (
+                "claude",
+                "copilot",
+                "opencode",
+                "kiro",
+                "gemini",
+                "codex",
+                "pi",
+            )
         }
 
     # Extract individual CLI configs
     result: dict[str, dict[str, Any] | None] = {}
-    for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex"):
+    for name in ("claude", "copilot", "opencode", "kiro", "gemini", "codex", "pi"):
         result[name] = all_models.get(name) if isinstance(all_models, dict) else None
         if result[name]:
             dlog(f"Extracted config for {name}")
@@ -2602,6 +2621,7 @@ def remove_generated_resources(project_base: Path) -> None:
         project_base / ".claude" / "skills",
         project_base / ".codex" / "skills",
         project_base / ".github" / "skills",
+        project_base / ".pi" / "skills",
         project_base / ".kiro" / "skills",
         project_base / ".opencode" / "skill",
         project_base / ".req" / "docs",
@@ -2610,6 +2630,7 @@ def remove_generated_resources(project_base: Path) -> None:
         project_base / ".codex" / "prompts",
         project_base / ".github" / "agents",
         project_base / ".github" / "prompts",
+        project_base / ".pi" / "prompts",
         project_base / ".kiro" / "agents",
         project_base / ".kiro" / "prompts",
         project_base / ".claude" / "agents",
@@ -2682,6 +2703,7 @@ def run_remove(args: Namespace) -> None:
         ".codex",
         ".kiro",
         ".github",
+        ".pi",
         ".vscode",
         ".opencode",
         ".claude",
@@ -2932,6 +2954,7 @@ def run(args: Namespace) -> None:
     enable_github = provider_configs["github"]["enabled"]
     enable_kiro = provider_configs["kiro"]["enabled"]
     enable_opencode = provider_configs["opencode"]["enabled"]
+    enable_pi = provider_configs["pi"]["enabled"]
 
     # A provider's artifacts are enabled only via the per-provider spec.
     enable_prompts = any(pc["prompts"] for pc in provider_configs.values())
@@ -2946,6 +2969,7 @@ def run(args: Namespace) -> None:
             enable_github,
             enable_kiro,
             enable_opencode,
+            enable_pi,
         )
     ):
         if args.update:
@@ -3124,6 +3148,7 @@ def run(args: Namespace) -> None:
     claude_skills_root = None
     gemini_skills_root = None
     opencode_skills_root = None
+    pi_skills_root = None
     github_skills_root = None
     kiro_skills_root = None
     target_folders: list[Path] = []
@@ -3134,6 +3159,7 @@ def run(args: Namespace) -> None:
     pc_kiro = provider_configs["kiro"]
     pc_claude = provider_configs["claude"]
     pc_opencode = provider_configs["opencode"]
+    pc_pi = provider_configs["pi"]
     if pc_codex["enabled"] and pc_codex["prompts"]:
         target_folders.append(project_base / ".codex" / "prompts")
     if pc_codex["enabled"] and pc_codex["skills"]:
@@ -3182,6 +3208,11 @@ def run(args: Namespace) -> None:
     if pc_opencode["enabled"] and pc_opencode["skills"]:
         opencode_skills_root = project_base / ".opencode" / "skill"
         target_folders.append(opencode_skills_root)
+    if pc_pi["enabled"] and pc_pi["prompts"]:
+        target_folders.append(project_base / ".pi" / "prompts")
+    if pc_pi["enabled"] and pc_pi["skills"]:
+        pi_skills_root = project_base / ".pi" / "skills"
+        target_folders.append(pi_skills_root)
     for folder in target_folders:
         folder.mkdir(parents=True, exist_ok=True)
     if VERBOSE:
@@ -3227,6 +3258,7 @@ def run(args: Namespace) -> None:
         "gemini": set(),
         "kiro": set(),
         "opencode": set(),
+        "pi": set(),
     }
     modules_installed: dict[str, set[str]] = {
         key: set() for key in prompts_installed.keys()
@@ -3454,6 +3486,40 @@ def run(args: Namespace) -> None:
                 log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_gh_prompt}")
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("prompts")
+
+        if is_prompt_source and pc_pi["enabled"] and pc_pi["prompts"]:
+            # .pi/prompts (GitHub-equivalent prompt procedure)
+            dst_pi_prompt = project_base / ".pi" / "prompts" / f"req-{PROMPT}.prompt.md"
+            existed = dst_pi_prompt.exists()
+            if pc_pi["prompts-use-agents"]:
+                pi_prompt_text = f"---\nagent: req-{PROMPT}\n---\n"
+            else:
+                pi_header_lines = [
+                    "---",
+                    f"description: {frontmatter.splitlines()[0].split(':', 1)[1].strip() if 'description:' in frontmatter else description}",
+                ]
+                if argument_hint:
+                    pi_header_lines.append(f"argument-hint: {argument_hint}")
+                pi_model = None
+                pi_tools = None
+                if configs:
+                    pi_model, pi_tools = get_model_tools_for_prompt(
+                        configs.get("pi"), PROMPT, "pi"
+                    )
+                if pc_pi["enable-models"] and pi_model:
+                    pi_header_lines.append(f"model: {pi_model}")
+                if pc_pi["enable-tools"] and pi_tools:
+                    pi_header_lines.append(
+                        f"tools: {format_tools_inline_list(pi_tools)}"
+                    )
+                pi_header = "\n".join(pi_header_lines) + "\n---\n\n"
+                pi_prompt_text = pi_header + prompt_body_replaced
+            dst_pi_prompt.parent.mkdir(parents=True, exist_ok=True)
+            dst_pi_prompt.write_text(pi_prompt_text, encoding="utf-8")
+            if VERBOSE:
+                log(f"{'OVERWROTE' if existed else 'COPIED'}: {dst_pi_prompt}")
+            prompts_installed["pi"].add(PROMPT)
+            modules_installed["pi"].add("prompts")
 
         if is_prompt_source and pc_kiro["enabled"] and pc_kiro["agents"]:
             # .kiro/agents
@@ -3715,6 +3781,36 @@ def run(args: Namespace) -> None:
             prompts_installed["github"].add(PROMPT)
             modules_installed["github"].add("skills")
 
+        if pc_pi["enabled"] and pc_pi["skills"] and pi_skills_root is not None:
+            # .pi/skills/req-<prompt>/SKILL.md (GitHub-equivalent skill procedure)
+            pi_skill_dir = pi_skills_root / f"req-{PROMPT}"
+            pi_skill_dir.mkdir(parents=True, exist_ok=True)
+            pi_skill_model = None
+            pi_skill_tools = None
+            if configs:
+                pi_skill_model, pi_skill_tools = get_model_tools_for_prompt(
+                    configs.get("pi"), PROMPT, "pi"
+                )
+            pi_skill_header_lines = [
+                "---",
+                f"name: req-{PROMPT}",
+                f'description: "{skill_desc_yaml}"',
+            ]
+            if pc_pi["enable-models"] and pi_skill_model:
+                pi_skill_header_lines.append(f"model: {pi_skill_model}")
+            if pc_pi["enable-tools"] and pi_skill_tools:
+                pi_skill_header_lines.append(
+                    f"tools: {format_tools_inline_list(pi_skill_tools)}"
+                )
+            pi_skill_text = (
+                "\n".join(pi_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
+            )
+            if not pi_skill_text.endswith("\n"):
+                pi_skill_text += "\n"
+            write_text_file(pi_skill_dir / "SKILL.md", pi_skill_text)
+            prompts_installed["pi"].add(PROMPT)
+            modules_installed["pi"].add("skills")
+
         if pc_kiro["enabled"] and pc_kiro["skills"] and kiro_skills_root is not None:
             # .kiro/skills/req-<prompt>/SKILL.md
             kiro_skill_dir = kiro_skills_root / f"req-{PROMPT}"
@@ -3950,20 +4046,12 @@ def run(args: Namespace) -> None:
                 module_part = (
                     module_lines[idx] if idx < len(module_lines) else ""
                 ).ljust(modules_width)
-                lines.append(
-                    f"│ {provider_part} │ {prompt_part} │ {module_part} │"
-                )
+                lines.append(f"│ {provider_part} │ {prompt_part} │ {module_part} │")
             return lines
 
-        top = (
-            f"┌{'─' * (provider_width + 2)}┬{'─' * (prompt_width + 2)}┬{'─' * (modules_width + 2)}┐"
-        )
-        middle = (
-            f"├{'─' * (provider_width + 2)}┼{'─' * (prompt_width + 2)}┼{'─' * (modules_width + 2)}┤"
-        )
-        bottom = (
-            f"└{'─' * (provider_width + 2)}┴{'─' * (prompt_width + 2)}┴{'─' * (modules_width + 2)}┘"
-        )
+        top = f"┌{'─' * (provider_width + 2)}┬{'─' * (prompt_width + 2)}┬{'─' * (modules_width + 2)}┐"
+        middle = f"├{'─' * (provider_width + 2)}┼{'─' * (prompt_width + 2)}┼{'─' * (modules_width + 2)}┤"
+        bottom = f"└{'─' * (provider_width + 2)}┴{'─' * (prompt_width + 2)}┴{'─' * (modules_width + 2)}┘"
 
         lines: list[str] = [top]
         lines.extend(_render_row(*columns))
@@ -3995,12 +4083,22 @@ def run(args: Namespace) -> None:
             provider_name = parts[0].strip().lower()
             if provider_name not in VALID_PROVIDERS:
                 continue
-            for artifact in [v.strip().lower() for v in parts[1].split(",") if v.strip()]:
-                if artifact in VALID_ARTIFACTS and artifact not in artifacts_ordered[provider_name]:
+            for artifact in [
+                v.strip().lower() for v in parts[1].split(",") if v.strip()
+            ]:
+                if (
+                    artifact in VALID_ARTIFACTS
+                    and artifact not in artifacts_ordered[provider_name]
+                ):
                     artifacts_ordered[provider_name].append(artifact)
             if len(parts) == 3:
-                for option in [v.strip().lower() for v in parts[2].split(",") if v.strip()]:
-                    if option in VALID_PROVIDER_OPTIONS and option not in options_ordered[provider_name]:
+                for option in [
+                    v.strip().lower() for v in parts[2].split(",") if v.strip()
+                ]:
+                    if (
+                        option in VALID_PROVIDER_OPTIONS
+                        and option not in options_ordered[provider_name]
+                    ):
                         options_ordered[provider_name].append(option)
         modules_map: dict[str, list[str]] = {}
         for provider_name in sorted(VALID_PROVIDERS):
@@ -4273,9 +4371,9 @@ def run_git_check(args: Namespace) -> None:
     if not git_path or not Path(git_path).is_dir():
         raise ReqError("Error: git-path not configured or does not exist.", 11)
     cmd = (
-        'git rev-parse --is-inside-work-tree '
-        '&& ! git status --porcelain | grep -q . '
-        '&& { git symbolic-ref -q HEAD || git rev-parse --verify HEAD ; }'
+        "git rev-parse --is-inside-work-tree "
+        "&& ! git status --porcelain | grep -q . "
+        "&& { git symbolic-ref -q HEAD || git rev-parse --verify HEAD ; }"
     )
     try:
         result = subprocess.run(
@@ -4924,16 +5022,20 @@ def run_project_static_check_cmd(args: Namespace) -> int:
         tests_dir_val = full_cfg.get("tests-dir") or full_cfg.get("test-dir")
         if isinstance(tests_dir_val, str) and tests_dir_val.strip():
             selection_dirs.append(tests_dir_val)
-            tests_dir_rel = Path(
-                make_relative_if_contains_project(tests_dir_val, project_base)
-            ).as_posix().strip("/")
+            tests_dir_rel = (
+                Path(make_relative_if_contains_project(tests_dir_val, project_base))
+                .as_posix()
+                .strip("/")
+            )
     except ReqError:
         pass
 
     files = _collect_source_files(selection_dirs, project_base)
     fixture_roots: list[str] = ["tests/fixtures"]
     if tests_dir_rel is not None:
-        configured_root = "fixtures" if tests_dir_rel in {"", "."} else f"{tests_dir_rel}/fixtures"
+        configured_root = (
+            "fixtures" if tests_dir_rel in {"", "."} else f"{tests_dir_rel}/fixtures"
+        )
         if configured_root not in fixture_roots:
             fixture_roots.append(configured_root)
     filtered_files: list[str] = []

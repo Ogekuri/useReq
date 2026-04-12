@@ -2,7 +2,7 @@
 title: "useReq Requirements"
 description: "Software Requirements Specification"
 date: "2026-04-12"
-version: 1.10
+version: 1.11
 author: "Ogekuri"
 scope:
   paths:
@@ -102,7 +102,7 @@ No explicit performance optimizations identified.
 - **SRS-064**: MUST implement the following behavior: With `--update`, the CLI MUST load paths, `--preserve-models` flag, and persisted `providers` array from `.req/config.json`, then apply only CLI-provided `--preserve-models` flag and `--provider` specs as overrides; if no provider spec is active after merging, it MUST raise a config-invalid error.
 - **SRS-066**: MUST implement the following behavior: The command MUST copy the `.req/models.json` configuration file, replacing the pre-existing file if present, unless `--preserve-models` is active. When `--preserve-models` is NOT active: if the `legacy` option is NOT active for the provider being processed, it MUST copy `models.json` from package resources (`src/usereq/resources/common/models.json`); if `legacy` is active (via `--provider PROVIDER:...:legacy`) and `models-legacy.json` file is successfully loaded (i.e. when it exists), it MUST copy `models-legacy.json` from package resources (`src/usereq/resources/common/models-legacy.json`). This copy MUST take place after creating the `.req` directory and after saving `config.json`.
 - **SRS-085**: MUST implement the following behavior: The CLI MUST load prompt-generation configurations; with `--preserve-models` + `--update` and existing `.req/models.json`, it MUST load from `.req/models.json` and the per-provider `legacy` option MUST have no effect; otherwise it MUST load `src/usereq/resources/common/models.json` for `<cli>` `prompts` and `usage_modes`, and if the `legacy` option is active for a provider (via `--provider PROVIDER:...:legacy`) it MUST prefer `src/usereq/resources/common/models-legacy.json` when present (file-level fallback), else use `models.json`; `src/usereq/resources/<cli>/config.json` MUST NOT be used and MAY be removed; if `write.model` is defined, `readme` MUST use the same `model` and `mode` as `write`.
-- **SRS-275**: MUST implement the following behavior: The CLI MUST accept a repeatable `--provider SPEC` argument as the sole mechanism for provider enablement, artifact selection, and per-provider option configuration. SPEC MUST follow the syntax `PROVIDER:ARTIFACTS[:OPTIONS]`; PROVIDER MUST be one of `codex`, `claude`, `gemini`, `github`, `kiro`, `opencode`; ARTIFACTS MUST be a comma-separated list from `{prompts, agents, skills}`; OPTIONS, when present, MUST be a comma-separated list from `{enable-models, enable-tools, prompts-use-agents, legacy}`.
+- **SRS-275**: MUST implement the following behavior: The CLI MUST accept a repeatable `--provider SPEC` argument as the sole mechanism for provider enablement, artifact selection, and per-provider option configuration. SPEC MUST follow the syntax `PROVIDER:ARTIFACTS[:OPTIONS]`; PROVIDER MUST be one of `codex`, `claude`, `gemini`, `github`, `kiro`, `opencode`, `pi`; ARTIFACTS MUST be a comma-separated list from `{prompts, agents, skills}`; OPTIONS, when present, MUST be a comma-separated list from `{enable-models, enable-tools, prompts-use-agents, legacy}`.
 - **SRS-276**: MUST implement the following behavior: When one or more `--provider` specs are given, each spec MUST enable the named provider for the listed artifact types and activate listed options for that provider only; artifact types and options not listed in a spec MUST remain inactive for that provider.
 - **SRS-278**: MUST implement the following behavior: If a `--provider` SPEC contains an unknown PROVIDER name, unknown ARTIFACTS value, or unknown OPTIONS value, the CLI MUST print an English error message identifying the invalid token and exit with code 1.
 - **SRS-279**: MUST implement the following behavior: The CLI MUST persist all `--provider` specs as a JSON array under the `"providers"` key in `.req/config.json`; each element MUST be the raw SPEC string as provided on the command line.
@@ -120,6 +120,14 @@ No explicit performance optimizations identified.
 
 ### 3.3 Provider Resource Generation
 - **SRS-095**: MUST implement the following behavior: For each skill subdirectory of every enabled provider, the CLI MUST generate `SKILL.md` with YAML front matter containing: `name: req-<prompt_name>`; `description` populated by `extract_skill_description(prompt_frontmatter)` (see SRS-113) escaped for YAML double-quoted strings; `model` and `tools` fields populated using the provider-specific configuration from `models.json` or `models-legacy.json` according to the per-provider `legacy` option, subject to per-provider `enable-models` and `enable-tools` options; the prompt body with token substitutions applied.
+
+- **SRS-353**: MUST implement the following behavior: Provider `pi` prompt installation MUST use the same generation and naming procedure as provider `github`, and MUST write prompt files under `.pi/prompts`.
+
+- **SRS-354**: MUST implement the following behavior: Provider `pi` skill installation MUST use the same generation and naming procedure as provider `github`, and MUST write skill files under `.pi/skills`.
+
+- **SRS-355**: MUST implement the following behavior: `src/usereq/resources/common/models.json` and `src/usereq/resources/common/models-legacy.json` MUST include a top-level `pi` configuration consumable by prompt and skill generation.
+
+- **SRS-356**: MUST implement the following behavior: Configuration persistence and update round-trips MUST preserve raw `--provider` SPEC entries that start with `pi:` under `.req/config.json` key `"providers"`.
 
 - **SRS-263**: MUST implement the following behavior: The CLI MUST treat files under `src/usereq/resources/prompts` as read-only package inputs and MUST NOT create, modify, overwrite, rename, or delete files in that directory.
 
@@ -249,7 +257,7 @@ No explicit performance optimizations identified.
 - **SRS-322**: MUST implement the following behavior: The `--git-wt-create` command MUST execute `git worktree add "<parent-path>/<WT_NAME>" -b <WT_NAME>` from within the `"git-path"` directory.
 - **SRS-323**: MUST implement the following behavior: After worktree creation, `--git-wt-create` MUST copy `"base-path"/.req` with all subdirectories to `"<parent-path>/<WT_NAME>/<base-dir>"` if `.req` is not already present in the destination.
 - **SRS-324**: MUST implement the following behavior: After worktree creation, `--git-wt-create` MUST copy active provider directories from `"base-path"` to `"<parent-path>/<WT_NAME>/<base-dir>"`, only for providers configured in `"providers"` whose source directories exist on the filesystem.
-- **SRS-325**: MUST implement the following behavior: The provider-to-directory mapping for `--git-wt-create` MUST be: claude -> `.claude/commands`, `.claude/agents`, `.claude/skills`; gemini -> `.gemini/commands`, `.gemini/skills`; github -> `.github/prompts`, `.github/agents`, `.github/skills`; codex -> `.codex/prompts`, `.codex/skills`; kiro -> `.kiro/prompts`, `.kiro/agents`, `.kiro/skills`; opencode -> `.opencode/agent`, `.opencode/command`, `.opencode/skill`.
+- **SRS-325**: MUST implement the following behavior: The provider-to-directory mapping for `--git-wt-create` MUST be: claude -> `.claude/commands`, `.claude/agents`, `.claude/skills`; gemini -> `.gemini/commands`, `.gemini/skills`; github -> `.github/prompts`, `.github/agents`, `.github/skills`; codex -> `.codex/prompts`, `.codex/skills`; kiro -> `.kiro/prompts`, `.kiro/agents`, `.kiro/skills`; opencode -> `.opencode/agent`, `.opencode/command`, `.opencode/skill`; pi -> `.pi/prompts`, `.pi/skills`.
 - **SRS-331**: MUST implement the following behavior: The `--git-wt-create` command MUST NOT change the current directory on success or failure; if post-create operations fail, it MUST rollback created worktree and branch and exit with non-zero code.
 - **SRS-335**: MUST implement the following behavior: After worktree creation, `--git-wt-create` MUST check for a `.venv` directory in `"base-path"` first, then `"git-path"`; when found and destination is absent, it MUST copy `.venv` preserving its relative path from `"git-path"`.
 

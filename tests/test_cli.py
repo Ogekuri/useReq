@@ -57,6 +57,8 @@ ALL_PROVIDERS_ALL_ARTIFACTS = [
     "kiro:prompts,agents,skills",
     "--provider",
     "opencode:prompts,agents,skills",
+    "--provider",
+    "pi:prompts,agents,skills",
 ]
 """Repeatable --provider specs that enable every provider with all artifact types."""
 
@@ -393,6 +395,79 @@ class TestCLI(unittest.TestCase):
                 "The prompt must include argument-hint in front matter",
             )
             self.assertIn("##", content, "The prompt body must be present")
+
+    def test_pi_directories_created(self) -> None:
+        """SRS-353, SRS-354: Verifies creation of .pi/prompts and .pi/skills directories."""
+        pi_prompts = self.TEST_DIR / ".pi" / "prompts"
+        pi_skills = self.TEST_DIR / ".pi" / "skills"
+        self.assertTrue(pi_prompts.is_dir(), "The directory .pi/prompts must exist")
+        self.assertTrue(pi_skills.is_dir(), "The directory .pi/skills must exist")
+
+    def test_pi_prompt_files_created(self) -> None:
+        """SRS-353: Verifies creation of .pi/prompts/req-<name>.prompt.md files."""
+        pi_prompts = self.TEST_DIR / ".pi" / "prompts"
+        expected_prompts = [
+            "req-analyze.prompt.md",
+            "req-change.prompt.md",
+            "req-check.prompt.md",
+            "req-cover.prompt.md",
+            "req-fix.prompt.md",
+            "req-new.prompt.md",
+            "req-refactor.prompt.md",
+            "req-recreate.prompt.md",
+            "req-write.prompt.md",
+        ]
+        for prompt in expected_prompts:
+            prompt_path = pi_prompts / prompt
+            self.assertTrue(
+                prompt_path.exists(),
+                f"The file {prompt} must exist in .pi/prompts",
+            )
+
+    def test_pi_skill_files_created(self) -> None:
+        """SRS-354: Verifies creation of SKILL.md for each Pi skill."""
+        pi_skills = self.TEST_DIR / ".pi" / "skills"
+        expected_skills = [
+            "req-analyze",
+            "req-change",
+            "req-check",
+            "req-cover",
+            "req-fix",
+            "req-new",
+            "req-refactor",
+            "req-recreate",
+            "req-write",
+        ]
+        for skill in expected_skills:
+            skill_path = pi_skills / skill / "SKILL.md"
+            self.assertTrue(
+                skill_path.exists(),
+                f"The file SKILL.md must exist in .pi/skills/{skill}",
+            )
+
+    def test_pi_prompt_contents_match_github(self) -> None:
+        """SRS-353: Pi prompt procedure must match GitHub prompt procedure."""
+        pi_prompt = self.TEST_DIR / ".pi" / "prompts" / "req-analyze.prompt.md"
+        github_prompt = self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
+        self.assertTrue(pi_prompt.exists(), "The Pi prompt must exist")
+        self.assertTrue(github_prompt.exists(), "The GitHub prompt must exist")
+        self.assertEqual(
+            pi_prompt.read_text(encoding="utf-8"),
+            github_prompt.read_text(encoding="utf-8"),
+            "Pi prompt content must match GitHub prompt content for same prompt",
+        )
+
+    def test_pi_skill_contents_match_github(self) -> None:
+        """SRS-354: Pi skill procedure must match GitHub skill procedure."""
+        pi_skill = self.TEST_DIR / ".pi" / "skills" / "req-analyze" / "SKILL.md"
+        github_skill = self.TEST_DIR / ".github" / "skills" / "req-analyze" / "SKILL.md"
+        self.assertTrue(pi_skill.exists(), "The Pi SKILL.md must exist")
+        self.assertTrue(github_skill.exists(), "The GitHub SKILL.md must exist")
+        self.assertEqual(
+            pi_skill.read_text(encoding="utf-8"),
+            github_skill.read_text(encoding="utf-8"),
+            "Pi SKILL.md content must match GitHub SKILL.md content for same prompt",
+        )
 
     def test_gemini_toml_files_created(self) -> None:
         """REQ-005: Verifies TOML files generation in .gemini/commands/req-"""
@@ -972,6 +1047,7 @@ class TestCLI(unittest.TestCase):
             self.TEST_DIR / ".codex" / "skills" / "req-change" / "SKILL.md",
             self.TEST_DIR / ".claude" / "skills" / "req-change" / "SKILL.md",
             self.TEST_DIR / ".github" / "skills" / "req-change" / "SKILL.md",
+            self.TEST_DIR / ".pi" / "skills" / "req-change" / "SKILL.md",
             self.TEST_DIR / ".gemini" / "skills" / "req-change" / "SKILL.md",
             self.TEST_DIR / ".kiro" / "skills" / "req-change" / "SKILL.md",
             self.TEST_DIR / ".opencode" / "skill" / "req-change" / "SKILL.md",
@@ -1715,7 +1791,7 @@ class TestKiroToolsEnabled(unittest.TestCase):
 class TestLoadCLIConfigsLegacy(unittest.TestCase):
     """Verifies load_centralized_models selects models-legacy when requested."""
 
-    CLI_NAMES = ("claude", "copilot", "gemini", "kiro", "opencode", "codex")
+    CLI_NAMES = ("claude", "copilot", "gemini", "kiro", "opencode", "codex", "pi")
 
     def setUp(self) -> None:
         self.resources_dir = Path(tempfile.mkdtemp(prefix="usereq-cli-configs-"))
@@ -1731,6 +1807,7 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
             "kiro": {"id": "kiro-config"},
             "opencode": {"id": "opencode-config"},
             "codex": {"id": "codex-config"},
+            "pi": {"id": "pi-config"},
         }
         (common_dir / "models.json").write_text(
             json.dumps(default_models, indent=2), encoding="utf-8"
@@ -1745,6 +1822,7 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
             "kiro": {"id": "kiro-legacy"},
             "opencode": {"id": "opencode-legacy"},
             "codex": {"id": "codex-legacy"},
+            "pi": {"id": "pi-legacy"},
         }
         (common_dir / "models-legacy.json").write_text(
             json.dumps(legacy_models, indent=2), encoding="utf-8"
@@ -1805,7 +1883,7 @@ class TestLoadCLIConfigsLegacy(unittest.TestCase):
 class TestBundledModelsReadmeMapping(unittest.TestCase):
     """Verifies packaged model configs align readme prompt with write prompt."""
 
-    PROVIDERS = ("codex", "copilot", "opencode", "claude", "kiro")
+    PROVIDERS = ("codex", "copilot", "opencode", "claude", "kiro", "pi")
 
     def _assert_readme_matches_write(self, config_file: Path) -> None:
         payload = json.loads(config_file.read_text(encoding="utf-8"))
@@ -2089,7 +2167,9 @@ class TestUpdateNotification(unittest.TestCase):
         table_rows = [
             line
             for line in lines
-            if line.startswith("│") and line.endswith("│") and "Prompts Installed" in line
+            if line.startswith("│")
+            and line.endswith("│")
+            and "Prompts Installed" in line
         ]
         try:
             header_line = table_rows[0]
@@ -2158,7 +2238,9 @@ class TestUpdateNotification(unittest.TestCase):
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         lines = [ansi_escape.sub("", line) for line in written.splitlines()]
-        table_lines = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        table_lines = [
+            line for line in lines if line.startswith("│") and line.endswith("│")
+        ]
         self.assertGreater(len(table_lines), 0, "Unicode table rows must be present")
         for line in table_lines:
             cells = [part for part in line.split("│")[1:-1]]
@@ -2205,7 +2287,9 @@ class TestUpdateNotification(unittest.TestCase):
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         lines = [ansi_escape.sub("", line) for line in written.splitlines()]
-        table_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        table_rows = [
+            line for line in lines if line.startswith("│") and line.endswith("│")
+        ]
         parsed: dict[str, list[str]] = {}
         current_provider = ""
         for row in table_rows:
@@ -2257,7 +2341,9 @@ class TestUpdateNotification(unittest.TestCase):
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         lines = [ansi_escape.sub("", line) for line in written.splitlines()]
-        table_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        table_rows = [
+            line for line in lines if line.startswith("│") and line.endswith("│")
+        ]
         modules_lines: list[str] = []
         current_provider = ""
         for row in table_rows:
@@ -2680,6 +2766,8 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "kiro:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
                     "--provider",
                     "opencode:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "pi:prompts,skills:enable-models,enable-tools,prompts-use-agents,legacy",
                 ]
             )
         self.assertEqual(install_exit_code, 0)
@@ -2709,13 +2797,14 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         )
         self.assertEqual(
             len(config_payload["providers"]),
-            6,
-            "All 6 provider specs must be persisted",
+            7,
+            "All 7 provider specs must be persisted",
         )
 
         shutil.rmtree(self.TEST_DIR / ".github")
         shutil.rmtree(self.TEST_DIR / ".claude")
         shutil.rmtree(self.TEST_DIR / ".opencode")
+        shutil.rmtree(self.TEST_DIR / ".pi")
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             update_exit_code = cli.main(
@@ -2751,6 +2840,14 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
             (self.TEST_DIR / ".opencode" / "agent").is_dir(),
             "Persisted opencode spec with agents artifact must regenerate OpenCode agents",
         )
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "prompts").is_dir(),
+            "Persisted pi spec with prompts artifact must regenerate Pi prompts",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "skills").is_dir(),
+            "Persisted pi spec with skills artifact must regenerate Pi skills",
+        )
 
     def test_update_here_reloads_persisted_flags(self) -> None:
         """SRS-064, SRS-288: --update with --here must reuse persisted provider specs."""
@@ -2779,6 +2876,8 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "kiro:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
                     "--provider",
                     "opencode:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "--provider",
+                    "pi:prompts,skills:enable-models,enable-tools,prompts-use-agents,legacy",
                 ]
             )
         self.assertEqual(install_exit_code, 0)
@@ -2786,6 +2885,7 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         shutil.rmtree(self.TEST_DIR / ".github")
         shutil.rmtree(self.TEST_DIR / ".claude")
         shutil.rmtree(self.TEST_DIR / ".opencode")
+        shutil.rmtree(self.TEST_DIR / ".pi")
 
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             update_exit_code = self._run_here_update(["--here", "--update"])
@@ -2799,6 +2899,14 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
         self.assertTrue(
             (self.TEST_DIR / ".github" / "skills").is_dir(),
             "Persisted skills artifact must remain effective in --here update mode",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "prompts").is_dir(),
+            "Persisted pi prompts artifact must remain effective in --here update mode",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "skills").is_dir(),
+            "Persisted pi skills artifact must remain effective in --here update mode",
         )
 
     def test_update_here_invalid_persisted_flags_uses_config_error(self) -> None:
@@ -2818,6 +2926,8 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "src",
                     "--provider",
                     "claude:prompts",
+                    "--provider",
+                    "pi:prompts,skills",
                 ]
             )
         self.assertEqual(install_exit_code, 0)
@@ -3024,7 +3134,9 @@ class TestArtifactTypeFlags(unittest.TestCase):
         written = "".join(call.args[0] for call in fake_stdout.write.call_args_list)
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
         lines = [ansi_escape.sub("", line) for line in written.splitlines()]
-        data_rows = [line for line in lines if line.startswith("│") and line.endswith("│")]
+        data_rows = [
+            line for line in lines if line.startswith("│") and line.endswith("│")
+        ]
         parsed_prompts: dict[str, list[str]] = {}
         parsed_modules: dict[str, list[str]] = {}
         current_provider = ""
@@ -3154,6 +3266,14 @@ class TestProviderSpecParsing(unittest.TestCase):
             exit_code = cli.main(self._base_args() + ["--provider", "codex:skills"])
         self.assertEqual(exit_code, 0, "--provider codex:skills must succeed")
 
+    def test_pi_provider_spec_accepted(self) -> None:
+        """SRS-275, SRS-284, SRS-353, SRS-354: --provider pi spec must be accepted."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args() + ["--provider", "pi:prompts,skills"]
+            )
+        self.assertEqual(exit_code, 0, "--provider pi:prompts,skills must succeed")
+
     def test_valid_provider_spec_with_options_accepted(self) -> None:
         """SRS-275, SRS-284: A spec with OPTIONS field must be accepted."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
@@ -3264,6 +3384,8 @@ class TestProviderSpecMultiple(unittest.TestCase):
                     "github:agents",
                     "--provider",
                     "claude:prompts",
+                    "--provider",
+                    "pi:skills",
                 ]
             )
 
@@ -3333,6 +3455,20 @@ class TestProviderSpecMultiple(unittest.TestCase):
             ".kiro must not exist when kiro is not targeted",
         )
 
+    def test_pi_skills_created(self) -> None:
+        """SRS-285, SRS-354: pi:skills must create .pi/skills directory."""
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "skills").is_dir(),
+            ".pi/skills must exist when --provider pi:skills is given",
+        )
+
+    def test_pi_prompts_not_created(self) -> None:
+        """SRS-276, SRS-285, SRS-353: pi:skills must NOT create .pi/prompts."""
+        self.assertFalse(
+            (self.TEST_DIR / ".pi" / "prompts").exists(),
+            ".pi/prompts must NOT exist when only pi:skills is specified",
+        )
+
 
 class TestProviderSpecPersistence(unittest.TestCase):
     """SRS-286: --provider specs are persisted to and restored from config.json."""
@@ -3380,6 +3516,8 @@ class TestProviderSpecPersistence(unittest.TestCase):
                     "codex:skills",
                     "--provider",
                     "github:agents",
+                    "--provider",
+                    "pi:prompts,skills",
                 ]
             )
         self.assertEqual(exit_code, 0, "Initial install with --provider must succeed")
@@ -3400,7 +3538,7 @@ class TestProviderSpecPersistence(unittest.TestCase):
         )
         self.assertEqual(
             sorted(config["providers"]),
-            sorted(["codex:skills", "github:agents"]),
+            sorted(["codex:skills", "github:agents", "pi:prompts,skills"]),
             "Persisted providers must match the CLI-supplied specs",
         )
 
@@ -3415,6 +3553,8 @@ class TestProviderSpecPersistence(unittest.TestCase):
                     "codex:skills",
                     "--provider",
                     "github:agents",
+                    "--provider",
+                    "pi:prompts,skills",
                 ]
             )
         self.assertEqual(exit_code, 0, "Initial install must succeed")
@@ -3426,6 +3566,12 @@ class TestProviderSpecPersistence(unittest.TestCase):
         github_agents = self.TEST_DIR / ".github" / "agents"
         if github_agents.exists():
             shutil.rmtree(github_agents)
+        pi_prompts = self.TEST_DIR / ".pi" / "prompts"
+        if pi_prompts.exists():
+            shutil.rmtree(pi_prompts)
+        pi_skills = self.TEST_DIR / ".pi" / "skills"
+        if pi_skills.exists():
+            shutil.rmtree(pi_skills)
 
         # Run --update (no new --provider flags, should restore persisted ones).
         previous_cwd = Path.cwd()
@@ -3445,6 +3591,14 @@ class TestProviderSpecPersistence(unittest.TestCase):
         self.assertTrue(
             github_agents.is_dir(),
             ".github/agents must be re-created from persisted provider specs on --update",
+        )
+        self.assertTrue(
+            pi_prompts.is_dir(),
+            ".pi/prompts must be re-created from persisted provider specs on --update",
+        )
+        self.assertTrue(
+            pi_skills.is_dir(),
+            ".pi/skills must be re-created from persisted provider specs on --update",
         )
 
     def test_cli_provider_replaces_persisted_on_update(self) -> None:
@@ -3521,6 +3675,8 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
                     "codex:prompts",
                     "--provider",
                     "github:agents",
+                    "--provider",
+                    "pi:prompts,skills",
                 ]
             )
         self.assertEqual(exit_code, 0, "Multiple --provider specs must succeed")
@@ -3533,6 +3689,15 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
         self.assertTrue(
             (self.TEST_DIR / ".github" / "agents").is_dir(),
             "GitHub agents must exist from --provider github:agents",
+        )
+        # Pi prompts and skills from its spec.
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "prompts").is_dir(),
+            "Pi prompts must exist from --provider pi:prompts,skills",
+        )
+        self.assertTrue(
+            (self.TEST_DIR / ".pi" / "skills").is_dir(),
+            "Pi skills must exist from --provider pi:prompts,skills",
         )
         # GitHub prompts must NOT exist (prompts not in github spec).
         self.assertFalse(
@@ -3646,16 +3811,28 @@ class TestConfigPathPersistence(unittest.TestCase):
     def test_base_path_and_git_path_persisted_on_install(self) -> None:
         """SRS-302, SRS-306: base-path and git-path are saved to config.json."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            rc = cli.main([
-                "--base", str(self.TEST_DIR),
-                "--docs-dir", "docs",
-                "--guidelines-dir", "guidelines",
-                "--tests-dir", "tests",
-                "--src-dir", "src",
-                "--provider", "claude:prompts",
-            ])
+            rc = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                    "--provider",
+                    "pi:prompts,skills",
+                ]
+            )
         self.assertEqual(rc, 0)
-        cfg = json.loads((self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8"))
+        cfg = json.loads(
+            (self.TEST_DIR / ".req" / "config.json").read_text(encoding="utf-8")
+        )
         self.assertIn("base-path", cfg)
         self.assertIn("git-path", cfg)
         self.assertEqual(cfg["base-path"], str(self.TEST_DIR.resolve()))
@@ -3664,14 +3841,24 @@ class TestConfigPathPersistence(unittest.TestCase):
     def test_base_path_updated_on_update(self) -> None:
         """SRS-303, SRS-307: base-path and git-path are updated on --update."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            cli.main([
-                "--base", str(self.TEST_DIR),
-                "--docs-dir", "docs",
-                "--guidelines-dir", "guidelines",
-                "--tests-dir", "tests",
-                "--src-dir", "src",
-                "--provider", "claude:prompts",
-            ])
+            cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                    "--provider",
+                    "pi:prompts,skills",
+                ]
+            )
         # Manually modify base-path to simulate a moved project.
         cfg_path = self.TEST_DIR / ".req" / "config.json"
         cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
@@ -3680,10 +3867,13 @@ class TestConfigPathPersistence(unittest.TestCase):
         cfg_path.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
         # Run --update; should update paths.
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            rc = cli.main([
-                "--base", str(self.TEST_DIR),
-                "--update",
-            ])
+            rc = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--update",
+                ]
+            )
         self.assertEqual(rc, 0)
         cfg2 = json.loads(cfg_path.read_text(encoding="utf-8"))
         self.assertEqual(cfg2["base-path"], str(self.TEST_DIR.resolve()))
@@ -3698,14 +3888,22 @@ class TestConfigPathPersistence(unittest.TestCase):
         (non_git / "src").mkdir(exist_ok=True)
         try:
             with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-                rc = cli.main([
-                    "--base", str(non_git),
-                    "--docs-dir", "docs",
-                    "--guidelines-dir", "guidelines",
-                    "--tests-dir", "tests",
-                    "--src-dir", "src",
-                    "--provider", "claude:prompts",
-                ])
+                rc = cli.main(
+                    [
+                        "--base",
+                        str(non_git),
+                        "--docs-dir",
+                        "docs",
+                        "--guidelines-dir",
+                        "guidelines",
+                        "--tests-dir",
+                        "tests",
+                        "--src-dir",
+                        "src",
+                        "--provider",
+                        "claude:prompts",
+                    ]
+                )
             self.assertNotEqual(rc, 0)
         finally:
             shutil.rmtree(non_git)
@@ -3723,24 +3921,48 @@ class TestGitCheckCommand(unittest.TestCase):
         subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
         subprocess.run(
             ["git", "commit", "--allow-empty", "-m", "init"],
-            cwd=str(self.TEST_DIR), capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
-                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+            cwd=str(self.TEST_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
         )
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            cli.main([
-                "--base", str(self.TEST_DIR),
-                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
-                "--tests-dir", "tests", "--src-dir", "src",
-                "--provider", "claude:prompts",
-            ])
+            cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                ]
+            )
         # Stage all so repo is clean.
-        subprocess.run(["git", "add", "-A"], cwd=str(self.TEST_DIR), capture_output=True)
+        subprocess.run(
+            ["git", "add", "-A"], cwd=str(self.TEST_DIR), capture_output=True
+        )
         subprocess.run(
             ["git", "commit", "-m", "setup"],
-            cwd=str(self.TEST_DIR), capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
-                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+            cwd=str(self.TEST_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
         )
 
     def tearDown(self) -> None:
@@ -3751,11 +3973,11 @@ class TestGitCheckCommand(unittest.TestCase):
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                "sys.stdout", new_callable=io.StringIO
-            ) as mock_stdout, patch(
-                "sys.stderr", new_callable=io.StringIO
-            ) as mock_stderr:
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+                patch("sys.stderr", new_callable=io.StringIO) as mock_stderr,
+            ):
                 rc = cli.main(["--git-check"])
             self.assertEqual(rc, 0)
             self.assertEqual(mock_stdout.getvalue(), "")
@@ -3769,15 +3991,17 @@ class TestGitCheckCommand(unittest.TestCase):
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                "sys.stdout", new_callable=io.StringIO
-            ) as mock_stdout, patch(
-                "sys.stderr", new_callable=io.StringIO
-            ) as mock_stderr:
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+                patch("sys.stderr", new_callable=io.StringIO) as mock_stderr,
+            ):
                 rc = cli.main(["--git-check"])
             self.assertNotEqual(rc, 0)
             self.assertEqual(mock_stdout.getvalue(), "")
-            self.assertEqual(mock_stderr.getvalue().strip(), "ERROR: Git status unclear!")
+            self.assertEqual(
+                mock_stderr.getvalue().strip(), "ERROR: Git status unclear!"
+            )
         finally:
             os.chdir(prev_cwd)
 
@@ -3799,12 +4023,22 @@ class TestDocsCheckCommand(unittest.TestCase):
         (self.TEST_DIR / "src").mkdir(exist_ok=True)
         subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            cli.main([
-                "--base", str(self.TEST_DIR),
-                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
-                "--tests-dir", "tests", "--src-dir", "src",
-                "--provider", "claude:prompts",
-            ])
+            cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                ]
+            )
 
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
@@ -3860,17 +4094,33 @@ class TestGitWtNameCommand(unittest.TestCase):
         subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
         subprocess.run(
             ["git", "commit", "--allow-empty", "-m", "init"],
-            cwd=str(self.TEST_DIR), capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
-                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+            cwd=str(self.TEST_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
         )
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            cli.main([
-                "--base", str(self.TEST_DIR),
-                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
-                "--tests-dir", "tests", "--src-dir", "src",
-                "--provider", "claude:prompts",
-            ])
+            cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                ]
+            )
 
     def tearDown(self) -> None:
         shutil.rmtree(self.TEST_DIR)
@@ -3878,11 +4128,14 @@ class TestGitWtNameCommand(unittest.TestCase):
     def test_git_wt_name_format(self) -> None:
         """SRS-319: output matches useReq-<PROJECT>-<BRANCH>-<TIMESTAMP>."""
         import io
+
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), \
-                 patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+            ):
                 rc = cli.main(["--git-wt-name"])
             self.assertEqual(rc, 0)
             output = mock_stdout.getvalue().strip()
@@ -3910,23 +4163,47 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
         subprocess.run(["git", "init"], cwd=str(self.TEST_DIR), capture_output=True)
         subprocess.run(
             ["git", "commit", "--allow-empty", "-m", "init"],
-            cwd=str(self.TEST_DIR), capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
-                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+            cwd=str(self.TEST_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
         )
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            cli.main([
-                "--base", str(self.TEST_DIR),
-                "--docs-dir", "docs", "--guidelines-dir", "guidelines",
-                "--tests-dir", "tests", "--src-dir", "src",
-                "--provider", "claude:prompts",
-            ])
-        subprocess.run(["git", "add", "-A"], cwd=str(self.TEST_DIR), capture_output=True)
+            cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "docs",
+                    "--guidelines-dir",
+                    "guidelines",
+                    "--tests-dir",
+                    "tests",
+                    "--src-dir",
+                    "src",
+                    "--provider",
+                    "claude:prompts",
+                ]
+            )
+        subprocess.run(
+            ["git", "add", "-A"], cwd=str(self.TEST_DIR), capture_output=True
+        )
         subprocess.run(
             ["git", "commit", "-m", "setup"],
-            cwd=str(self.TEST_DIR), capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "t@t",
-                 "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "t@t"},
+            cwd=str(self.TEST_DIR),
+            capture_output=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "test",
+                "GIT_AUTHOR_EMAIL": "t@t",
+                "GIT_COMMITTER_NAME": "test",
+                "GIT_COMMITTER_EMAIL": "t@t",
+            },
         )
 
     def tearDown(self) -> None:
@@ -3957,8 +4234,9 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
             failed = subprocess.CompletedProcess(
                 args=["git", "worktree", "add"], returncode=1, stdout="", stderr="boom"
             )
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                "usereq.cli.subprocess.run", return_value=failed
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch("usereq.cli.subprocess.run", return_value=failed),
             ):
                 rc = cli.main(["--git-wt-create", wt_name])
             self.assertNotEqual(rc, 0)
@@ -3981,12 +4259,16 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
                     "usereq.cli.PROVIDER_DIR_MAP",
                     {"claude": [".trigger-copy"]},
                 ),
-                patch("usereq.cli.shutil.copytree", side_effect=OSError("copy failure")),
+                patch(
+                    "usereq.cli.shutil.copytree", side_effect=OSError("copy failure")
+                ),
             ):
                 rc = cli.main(["--git-wt-create", wt_name])
             self.assertNotEqual(rc, 0)
             wt_dir = self.TEST_DIR.parent / wt_name
-            self.assertFalse(wt_dir.exists(), "Failed create must rollback worktree path")
+            self.assertFalse(
+                wt_dir.exists(), "Failed create must rollback worktree path"
+            )
             br = subprocess.run(
                 ["git", "show-ref", "--verify", f"refs/heads/{wt_name}"],
                 cwd=str(self.TEST_DIR),
@@ -4045,7 +4327,9 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
                 rc = cli.main(["--git-wt-create", wt_name])
             self.assertEqual(rc, 0)
             expected_wt_dir = self.TEST_DIR.parent / wt_name
-            self.assertTrue(expected_wt_dir.is_dir(), "Worktree must be created as sibling")
+            self.assertTrue(
+                expected_wt_dir.is_dir(), "Worktree must be created as sibling"
+            )
             self.assertEqual(Path.cwd(), self.TEST_DIR)
         finally:
             os.chdir(prev_cwd)
@@ -4065,7 +4349,9 @@ class TestGitWtCreateDeleteCommands(unittest.TestCase):
             with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
                 rc2 = cli.main(["--git-wt-delete", wt_name])
             self.assertEqual(rc2, 0)
-            self.assertFalse(wt_dir.exists(), "Dirty target worktree must be force-removed")
+            self.assertFalse(
+                wt_dir.exists(), "Dirty target worktree must be force-removed"
+            )
         finally:
             os.chdir(prev_cwd)
 
@@ -4172,7 +4458,9 @@ class TestGitWtCreateNestedBasePath(unittest.TestCase):
             self.assertEqual(rc, 0)
             wt_root = self.GIT_DIR.parent / wt_name
             wt_project = wt_root / "nested" / "project"
-            self.assertTrue(wt_project.is_dir(), "Nested base-dir must exist in worktree")
+            self.assertTrue(
+                wt_project.is_dir(), "Nested base-dir must exist in worktree"
+            )
             self.assertEqual(Path.cwd(), self.BASE_DIR)
         finally:
             os.chdir(prev_cwd)
@@ -4226,12 +4514,15 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                "sys.stdout", new_callable=io.StringIO
-            ) as mock_stdout:
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+            ):
                 rc = cli.main(["--git-path"])
             self.assertEqual(rc, 0)
-            self.assertEqual(mock_stdout.getvalue().strip(), str(self.TEST_DIR.resolve()))
+            self.assertEqual(
+                mock_stdout.getvalue().strip(), str(self.TEST_DIR.resolve())
+            )
         finally:
             os.chdir(prev_cwd)
 
@@ -4240,9 +4531,10 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
         prev_cwd = Path.cwd()
         try:
             os.chdir(self.TEST_DIR)
-            with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                "sys.stdout", new_callable=io.StringIO
-            ) as mock_stdout:
+            with (
+                patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+            ):
                 rc = cli.main(["--get-base-path"])
             self.assertEqual(rc, 0)
             self.assertEqual(
@@ -4267,12 +4559,15 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
     def test_git_path_without_config_fails_with_expected_error(self) -> None:
         """SRS-334: --git-path fails only when .req/config.json is missing."""
         prev_cwd = Path.cwd()
-        with tempfile.TemporaryDirectory(prefix="usereq-git-path-missing-config-") as non_git:
+        with tempfile.TemporaryDirectory(
+            prefix="usereq-git-path-missing-config-"
+        ) as non_git:
             try:
                 os.chdir(non_git)
-                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                    "sys.stderr", new_callable=io.StringIO
-                ) as mock_stderr:
+                with (
+                    patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                    patch("sys.stderr", new_callable=io.StringIO) as mock_stderr,
+                ):
                     rc = cli.main(["--git-path"])
                 self.assertNotEqual(rc, 0)
                 self.assertEqual(
@@ -4285,12 +4580,15 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
     def test_get_base_path_without_config_fails_with_expected_error(self) -> None:
         """SRS-347: --get-base-path fails only when .req/config.json is missing."""
         prev_cwd = Path.cwd()
-        with tempfile.TemporaryDirectory(prefix="usereq-get-base-path-missing-config-") as non_git:
+        with tempfile.TemporaryDirectory(
+            prefix="usereq-get-base-path-missing-config-"
+        ) as non_git:
             try:
                 os.chdir(non_git)
-                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                    "sys.stderr", new_callable=io.StringIO
-                ) as mock_stderr:
+                with (
+                    patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                    patch("sys.stderr", new_callable=io.StringIO) as mock_stderr,
+                ):
                     rc = cli.main(["--get-base-path"])
                 self.assertNotEqual(rc, 0)
                 self.assertEqual(
@@ -4303,7 +4601,9 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
     def test_git_path_reads_configured_value_outside_git_repository(self) -> None:
         """SRS-334: --git-path reads config value even outside a git repository."""
         prev_cwd = Path.cwd()
-        with tempfile.TemporaryDirectory(prefix="usereq-git-path-config-nongit-") as non_git:
+        with tempfile.TemporaryDirectory(
+            prefix="usereq-git-path-config-nongit-"
+        ) as non_git:
             non_git_path = Path(non_git)
             (non_git_path / ".req").mkdir(parents=True, exist_ok=True)
             (non_git_path / ".req" / "config.json").write_text(
@@ -4317,9 +4617,10 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
             )
             try:
                 os.chdir(non_git_path)
-                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                    "sys.stdout", new_callable=io.StringIO
-                ) as mock_stdout:
+                with (
+                    patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                    patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+                ):
                     rc = cli.main(["--git-path"])
                 self.assertEqual(rc, 0)
                 self.assertEqual(mock_stdout.getvalue().strip(), "/configured/git/path")
@@ -4329,7 +4630,9 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
     def test_get_base_path_reads_configured_value_outside_git_repository(self) -> None:
         """SRS-347: --get-base-path reads config value even outside a git repository."""
         prev_cwd = Path.cwd()
-        with tempfile.TemporaryDirectory(prefix="usereq-base-path-config-nongit-") as non_git:
+        with tempfile.TemporaryDirectory(
+            prefix="usereq-base-path-config-nongit-"
+        ) as non_git:
             non_git_path = Path(non_git)
             (non_git_path / ".req").mkdir(parents=True, exist_ok=True)
             (non_git_path / ".req" / "config.json").write_text(
@@ -4343,12 +4646,15 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
             )
             try:
                 os.chdir(non_git_path)
-                with patch("usereq.cli.maybe_notify_newer_version", autospec=True), patch(
-                    "sys.stdout", new_callable=io.StringIO
-                ) as mock_stdout:
+                with (
+                    patch("usereq.cli.maybe_notify_newer_version", autospec=True),
+                    patch("sys.stdout", new_callable=io.StringIO) as mock_stdout,
+                ):
                     rc = cli.main(["--get-base-path"])
                 self.assertEqual(rc, 0)
-                self.assertEqual(mock_stdout.getvalue().strip(), "/configured/base/path")
+                self.assertEqual(
+                    mock_stdout.getvalue().strip(), "/configured/base/path"
+                )
             finally:
                 os.chdir(prev_cwd)
 
@@ -4398,9 +4704,7 @@ class TestGitRepositoryPathCommands(unittest.TestCase):
             patch("platform.system", return_value="Linux"),
             patch("usereq.cli.subprocess.run", autospec=True) as mocked_run,
         ):
-            mocked_run.return_value = subprocess.CompletedProcess(
-                args=[], returncode=0
-            )
+            mocked_run.return_value = subprocess.CompletedProcess(args=[], returncode=0)
             cli.run_uninstall()
         mocked_run.assert_called_once_with(
             ["uv", "tool", "uninstall", "usereq"],

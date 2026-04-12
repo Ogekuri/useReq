@@ -66,6 +66,32 @@
       }
     }
   },
+  "pi": {
+    "prompts": {
+      "analyze":  { "model": "pi.dev/legacy-sonnet", "mode": "read_only" },
+      "change":   { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "check":    { "model": "pi.dev/legacy-sonnet", "mode": "read_only" },
+      "cover":    { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "create":   { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "implement": { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "workflow": { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "fix":      { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "new":      { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "renumber": { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "recreate": { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "refactor": { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "readme":   { "model": "pi.dev/legacy-sonnet", "mode": "read_write" },
+      "write":    { "model": "pi.dev/legacy-sonnet", "mode": "read_write" }
+    },
+    "usage_modes": {
+      "read_write": {
+        "tools": [ "read", "glob", "grep", "write", "shell", "todo", "todo_list", "thinking" ]
+      },
+      "read_only": {
+        "tools": [ "read", "glob", "grep", "shell", "todo", "todo_list", "thinking" ]
+      }
+    }
+  },
   "opencode": {
     "prompts": {
       "analyze":  { "model": "github-copilot/gemini-3.1-pro-preview", "mode": "read_only" },
