@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-GPL--3.0-491?style=flat-square" alt="License: GPL-3.0">
-  <img src="https://img.shields.io/badge/platform-Linux-6A7EC2?style=flat-square&logo=terminal&logoColor=white" alt="Platforms">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-6A7EC2?style=flat-square&logo=terminal&logoColor=white" alt="Platforms">
   <img src="https://img.shields.io/badge/docs-live-b31b1b" alt="Docs">
 <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv">
 </p>
@@ -23,13 +23,13 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   <a href="#known-issues">Known Issues</a> |
   <a href="#legacy-mode">Legacy Mode</a>
 </p>
-
 <p align="center">
 <br>
 🚧 <strong>DRAFT</strong>: 👾 Alpha Development 👾 - Work in Progress 🏗️ 🚧<br>
-⚠️ <strong>IMPORTANT NOTICE</strong>: Created with <a href="https://github.com/Ogekuri/useReq"><strong>useReq/req</strong></a> 🤖✨ ⚠️<br>
+⚠️ <strong>IMPORTANT NOTICE</strong>: Created itself with <a href="https://github.com/Ogekuri/useReq"><strong>useReq/req</strong></a> 🤖✨ ⚠️<br>
 <br>
 <p>
+
 
 
 ## Requirements
@@ -41,21 +41,20 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 
 
 ## Feature Highlights
-- You will no longer need to read the codebase.
-- It stops the Agent from asking more questions and makes it just do it.
-- Drives development through requirement changes.
+- **Drives development through requirement changes**.
 - Keeps development under control.
 - Usable as skills, or agents, or prompts.
 - Creates a common interface for different vendor CLIs and Agents.
 - Creates **Software Requirements Specification** [*SRS*] file, optimized for LLM Agents, for new or existing projects.
 - Keeps source code documentation updated and optimized for LLM Agents reasoning.
-- Optimized credits usage.
+- Engineered for uninterrupted linear progression.
 - Use **git worktree** to parallelize tasks (only on clean git repositories)
 - Provide **source-code analysis tool**, that supports different programming languages: Python, C, C++, C#, Rust, JavaScript, TypeScript, Java, Go, Ruby, PHP, Swift, Kotlin, Scala, Lua, Shell, Perl, Haskell, Zig, Elixir.
 - Support **static-code analysis** with Pylance, Ruff or customizable Command-Line commands.
 - Support customizable guidelines.
 - Supports [Conventional Commit Standards](https://www.conventionalcommits.org/en/v1.0.0/) and is compatible with [release-changelog-builder-action](https://github.com/mikepenz/release-changelog-builder-action).
 - Compatible with [G/Git-Alias CLI](https://github.com/Ogekuri/G).
+- You will no longer need to read the codebase.
 
 
 ## Prompts and Agents
@@ -118,10 +117,10 @@ Here the typical project's tree, except for `.req` directory you can configurare
 ```bash
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
-  --docs-dir myproject/docs/ \
-  --guidelines-dir myproject/guidelines_docs/ \
-  --tests-dir myproject/tests/ \
-  --src-dir myproject/src/ \
+  --docs-dir docs/ \
+  --guidelines-dir guidelines/ \
+  --tests-dir tests/ \
+  --src-dir src/ \
   --provider codex:prompts \
   --verbose --debug
 ```
@@ -146,35 +145,24 @@ uv tool uninstall usereq
 req \
 --base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
 --src-dir "src/" --tests-dir "tests/" \
---provider claude:prompts,agents,skills \
---provider codex:prompts \
---provider github:prompts,agents,skills
-```
-- Full-Features Install:
-```
-req \
---base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
---src-dir "src/" --tests-dir "tests/" \
 --upgrade-guidelines \
---provider claude:prompts,agents,skills:enable-models,enable-tools \
---provider codex:prompts,skills \
---provider gemini:prompts,skills \
---provider github:prompts,agents,skills:enable-models,enable-tools \
---provider kiro:prompts,agents,skills:enable-models,enable-tools \
---provider opencode:prompts,agents,skills:enable-models,enable-tools \
+--provider claude:prompts \
+--provider codex:skills \
+--provider gemini:prompts \
+--provider github:skills \
+--provider kiro:agents \
+--provider opencode:prompts \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
 --enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
 --enable-static-check C++=Command,clang-format,--dry-run,--Werror \
 --enable-static-check Python=Pylance \
 --enable-static-check Python=Ruff
-
 ```
-
 2. Use `/req-write` or `/req-create` to create requirements
 3. Use `/req-implement` to implement source-code from requirements, or `/req-cover` to cover new requirements (documentation).
 4. Use `/req-workflow` and/or `/req-references` to update project's documentation.
-5. Star to use `/req-change`, `/req-new`, and `/req-fix`.
+5. Start to use `/req-change`, `/req-new`, and `/req-fix`.
 
 ### Usage
 - Run `req` to create or recreate useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.req`, and `.vscode`.
