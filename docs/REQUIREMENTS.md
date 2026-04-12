@@ -1,8 +1,8 @@
 ---
 title: "useReq Requirements"
 description: "Software Requirements Specification"
-date: "2026-03-17"
-version: 1.09
+date: "2026-04-12"
+version: 1.10
 author: "Ogekuri"
 scope:
   paths:
@@ -97,6 +97,7 @@ No explicit performance optimizations identified.
 - **SRS-055**: MUST implement the following behavior: The repository MUST keep `uv.lock` as the canonical committed dependency lockfile for execution, build, development, testing, and static analysis environments, and MUST NOT keep a root `requirements.txt` manifest.
 - **SRS-056**: MUST implement the following behavior: `scripts/req.sh` MUST execute the CLI via `uv run python -m usereq.cli` from repository root, MUST forward all user-provided CLI arguments unchanged, and MUST rely on uv-managed runtime environments.
 - **SRS-342**: MUST implement the following behavior: `README.md` MUST include a `Requirements` section stating that Astral `uv` tool is required for `scripts/req.sh` and recommended project CLI execution workflows.
+- **SRS-352**: MUST implement the following behavior: `README.md` MUST describe only currently supported CLI flags and provider-option syntax, and MUST NOT describe removed standalone flags superseded by `--provider SPEC` options.
 - **SRS-264**: MUST implement the following behavior: Runtime dependency declarations in `pyproject.toml` `[project].dependencies` MUST be present in the locked package set defined by `uv.lock`; `[project].dependencies` MUST include `ruff` and `pyright`; `[build-system].requires` MAY be outside `uv.lock`.
 - **SRS-064**: MUST implement the following behavior: With `--update`, the CLI MUST load paths, `--preserve-models` flag, and persisted `providers` array from `.req/config.json`, then apply only CLI-provided `--preserve-models` flag and `--provider` specs as overrides; if no provider spec is active after merging, it MUST raise a config-invalid error.
 - **SRS-066**: MUST implement the following behavior: The command MUST copy the `.req/models.json` configuration file, replacing the pre-existing file if present, unless `--preserve-models` is active. When `--preserve-models` is NOT active: if the `legacy` option is NOT active for the provider being processed, it MUST copy `models.json` from package resources (`src/usereq/resources/common/models.json`); if `legacy` is active (via `--provider PROVIDER:...:legacy`) and `models-legacy.json` file is successfully loaded (i.e. when it exists), it MUST copy `models-legacy.json` from package resources (`src/usereq/resources/common/models-legacy.json`). This copy MUST take place after creating the `.req` directory and after saving `config.json`.

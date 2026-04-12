@@ -35,8 +35,8 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 ## Requirements
 
 - Astral `uv` tool is required to run `scripts/req.sh` and project CLI workflows.
-- When needed, you can generate a `requirements.txt` file with `uv export --format requirements-txt > requirements.txt`.
-- Supported environment: `linux`
+- `uv.lock` is the canonical dependency lockfile for this repository; do not maintain a root `requirements.txt` file.
+- Primary validated environment: `linux` (automatic `--upgrade` and `--uninstall` execution is Linux-only).
 - Python 3.11+
 
 
@@ -593,7 +593,15 @@ This section describes the Git behavior when executing the commands provided by 
 
 ## Legacy Mode
 
-The *Legacy Mode* can be enabled with `--legacy`.
+The *Legacy Mode* is enabled per provider via `--provider SPEC` options.
+
+Use `legacy` in the `OPTIONS` segment of `PROVIDER:ARTIFACTS[:OPTIONS]`, for example:
+
+```bash
+req --provider github:agents:legacy
+```
+
+Standalone `--legacy` is not a supported CLI flag.
 
 ### GitHub Copilot
 
