@@ -18,7 +18,7 @@ from . import source_analyzer  # usereq.source_analyzer submodule
 from . import token_counter  # usereq.token_counter submodule
 from typing import Any
 
-__version__ = "0.57.0"
+__version__ = "0.58.0"
 """! @brief Semantic version string of the package."""
 
 

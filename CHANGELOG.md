@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.57.0](https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.57.0) - 2026-04-12
+## [0.58.0](https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.58.0) - 2026-04-12
 ### ⛰️  Features
 - add pi provider generation and config support [useReq] *(cli)*
   - extend SRS with pi provider requirements and worktree mapping
@@ -25,6 +25,7 @@
   - Replace pi usage_modes tools arrays with the required bash/edit/find/ls schemas.
 
 ### 📚  Documentation
+- Update CHANGELOG.md file.
 - Update README.md file.
 
 ## [0.56.0](https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0) - 2026-04-03
@@ -1173,7 +1174,7 @@
 - \[0.54.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.54.0
 - \[0.55.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.55.0
 - \[0.56.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.56.0
-- \[0.57.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.57.0
+- \[0.58.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.58.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1231,4 +1232,4 @@
 [0.54.0]: https://github.com/Ogekuri/useReq/compare/v0.53.0..v0.54.0
 [0.55.0]: https://github.com/Ogekuri/useReq/compare/v0.54.0..v0.55.0
 [0.56.0]: https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0
-[0.57.0]: https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.57.0
+[0.58.0]: https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.58.0
