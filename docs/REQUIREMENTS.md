@@ -127,6 +127,10 @@ No explicit performance optimizations identified.
 
 - **SRS-355**: MUST implement the following behavior: `src/usereq/resources/common/models.json` and `src/usereq/resources/common/models-legacy.json` MUST include a top-level `pi` configuration consumable by prompt and skill generation.
 
+- **SRS-357**: MUST implement the following behavior: In `src/usereq/resources/common/models.json` and `src/usereq/resources/common/models-legacy.json`, provider `pi` prompt `model` values MUST match provider `copilot` for identical prompt keys.
+
+- **SRS-358**: MUST implement the following behavior: In both common models files, provider `pi` `usage_modes.read_write.tools` MUST equal `["read", "bash", "edit", "write", "grep", "find", "ls"]` and `usage_modes.read_only.tools` MUST equal `["read", "bash", "grep", "find", "ls"]`.
+
 - **SRS-356**: MUST implement the following behavior: Configuration persistence and update round-trips MUST preserve raw `--provider` SPEC entries that start with `pi:` under `.req/config.json` key `"providers"`.
 
 - **SRS-263**: MUST implement the following behavior: The CLI MUST treat files under `src/usereq/resources/prompts` as read-only package inputs and MUST NOT create, modify, overwrite, rename, or delete files in that directory.

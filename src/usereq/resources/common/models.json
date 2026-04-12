@@ -68,27 +68,27 @@
   },
   "pi": {
     "prompts": {
-      "analyze":  { "model": "pi.dev/sonnet", "mode": "read_only" },
-      "change":   { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "check":    { "model": "pi.dev/sonnet", "mode": "read_only" },
-      "cover":    { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "create":   { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "implement": { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "workflow": { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "fix":      { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "new":      { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "renumber": { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "recreate": { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "refactor": { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "readme":   { "model": "pi.dev/sonnet", "mode": "read_write" },
-      "write":    { "model": "pi.dev/sonnet", "mode": "read_write" }
+      "analyze":  { "model": "Gemini 3.1 Pro (Preview) (copilot)", "mode": "read_only" },
+      "change":   { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "check":    { "model": "Gemini 3.1 Pro (Preview) (copilot)", "mode": "read_only" },
+      "cover":    { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "create":   { "model": "Gemini 3.1 Pro (Preview) (copilot)", "mode": "read_write" },
+      "implement": { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "workflow": { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "fix":      { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "new":      { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "renumber": { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "recreate": { "model": "Gemini 3.1 Pro (Preview) (copilot)", "mode": "read_write" },
+      "refactor": { "model": "GPT-5.3-Codex (copilot)", "mode": "read_write" },
+      "readme":   { "model": "Gemini 3.1 Pro (Preview) (copilot)", "mode": "read_write" },
+      "write":    { "model": "Gemini 3.1 Pro (Preview) (copilot)", "mode": "read_write" }
     },
     "usage_modes": {
       "read_write": {
-        "tools": [ "read", "glob", "grep", "write", "shell", "todo", "todo_list", "thinking" ]
+        "tools": [ "read", "bash", "edit", "write", "grep", "find", "ls" ]
       },
       "read_only": {
-        "tools": [ "read", "glob", "grep", "shell", "todo", "todo_list", "thinking" ]
+        "tools": [ "read", "bash", "grep", "find", "ls" ]
       }
     }
   },
