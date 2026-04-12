@@ -139,7 +139,7 @@ uv tool uninstall usereq
 
 ### Quick Install
 
-1. Install on a project in path `project_path`, where `docs/`, `guidelines/`, `src/`, and `tests/` already created:
+1. Install on a project in path `project_path` (missing directories are created automatically on fresh install):
 - Typical Install:
 ```
 req \
@@ -165,17 +165,21 @@ req \
 5. Start to use `/req-change`, `/req-new`, and `/req-fix`.
 
 ### Usage
-- Run `req` to create or recreate useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.req`, and `.vscode`.
+- Run `req` to create or recreate useReq resources in your project repository (depending on enabled providers and artifact types). This can include: `.codex`, `.claude`, `.github`, `.gemini`, `.kiro`, `.opencode`, `.pi`, `.req`, and `.vscode`.
   - You can run `req` from any directory:
-    - Use `--base <project-folder>` to target a specific project directory.
-    - Use `--here` to target the current working directory as the project root.
-    - If you run it from inside the project directory, use `--here` (you cannot omit both `--base` and `--here` for initialization); you must still provide `--guidelines-dir`, `--docs-dir`, `--tests-dir`, and `--src-dir` (all must exist under the project base) unless you use `--update`.
-  - `--docs-dir` is the requirements documentation directory (must exist under the project base); if it is empty, `REQUIREMENTS.md` is generated from the packaged template.
-  - `--guidelines-dir` must be an existing directory under the project base, and can contain the user's guideline files.
-  - `--src-dir` is repeatable and can be provided multiple times to include multiple source directories (each must exist under the project base).
+    - Use `--base <project-folder>` to target a specific project directory (recommended for first installation).
+    - Use `--here` to target the current working directory.
+    - For initialization, you cannot omit both `--base` and `--here`.
+    - `--here` and `--update` load directory settings from `.req/config.json`, so first installation requires `--base`.
+  - Directory flags for initialization:
+    - `--docs-dir`, `--guidelines-dir`, `--tests-dir`, and `--src-dir` must resolve under the project base.
+    - On fresh installation (`--base` without `--update`), omitted values default to `req/docs`, `req/guidelines/`, `tests/`, and `src/`.
+    - On fresh installation, missing configured directories are created automatically.
+    - `--src-dir` is repeatable and can be provided multiple times to include multiple source directories.
+  - If `REQUIREMENTS.md` is missing in the configured docs directory, it is generated from the packaged template.
   - Use one or more `--provider SPEC` parameters (at least one is required) to configure provider activation, artifact types, and options:
     - `SPEC` format: `PROVIDER:ARTIFACTS[:OPTIONS]`
-    - `PROVIDER`: `codex`, `claude`, `gemini`, `github`, `kiro`, or `opencode`.
+    - `PROVIDER`: `codex`, `claude`, `gemini`, `github`, `kiro`, `opencode`, or `pi`.
     - `ARTIFACTS`: comma-separated list from `{prompts, agents, skills}`.
     - `OPTIONS`: (optional) comma-separated list from `{enable-models, enable-tools, prompts-use-agents, legacy}`.
     - Example: `--provider github:prompts,agents:enable-models,enable-tools`
@@ -183,6 +187,7 @@ req \
     - `skills` artifact generates skill resources for the provider.
     - `prompts` artifact generates prompts/commands resources for the provider.
     - `agents` artifact generates agent resources for the provider.
+    - Provider `pi` currently generates `.pi/prompts` and `.pi/skills`.
   - `--enable-static-check SPEC` Enable static check configuration for a language (repeatable). SPEC format: `LANG=MODULE[,CMD[,PARAM...]]`.
       - Supported `MODULE` values: `Dummy`, `Pylance`, `Ruff`, `Command` (case-insensitive).
       - Entries are merged into `.req/config.json` without replacing existing ones: existing entries are preserved, identity-duplicates are ignored, and only new non-duplicate entries are appended per language.
@@ -191,6 +196,7 @@ req \
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 - Add `--update` to update an existing installation (requires an existing `.req/config.json` under the project base).
   - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
+  - With `--update`, passing one or more `--provider` specs replaces persisted provider specs; without `--provider`, persisted specs are reused.
 - Option `legacy` (within a `--provider` spec) enables the *legacy mode* support (see below).
 - Options `enable-models` and `enable-tools` (within a `--provider` spec) include `model:` and `tools:` fields when available from centralized models configuration.
 - Add `--add-guidelines` to copy packaged guideline templates into `--guidelines-dir` without overwriting existing files.
@@ -218,19 +224,19 @@ req \
 - Run static analysis on the given files using tools configured in `.req/config.json` (standalone, no --base/--here required).
   `--files-static-check FILE [FILE ...]`
 
-- Count tokens and chars for files directly under configured `docs-dir` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed, and explicit `--docs-dir` is ignored).
+- Count tokens and chars for canonical docs files in configured `docs-dir` (`REQUIREMENTS.md`, `WORKFLOW.md`, `REFERENCES.md`; here-only project scan: `--here` is implied when omitted, `--base` is not allowed, and explicit `--docs-dir` is ignored).
   `--tokens`
 
-- Generate LLM reference markdown for git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Generate LLM reference markdown for source files selected by `git ls-files --cached --others --exclude-standard` under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--references`
 
-- Generate compressed output for git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).  
+- Generate compressed output for source files selected by `git ls-files --cached --others --exclude-standard` under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).  
   `--compress`
 
-- Find and extract specific constructs from git-tracked source files under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Find and extract specific constructs from source files selected by `git ls-files --cached --others --exclude-standard` under configured `src-dir` directories (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--find TAG PATTERN`
 
-- Run static analysis on git-tracked source files under configured `src-dir` directories using tools configured in `.req/config.json` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Run static analysis on source files selected by `git ls-files --cached --others --exclude-standard` under configured `src-dir` directories (plus configured `tests-dir`, excluding `fixtures/`) using tools configured in `.req/config.json` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--static-check`
 
 - Check repository integrity for the configured git path: clean working tree and valid HEAD (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
@@ -239,10 +245,10 @@ req \
 - Check canonical docs presence in configured `docs-dir`: `REQUIREMENTS.md`, `WORKFLOW.md`, `REFERENCES.md` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--docs-check`
 
-- Create an isolated git worktree and branch with the provided name; also copies `.req/` and active provider directories into the new worktree context (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Create an isolated git worktree and branch with the provided name; also copies `.req/`, active provider directories, and `.venv` (when present) into the new worktree context (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--git-wt-create WT_NAME`
 
-- Remove the git worktree and branch identified by name (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
+- Remove the git worktree and branch identified by name (force-removes the target worktree and deletes the branch; here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
   `--git-wt-delete WT_NAME`
 
 - Print the configured `git-path` value from `.req/config.json`; if `.req/config.json` is missing, the command fails with `Error: .req/config.json not found in the project root` (here-only project scan: `--here` is implied when omitted, `--base` is not allowed).
@@ -298,6 +304,7 @@ req \
 - ✅ Claude Code
 - ✅ GitHub Copilot
 - ✅ OpenCode
+- ✅ pi coding agent
 - ✔️ Gemini Code Assist
 - ✔️ Kiro CLI
 
