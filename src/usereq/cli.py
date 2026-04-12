@@ -45,6 +45,18 @@ REQUIREMENTS_TEMPLATE_NAME = "Requirements_Template.md"
 PERSISTED_UPDATE_FLAG_KEYS = ("preserve-models",)
 """! @brief Config keys persisted for install/update boolean flags (SRS-288)."""
 
+DEFAULT_DOCS_DIR = "req/docs"
+"""! @brief Default docs-dir value for fresh installation when --docs-dir is omitted."""
+
+DEFAULT_GUIDELINES_DIR = "req/guidelines/"
+"""! @brief Default guidelines-dir value for fresh installation when --guidelines-dir is omitted."""
+
+DEFAULT_TESTS_DIR = "tests/"
+"""! @brief Default tests-dir value for fresh installation when --tests-dir is omitted."""
+
+DEFAULT_SRC_DIRS = ("src/",)
+"""! @brief Default src-dir entries for fresh installation when --src-dir is omitted."""
+
 VALID_PROVIDERS = frozenset(
     {"codex", "claude", "gemini", "github", "kiro", "opencode", "pi"}
 )
@@ -301,7 +313,7 @@ def build_parser() -> argparse.ArgumentParser:
     version = load_package_version()
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
-        "--docs-dir DOCS_DIR --guidelines-dir GUIDELINES_DIR --tests-dir TESTS_DIR --src-dir SRC_DIR [--verbose] [--debug] "
+        "[--docs-dir DOCS_DIR] [--guidelines-dir GUIDELINES_DIR] [--tests-dir TESTS_DIR] [--src-dir SRC_DIR] [--verbose] [--debug] "
         "[--provider PROVIDER:ARTIFACTS[:OPTIONS]] "
         "[--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
@@ -325,18 +337,33 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use current working directory as the project root.",
     )
     parser.add_argument(
-        "--docs-dir", help="Documentation directory relative to the project root."
+        "--docs-dir",
+        help=(
+            "Documentation directory relative to the project root. "
+            "Fresh install default when omitted: req/docs."
+        ),
     )
     parser.add_argument(
-        "--guidelines-dir", help="Technical directory relative to the project root."
+        "--guidelines-dir",
+        help=(
+            "Technical directory relative to the project root. "
+            "Fresh install default when omitted: req/guidelines/."
+        ),
     )
     parser.add_argument(
-        "--tests-dir", help="Test directory relative to the project root."
+        "--tests-dir",
+        help=(
+            "Test directory relative to the project root. "
+            "Fresh install default when omitted: tests/."
+        ),
     )
     parser.add_argument(
         "--src-dir",
         action="append",
-        help="Source directory relative to the project root (repeatable).",
+        help=(
+            "Source directory relative to the project root (repeatable). "
+            "Fresh install default when omitted: src/."
+        ),
     )
     parser.add_argument(
         "--upgrade", action="store_true", help="Upgrade the tool with uv."
@@ -1285,73 +1312,126 @@ def maybe_notify_newer_version(
         return
 
 
-def ensure_doc_directory(path: str, project_base: Path) -> None:
+def ensure_guidelines_directory(
+    path: str, project_base: Path, *, create_missing: bool = False
+) -> None:
     """!
-    @brief Ensures the documentation directory exists under the project base.
-        @param path The relative path to the documentation directory.
-        @param project_base The project root path.
-        @throws ReqError If path is invalid, absolute, or not a directory.
-    @details Implements the ensure_doc_directory function behavior with deterministic control flow.
+    @brief Resolve and validate guidelines directory path under project base.
+    @details Normalizes input path against project base, enforces in-repository containment, and validates directory shape. When `create_missing` is true, creates missing directory and all missing parent directories.
+    @param path {str} Candidate guidelines directory path.
+    @param project_base {Path} Absolute project base path.
+    @param create_missing {bool} Installation-mode flag enabling recursive directory creation.
     @return {None} Function return value.
+    @throws {ReqError} Raised when path escapes project base or resolves to a file.
+    @satisfies SRS-360, SRS-363
+    """
+    normalized = make_relative_if_contains_project(path, project_base)
+    guidelines_path = project_base / normalized
+    resolved = guidelines_path.resolve(strict=False)
+    if not resolved.is_relative_to(project_base):
+        raise ReqError("Error: --guidelines-dir must be under the project base", 8)
+    if guidelines_path.exists() and not guidelines_path.is_dir():
+        raise ReqError(
+            "Error: --guidelines-dir must specify a directory, not a file", 8
+        )
+    if not guidelines_path.exists():
+        if create_missing:
+            guidelines_path.mkdir(parents=True, exist_ok=True)
+        else:
+            raise ReqError(
+                f"Error: the --guidelines-dir directory '{normalized}' does not exist under {project_base}",
+                8,
+            )
+
+
+def ensure_doc_directory(
+    path: str, project_base: Path, *, create_missing: bool = False
+) -> None:
+    """!
+    @brief Resolve and validate docs directory path under project base.
+    @details Normalizes input path against project base, enforces in-repository containment, and validates directory shape. When `create_missing` is true, creates missing directory and all missing parent directories.
+    @param path {str} Candidate docs directory path.
+    @param project_base {Path} Absolute project base path.
+    @param create_missing {bool} Installation-mode flag enabling recursive directory creation.
+    @return {None} Function return value.
+    @throws {ReqError} Raised when path escapes project base or resolves to a file.
+    @satisfies SRS-359, SRS-363
     """
     normalized = make_relative_if_contains_project(path, project_base)
     doc_path = project_base / normalized
     resolved = doc_path.resolve(strict=False)
     if not resolved.is_relative_to(project_base):
         raise ReqError("Error: --docs-dir must be under the project base", 5)
-    if not doc_path.exists():
-        raise ReqError(
-            f"Error: the --docs-dir directory '{normalized}' does not exist under {project_base}",
-            5,
-        )
-    if not doc_path.is_dir():
+    if doc_path.exists() and not doc_path.is_dir():
         raise ReqError("Error: --docs-dir must specify a directory, not a file", 5)
+    if not doc_path.exists():
+        if create_missing:
+            doc_path.mkdir(parents=True, exist_ok=True)
+        else:
+            raise ReqError(
+                f"Error: the --docs-dir directory '{normalized}' does not exist under {project_base}",
+                5,
+            )
 
 
-def ensure_test_directory(path: str, project_base: Path) -> None:
+def ensure_test_directory(
+    path: str, project_base: Path, *, create_missing: bool = False
+) -> None:
     """!
-    @brief Ensures the test directory exists under the project base.
-        @param path The relative path to the test directory.
-        @param project_base The project root path.
-        @throws ReqError If path is invalid, absolute, or not a directory.
-    @details Implements the ensure_test_directory function behavior with deterministic control flow.
+    @brief Resolve and validate tests directory path under project base.
+    @details Normalizes input path against project base, enforces in-repository containment, and validates directory shape. When `create_missing` is true, creates missing directory and all missing parent directories.
+    @param path {str} Candidate tests directory path.
+    @param project_base {Path} Absolute project base path.
+    @param create_missing {bool} Installation-mode flag enabling recursive directory creation.
     @return {None} Function return value.
+    @throws {ReqError} Raised when path escapes project base or resolves to a file.
+    @satisfies SRS-361, SRS-363
     """
     normalized = make_relative_if_contains_project(path, project_base)
     test_path = project_base / normalized
     resolved = test_path.resolve(strict=False)
     if not resolved.is_relative_to(project_base):
         raise ReqError("Error: --tests-dir must be under the project base", 5)
-    if not test_path.exists():
-        raise ReqError(
-            f"Error: the --tests-dir directory '{normalized}' does not exist under {project_base}",
-            5,
-        )
-    if not test_path.is_dir():
+    if test_path.exists() and not test_path.is_dir():
         raise ReqError("Error: --tests-dir must specify a directory, not a file", 5)
+    if not test_path.exists():
+        if create_missing:
+            test_path.mkdir(parents=True, exist_ok=True)
+        else:
+            raise ReqError(
+                f"Error: the --tests-dir directory '{normalized}' does not exist under {project_base}",
+                5,
+            )
 
 
-def ensure_src_directory(path: str, project_base: Path) -> None:
+def ensure_src_directory(
+    path: str, project_base: Path, *, create_missing: bool = False
+) -> None:
     """!
-    @brief Ensures the source directory exists under the project base.
-        @param path The relative path to the source directory.
-        @param project_base The project root path.
-        @throws ReqError If path is invalid, absolute, or not a directory.
-    @details Implements the ensure_src_directory function behavior with deterministic control flow.
+    @brief Resolve and validate source directory path under project base.
+    @details Normalizes input path against project base, enforces in-repository containment, and validates directory shape. When `create_missing` is true, creates missing directory and all missing parent directories.
+    @param path {str} Candidate source directory path.
+    @param project_base {Path} Absolute project base path.
+    @param create_missing {bool} Installation-mode flag enabling recursive directory creation.
     @return {None} Function return value.
+    @throws {ReqError} Raised when path escapes project base or resolves to a file.
+    @satisfies SRS-362, SRS-363
     """
     normalized = make_relative_if_contains_project(path, project_base)
     src_path = project_base / normalized
     resolved = src_path.resolve(strict=False)
     if not resolved.is_relative_to(project_base):
         raise ReqError("Error: --src-dir must be under the project base", 5)
-    if not src_path.exists():
-        raise ReqError(
-            f"Error: the --src-dir directory '{normalized}' does not exist under {project_base}",
-            5,
-        )
-    if not src_path.is_dir():
+    if src_path.exists() and not src_path.is_dir():
         raise ReqError("Error: --src-dir must specify a directory, not a file", 5)
+    if not src_path.exists():
+        if create_missing:
+            src_path.mkdir(parents=True, exist_ok=True)
+        else:
+            raise ReqError(
+                f"Error: the --src-dir directory '{normalized}' does not exist under {project_base}",
+                5,
+            )
 
 
 def make_relative_if_contains_project(path_value: str, project_base: Path) -> str:
@@ -2746,10 +2826,10 @@ def _validate_enable_static_check_command_executables(
 def run(args: Namespace) -> None:
     """!
     @brief Handles the main initialization flow.
-        @details Validates input arguments, normalizes paths, and orchestrates resource generation per provider and artifact type. Requires at least one ``--provider`` spec (SRS-035). Deduplicates ``--enable-static-check`` entries (SRS-251, SRS-301).
+        @details Validates input arguments, resolves install/update path sources, applies fresh-install defaults for omitted directory flags, creates configured directory trees during installation, and orchestrates provider artifact generation. Requires at least one ``--provider`` spec (SRS-035). Deduplicates ``--enable-static-check`` entries (SRS-251, SRS-301).
         @param args Parsed CLI namespace; must contain ``provider_specs`` list and ``preserve_models`` boolean.
     @return {None} Function return value.
-    @satisfies SRS-251, SRS-301
+    @satisfies SRS-035, SRS-064, SRS-251, SRS-301, SRS-359, SRS-360, SRS-361, SRS-362, SRS-363
     """
     global VERBOSE, DEBUG
     VERBOSE = args.verbose
@@ -2793,16 +2873,6 @@ def run(args: Namespace) -> None:
             "Error: --update does not accept --guidelines-dir, --docs-dir, --tests-dir, or --src-dir",
             4,
         )
-    if (
-        (not use_here_config)
-        and (not args.update)
-        and (not guidelines_dir or not doc_dir or not test_dir or not src_dir)
-    ):
-        raise ReqError(
-            "Error: --guidelines-dir, --docs-dir, --tests-dir, and --src-dir are required without --update",
-            4,
-        )
-
     if use_here_config or args.update:
         config = load_config(project_base)
         guidelines_dir_value = config["guidelines-dir"]
@@ -2810,10 +2880,12 @@ def run(args: Namespace) -> None:
         test_dir_value = config["tests-dir"]
         src_dir_values = config["src-dir"]
     else:
-        guidelines_dir_value = guidelines_dir
-        doc_dir_value = doc_dir
-        test_dir_value = test_dir
-        src_dir_values = src_dir
+        guidelines_dir_value = (
+            guidelines_dir if guidelines_dir is not None else DEFAULT_GUIDELINES_DIR
+        )
+        doc_dir_value = doc_dir if doc_dir is not None else DEFAULT_DOCS_DIR
+        test_dir_value = test_dir if test_dir is not None else DEFAULT_TESTS_DIR
+        src_dir_values = src_dir if src_dir is not None else list(DEFAULT_SRC_DIRS)
 
     if args.update:
         persisted_flags = load_persisted_update_flags(project_base)
@@ -2832,10 +2904,20 @@ def run(args: Namespace) -> None:
     ):
         raise ReqError("Error: invalid src configuration values", 11)
 
-    ensure_doc_directory(doc_dir_value, project_base)
-    ensure_test_directory(test_dir_value, project_base)
+    create_missing_dirs = not args.update and not use_here_config
+    ensure_guidelines_directory(
+        guidelines_dir_value, project_base, create_missing=create_missing_dirs
+    )
+    ensure_doc_directory(
+        doc_dir_value, project_base, create_missing=create_missing_dirs
+    )
+    ensure_test_directory(
+        test_dir_value, project_base, create_missing=create_missing_dirs
+    )
     for src_dir_value in src_dir_values:
-        ensure_src_directory(src_dir_value, project_base)
+        ensure_src_directory(
+            src_dir_value, project_base, create_missing=create_missing_dirs
+        )
 
     normalized_guidelines = make_relative_if_contains_project(
         guidelines_dir_value, project_base
@@ -2909,11 +2991,6 @@ def run(args: Namespace) -> None:
         config_src_dirs.append(config_src)
 
     guidelines_dest = project_base / normalized_guidelines
-    if not guidelines_dest.is_dir():
-        raise ReqError(
-            f"Error: GUIDELINES_DIR directory '{normalized_guidelines}' does not exist under {project_base}",
-            8,
-        )
     if VERBOSE:
         log(f"OK: technical directory found {guidelines_dest}")
 

@@ -117,6 +117,11 @@ No explicit performance optimizations identified.
 - **SRS-349**: MUST persist a 3600-second idle-delay after a successful startup HTTP release-check; when the fetched version is newer than the installed version, it MUST print a bright-green stderr message `New version available: installed <installed_version>, latest <latest_version>.`.
 - **SRS-350**: MUST print a bright-red stderr diagnostic for every startup release-check failure and MUST rewrite `~/.cache/usereq/check_version_idle-time.json` with a newly calculated `idle_until_timestamp` on every failure.
 - **SRS-351**: MUST use an 86400-second idle-delay for startup release-check API call failures (`HTTPError`, `URLError`, `TimeoutError`); all other startup release-check failures MUST use the default 3600-second idle-delay.
+- **SRS-359**: MUST use default `req/docs` for `--docs-dir` during installation when `--docs-dir` is omitted.
+- **SRS-360**: MUST use default `req/guidelines/` for `--guidelines-dir` during installation when `--guidelines-dir` is omitted.
+- **SRS-361**: MUST use default `tests/` for `--tests-dir` during installation when `--tests-dir` is omitted.
+- **SRS-362**: MUST use default `src/` as the only `src-dir` entry during installation when `--src-dir` is omitted.
+- **SRS-363**: MUST create missing parent directories when creating paths from `--docs-dir`, `--guidelines-dir`, `--tests-dir`, and each configured `--src-dir` entry during installation.
 
 ### 3.3 Provider Resource Generation
 - **SRS-095**: MUST implement the following behavior: For each skill subdirectory of every enabled provider, the CLI MUST generate `SKILL.md` with YAML front matter containing: `name: req-<prompt_name>`; `description` populated by `extract_skill_description(prompt_frontmatter)` (see SRS-113) escaped for YAML double-quoted strings; `model` and `tools` fields populated using the provider-specific configuration from `models.json` or `models-legacy.json` according to the per-provider `legacy` option, subject to per-provider `enable-models` and `enable-tools` options; the prompt body with token substitutions applied.

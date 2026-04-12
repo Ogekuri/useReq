@@ -3224,6 +3224,148 @@ class TestArtifactTypeFlags(unittest.TestCase):
 # ── --provider SPEC tests (SRS-275 .. SRS-287) ───────────────────────────
 
 
+class TestInstallDefaultDirectories(unittest.TestCase):
+    """SRS-359..SRS-363: Fresh install default directories and recursive creation behavior."""
+
+    TEST_DIR = (
+        Path(__file__).resolve().parents[1]
+        / "temp"
+        / "project-test-install-default-directories"
+    )
+
+    def setUp(self) -> None:
+        """!
+        @brief Prepare isolated git-backed project directory for install-path tests.
+        @details Recreates temporary directory tree and initializes git repository before each test to satisfy install git precondition checks.
+        @return {None} Function return value.
+        """
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+        self.TEST_DIR.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["git", "init"], cwd=self.TEST_DIR, check=True, capture_output=True
+        )
+
+    def tearDown(self) -> None:
+        """!
+        @brief Remove temporary project directory after each test case.
+        @details Ensures deterministic filesystem state across test cases by deleting the full temporary subtree.
+        @return {None} Function return value.
+        """
+        if self.TEST_DIR.exists():
+            shutil.rmtree(self.TEST_DIR)
+
+    def test_install_uses_default_directories_when_cli_flags_omitted(self) -> None:
+        """!
+        @brief Verify fresh install defaults for omitted directory flags.
+        @details Executes install with `--base` and `--provider` only, then validates default directory creation (`req/docs`, `req/guidelines/`, `tests/`, `src/`) and persisted `.req/config.json` values.
+        @return {None} Function return value.
+        """
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--provider",
+                    "codex:prompts",
+                ]
+            )
+        self.assertEqual(exit_code, 0, "Fresh install with omitted dirs must succeed")
+        self.assertTrue((self.TEST_DIR / "req" / "docs").is_dir())
+        self.assertTrue((self.TEST_DIR / "req" / "guidelines").is_dir())
+        self.assertTrue((self.TEST_DIR / "tests").is_dir())
+        self.assertTrue((self.TEST_DIR / "src").is_dir())
+
+        config = json.loads((self.TEST_DIR / ".req" / "config.json").read_text("utf-8"))
+        self.assertEqual(config["docs-dir"], "req/docs")
+        self.assertEqual(config["guidelines-dir"], "req/guidelines/")
+        self.assertEqual(config["tests-dir"], "tests/")
+        self.assertEqual(config["src-dir"], ["src/"])
+
+    def test_install_creates_missing_parent_directories_for_configured_paths(
+        self,
+    ) -> None:
+        """!
+        @brief Verify recursive parent creation for configured installation paths.
+        @details Executes fresh install using nested relative directories for docs, guidelines, tests, and two `--src-dir` entries; validates that configured leaf directories and missing parent chains are created.
+        @return {None} Function return value.
+        """
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "a/b/docs-target",
+                    "--guidelines-dir",
+                    "x/y/guidelines-target/",
+                    "--tests-dir",
+                    "m/n/tests-target/",
+                    "--src-dir",
+                    "s/t/src-one/",
+                    "--src-dir",
+                    "u/v/src-two",
+                    "--provider",
+                    "codex:prompts",
+                ]
+            )
+        self.assertEqual(
+            exit_code, 0, "Install with nested configured paths must succeed"
+        )
+        self.assertTrue((self.TEST_DIR / "a").is_dir())
+        self.assertTrue((self.TEST_DIR / "a" / "b" / "docs-target").is_dir())
+        self.assertTrue((self.TEST_DIR / "x" / "y" / "guidelines-target").is_dir())
+        self.assertTrue((self.TEST_DIR / "m" / "n" / "tests-target").is_dir())
+        self.assertTrue((self.TEST_DIR / "s" / "t" / "src-one").is_dir())
+        self.assertTrue((self.TEST_DIR / "u" / "v" / "src-two").is_dir())
+
+    def test_update_keeps_configured_directories_and_does_not_apply_install_defaults(
+        self,
+    ) -> None:
+        """!
+        @brief Verify update path reads directory configuration from `.req/config.json`.
+        @details Performs install with explicit non-default directories, runs `--here --update`, and verifies persisted directory keys remain unchanged and install defaults (`req/docs`) are not auto-applied.
+        @return {None} Function return value.
+        """
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            install_exit_code = cli.main(
+                [
+                    "--base",
+                    str(self.TEST_DIR),
+                    "--docs-dir",
+                    "custom/docs",
+                    "--guidelines-dir",
+                    "custom/guidelines/",
+                    "--tests-dir",
+                    "custom/tests/",
+                    "--src-dir",
+                    "custom/src/",
+                    "--provider",
+                    "codex:prompts",
+                ]
+            )
+        self.assertEqual(install_exit_code, 0)
+
+        current_dir = Path.cwd()
+        try:
+            os.chdir(self.TEST_DIR)
+            with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                update_exit_code = cli.main(["--here", "--update"])
+        finally:
+            os.chdir(current_dir)
+
+        self.assertEqual(update_exit_code, 0)
+        config = json.loads((self.TEST_DIR / ".req" / "config.json").read_text("utf-8"))
+        self.assertEqual(config["docs-dir"], "custom/docs")
+        self.assertEqual(config["guidelines-dir"], "custom/guidelines/")
+        self.assertEqual(config["tests-dir"], "custom/tests/")
+        self.assertEqual(config["src-dir"], ["custom/src/"])
+        self.assertFalse(
+            (self.TEST_DIR / "req" / "docs").exists(),
+            "Update path must not apply fresh-install defaults when custom config exists",
+        )
+
+
 class TestProviderSpecParsing(unittest.TestCase):
     """SRS-284: Verifies --provider SPEC parsing accepts valid specs and rejects invalid ones."""
 
