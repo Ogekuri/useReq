@@ -10,7 +10,7 @@
 
 <p align="center">
 <strong>The <u>req</u> script provides CLI prompts for requirements-driven software development.</strong><br>
-The defined prompts are exposed as <b>/req-<name></b> commands within various CLIs and Agents.<br>
+The defined prompts are exposed through provider-specific prompt, skill, and agent surfaces across supported CLIs and Agents (for example <b>/req-<name></b>, <b>/req:<name></b>, <b>/skill:req-<name></b>, or <b>/req-<name>.prompt</b>).<br>
 This allows them to be run both as a Python package (installed as <b>req</b>, <b>usereq</b>, or <b>use-req</b>) and directly using <b>uvx</b>.
 </p>
 
@@ -178,15 +178,15 @@ req \
   - If `REQUIREMENTS.md` is missing in the configured docs directory, it is generated from the packaged template.
   - Use one or more `--provider SPEC` parameters (at least one is required) to configure provider activation, artifact types, and options:
     - `SPEC` format: `PROVIDER:ARTIFACTS[:OPTIONS]`
-    - `PROVIDER`: `codex`, `claude`, `gemini`, `github`, `kiro`, `opencode`, or `pi`.
+    - `PROVIDER`: `pi`, `codex`, `claude`, `gemini`, `github`, `kiro`, or `opencode`.
     - `ARTIFACTS`: comma-separated list from `{prompts, agents, skills}`.
     - `OPTIONS`: (optional) comma-separated list from `{enable-models, enable-tools, prompts-use-agents, legacy}`.
-    - Example: `--provider github:prompts,agents:enable-models,enable-tools`
+    - Example: `--provider pi:prompts,skills:enable-models,enable-tools`
   - Artifact types (specified within the `--provider` spec):
     - `skills` artifact generates skill resources for the provider.
     - `prompts` artifact generates prompts/commands resources for the provider.
     - `agents` artifact generates agent resources for the provider.
-    - Provider `pi` currently generates `.pi/prompts` and `.pi/skills`.
+    - Provider `pi` currently generates `.pi/prompts/req-<name>.prompt.md` and `.pi/skills/req-<name>/SKILL.md`.
   - `--enable-static-check SPEC` Enable static check configuration for a language (repeatable). SPEC format: `LANG=MODULE[,CMD[,PARAM...]]`.
       - Supported `MODULE` values: `Dummy`, `Pylance`, `Ruff`, `Command` (case-insensitive).
       - Entries are merged into `.req/config.json` without replacing existing ones: existing entries are preserved, identity-duplicates are ignored, and only new non-duplicate entries are appended per language.
@@ -289,27 +289,32 @@ req \
 
 ### High-Level Assessment
 
-- 🌟 **GitHub Copilot** 🌟 - Many models available
+- 🌟 **pi.dev CLI** 🌟 - Supports project-local prompt templates and Agent Skills from `.pi/prompts/` and `.pi/skills/`.
+- 🌟 **GitHub Copilot** 🌟 - Many models available.
 - 👍 **OpenCode** 👍 - Many models available. Does not support `tools:` on agents/prompts.
 - ⚖️ **Claude Code** ⚖️ - Only supports Claude/Anthropic models.
 - 🆗 **OpenAI Codex** 🆗 - Only supports OpenAI models. Does not support agents, `model:`, or `tools:` on prompts.
 - 👎 **Kiro CLI** 👎 - Only supports Claude/Anthropic models. Does not support `$ARGUMENTS` on prompts.
-- ☢️ **Gemini Code Assist** ☢️ - Only supports Google models. Does not support agents, `model:`, or `tools:`. VS Code extension does not support agents or prompts.
+- ☢️ **Gemini Code Assist** ☢️ - Only supports Google models. VS Code extension does not support agents or prompts.
 
 
 ### useReq/req Support
+- ✅ pi.dev CLI (`--provider pi:...`)
 - ✅ OpenAI Codex
   - set environment variable **CODEX_HOME** to project's home before running the codex CLI
 - ✅ Claude Code
 - ✅ GitHub Copilot
 - ✅ OpenCode
-- ✅ pi coding agent
 - ✔️ Gemini Code Assist
 - ✔️ Kiro CLI
 
 | ✅ supported | ✔️ partially supported | ❌ issues | ⛔ not supported |
 
 #### Skills Details
+- ✅ pi.dev CLI: [`/skill:req-create`]
+  - useReq generates `.pi/skills/req-create/SKILL.md`.
+  - pi discovers project skills from `.pi/skills/` and registers them as `/skill:name` commands.
+  - Arguments after the command are appended to the skill content as `User: <args>`.
 - ✅ OpenAI Codex: [`$req-create`]
 - ✅ Claude Code: [`/req-create`]
 - ✅ GitHub Copilot: [`/req-create`]
@@ -318,11 +323,15 @@ req \
 - ❌ Kiro: Does not work as expected
 
 #### CLI Prompt Details
+- ✅ pi.dev CLI: [`/req-create.prompt`]
+  - useReq generates `.pi/prompts/req-create.prompt.md`.
+  - pi prompt templates use the filename without `.md` as the command name, so the generated `.prompt` suffix remains part of the slash command.
+  - Prompt arguments are supported by pi prompt templates (`$1`, `$2`, `$@`, `$ARGUMENTS`).
 - ✅ OpenAI Codex: [`/prompts:/req-create`]
 - ✅ Claude Code: [`/req:create`]
 - ✅ GitHub Copilot: [`/agent ➡️ req-create ↩️`]
   - Use `legacy` (within a `--provider` spec) to not add `model:` on agents.
-  - Slash command not supported. 
+  - Slash command not supported.
   - Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
   - Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
 - ✅ OpenCode: [`/req-create`]
@@ -334,6 +343,8 @@ req \
   - Defect #4141 → [Saved prompt with arguments only works when entire message is quoted in CLI (Spec Kit + Kiro CLI 1.21.0) #4141](https://github.com/kirodotdev/Kiro/issues/4141)
 
 #### CLI Agents Details
+- ❌ pi.dev CLI
+  - useReq does not generate `.pi/agents`; provider `pi` currently emits `.pi/prompts` and `.pi/skills` only.
 - ❌ OpenAI Codex
 - ✅ Claude Code: [`@agent-req-create`]
 - ❌ GitHub Copilot
@@ -344,6 +355,8 @@ req \
   - **Clears the context** (`/clear`) for every prompt.
 
 #### Visual Studio Code Extension Details
+- ❌ pi.dev CLI
+  - useReq integrates pi through `.pi/` project resources; it does not generate a separate Visual Studio Code extension surface for provider `pi`.
 - ✅ OpenAI Codex Extension for Visual Studio Code
   - Skills: [`/ ➡️ Req.Create ↩️`]
   - Prompts: [`/prompts:/req-create`]
@@ -370,205 +383,105 @@ req \
 
 ## Enable model and tools on prompts/agents
 
-The `enable-tools` option (within a `--provider` spec) adds a `tools:` specification to prompts based on read/write requirements.
+The `enable-tools` option (within a `--provider` spec) adds a `tools:` specification when the selected provider has a matching `usage_modes` entry in `src/usereq/resources/common/models.json`.
 
-The `enable-models` option (within a `--provider` spec) adds a `model:` specification to prompts as detailed in the tables below.
+The `enable-models` option (within a `--provider` spec) adds a `model:` specification using the mappings from `src/usereq/resources/common/models.json`.
 
-### Models Specs
+The prompt-name mappings below are also reused for generated skill artifacts when the provider supports `skills`.
 
-  | Model | Context Length | Reasoning [1] |
-  | --- | --- | --- |
-  | Grok Code Fast 0 | 256K | |
-  | Claude Haiku 4.5 | 200K | |
-  | Claude Sonnet 4.5 | 1M | | [2]
-  | Claude Opus 4.5 | 200K | *Yes* |
-  | Gemini 3 Flash (Preview) | 1.05M | |
-  | Gemini 3.1 Pro (Preview) | 1.05M | Yes |
-  | GPT-4.1 | 1.05M | **No** |
-  | GPT-5 mini | 400K | Yes |
-  | GPT-5.1 | 400K | Yes |
-  | GPT-5.1-Codex-Mini (Preview) |  400K | |
-  | GPT-5.1-Codex | 400K | |
-  | GPT-5.1-Codex-Max | 400K | |
-  | GPT-5.2 | 400K | *Yes* | 
-  | GPT-5.2-Codex | 400K | *Yes* | 
+### pi.dev CLI
 
-  [1] *Reasoning availability according to openrouter.ai*
-  [2] *Claude Sonnet 4.5 supports a 1M token context window when using the context-1m-2025-08-07 beta header. Long context pricing applies to requests exceeding 200K tokens.*
+#### Tool Sets
+
+- `read_only`: `read`, `bash`, `grep`, `find`, `ls`
+- `read_write`: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`
+
+#### Configured Models
+
+| Prompts | Model | Mode |
+| --- | --- | --- |
+| `analyze`, `check` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_only` |
+| `create`, `readme`, `recreate`, `write` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_write` |
+| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `GPT-5.3-Codex (copilot)` | `read_write` |
 
 ### GitHub Copilot
 
-#### Available Models and Costs
+#### Tool Sets
 
-  | Model | Cost |
-  | --- | --- |
-  | Grok Code Fast 0 | **0x** |
-  | Claude Haiku 4.5 | 0.33x |
-  | Claude Sonnet 4.5 | 1x |
-  | *Claude Opus 4.5* | *3x* |
-  | Gemini 3 Flash (Preview) | 0.33x |
-  | Gemini 3.1 Pro (Preview) | 1x |
-  | GPT-5 mini | **0x** |
-  | GPT-5.1 | 1x |
-  | GPT-5.1-Codex-Mini (Preview) | 0.33x |
-  | GPT-5.1-Codex | 1x |
-  | GPT-5.1-Codex-Max | 1x |
-  | GPT-5.2 | 1x |
-  | GPT-5.2-Codex | 1x |
+- `read_only`: `vscode`, `execute`, `read`, `search`, `ms-python.python/getPythonEnvironmentInfo`, `ms-python.python/getPythonExecutableCommand`, `ms-python.python/installPythonPackage`, `ms-python.python/configurePythonEnvironment`, `todo`
+- `read_write`: `vscode`, `execute`, `read`, `edit`, `search`, `ms-python.python/getPythonEnvironmentInfo`, `ms-python.python/getPythonExecutableCommand`, `ms-python.python/installPythonPackage`, `ms-python.python/configurePythonEnvironment`, `todo`
 
 #### Configured Models
 
-  | Prompt | Model |
-  | --- | --- |
-  | `analyze` | Gemini 3.1 Pro (Preview) (copilot) |
-  | `change` | GPT-5.3-Codex (copilot) |
-  | `check` | Gemini 3.1 Pro (Preview) (copilot) |
-  | `cover` | GPT-5.3-Codex (copilot) |
-  | `create` | Gemini 3.1 Pro (Preview) (copilot) |
-  | `fix` | GPT-5.3-Codex (copilot) |
-  | `implement` | GPT-5.3-Codex (copilot) |
-  | `new` | GPT-5.3-Codex (copilot) |
-  | `readme` | Gemini 3.1 Pro (Preview) (copilot) |
-  | `recreate` | Gemini 3.1 Pro (Preview) (copilot) |
-  | `refactor` | GPT-5.3-Codex (copilot) |
-  | `renumber` | GPT-5.3-Codex (copilot) |
-  | `workflow` | GPT-5.3-Codex (copilot) |
-  | `write` | Gemini 3.1 Pro (Preview) (copilot) |
+| Prompts | Model | Mode |
+| --- | --- | --- |
+| `analyze`, `check` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_only` |
+| `create`, `readme`, `recreate`, `write` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_write` |
+| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `GPT-5.3-Codex (copilot)` | `read_write` |
 
 ### Claude Code
 
-#### Available Models and Costs
+#### Tool Sets
 
-  | Model | Cost |
-  | --- | --- |
-  | Claude Haiku 4.5 | **low** |
-  | Claude Sonnet 4.6 | mid |
-  | *Claude Opus 4.6* | *high* |
-
-#### Long Context Pricing
-
-When using Claude Sonnet 4 or Sonnet 4.5 with the 1M token context window enabled, requests that exceed 200K input tokens are automatically charged at premium long context rates. [3]
-
-```bash
-# Example of using a full model name with the [1m] suffix
-/model anthropic.claude-sonnet-4-5-20250929-v1:0[1m]
-```
-
-[3] *The 1M token context window is currently in beta for organizations in usage tier 4 and organizations with custom rate limits. The 1M token context window is only available for Claude Sonnet 4 and Sonnet 4.5.*
+- `read_only`: `Read`, `Grep`, `Glob`, `ReadFile`, `Pytest`
+- `read_write`: `Read`, `Grep`, `Glob`, `ReadFile`, `Edit`, `WriteFile`, `DeleteFile`, `Pytest`
 
 #### Configured Models
 
-  | Prompt | Model |
-  | --- | --- |
-  | `analyze` | haiku |
-  | `change` | sonnet |
-  | `check` | haiku |
-  | `cover` | opus |
-  | `create` | haiku |
-  | `fix` | opus |
-  | `implement` | opus |
-  | `new` | sonnet |
-  | `readme` | haiku |
-  | `recreate` | haiku |
-  | `refactor` | opus |
-  | `renumber` | opus |
-  | `workflow` | haiku |
-  | `write` | haiku |
+| Prompts | Model | Mode |
+| --- | --- | --- |
+| `analyze`, `check` | `haiku` | `read_only` |
+| `create`, `readme`, `recreate`, `workflow`, `write` | `haiku` | `read_write` |
+| `change`, `new` | `sonnet` | `read_write` |
+| `cover`, `fix`, `implement`, `refactor`, `renumber` | `opus` | `read_write` |
 
 ### Kiro CLI
 
-#### Available Models and Costs
+#### Tool Sets
 
-  | Model | Cost |
-  | --- | --- |
-  | Claude Sonnet 4.5 | 1.3x credit |
-  | Claude Sonnet 4 | 1.3x credit |
-  | Claude Haiku 4.5 | 0.4x credit |
-  | Claude Opus 4.5 | 2.2x credit |
-
+- `read_only`: `read`, `glob`, `grep`, `shell`, `todo`, `todo_list`, `thinking`
+- `read_write`: `read`, `glob`, `grep`, `write`, `shell`, `todo`, `todo_list`, `thinking`
 
 #### Configured Models
 
-  | Prompt | Model |
-  | --- | --- |
-  | `analyze` | claude-haiku-4.5 |
-  | `change` | claude-sonnet-4.5 |
-  | `check` | claude-haiku-4.5 |
-  | `cover` | claude-sonnet-4.5 |
-  | `create` | claude-haiku-4.5 |
-  | `fix` | claude-sonnet-4.5 |
-  | `implement` | claude-sonnet-4.5 |
-  | `new` | claude-sonnet-4.5 |
-  | `readme` | claude-haiku-4.5 |
-  | `recreate` | claude-haiku-4.5 |
-  | `refactor` | claude-sonnet-4.5 |
-  | `renumber` | claude-sonnet-4.5 |
-  | `workflow` | claude-haiku-4.5 |
-  | `write` | claude-haiku-4.5 |
+| Prompts | Model | Mode |
+| --- | --- | --- |
+| `analyze`, `check` | `claude-haiku-4.5` | `read_only` |
+| `create`, `readme`, `recreate`, `workflow`, `write` | `claude-haiku-4.5` | `read_write` |
+| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber` | `claude-sonnet-4.5` | `read_write` |
 
 ### OpenCode CLI
 
-Models depend on the user's provider; useReq config uses the GitHub provider.
-OpenCode CLI does not support "tools:" on agents/prompts.
+Models depend on the user's provider; the bundled configuration uses GitHub-hosted model identifiers.
 
-#### Available GitHub Models
-
-- github-copilot/claude-haiku-4.5
-- github-copilot/claude-opus-4.5
-- github-copilot/claude-opus-41
-- github-copilot/claude-sonnet-4
-- github-copilot/claude-sonnet-4.5
-- github-copilot/gemini-3-flash-preview
-- github-copilot/gpt-5-mini
-- github-copilot/gpt-5.1
-- github-copilot/gpt-5.1-codex
-- github-copilot/gpt-5.1-codex-max
-- github-copilot/gpt-5.2
-- github-copilot/claude-opus-4.6
-
-##### Not Working GitHub Models
-
-- github-copilot/gemini-2.5-pro
-- github-copilot/gemini-3-pro-preview
-- github-copilot/gpt-5.1-codex-mini
-
-##### Not Tested GitHub Models
-
-- github-copilot/gpt-4.1
-- github-copilot/gpt-4o
-- github-copilot/gpt-5
-- github-copilot/gpt-5-codex
-- github-copilot/grok-code-fast-1
-- github-copilot/oswe-vscode-prime
+`src/usereq/resources/common/models.json` defines prompt models for OpenCode, but it does not define `usage_modes` for the `opencode` provider, so `--enable-tools` currently has no centralized `tools:` value to inject.
 
 #### Configured Models
 
-  | Prompt | Model |
-  | --- | --- |
-  | `analyze` | github-copilot/gemini-3.1-pro-preview |
-  | `change` | github-copilot/claude-opus-4.6 |
-  | `check` | github-copilot/gemini-3.1-pro-preview |
-  | `cover` | github-copilot/claude-opus-4.6 |
-  | `create` | github-copilot/gemini-3.1-pro-preview |
-  | `fix` | github-copilot/claude-opus-4.6 |
-  | `implement` | github-copilot/claude-opus-4.6 |
-  | `new` | github-copilot/claude-opus-4.6 |
-  | `readme` | github-copilot/gemini-3.1-pro-preview |
-  | `recreate` | github-copilot/gemini-3.1-pro-preview |
-  | `refactor` | github-copilot/claude-opus-4.6 |
-  | `renumber` | github-copilot/claude-opus-4.6 |
-  | `workflow` | github-copilot/claude-opus-4.6 |
-  | `write` | github-copilot/gemini-3.1-pro-preview |
-
-
-### Gemini CLI
-
-Gemini CLI does not support "model:" or "tools:" on prompts.
-
+| Prompts | Model | Mode |
+| --- | --- | --- |
+| `analyze`, `check` | `github-copilot/gemini-3.1-pro-preview` | `read_only` |
+| `create`, `readme`, `recreate`, `write` | `github-copilot/gemini-3.1-pro-preview` | `read_write` |
+| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `github-copilot/claude-opus-4.6` | `read_write` |
 
 ### OpenAI Codex CLI
 
-OpenAI Codex CLI does not support "model:" or "tools:" on prompts.
+#### Tool Sets
+
+- `read_only`: `read`, `glob`, `grep`, `shell`, `todo`, `todo_list`, `thinking`
+- `read_write`: `read`, `glob`, `grep`, `write`, `shell`, `todo`, `todo_list`, `thinking`
+
+#### Configured Models
+
+| Prompts | Model | Mode |
+| --- | --- | --- |
+| `analyze`, `check` | `gpt-5.3-codex` | `read_only` |
+| `create`, `readme`, `recreate`, `write` | `gpt-5.2` | `read_write` |
+| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `gpt-5.3-codex` | `read_write` |
+
+### Gemini CLI
+
+`src/usereq/resources/common/models.json` currently defines no centralized prompt-model map or tool sets for the `gemini` provider, so `--enable-models` and `--enable-tools` have no bundled values to inject for Gemini artifacts.
 
 
 ## Note on Git usage
