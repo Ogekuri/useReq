@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.60.0](https://github.com/Ogekuri/useReq/compare/v0.59.0..v0.60.0) - 2026-04-13
+### 📚  Documentation
+- Update README.md file.
+- document pi.dev CLI and bundled models [useReq] *(readme)*
+  - UID: 20260413090845
+  - add pi.dev CLI prompt and skill usage details
+  - reorder provider coverage to list pi.dev first
+  - align model and tool documentation with models.json
+- Update README.md file.
+
 ## [0.59.0](https://github.com/Ogekuri/useReq/compare/v0.58.0..v0.59.0) - 2026-04-12
 ### 📚  Documentation
 - align CLI behavior with implementation [useReq] *(readme)*
@@ -1183,6 +1193,7 @@
 - \[0.56.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.56.0
 - \[0.58.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.58.0
 - \[0.59.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.59.0
+- \[0.60.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.60.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1242,3 +1253,4 @@
 [0.56.0]: https://github.com/Ogekuri/useReq/compare/v0.55.0..v0.56.0
 [0.58.0]: https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.58.0
 [0.59.0]: https://github.com/Ogekuri/useReq/compare/v0.58.0..v0.59.0
+[0.60.0]: https://github.com/Ogekuri/useReq/compare/v0.59.0..v0.60.0
