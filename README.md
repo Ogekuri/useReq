@@ -177,11 +177,14 @@ req \
     - `--src-dir` is repeatable and can be provided multiple times to include multiple source directories.
   - If `REQUIREMENTS.md` is missing in the configured docs directory, it is generated from the packaged template.
   - Use one or more `--provider SPEC` parameters (at least one is required) to configure provider activation, artifact types, and options:
-    - `SPEC` format: `PROVIDER:ARTIFACTS[:OPTIONS]`
+    - `SPEC` format: `PROVIDER:ARTIFACT_ITEM[,ARTIFACT_ITEM...][:PROVIDER_OPTIONS]`
     - `PROVIDER`: `pi`, `codex`, `claude`, `gemini`, `github`, `kiro`, or `opencode`.
-    - `ARTIFACTS`: comma-separated list from `{prompts, agents, skills}`.
-    - `OPTIONS`: (optional) comma-separated list from `{enable-models, enable-tools, prompts-use-agents, legacy}`.
-    - Example: `--provider pi:prompts,skills:enable-models,enable-tools`
+    - `ARTIFACT_ITEM`: `ARTIFACT` or `ARTIFACT+ARTIFACT_OPTIONS`.
+    - `ARTIFACT`: one of `{prompts, agents, skills}`.
+    - `ARTIFACT_OPTIONS`: `enable-models` and/or `enable-tools`, joined with `+`, and scoped only to that artifact item.
+    - `PROVIDER_OPTIONS`: (optional) comma-separated list from `{prompts-use-agents, legacy}`.
+    - Example: `--provider pi:prompts+enable-tools,skills+enable-models`
+    - Migration note: `enable-models` and `enable-tools` are no longer valid in the trailing `:PROVIDER_OPTIONS` segment; attach them directly to each artifact item with `+`.
   - Artifact types (specified within the `--provider` spec):
     - `skills` artifact generates skill resources for the provider.
     - `prompts` artifact generates prompts/commands resources for the provider.
@@ -191,13 +194,13 @@ req \
       - Supported `MODULE` values: `Dummy`, `Pylance`, `Ruff`, `Command` (case-insensitive).
       - Entries are merged into `.req/config.json` without replacing existing ones: existing entries are preserved, identity-duplicates are ignored, and only new non-duplicate entries are appended per language.
 - You need to run `req` again if you add or remove requirement-related files in the documentation directory or any files in the `guidelines/` directory.
-- Option `prompts-use-agents` (within a `--provider` spec) generates prompt files as **agent-only references** (adds an `agent:` front matter field) where supported (GitHub prompts, Claude commands, and OpenCode commands).
+- Provider-scoped option `prompts-use-agents` (in the optional `:PROVIDER_OPTIONS` segment) generates prompt files as **agent-only references** (adds an `agent:` front matter field) where supported (GitHub prompts, Claude commands, and OpenCode commands).
 - Add `--verbose` and `--debug` to get detailed and diagnostic output.
 - Add `--update` to update an existing installation (requires an existing `.req/config.json` under the project base).
   - Add `--preserve-models` to use and preserve `.req/models.json` during installation.
   - With `--update`, passing one or more `--provider` specs replaces persisted provider specs; without `--provider`, persisted specs are reused.
-- Option `legacy` (within a `--provider` spec) enables the *legacy mode* support (see below).
-- Options `enable-models` and `enable-tools` (within a `--provider` spec) include `model:` and `tools:` fields when available from centralized models configuration.
+- Provider-scoped option `legacy` (in the optional `:PROVIDER_OPTIONS` segment) enables the *legacy mode* support (see below).
+- Artifact-local options `enable-models` and `enable-tools` (set on each `ARTIFACT_ITEM` with `+`) include `model:` and `tools:` fields for that artifact when available from centralized models configuration.
 - Add `--add-guidelines` to copy packaged guideline templates into `--guidelines-dir` without overwriting existing files.
 - Add `--upgrade-guidelines` to copy packaged guideline templates into `--guidelines-dir` and overwrite existing files.
 - Add `-h` / `--help` to print command help and exit.
@@ -330,7 +333,7 @@ req \
 - ✅ OpenAI Codex: [`/prompts:/req-create`]
 - ✅ Claude Code: [`/req:create`]
 - ✅ GitHub Copilot: [`/agent ➡️ req-create ↩️`]
-  - Use `legacy` (within a `--provider` spec) to not add `model:` on agents.
+  - Use provider-scoped `legacy` to not add `model:` on agents.
   - Slash command not supported.
   - Defect #980 [Model from agent.md isn't recognized #980](https://github.com/github/copilot-cli/issues/980)
   - Feature #618 → [Feature Request: Support custom slash commands from .github/prompts directory #618](https://github.com/github/copilot-cli/issues/618)
@@ -383,9 +386,11 @@ req \
 
 ## Enable model and tools on prompts/agents
 
-The `enable-tools` option (within a `--provider` spec) adds a `tools:` specification when the selected provider has a matching `usage_modes` entry in `src/usereq/resources/common/models.json`.
+`enable-tools` and `enable-models` are artifact-local `--provider` options. Attach them directly to each artifact item with `+`, for example `claude:prompts+enable-models+enable-tools` or `github:prompts+enable-models,skills+enable-tools`.
 
-The `enable-models` option (within a `--provider` spec) adds a `model:` specification using the mappings from `src/usereq/resources/common/models.json`.
+The `enable-tools` option adds a `tools:` specification when the selected artifact/provider combination has a matching `usage_modes` entry in `src/usereq/resources/common/models.json`.
+
+The `enable-models` option adds a `model:` specification using the mappings from `src/usereq/resources/common/models.json`.
 
 The prompt-name mappings below are also reused for generated skill artifacts when the provider supports `skills`.
 
@@ -454,7 +459,7 @@ The prompt-name mappings below are also reused for generated skill artifacts whe
 
 Models depend on the user's provider; the bundled configuration uses GitHub-hosted model identifiers.
 
-`src/usereq/resources/common/models.json` defines prompt models for OpenCode, but it does not define `usage_modes` for the `opencode` provider, so `--enable-tools` currently has no centralized `tools:` value to inject.
+`src/usereq/resources/common/models.json` defines prompt models for OpenCode, but it does not define `usage_modes` for the `opencode` provider, so artifact items using `+enable-tools` currently have no centralized `tools:` value to inject.
 
 #### Configured Models
 
@@ -481,7 +486,7 @@ Models depend on the user's provider; the bundled configuration uses GitHub-host
 
 ### Gemini CLI
 
-`src/usereq/resources/common/models.json` currently defines no centralized prompt-model map or tool sets for the `gemini` provider, so `--enable-models` and `--enable-tools` have no bundled values to inject for Gemini artifacts.
+`src/usereq/resources/common/models.json` currently defines no centralized prompt-model map or tool sets for the `gemini` provider, so artifact items using `+enable-models` or `+enable-tools` have no bundled values to inject for Gemini artifacts.
 
 
 ## Note on Git usage
@@ -514,7 +519,7 @@ This section describes the Git behavior when executing the commands provided by 
 
 The *Legacy Mode* is enabled per provider via `--provider SPEC` options.
 
-Use `legacy` in the `OPTIONS` segment of `PROVIDER:ARTIFACTS[:OPTIONS]`, for example:
+Use `legacy` in the optional `:PROVIDER_OPTIONS` segment of `PROVIDER:ARTIFACT_ITEM[,ARTIFACT_ITEM...][:PROVIDER_OPTIONS]`, for example:
 
 ```bash
 req --provider github:agents:legacy
