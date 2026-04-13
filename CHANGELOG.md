@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.61.0](https://github.com/Ogekuri/useReq/compare/v0.60.0..v0.61.0) - 2026-04-13
+### 🐛  Bug Fixes
+- Fix scripts/test-install.sh script.
+
+### 🚜  Changes
+- emit pi skill allowed-tools scalar [useReq] *(cli)*
+  - update SRS-095 and add SRS-368..SRS-370 for pi SKILL.md tool restrictions
+  - generate pi skill front matter with allowed-tools scalar strings
+  - add CLI test coverage for pi read-only and read-write skill tool serialization
+  - refresh WORKFLOW.md and REFERENCES.md for the new helper and runtime behavior
+- add pi smoke-install providers [useReq] *(test-install)*
+  - add SRS-366 and SRS-367 for Pi smoke-install coverage
+  - install Pi prompts and skills with enable-models and enable-tools
+  - delete .pi prompts and skills during clean-install reruns
+  - refresh WORKFLOW and REFERENCES for scripts/test-install.sh
+- BREAKING CHANGE: scope enable-models and enable-tools per artifact [useReq] *(cli)*
+  - Update SRS provider grammar for artifact-local tool/model options.
+  - Implement artifact-item parsing and provider-option validation.
+  - Apply artifact-local model/tool injection across provider outputs.
+  - Update summary rendering for per-artifact option lines.
+  - Refresh CLI tests, WORKFLOW.md, and REFERENCES.md.
+
 ## [0.60.0](https://github.com/Ogekuri/useReq/compare/v0.59.0..v0.60.0) - 2026-04-13
 ### 📚  Documentation
 - Update README.md file.
@@ -1194,6 +1216,7 @@
 - \[0.58.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.58.0
 - \[0.59.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.59.0
 - \[0.60.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.60.0
+- \[0.61.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.61.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1254,3 +1277,4 @@
 [0.58.0]: https://github.com/Ogekuri/useReq/compare/v0.56.0..v0.58.0
 [0.59.0]: https://github.com/Ogekuri/useReq/compare/v0.58.0..v0.59.0
 [0.60.0]: https://github.com/Ogekuri/useReq/compare/v0.59.0..v0.60.0
+[0.61.0]: https://github.com/Ogekuri/useReq/compare/v0.60.0..v0.61.0

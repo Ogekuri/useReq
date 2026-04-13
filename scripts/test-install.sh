@@ -1,6 +1,6 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# VERSION: 0.60.0
+# VERSION: 0.61.0
 # AUTHORS: Ogekuri
 # @file test-install.sh
 # @brief Rebuilds a disposable installation target with the repository
