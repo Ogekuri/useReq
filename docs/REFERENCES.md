@@ -39,26 +39,26 @@
 
 ---
 
-# test-install.sh | Shell | 111L | 6 symbols | 0 imports | 17 comments
+# test-install.sh | Shell | 155L | 6 symbols | 0 imports | 55 comments
 > Path: `scripts/test-install.sh`
 
 ## Definitions
 
-- var `FULL_PATH=$(readlink -f "$0")` (L9)
-- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L12)
-- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L15)
-- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L18)
-- var `FOLDER_PATH="${1:-}"` (L26)
-- var `FOLDER_PATH="$BASE_DIR/temp/test-install"` (L29)
+- var `FULL_PATH=$(readlink -f "$0")` (L24)
+- var `SCRIPT_PATH=$(dirname "$FULL_PATH")` (L29)
+- var `SCRIPT_NAME=$(basename "$FULL_PATH")` (L34)
+- var `BASE_DIR=$(dirname "$SCRIPT_PATH")` (L40)
+- var `FOLDER_PATH="${1:-}"` (L52)
+- var `FOLDER_PATH="$BASE_DIR/temp/test-install"` (L57)
 ## Symbol Index
 |Symbol|Kind|Vis|Lines|Sig|
 |---|---|---|---|---|
-|`FULL_PATH`|var||9||
-|`SCRIPT_PATH`|var||12||
-|`SCRIPT_NAME`|var||15||
-|`BASE_DIR`|var||18||
-|`FOLDER_PATH`|var||26||
-|`FOLDER_PATH`|var||29||
+|`FULL_PATH`|var||24||
+|`SCRIPT_PATH`|var||29||
+|`SCRIPT_NAME`|var||34||
+|`BASE_DIR`|var||40||
+|`FOLDER_PATH`|var||52||
+|`FOLDER_PATH`|var||57||
 
 
 ---

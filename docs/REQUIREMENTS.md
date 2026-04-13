@@ -132,6 +132,10 @@ No explicit performance optimizations identified.
 
 - **SRS-354**: MUST implement the following behavior: Provider `pi` skill installation MUST use the same generation and naming procedure as provider `github`, and MUST write skill files under `.pi/skills`.
 
+- **SRS-366**: MUST implement the following behavior: `scripts/test-install.sh` MUST pass `--provider pi:prompts+enable-models+enable-tools,skills+enable-models+enable-tools` to `scripts/req.sh` during its installation run.
+
+- **SRS-367**: MUST implement the following behavior: `scripts/test-install.sh` MUST delete `.pi/prompts` and `.pi/skills` from the target directory before its clean-install execution path.
+
 - **SRS-355**: MUST implement the following behavior: `src/usereq/resources/common/models.json` and `src/usereq/resources/common/models-legacy.json` MUST include a top-level `pi` configuration consumable by prompt and skill generation.
 
 - **SRS-357**: MUST implement the following behavior: In `src/usereq/resources/common/models.json` and `src/usereq/resources/common/models-legacy.json`, provider `pi` prompt `model` values MUST match provider `copilot` for identical prompt keys.

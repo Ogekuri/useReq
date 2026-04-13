@@ -13,6 +13,13 @@
   - `entrypoints`: `scripts/req.sh`
   - `defining_files`: `scripts/req.sh`
   - `threads`: `no explicit threads detected`
+- `PROC:test-install-sh`
+  - `type`: `Process`
+  - `parent_process`: `-`
+  - `role`: `Smoke-install helper that resets generated provider directories and invokes repository installation with the canonical multi-provider configuration`
+  - `entrypoints`: `scripts/test-install.sh`
+  - `defining_files`: `scripts/test-install.sh`
+  - `threads`: `no explicit threads detected`
 - `PROC:gha-release-uvx`
   - `type`: `Process`
   - `parent_process`: `-`
@@ -164,6 +171,15 @@
   - `req.sh(...)`: shell bootstrap for uv-based CLI dispatch [`scripts/req.sh`]
     - external boundaries: `uv run`, `exec`, Python module loader import/exec sequence for `usereq` package and `usereq.cli` module [`src/usereq/__init__.py`, `src/usereq/cli.py`]
 
+### `PROC:test-install-sh`
+- **Type**: Process
+- **Parent Process**: `-`
+- **Entrypoint(s)**: `scripts/test-install.sh` [`scripts/test-install.sh`]
+- **Lifecycle/Trigger**: starts on shell invocation, resolves the target installation path, removes generated provider directories including `.pi/prompts` and `.pi/skills`, recreates the expected folder scaffold, prints the installation command, and then invokes `scripts/req.sh` with the canonical smoke-install provider/static-check configuration.
+- **Internal Call-Trace Tree**
+  - `test-install.sh(...)`: disposable installation smoke-test orchestrator [`scripts/test-install.sh`]
+    - external boundaries: `rm -rf`, `mkdir -p`, shell directory tests, and child-process invocation of `scripts/req.sh`
+
 ### `PROC:gha-release-uvx`
 - **Type**: Process
 - **Parent Process**: `-`
@@ -180,4 +196,7 @@
   - `mechanism`: `OS exec handoff`
   - `endpoint/channel`: ``uv run --project <repo-root> python -m usereq.cli``
   - `payload`: `argv passthrough from shell process to Python CLI main entrypoint with repository project resolution and preserved caller working directory for here-mode command context`
-- No additional explicit `Communication Edge` detected between execution units.
+- `PROC:test-install-sh -> PROC:req-sh`
+  - `mechanism`: `child-process spawn`
+  - `endpoint/channel`: `scripts/req.sh`
+  - `payload`: `CLI argument vector for disposable installation, including provider specs for claude/codex/gemini/github/kiro/opencode/pi and static-check enablement entries`
