@@ -3973,6 +3973,50 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
         self.assertIn("model:", skill_frontmatter)
         self.assertNotIn("tools:", skill_frontmatter)
 
+    def test_pi_skills_emit_allowed_tools_scalar(self) -> None:
+        """!
+        @brief Verify Pi `SKILL.md` emits `allowed-tools` as a scalar string.
+        @details Executes installation with `pi:skills+enable-tools`, then
+        validates that Pi skills serialize tool restrictions from models.json as
+        space-delimited `allowed-tools` lines and never emit a top-level `tools:`
+        line. Covers read-only and read-write prompt modes.
+        @return {None} No return value.
+        @satisfies SRS-369, SRS-370
+        """
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "pi:skills+enable-tools",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        analyze_path = self.TEST_DIR / ".pi" / "skills" / "req-analyze" / "SKILL.md"
+        analyze_content = analyze_path.read_text(encoding="utf-8")
+        analyze_match = re.search(r"^---\n(.*?)\n---", analyze_content, re.DOTALL)
+        if analyze_match is None:
+            self.fail("Pi analyze skill frontmatter must exist")
+        analyze_frontmatter = analyze_match.group(1)
+        self.assertRegex(
+            analyze_frontmatter,
+            r"(?m)^allowed-tools: read bash grep find ls$",
+        )
+        self.assertIsNone(re.search(r"(?m)^tools:", analyze_frontmatter))
+
+        change_path = self.TEST_DIR / ".pi" / "skills" / "req-change" / "SKILL.md"
+        change_content = change_path.read_text(encoding="utf-8")
+        change_match = re.search(r"^---\n(.*?)\n---", change_content, re.DOTALL)
+        if change_match is None:
+            self.fail("Pi change skill frontmatter must exist")
+        change_frontmatter = change_match.group(1)
+        self.assertRegex(
+            change_frontmatter,
+            r"(?m)^allowed-tools: read bash edit write grep find ls$",
+        )
+        self.assertIsNone(re.search(r"(?m)^tools:", change_frontmatter))
+
     def test_github_artifact_local_options_apply_independently(self) -> None:
         """SRS-276, SRS-287: github prompt and skill artifacts honor independent local options."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):

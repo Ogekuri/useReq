@@ -126,7 +126,10 @@ No explicit performance optimizations identified.
 - **SRS-363**: MUST create missing parent directories when creating paths from `--docs-dir`, `--guidelines-dir`, `--tests-dir`, and each configured `--src-dir` entry during installation.
 
 ### 3.3 Provider Resource Generation
-- **SRS-095**: MUST implement the following behavior: For each skill subdirectory of every enabled provider, the CLI MUST generate `SKILL.md` with YAML front matter containing `name: req-<prompt_name>`, YAML-escaped `description` from `extract_skill_description(prompt_frontmatter)`, and `model`/`tools` fields resolved from provider configuration according to the per-provider `legacy` option and the skill artifact's `enable-models`/`enable-tools` options, followed by the token-substituted prompt body.
+- **SRS-095**: MUST generate `SKILL.md` for each skill subdirectory of every enabled provider using token-substituted prompt body and provider-resolved YAML front matter.
+- **SRS-368**: MUST set `SKILL.md` YAML `name` to `req-<prompt_name>` and `description` to the YAML-escaped output of `extract_skill_description(prompt_frontmatter)`.
+- **SRS-369**: MUST emit `SKILL.md` YAML `model` and tool-restriction fields according to `legacy`, `enable-models`, `enable-tools`, and provider-specific serialization rules.
+- **SRS-370**: MUST emit provider `pi` `SKILL.md` tool restrictions as `allowed-tools: <space-delimited tools>` and MUST NOT emit a `tools` key.
 
 - **SRS-353**: MUST implement the following behavior: Provider `pi` prompt installation MUST use the same generation and naming procedure as provider `github`, and MUST write prompt files under `.pi/prompts`.
 

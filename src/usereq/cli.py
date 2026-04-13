@@ -25,7 +25,7 @@ import urllib.request
 import yaml
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping, Optional, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 """! @brief The absolute path to the repository root."""
@@ -2649,14 +2649,29 @@ def get_raw_tools_for_prompt(config: dict[str, Any] | None, prompt_name: str) ->
 
 def format_tools_inline_list(tools: list[str]) -> str:
     """!
-    @brief Formats the tools list as inline YAML/TOML/MD: ['a', 'b'].
-    @details Implements the format_tools_inline_list function behavior with deterministic control flow.
-    @param tools Input parameter `tools`.
-    @return {str} Function return value.
+    @brief Formats the tools list as an inline YAML sequence.
+    @details Preserves input order, escapes embedded single quotes, and emits a
+    deterministic inline list literal suitable for `tools:` front-matter fields.
+    Complexity: O(N) in tool count. No side effects.
+    @param tools {list[str]} Ordered tool identifiers.
+    @return {str} Inline YAML sequence literal.
     """
     safe = [t.replace("'", "\\'") for t in tools]
     quoted = ", ".join(f"'{s}'" for s in safe)
     return f"[{quoted}]"
+
+
+def format_tools_space_separated_string(tools: Sequence[str]) -> str:
+    """!
+    @brief Formats the tools list as one space-delimited YAML scalar.
+    @details Preserves input order, coerces each tool identifier to `str`, and
+    emits a scalar payload for providers that require `allowed-tools` instead of
+    `tools`. Complexity: O(N) in tool count. No side effects.
+    @param tools {Sequence[str]} Ordered tool identifiers resolved from provider configuration.
+    @return {str} Space-delimited tool identifiers.
+    @satisfies SRS-369, SRS-370
+    """
+    return " ".join(str(tool) for tool in tools)
 
 
 def deep_merge_dict(base: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
@@ -3967,7 +3982,8 @@ def run(args: Namespace) -> None:
                 pi_skill_header_lines.append(f"model: {pi_skill_model}")
             if artifact_option_enabled(pc_pi, "skills", "enable-tools") and pi_skill_tools:
                 pi_skill_header_lines.append(
-                    f"tools: {format_tools_inline_list(pi_skill_tools)}"
+                    "allowed-tools: "
+                    f"{format_tools_space_separated_string(pi_skill_tools)}"
                 )
             pi_skill_text = (
                 "\n".join(pi_skill_header_lines) + "\n---\n\n" + prompt_body_replaced
