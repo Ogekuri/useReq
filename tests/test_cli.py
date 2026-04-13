@@ -1326,17 +1326,17 @@ class TestModelsAndTools(unittest.TestCase):
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
                     "--provider",
-                    "claude:prompts,agents,skills:enable-models,enable-tools",
+                    "claude:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools",
                     "--provider",
-                    "codex:prompts,agents,skills:enable-models,enable-tools",
+                    "codex:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools",
                     "--provider",
-                    "gemini:prompts,agents,skills:enable-models,enable-tools",
+                    "gemini:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools",
                     "--provider",
-                    "github:prompts,agents,skills:enable-models,enable-tools",
+                    "github:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools",
                     "--provider",
-                    "kiro:prompts,agents,skills:enable-models,enable-tools",
+                    "kiro:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools",
                     "--provider",
-                    "opencode:prompts,agents,skills:enable-models,enable-tools",
+                    "opencode:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools",
                 ]
             )
         cls.exit_code = exit_code
@@ -1450,17 +1450,17 @@ class TestModelsAndTools(unittest.TestCase):
                     "--src-dir",
                     str(self.TEST_DIR / "src"),
                     "--provider",
-                    "claude:prompts,agents,skills:enable-tools",
+                    "claude:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "codex:prompts,agents,skills:enable-tools",
+                    "codex:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "gemini:prompts,agents,skills:enable-tools",
+                    "gemini:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "github:prompts,agents,skills:enable-tools",
+                    "github:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "kiro:prompts,agents,skills:enable-tools",
+                    "kiro:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "opencode:prompts,agents,skills:enable-tools",
+                    "opencode:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                 ]
             )
         self.assertEqual(exit_code, 0)
@@ -1627,17 +1627,17 @@ class TestPromptsUseAgents(unittest.TestCase):
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
                     "--provider",
-                    "claude:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "claude:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents",
                     "--provider",
-                    "codex:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "codex:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents",
                     "--provider",
-                    "gemini:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "gemini:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents",
                     "--provider",
-                    "github:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "github:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents",
                     "--provider",
-                    "kiro:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "kiro:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents",
                     "--provider",
-                    "opencode:prompts,agents,skills:prompts-use-agents,enable-models,enable-tools",
+                    "opencode:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents",
                 ]
             )
         cls.exit_code = exit_code
@@ -1729,17 +1729,17 @@ class TestKiroToolsEnabled(unittest.TestCase):
                     "--src-dir",
                     str(cls.TEST_DIR / "src"),
                     "--provider",
-                    "claude:prompts,agents,skills:enable-tools",
+                    "claude:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "codex:prompts,agents,skills:enable-tools",
+                    "codex:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "gemini:prompts,agents,skills:enable-tools",
+                    "gemini:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "github:prompts,agents,skills:enable-tools",
+                    "github:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "kiro:prompts,agents,skills:enable-tools",
+                    "kiro:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                     "--provider",
-                    "opencode:prompts,agents,skills:enable-tools",
+                    "opencode:prompts+enable-tools,agents+enable-tools,skills+enable-tools",
                 ]
             )
         cls.exit_code = exit_code
@@ -2278,9 +2278,9 @@ class TestUpdateNotification(unittest.TestCase):
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
                         "--provider",
-                        "codex:prompts:enable-models,legacy",
+                        "codex:prompts+enable-models:legacy",
                         "--provider",
-                        "claude:prompts:enable-tools,prompts-use-agents",
+                        "claude:prompts+enable-tools:prompts-use-agents",
                     ]
                 )
         self.assertEqual(exit_code, 0)
@@ -2334,7 +2334,7 @@ class TestUpdateNotification(unittest.TestCase):
                         "--src-dir",
                         str(self.TEST_DIR / "src"),
                         "--provider",
-                        "claude:prompts,skills:enable-models,enable-tools",
+                        "claude:prompts+enable-models+enable-tools,skills+enable-models+enable-tools",
                     ]
                 )
         self.assertEqual(exit_code, 0)
@@ -2755,19 +2755,19 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "--src-dir",
                     "src",
                     "--provider",
-                    "claude:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "claude:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "codex:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "codex:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "gemini:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "gemini:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "github:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "github:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "kiro:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "kiro:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "opencode:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "opencode:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "pi:prompts,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "pi:prompts+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                 ]
             )
         self.assertEqual(install_exit_code, 0)
@@ -2865,19 +2865,19 @@ class TestUpdateLoadsPersistedFlags(unittest.TestCase):
                     "--src-dir",
                     "src",
                     "--provider",
-                    "claude:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "claude:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "codex:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "codex:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "gemini:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "gemini:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "github:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "github:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "kiro:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "kiro:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "opencode:prompts,agents,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "opencode:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                     "--provider",
-                    "pi:prompts,skills:enable-models,enable-tools,prompts-use-agents,legacy",
+                    "pi:prompts+enable-models+enable-tools,skills+enable-models+enable-tools:prompts-use-agents,legacy",
                 ]
             )
         self.assertEqual(install_exit_code, 0)
@@ -3417,17 +3417,14 @@ class TestProviderSpecParsing(unittest.TestCase):
         self.assertEqual(exit_code, 0, "--provider pi:prompts,skills must succeed")
 
     def test_valid_provider_spec_with_options_accepted(self) -> None:
-        """SRS-275, SRS-284: A spec with OPTIONS field must be accepted."""
-        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
-            exit_code = cli.main(
-                self._base_args()
-                + ["--provider", "claude:agents,prompts:enable-models,enable-tools"]
-            )
-        self.assertEqual(
-            exit_code,
-            0,
-            "--provider claude:agents,prompts:enable-models,enable-tools must succeed",
+        """SRS-275, SRS-284: A spec with artifact-local options must be accepted."""
+        spec = (
+            "claude:agents+enable-models+enable-tools,"
+            "prompts+enable-models+enable-tools"
         )
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(self._base_args() + ["--provider", spec])
+        self.assertEqual(exit_code, 0, f"--provider {spec} must succeed")
 
     def test_unknown_provider_rejected(self) -> None:
         """SRS-278, SRS-284: Unknown provider name must cause exit code 1."""
@@ -3478,13 +3475,33 @@ class TestProviderSpecParsing(unittest.TestCase):
             "Error message must identify the unknown option token",
         )
 
+    def test_provider_scoped_artifact_option_rejected(self) -> None:
+        """SRS-278, SRS-284, SRS-365: enable-models and enable-tools are invalid in PROVIDER_OPTIONS."""
+        for invalid_option in ("enable-models", "enable-tools"):
+            with self.subTest(invalid_option=invalid_option):
+                with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+                    with patch("sys.stderr") as fake_stderr:
+                        exit_code = cli.main(
+                            self._base_args()
+                            + ["--provider", f"codex:skills:{invalid_option}"]
+                        )
+                self.assertEqual(exit_code, 1)
+                written = "".join(
+                    call.args[0] for call in fake_stderr.write.call_args_list
+                )
+                self.assertIn(
+                    invalid_option,
+                    written,
+                    "Error message must identify the invalid placement token",
+                )
+
     def test_missing_artifacts_rejected(self) -> None:
-        """SRS-278, SRS-284: A spec with no colon separator must cause exit code 1."""
+        """SRS-278, SRS-284: A spec with no artifact field must cause exit code 1."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             with patch("sys.stderr"):
                 exit_code = cli.main(self._base_args() + ["--provider", "codex"])
         self.assertEqual(
-            exit_code, 1, "A spec missing the ARTIFACTS part must cause exit code 1"
+            exit_code, 1, "A spec missing the artifact field must cause exit code 1"
         )
 
 
@@ -3890,33 +3907,26 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
         )
 
     def test_enable_models_per_provider_override(self) -> None:
-        """SRS-281, SRS-287: per-provider enable-models overrides global for that provider."""
+        """SRS-287: artifact-local enable-models affects only the targeted artifact item."""
         with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
             exit_code = cli.main(
                 self._base_args()
                 + [
                     "--provider",
-                    "claude:agents:enable-models",
+                    "claude:agents+enable-models",
                     "--provider",
                     "github:agents",
                 ]
             )
-        self.assertEqual(exit_code, 0, "Per-provider enable-models must succeed")
+        self.assertEqual(exit_code, 0, "Artifact-local enable-models must succeed")
 
-        # Claude agents should have model: lines (enable-models set).
         claude_agents_dir = self.TEST_DIR / ".claude" / "agents"
         self.assertTrue(claude_agents_dir.is_dir(), "Claude agents dir must exist")
         claude_agent_files = list(claude_agents_dir.glob("*.md"))
         self.assertGreater(
             len(claude_agent_files), 0, "At least one Claude agent file must exist"
         )
-        _ = claude_agent_files[0].read_text(encoding="utf-8")
-        # Model line should be present if models.json has a model for this prompt.
-        # We check that the frontmatter has either a model line or does not
-        # (depending on models.json content), but the key point is that
-        # the option was accepted without error.
 
-        # GitHub agents should NOT have model: lines (enable-models NOT set).
         gh_agents_dir = self.TEST_DIR / ".github" / "agents"
         self.assertTrue(gh_agents_dir.is_dir(), "GitHub agents dir must exist")
         gh_agent_files = list(gh_agents_dir.glob("*.md"))
@@ -3924,7 +3934,6 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
             len(gh_agent_files), 0, "At least one GitHub agent file must exist"
         )
         gh_agent_content = gh_agent_files[0].read_text(encoding="utf-8")
-        # Extract frontmatter (between first --- and second ---)
         fm_match = re.search(r"^---\n(.*?)\n---", gh_agent_content, re.DOTALL)
         if fm_match:
             gh_frontmatter = fm_match.group(1)
@@ -3933,6 +3942,68 @@ class TestProviderSpecGlobalMerge(unittest.TestCase):
                 gh_frontmatter,
                 "GitHub agent frontmatter must NOT contain model: when enable-models is not set",
             )
+
+    def test_pi_artifact_local_options_apply_independently(self) -> None:
+        """SRS-276, SRS-287, SRS-354: pi prompt and skill artifacts honor independent local options."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "pi:prompts+enable-tools,skills+enable-models",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        prompt_path = self.TEST_DIR / ".pi" / "prompts" / "req-analyze.prompt.md"
+        prompt_content = prompt_path.read_text(encoding="utf-8")
+        prompt_match = re.search(r"^---\n(.*?)\n---", prompt_content, re.DOTALL)
+        if prompt_match is None:
+            self.fail("Pi prompt frontmatter must exist")
+        prompt_frontmatter = prompt_match.group(1)
+        self.assertIn("tools:", prompt_frontmatter)
+        self.assertNotIn("model:", prompt_frontmatter)
+
+        skill_path = self.TEST_DIR / ".pi" / "skills" / "req-analyze" / "SKILL.md"
+        skill_content = skill_path.read_text(encoding="utf-8")
+        skill_match = re.search(r"^---\n(.*?)\n---", skill_content, re.DOTALL)
+        if skill_match is None:
+            self.fail("Pi skill frontmatter must exist")
+        skill_frontmatter = skill_match.group(1)
+        self.assertIn("model:", skill_frontmatter)
+        self.assertNotIn("tools:", skill_frontmatter)
+
+    def test_github_artifact_local_options_apply_independently(self) -> None:
+        """SRS-276, SRS-287: github prompt and skill artifacts honor independent local options."""
+        with patch("usereq.cli.maybe_notify_newer_version", autospec=True):
+            exit_code = cli.main(
+                self._base_args()
+                + [
+                    "--provider",
+                    "github:prompts+enable-models,skills+enable-tools",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+
+        prompt_path = (
+            self.TEST_DIR / ".github" / "prompts" / "req-analyze.prompt.md"
+        )
+        prompt_content = prompt_path.read_text(encoding="utf-8")
+        prompt_match = re.search(r"^---\n(.*?)\n---", prompt_content, re.DOTALL)
+        if prompt_match is None:
+            self.fail("GitHub prompt frontmatter must exist")
+        prompt_frontmatter = prompt_match.group(1)
+        self.assertIn("model:", prompt_frontmatter)
+        self.assertNotIn("tools:", prompt_frontmatter)
+
+        skill_path = self.TEST_DIR / ".github" / "skills" / "req-analyze" / "SKILL.md"
+        skill_content = skill_path.read_text(encoding="utf-8")
+        skill_match = re.search(r"^---\n(.*?)\n---", skill_content, re.DOTALL)
+        if skill_match is None:
+            self.fail("GitHub skill frontmatter must exist")
+        skill_frontmatter = skill_match.group(1)
+        self.assertIn("tools:", skill_frontmatter)
+        self.assertNotIn("model:", skill_frontmatter)
 
 
 class TestConfigPathPersistence(unittest.TestCase):

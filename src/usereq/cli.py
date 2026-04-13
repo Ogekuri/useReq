@@ -63,12 +63,19 @@ VALID_PROVIDERS = frozenset(
 """! @brief Valid provider names accepted by ``--provider`` specs (SRS-275, SRS-353, SRS-354)."""
 
 VALID_ARTIFACTS = frozenset({"prompts", "agents", "skills"})
-"""! @brief Valid artifact type tokens accepted in ``--provider`` specs (SRS-275)."""
+"""! @brief Valid artifact type tokens accepted in ``--provider`` specs (SRS-275, SRS-364)."""
 
-VALID_PROVIDER_OPTIONS = frozenset(
-    {"enable-models", "enable-tools", "prompts-use-agents", "legacy"}
-)
-"""! @brief Valid per-provider option tokens accepted in ``--provider`` specs (SRS-275)."""
+VALID_ARTIFACT_OPTIONS = frozenset({"enable-models", "enable-tools"})
+"""! @brief Valid artifact-local option tokens accepted inside ``ARTIFACT_ITEM`` values (SRS-364)."""
+
+VALID_PROVIDER_OPTIONS = frozenset({"prompts-use-agents", "legacy"})
+"""! @brief Valid provider-scoped option tokens accepted in ``PROVIDER_OPTIONS`` (SRS-365)."""
+
+PROVIDER_OPTION_APPLICABILITY: dict[str, frozenset[str]] = {
+    "prompts-use-agents": frozenset({"prompts"}),
+    "legacy": frozenset(VALID_ARTIFACTS),
+}
+"""! @brief Artifact applicability map for provider-scoped options during installation-table rendering."""
 
 PROVIDER_DIR_MAP: dict[str, list[str]] = {
     "claude": [".claude/commands", ".claude/agents", ".claude/skills"],
@@ -85,21 +92,89 @@ INVALID_WT_NAME_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f\s]')
 """! @brief Regex matching characters invalid in both Linux and Windows directory names."""
 
 
-def parse_provider_spec(spec: str) -> tuple[str, set[str], set[str]]:
+def _parse_provider_artifact_item(spec: str, artifact_item: str) -> tuple[str, list[str]]:
     """!
-    @brief Parse a single ``--provider`` SPEC string into its components.
-    @param spec The raw SPEC string in format ``PROVIDER:ARTIFACTS[:OPTIONS]``.
-    @return Tuple of (provider_name, artifacts_set, options_set).
-    @throws ReqError If the SPEC contains unknown provider, artifact, or option tokens (SRS-278).
-    @details Splits on ``:``, validates each component against the known sets,
-    and returns normalized lower-case values.  Commas separate multiple
-    artifacts and options within their respective fields.
-    @see SRS-275, SRS-276, SRS-278
+    @brief Parse one artifact item from a ``--provider`` SPEC.
+    @details Splits `ARTIFACT_ITEM` on `+`, validates the artifact token and artifact-local option tokens, preserves first-seen option order, rejects provider-scoped option placement inside the artifact item, and raises deterministic `ReqError` payloads for all invalid tokens. Complexity: O(N) in artifact-item token count. No side effects.
+    @param spec {str} Full raw ``--provider`` SPEC used for diagnostics.
+    @param artifact_item {str} One comma-delimited `ARTIFACT_ITEM` fragment from `SPEC`.
+    @return {tuple[str, list[str]]} Tuple `(artifact_name, ordered_artifact_options)`.
+    @throws {ReqError} Raised when the artifact token is missing, unknown, or contains invalid option placement.
+    @satisfies SRS-275, SRS-278, SRS-364, SRS-365
+    """
+    parts = [token.strip().lower() for token in artifact_item.split("+") if token.strip()]
+    if not parts:
+        raise ReqError(
+            f"Error: invalid artifact item '{artifact_item}' in --provider spec '{spec}'",
+            1,
+        )
+    artifact = parts[0]
+    if artifact not in VALID_ARTIFACTS:
+        raise ReqError(
+            f"Error: unknown artifact '{artifact}' in --provider spec '{spec}'; "
+            f"valid artifacts: {', '.join(sorted(VALID_ARTIFACTS))}",
+            1,
+        )
+    ordered_options: list[str] = []
+    for option in parts[1:]:
+        if option in VALID_PROVIDER_OPTIONS:
+            raise ReqError(
+                f"Error: invalid option placement '{option}' in --provider spec '{spec}'",
+                1,
+            )
+        if option not in VALID_ARTIFACT_OPTIONS:
+            raise ReqError(
+                f"Error: unknown option '{option}' in --provider spec '{spec}'; "
+                f"valid options: {', '.join(sorted(VALID_ARTIFACT_OPTIONS | VALID_PROVIDER_OPTIONS))}",
+                1,
+            )
+        if option not in ordered_options:
+            ordered_options.append(option)
+    return artifact, ordered_options
+
+
+def _parse_provider_options(spec: str, raw_options: str) -> list[str]:
+    """!
+    @brief Parse provider-scoped options from a ``--provider`` SPEC.
+    @details Splits `PROVIDER_OPTIONS` on commas, preserves first-seen option order, accepts only provider-scoped tokens, and rejects artifact-local `enable-models` or `enable-tools` as invalid option placement. Complexity: O(N) in provider-option token count. No side effects.
+    @param spec {str} Full raw ``--provider`` SPEC used for diagnostics.
+    @param raw_options {str} Raw provider-options field from `SPEC` without leading separators.
+    @return {list[str]} Ordered provider-scoped option tokens.
+    @throws {ReqError} Raised when an option token is unknown or positioned in the wrong field.
+    @satisfies SRS-275, SRS-278, SRS-365
+    """
+    ordered_options: list[str] = []
+    for option in [token.strip().lower() for token in raw_options.split(",") if token.strip()]:
+        if option in VALID_ARTIFACT_OPTIONS:
+            raise ReqError(
+                f"Error: invalid option placement '{option}' in --provider spec '{spec}'",
+                1,
+            )
+        if option not in VALID_PROVIDER_OPTIONS:
+            raise ReqError(
+                f"Error: unknown option '{option}' in --provider spec '{spec}'; "
+                f"valid options: {', '.join(sorted(VALID_ARTIFACT_OPTIONS | VALID_PROVIDER_OPTIONS))}",
+                1,
+            )
+        if option not in ordered_options:
+            ordered_options.append(option)
+    return ordered_options
+
+
+def parse_provider_spec(spec: str) -> tuple[str, list[tuple[str, list[str]]], list[str]]:
+    """!
+    @brief Parse a single ``--provider`` SPEC into ordered provider, artifact-item, and provider-option components.
+    @details Splits `SPEC` on `:`, validates provider token membership, parses each comma-delimited `ARTIFACT_ITEM` with artifact-local `+` options, parses optional provider-scoped options, preserves first-seen artifact order and option order, and rejects legacy provider-scoped placement of `enable-models` or `enable-tools`. Complexity: O(A + O) where A is artifact-item token count and O is provider-option token count. No side effects.
+    @param spec {str} Raw ``--provider`` SPEC in format `PROVIDER:ARTIFACT_ITEM[,ARTIFACT_ITEM...][:PROVIDER_OPTIONS]`.
+    @return {tuple[str, list[tuple[str, list[str]]], list[str]]} Tuple `(provider_name, ordered_artifact_items, ordered_provider_options)`.
+    @throws {ReqError} Raised when provider, artifact, option, or option placement validation fails.
+    @satisfies SRS-275, SRS-276, SRS-278, SRS-364, SRS-365
+    @see resolve_provider_configs
     """
     parts = spec.split(":")
     if len(parts) < 2 or len(parts) > 3:
         raise ReqError(
-            f"Error: invalid --provider spec '{spec}': expected PROVIDER:ARTIFACTS[:OPTIONS]",
+            f"Error: invalid --provider spec '{spec}': expected PROVIDER:ARTIFACT_ITEM[,ARTIFACT_ITEM...][:PROVIDER_OPTIONS]",
             1,
         )
     provider = parts[0].strip().lower()
@@ -109,32 +184,43 @@ def parse_provider_spec(spec: str) -> tuple[str, set[str], set[str]]:
             f"valid providers: {', '.join(sorted(VALID_PROVIDERS))}",
             1,
         )
-    raw_artifacts = [a.strip().lower() for a in parts[1].split(",") if a.strip()]
-    if not raw_artifacts:
+    raw_artifact_items = [token.strip() for token in parts[1].split(",") if token.strip()]
+    if not raw_artifact_items:
         raise ReqError(
-            f"Error: --provider spec '{spec}' must list at least one artifact type",
+            f"Error: --provider spec '{spec}' must list at least one artifact item",
             1,
         )
-    for artifact in raw_artifacts:
-        if artifact not in VALID_ARTIFACTS:
-            raise ReqError(
-                f"Error: unknown artifact '{artifact}' in --provider spec '{spec}'; "
-                f"valid artifacts: {', '.join(sorted(VALID_ARTIFACTS))}",
-                1,
-            )
-    artifacts: set[str] = set(raw_artifacts)
-    options: set[str] = set()
+    ordered_artifact_items: list[tuple[str, list[str]]] = []
+    for raw_artifact_item in raw_artifact_items:
+        ordered_artifact_items.append(
+            _parse_provider_artifact_item(spec, raw_artifact_item)
+        )
+    provider_options: list[str] = []
     if len(parts) == 3:
-        raw_options = [o.strip().lower() for o in parts[2].split(",") if o.strip()]
-        for option in raw_options:
-            if option not in VALID_PROVIDER_OPTIONS:
-                raise ReqError(
-                    f"Error: unknown option '{option}' in --provider spec '{spec}'; "
-                    f"valid options: {', '.join(sorted(VALID_PROVIDER_OPTIONS))}",
-                    1,
-                )
-        options = set(raw_options)
-    return provider, artifacts, options
+        provider_options = _parse_provider_options(spec, parts[2])
+    return provider, ordered_artifact_items, provider_options
+
+
+def artifact_option_enabled(
+    provider_config: Mapping[str, Any], artifact_name: str, option_name: str
+) -> bool:
+    """!
+    @brief Read one artifact-local option flag from a resolved provider configuration.
+    @details Accesses the `artifact-options` sub-map emitted by `resolve_provider_configs`, validates the artifact and option key shape defensively, and returns `False` for absent or malformed internal state. Complexity: O(1). No side effects.
+    @param provider_config {Mapping[str, Any]} Resolved provider configuration entry.
+    @param artifact_name {str} Artifact selector from `{prompts, agents, skills}`.
+    @param option_name {str} Artifact-local option selector from `{enable-models, enable-tools}`.
+    @return {bool} True when the artifact-local option is active; otherwise False.
+    @satisfies SRS-276
+    @see resolve_provider_configs
+    """
+    artifact_options = provider_config.get("artifact-options")
+    if not isinstance(artifact_options, dict):
+        return False
+    artifact_config = artifact_options.get(artifact_name)
+    if not isinstance(artifact_config, dict):
+        return False
+    return bool(artifact_config.get(option_name))
 
 
 def resolve_provider_configs(
@@ -142,17 +228,12 @@ def resolve_provider_configs(
 ) -> dict[str, dict[str, Any]]:
     """!
     @brief Resolve per-provider configurations from ``--provider`` specs only.
-    @param provider_specs List of raw ``--provider`` SPEC strings.
-    @return Dict mapping each supported provider name to a config dict with keys:
-      ``enabled`` (bool), ``prompts`` (bool), ``agents`` (bool), ``skills`` (bool),
-      ``enable-models`` (bool), ``enable-tools`` (bool), ``prompts-use-agents`` (bool),
-      ``legacy`` (bool).
-    @details ``--provider`` specs are the sole mechanism for provider/artifact/option
-    configuration (SRS-275, SRS-276).  All providers start disabled with all options
-    inactive; each spec enables its provider and activates listed artifacts and options.
-    @see SRS-275, SRS-276
+    @details Initializes every provider as disabled, then merges parsed `ARTIFACT_ITEM` and `PROVIDER_OPTIONS` data across all raw specs for that provider. Artifact enablement is tracked in top-level `prompts`/`agents`/`skills` booleans. Artifact-local `enable-models` and `enable-tools` are stored under `artifact-options[artifact]`. Provider-scoped `prompts-use-agents` and `legacy` remain top-level booleans. Complexity: O(P * (A + O)) where P is spec count. No external side effects.
+    @param provider_specs {list[str]} Raw ``--provider`` SPEC strings.
+    @return {dict[str, dict[str, Any]]} Mapping provider -> configuration dict with keys `enabled`, `prompts`, `agents`, `skills`, `artifact-options`, `prompts-use-agents`, and `legacy`.
+    @satisfies SRS-275, SRS-276, SRS-364, SRS-365
+    @see parse_provider_spec
     """
-    # Initialize all providers as disabled with inactive options.
     configs: dict[str, dict[str, Any]] = {}
     for prov in sorted(VALID_PROVIDERS):
         configs[prov] = {
@@ -160,31 +241,28 @@ def resolve_provider_configs(
             "prompts": False,
             "agents": False,
             "skills": False,
-            "enable-models": False,
-            "enable-tools": False,
+            "artifact-options": {
+                artifact_name: {
+                    "enable-models": False,
+                    "enable-tools": False,
+                }
+                for artifact_name in sorted(VALID_ARTIFACTS)
+            },
             "prompts-use-agents": False,
             "legacy": False,
         }
 
-    # Apply --provider specs.
     for spec_str in provider_specs:
-        provider, artifacts, options = parse_provider_spec(spec_str)
+        provider, artifact_items, provider_options = parse_provider_spec(spec_str)
         cfg = configs[provider]
         cfg["enabled"] = True
-        if "prompts" in artifacts:
-            cfg["prompts"] = True
-        if "agents" in artifacts:
-            cfg["agents"] = True
-        if "skills" in artifacts:
-            cfg["skills"] = True
-        if "enable-models" in options:
-            cfg["enable-models"] = True
-        if "enable-tools" in options:
-            cfg["enable-tools"] = True
-        if "prompts-use-agents" in options:
-            cfg["prompts-use-agents"] = True
-        if "legacy" in options:
-            cfg["legacy"] = True
+        for artifact_name, artifact_options in artifact_items:
+            cfg[artifact_name] = True
+            option_state = cfg["artifact-options"][artifact_name]
+            for option_name in artifact_options:
+                option_state[option_name] = True
+        for option_name in provider_options:
+            cfg[option_name] = True
 
     return configs
 
@@ -314,7 +392,7 @@ def build_parser() -> argparse.ArgumentParser:
     usage = (
         "req -c [-h] [--upgrade] [--uninstall] [--remove] [--update] (--base BASE | --here) "
         "[--docs-dir DOCS_DIR] [--guidelines-dir GUIDELINES_DIR] [--tests-dir TESTS_DIR] [--src-dir SRC_DIR] [--verbose] [--debug] "
-        "[--provider PROVIDER:ARTIFACTS[:OPTIONS]] "
+        "[--provider PROVIDER:ARTIFACT_ITEM[,ARTIFACT_ITEM...][:PROVIDER_OPTIONS]] "
         "[--preserve-models] [--add-guidelines | --upgrade-guidelines] "
         "[--files-tokens FILE ...] [--files-references FILE ...] [--files-compress FILE ...] [--files-find TAG PATTERN FILE ...] "
         "[--references] [--compress] [--find TAG PATTERN] [--enable-line-numbers] [--tokens] "
@@ -397,10 +475,12 @@ def build_parser() -> argparse.ArgumentParser:
         dest="provider_specs",
         help=(
             "Per-provider artifact and option configuration (repeatable). "
-            "Format: PROVIDER:ARTIFACTS[:OPTIONS]. "
+            "Format: PROVIDER:ARTIFACT_ITEM[,ARTIFACT_ITEM...][:PROVIDER_OPTIONS]. "
             "PROVIDER: codex|claude|gemini|github|kiro|opencode|pi. "
-            "ARTIFACTS: comma-separated from {prompts,agents,skills}. "
-            "OPTIONS: comma-separated from {enable-models,enable-tools,prompts-use-agents,legacy}."
+            "ARTIFACT_ITEM: ARTIFACT or ARTIFACT+ARTIFACT_OPTIONS where "
+            "ARTIFACT is prompts|agents|skills and ARTIFACT_OPTIONS is "
+            "enable-models|enable-tools joined by '+'. "
+            "PROVIDER_OPTIONS: comma-separated from {prompts-use-agents,legacy}."
         ),
     )
     guidelines_group = parser.add_mutually_exclusive_group()
@@ -3305,15 +3385,21 @@ def run(args: Namespace) -> None:
             9,
         )
     kiro_template, kiro_config = load_kiro_template()
-    # Load CLI configs only if ANY provider requests model/tools (SRS-281).
+    # Load CLI configs only if ANY enabled artifact requests model/tools metadata.
     configs: dict[str, dict[str, Any] | None] = {}
-    # Global include_models/include_tools determine whether to load centralized models.
-    # Per-provider overrides are applied later in the generation loop.
     include_models = any(
-        pc["enable-models"] for pc in provider_configs.values() if pc["enabled"]
+        artifact_option_enabled(provider_cfg, artifact_name, "enable-models")
+        for provider_cfg in provider_configs.values()
+        if provider_cfg["enabled"]
+        for artifact_name in sorted(VALID_ARTIFACTS)
+        if provider_cfg[artifact_name]
     )
     include_tools = any(
-        pc["enable-tools"] for pc in provider_configs.values() if pc["enabled"]
+        artifact_option_enabled(provider_cfg, artifact_name, "enable-tools")
+        for provider_cfg in provider_configs.values()
+        if provider_cfg["enabled"]
+        for artifact_name in sorted(VALID_ARTIFACTS)
+        if provider_cfg[artifact_name]
     )
     if include_models or include_tools:
         # Determine preserve_models_path (REQ-082)
@@ -3405,9 +3491,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if pc_codex["enable-models"] and codex_model:
+            if artifact_option_enabled(pc_codex, "skills", "enable-models") and codex_model:
                 codex_header_lines.append(f"model: {codex_model}")
-            if pc_codex["enable-tools"] and codex_tools:
+            if artifact_option_enabled(pc_codex, "skills", "enable-tools") and codex_tools:
                 codex_header_lines.append(
                     f"tools: {format_tools_inline_list(codex_tools)}"
                 )
@@ -3434,7 +3520,10 @@ def run(args: Namespace) -> None:
                 "%%ARGS%%": "{{args}}",
             }
             replace_tokens(dst_toml, toml_replacements)
-            if configs and (pc_gemini["enable-models"] or pc_gemini["enable-tools"]):
+            if configs and (
+                artifact_option_enabled(pc_gemini, "prompts", "enable-models")
+                or artifact_option_enabled(pc_gemini, "prompts", "enable-tools")
+            ):
                 gem_model, gem_tools = get_model_tools_for_prompt(
                     configs.get("gemini"), PROMPT, "gemini"
                 )
@@ -3444,9 +3533,9 @@ def run(args: Namespace) -> None:
                     if len(parts) == 2:
                         first, rest = parts
                         inject_lines: list[str] = []
-                        if pc_gemini["enable-models"] and gem_model:
+                        if artifact_option_enabled(pc_gemini, "prompts", "enable-models") and gem_model:
                             inject_lines.append(f'model = "{gem_model}"')
-                        if pc_gemini["enable-tools"] and gem_tools:
+                        if artifact_option_enabled(pc_gemini, "prompts", "enable-tools") and gem_tools:
                             inject_lines.append(
                                 f"tools = {format_tools_inline_list(gem_tools)}"
                             )
@@ -3479,9 +3568,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{desc_yaml}"',
             ]
-            if pc_claude["enable-models"] and claude_model:
+            if artifact_option_enabled(pc_claude, "agents", "enable-models") and claude_model:
                 claude_header_lines.append(f"model: {claude_model}")
-            if pc_claude["enable-tools"] and claude_tools:
+            if artifact_option_enabled(pc_claude, "agents", "enable-tools") and claude_tools:
                 claude_header_lines.append(
                     f"tools: {format_tools_inline_list(claude_tools)}"
                 )
@@ -3514,9 +3603,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{desc_yaml}"',
             ]
-            if pc_github["enable-models"] and gh_model:
+            if artifact_option_enabled(pc_github, "agents", "enable-models") and gh_model:
                 gh_header_lines.append(f"model: {gh_model}")
-            if pc_github["enable-tools"] and gh_tools:
+            if artifact_option_enabled(pc_github, "agents", "enable-tools") and gh_tools:
                 gh_header_lines.append(f"tools: {format_tools_inline_list(gh_tools)}")
             gh_text = "\n".join(gh_header_lines) + "\n---\n\n" + prompt_body_replaced
             dst_gh_agent.parent.mkdir(parents=True, exist_ok=True)
@@ -3549,9 +3638,9 @@ def run(args: Namespace) -> None:
                     gh_model, gh_tools = get_model_tools_for_prompt(
                         configs.get("copilot"), PROMPT, "copilot"
                     )
-                if pc_github["enable-models"] and gh_model:
+                if artifact_option_enabled(pc_github, "prompts", "enable-models") and gh_model:
                     gh_header_lines.append(f"model: {gh_model}")
-                if pc_github["enable-tools"] and gh_tools:
+                if artifact_option_enabled(pc_github, "prompts", "enable-tools") and gh_tools:
                     gh_header_lines.append(
                         f"tools: {format_tools_inline_list(gh_tools)}"
                     )
@@ -3583,9 +3672,9 @@ def run(args: Namespace) -> None:
                     pi_model, pi_tools = get_model_tools_for_prompt(
                         configs.get("pi"), PROMPT, "pi"
                     )
-                if pc_pi["enable-models"] and pi_model:
+                if artifact_option_enabled(pc_pi, "prompts", "enable-models") and pi_model:
                     pi_header_lines.append(f"model: {pi_model}")
-                if pc_pi["enable-tools"] and pi_tools:
+                if artifact_option_enabled(pc_pi, "prompts", "enable-tools") and pi_tools:
                     pi_header_lines.append(
                         f"tools: {format_tools_inline_list(pi_tools)}"
                     )
@@ -3613,7 +3702,8 @@ def run(args: Namespace) -> None:
             )
             kiro_tools_list = (
                 list(kiro_tools)
-                if pc_kiro["enable-tools"] and isinstance(kiro_tools, list)
+                if artifact_option_enabled(pc_kiro, "agents", "enable-tools")
+                and isinstance(kiro_tools, list)
                 else None
             )
             agent_content = render_kiro_agent(
@@ -3624,8 +3714,8 @@ def run(args: Namespace) -> None:
                 resources=kiro_resources,
                 tools=kiro_tools_list,
                 model=kiro_model,
-                include_tools=pc_kiro["enable-tools"],
-                include_model=pc_kiro["enable-models"],
+                include_tools=artifact_option_enabled(pc_kiro, "agents", "enable-tools"),
+                include_model=artifact_option_enabled(pc_kiro, "agents", "enable-models"),
             )
             dst_kiro_agent.write_text(agent_content, encoding="utf-8")
             if VERBOSE:
@@ -3645,9 +3735,9 @@ def run(args: Namespace) -> None:
                     configs.get("opencode"), PROMPT, "opencode"
                 )
                 oc_tools_raw = get_raw_tools_for_prompt(configs.get("opencode"), PROMPT)
-                if pc_opencode["enable-models"] and oc_model:
+                if artifact_option_enabled(pc_opencode, "agents", "enable-models") and oc_model:
                     opencode_header_lines.append(f"model: {oc_model}")
-                if pc_opencode["enable-tools"] and oc_tools_raw is not None:
+                if artifact_option_enabled(pc_opencode, "agents", "enable-tools") and oc_tools_raw is not None:
                     if isinstance(oc_tools_raw, list):
                         opencode_header_lines.append(
                             f"tools: {format_tools_inline_list(oc_tools_raw)}"
@@ -3692,9 +3782,9 @@ def run(args: Namespace) -> None:
                     oc_tools_raw = get_raw_tools_for_prompt(
                         configs.get("opencode"), PROMPT
                     )
-                    if pc_opencode["enable-models"] and oc_model:
+                    if artifact_option_enabled(pc_opencode, "prompts", "enable-models") and oc_model:
                         command_header_lines.append(f"model: {oc_model}")
-                    if pc_opencode["enable-tools"] and oc_tools_raw is not None:
+                    if artifact_option_enabled(pc_opencode, "prompts", "enable-tools") and oc_tools_raw is not None:
                         if isinstance(oc_tools_raw, list):
                             command_header_lines.append(
                                 f"tools: {format_tools_inline_list(oc_tools_raw)}"
@@ -3732,11 +3822,11 @@ def run(args: Namespace) -> None:
                     command_header_lines.append(
                         f'argument-hint: "{yaml_double_quote_escape(argument_hint)}"'
                     )
-                if pc_claude["enable-models"] and claude_model:
+                if artifact_option_enabled(pc_claude, "prompts", "enable-models") and claude_model:
                     command_header_lines.append(
                         f'model: "{yaml_double_quote_escape(str(claude_model))}"'
                     )
-                if pc_claude["enable-tools"] and claude_tools:
+                if artifact_option_enabled(pc_claude, "prompts", "enable-tools") and claude_tools:
                     try:
                         allowed_csv = ", ".join(str(t) for t in claude_tools)
                     except Exception:
@@ -3769,9 +3859,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if pc_claude["enable-models"] and claude_model:
+            if artifact_option_enabled(pc_claude, "skills", "enable-models") and claude_model:
                 claude_skill_header_lines.append(f"model: {claude_model}")
-            if pc_claude["enable-tools"] and claude_tools:
+            if artifact_option_enabled(pc_claude, "skills", "enable-tools") and claude_tools:
                 claude_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(claude_tools)}"
                 )
@@ -3805,9 +3895,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if pc_gemini["enable-models"] and gemini_skill_model:
+            if artifact_option_enabled(pc_gemini, "skills", "enable-models") and gemini_skill_model:
                 gemini_skill_header_lines.append(f"model: {gemini_skill_model}")
-            if pc_gemini["enable-tools"] and gemini_skill_tools:
+            if artifact_option_enabled(pc_gemini, "skills", "enable-tools") and gemini_skill_tools:
                 gemini_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(gemini_skill_tools)}"
                 )
@@ -3841,9 +3931,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if pc_github["enable-models"] and github_skill_model:
+            if artifact_option_enabled(pc_github, "skills", "enable-models") and github_skill_model:
                 github_skill_header_lines.append(f"model: {github_skill_model}")
-            if pc_github["enable-tools"] and github_skill_tools:
+            if artifact_option_enabled(pc_github, "skills", "enable-tools") and github_skill_tools:
                 github_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(github_skill_tools)}"
                 )
@@ -3873,9 +3963,9 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if pc_pi["enable-models"] and pi_skill_model:
+            if artifact_option_enabled(pc_pi, "skills", "enable-models") and pi_skill_model:
                 pi_skill_header_lines.append(f"model: {pi_skill_model}")
-            if pc_pi["enable-tools"] and pi_skill_tools:
+            if artifact_option_enabled(pc_pi, "skills", "enable-tools") and pi_skill_tools:
                 pi_skill_header_lines.append(
                     f"tools: {format_tools_inline_list(pi_skill_tools)}"
                 )
@@ -3900,10 +3990,10 @@ def run(args: Namespace) -> None:
                 f"name: req-{PROMPT}",
                 f'description: "{skill_desc_yaml}"',
             ]
-            if pc_kiro["enable-models"] and kiro_skill_model:
+            if artifact_option_enabled(pc_kiro, "skills", "enable-models") and kiro_skill_model:
                 kiro_skill_header_lines.append(f"model: {kiro_skill_model}")
             if (
-                pc_kiro["enable-tools"]
+                artifact_option_enabled(pc_kiro, "skills", "enable-tools")
                 and isinstance(kiro_skill_tools, list)
                 and kiro_skill_tools
             ):
@@ -3939,9 +4029,9 @@ def run(args: Namespace) -> None:
                 oc_skill_tools_raw = get_raw_tools_for_prompt(
                     configs.get("opencode"), PROMPT
                 )
-                if pc_opencode["enable-models"] and oc_skill_model:
+                if artifact_option_enabled(pc_opencode, "skills", "enable-models") and oc_skill_model:
                     opencode_skill_header_lines.append(f"model: {oc_skill_model}")
-                if pc_opencode["enable-tools"] and oc_skill_tools_raw is not None:
+                if artifact_option_enabled(pc_opencode, "skills", "enable-tools") and oc_skill_tools_raw is not None:
                     if isinstance(oc_skill_tools_raw, list):
                         opencode_skill_header_lines.append(
                             f"tools: {format_tools_inline_list(oc_skill_tools_raw)}"
@@ -4045,7 +4135,7 @@ def run(args: Namespace) -> None:
         @brief Format the Unicode installation summary table.
         @details Builds a deterministic box-drawing table with columns: Provider, Prompts Installed, Modules Installed.
         Prompts Installed is wrapped to a maximum width of 50 characters. Modules Installed renders one non-wrapped
-        line per active artifact as `artifact` when no options are active, or `artifact:options` when options exist.
+        line per active artifact item as `artifact` when no artifact-local or applicable provider-scoped options are active, or `artifact:options` when one or more such options are active.
         Borders are emitted with Unicode line-drawing characters and bright-red ANSI styling.
         @note Complexity: O(C * (P log P + M)) where C is provider count, P is prompts per provider, M is module-entry lines per provider.
         @note Side effects: None (pure formatting).
@@ -4143,51 +4233,60 @@ def run(args: Namespace) -> None:
     def _build_provider_modules_map(provider_specs: list[str]) -> dict[str, list[str]]:
         """!
         @brief Build provider-to-module-entry mapping for installation table rendering.
-        @details Parses raw `--provider` specifications preserving token order, then emits one module-entry line per active artifact as `artifact` or `artifact:options`.
+        @details Parses validated raw `--provider` specifications, preserves first-seen artifact-item order and artifact-local option order, appends applicable provider-scoped options in first-seen order, and emits one module-entry line per active artifact item as `artifact` or `artifact:options`. Complexity: O(P * (A + O)) where P is spec count. No side effects.
         @param provider_specs {list[str]} Raw `--provider` SPEC values after update-merging logic.
         @return {dict[str, list[str]]} Mapping from provider to ordered module-entry lines.
+        @satisfies SRS-291, SRS-294, SRS-297
         """
         artifacts_ordered: dict[str, list[str]] = {
             provider_name: [] for provider_name in sorted(VALID_PROVIDERS)
         }
-        options_ordered: dict[str, list[str]] = {
+        artifact_options_ordered: dict[str, dict[str, list[str]]] = {
+            provider_name: {
+                artifact_name: [] for artifact_name in sorted(VALID_ARTIFACTS)
+            }
+            for provider_name in sorted(VALID_PROVIDERS)
+        }
+        provider_options_ordered: dict[str, list[str]] = {
             provider_name: [] for provider_name in sorted(VALID_PROVIDERS)
         }
         for raw_spec in provider_specs:
-            parts = raw_spec.split(":")
-            if len(parts) < 2:
-                continue
-            provider_name = parts[0].strip().lower()
-            if provider_name not in VALID_PROVIDERS:
-                continue
-            for artifact in [
-                v.strip().lower() for v in parts[1].split(",") if v.strip()
-            ]:
-                if (
-                    artifact in VALID_ARTIFACTS
-                    and artifact not in artifacts_ordered[provider_name]
-                ):
-                    artifacts_ordered[provider_name].append(artifact)
-            if len(parts) == 3:
-                for option in [
-                    v.strip().lower() for v in parts[2].split(",") if v.strip()
-                ]:
-                    if (
-                        option in VALID_PROVIDER_OPTIONS
-                        and option not in options_ordered[provider_name]
-                    ):
-                        options_ordered[provider_name].append(option)
+            provider_name, artifact_items, provider_options = parse_provider_spec(raw_spec)
+            for artifact_name, artifact_options in artifact_items:
+                if artifact_name not in artifacts_ordered[provider_name]:
+                    artifacts_ordered[provider_name].append(artifact_name)
+                ordered_artifact_options = artifact_options_ordered[provider_name][
+                    artifact_name
+                ]
+                for option_name in artifact_options:
+                    if option_name not in ordered_artifact_options:
+                        ordered_artifact_options.append(option_name)
+            for option_name in provider_options:
+                if option_name not in provider_options_ordered[provider_name]:
+                    provider_options_ordered[provider_name].append(option_name)
         modules_map: dict[str, list[str]] = {}
         for provider_name in sorted(VALID_PROVIDERS):
-            options = options_ordered[provider_name]
-            if options:
-                options_text = ",".join(options)
-                modules_map[provider_name] = [
-                    f"{artifact}:{options_text}"
-                    for artifact in artifacts_ordered[provider_name]
-                ]
-            else:
-                modules_map[provider_name] = list(artifacts_ordered[provider_name])
+            provider_lines: list[str] = []
+            for artifact_name in artifacts_ordered[provider_name]:
+                ordered_options = list(
+                    artifact_options_ordered[provider_name][artifact_name]
+                )
+                for option_name in provider_options_ordered[provider_name]:
+                    applicable_artifacts = PROVIDER_OPTION_APPLICABILITY.get(
+                        option_name, frozenset()
+                    )
+                    if (
+                        artifact_name in applicable_artifacts
+                        and option_name not in ordered_options
+                    ):
+                        ordered_options.append(option_name)
+                if ordered_options:
+                    provider_lines.append(
+                        f"{artifact_name}:{','.join(ordered_options)}"
+                    )
+                else:
+                    provider_lines.append(artifact_name)
+            modules_map[provider_name] = provider_lines
         return modules_map
 
     def _colorize_table_border(line: str) -> str:
