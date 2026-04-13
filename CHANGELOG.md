@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.62.0](https://github.com/Ogekuri/useReq/compare/v0.61.0..v0.62.0) - 2026-04-13
+### 📚  Documentation
+- document artifact-scoped provider option syntax [useReq] *(cli)*
+  - README-20260413-160945
+  - update --provider grammar to ARTIFACT_ITEM and PROVIDER_OPTIONS
+  - document artifact-local enable-models and enable-tools usage
+  - clarify provider-scoped prompts-use-agents and legacy options
+
 ## [0.61.0](https://github.com/Ogekuri/useReq/compare/v0.60.0..v0.61.0) - 2026-04-13
 ### 🐛  Bug Fixes
 - Fix scripts/test-install.sh script.
@@ -1217,6 +1225,7 @@
 - \[0.59.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.59.0
 - \[0.60.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.60.0
 - \[0.61.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.61.0
+- \[0.62.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.62.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1278,3 +1287,4 @@
 [0.59.0]: https://github.com/Ogekuri/useReq/compare/v0.58.0..v0.59.0
 [0.60.0]: https://github.com/Ogekuri/useReq/compare/v0.59.0..v0.60.0
 [0.61.0]: https://github.com/Ogekuri/useReq/compare/v0.60.0..v0.61.0
+[0.62.0]: https://github.com/Ogekuri/useReq/compare/v0.61.0..v0.62.0
