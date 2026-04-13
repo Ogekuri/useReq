@@ -78,12 +78,12 @@ echo    ${SCRIPT_PATH}/req.sh \
 --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \
 --tests-dir "${FOLDER_PATH}/tests" \
 --upgrade-guidelines \
---provider claude:prompts,agents,skills:enable-models,enable-tools \
+--provider claude:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
 --provider codex:prompts,skills \
 --provider gemini:prompts,skills \
---provider github:prompts,agents,skills:enable-models,enable-tools \
---provider kiro:prompts,agents,skills:enable-models,enable-tools \
---provider opencode:prompts,agents,skills:enable-models,enable-tools \
+--provider github:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
+--provider kiro:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
+--provider opencode:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
 --enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
@@ -96,12 +96,12 @@ echo    ${SCRIPT_PATH}/req.sh \
 --src-dir "${FOLDER_PATH}/src" --src-dir ".github/workflows" \
 --tests-dir "${FOLDER_PATH}/tests" \
 --upgrade-guidelines \
---provider claude:prompts,agents,skills:enable-models,enable-tools \
+--provider claude:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
 --provider codex:prompts,skills \
 --provider gemini:prompts,skills \
---provider github:prompts,agents,skills:enable-models,enable-tools \
---provider kiro:prompts,agents,skills:enable-models,enable-tools \
---provider opencode:prompts,agents,skills:enable-models,enable-tools \
+--provider github:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
+--provider kiro:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
+--provider opencode:prompts+enable-models+enable-tools,agents+enable-models+enable-tools,skills+enable-models+enable-tools \
 --enable-static-check C=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c11 \
 --enable-static-check C=Command,clang-format,--dry-run,--Werror \
 --enable-static-check C++=Command,cppcheck,--error-exitcode=1,\"--enable=warning,style,performance,portability\",--std=c++20 \
