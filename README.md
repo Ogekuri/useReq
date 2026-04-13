@@ -117,12 +117,7 @@ Here the typical project's tree, except for `.req` directory you can configurare
 ```bash
 uvx --from git+https://github.com/Ogekuri/useReq.git req \
   --base myproject/ \
-  --docs-dir docs/ \
-  --guidelines-dir guidelines/ \
-  --tests-dir tests/ \
-  --src-dir src/ \
-  --provider codex:prompts \
-  --verbose --debug
+  --provider pi:prompts
 ```
 
 ### Install/Uninstall useReq/req with uv
@@ -143,9 +138,13 @@ uv tool uninstall usereq
 - Typical Install:
 ```
 req \
---base "project_path" --docs-dir "docs/" --guidelines-dir "guidelines/" \
---src-dir "src/" --tests-dir "tests/" \
+--base "project_path" \
+--docs-dir "docs/" \
+--guidelines-dir "guidelines/" \
+--src-dir "src/" \
+--tests-dir "tests/" \
 --upgrade-guidelines \
+--provider pi:prompts \
 --provider claude:prompts \
 --provider codex:skills \
 --provider gemini:prompts \
