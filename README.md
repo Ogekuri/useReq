@@ -299,7 +299,7 @@ req \
 
 
 ### useReq/req Support
-- ✅ pi.dev CLI (`--provider pi:...`)
+- ✅ pi.dev CLI
 - ✅ OpenAI Codex
   - set environment variable **CODEX_HOME** to project's home before running the codex CLI
 - ✅ Claude Code
