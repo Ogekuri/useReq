@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.65.0](https://github.com/Ogekuri/useReq/compare/v0.64.0..v0.65.0) - 2026-04-14
+### 🐛  Bug Fixes
+- Fix flowchart prompt.
+
 ## [0.64.0](https://github.com/Ogekuri/useReq/compare/v0.63.0..v0.64.0) - 2026-04-14
 ### 🐛  Bug Fixes
 - Fix flowchart prompt.
@@ -1237,6 +1241,7 @@
 - \[0.62.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.62.0
 - \[0.63.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.63.0
 - \[0.64.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.64.0
+- \[0.65.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.65.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1301,3 +1306,4 @@
 [0.62.0]: https://github.com/Ogekuri/useReq/compare/v0.61.0..v0.62.0
 [0.63.0]: https://github.com/Ogekuri/useReq/compare/v0.62.0..v0.63.0
 [0.64.0]: https://github.com/Ogekuri/useReq/compare/v0.63.0..v0.64.0
+[0.65.0]: https://github.com/Ogekuri/useReq/compare/v0.64.0..v0.65.0
