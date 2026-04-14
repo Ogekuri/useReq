@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.63.0](https://github.com/Ogekuri/useReq/compare/v0.62.0..v0.63.0) - 2026-04-14
+### ⛰️  Features
+- Add flowchart prompt.
+- Update prompts.
+
 ## [0.62.0](https://github.com/Ogekuri/useReq/compare/v0.61.0..v0.62.0) - 2026-04-13
 ### 📚  Documentation
 - document artifact-scoped provider option syntax [useReq] *(cli)*
@@ -1226,6 +1231,7 @@
 - \[0.60.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.60.0
 - \[0.61.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.61.0
 - \[0.62.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.62.0
+- \[0.63.0\]: https://github.com/Ogekuri/useReq/releases/tag/v0.63.0
 
 [0.1.0]: https://github.com/Ogekuri/useReq/releases/tag/v0.1.0
 [0.2.0]: https://github.com/Ogekuri/useReq/compare/v0.1.0..v0.2.0
@@ -1288,3 +1294,4 @@
 [0.60.0]: https://github.com/Ogekuri/useReq/compare/v0.59.0..v0.60.0
 [0.61.0]: https://github.com/Ogekuri/useReq/compare/v0.60.0..v0.61.0
 [0.62.0]: https://github.com/Ogekuri/useReq/compare/v0.61.0..v0.62.0
+[0.63.0]: https://github.com/Ogekuri/useReq/compare/v0.62.0..v0.63.0
