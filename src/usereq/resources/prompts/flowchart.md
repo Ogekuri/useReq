@@ -178,7 +178,21 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Group non-atomic functions into logical phases with sequential alphabetical labels.
    - Inside each phase, extract atomic operations, label them with sequential integers, and document them using strictly parameterless function prototypes.
    - Deduce actual control flow, branching, and joins from the code analyzed in Step 3.
+   - **Granularity consistency rule (CRITICAL):** maintain the same abstraction level across sibling branches that originate from the same decision node. If one branch exposes internal sub-operations of a composite internal function, then every sibling branch at that same decision depth MUST expose the equivalent internal sub-operations needed for semantic comparison; conversely, if one branch remains collapsed as a composite phase, sibling branches MUST NOT mix in a lower-level expansion unless that lower-level expansion is required in all sibling branches.
+   - **Comparability rule (CRITICAL):** the flowchart MUST make branch-to-branch equivalence explicit. Do not represent one branch as a wrapper function and another branch as the wrapper’s internal steps when both branches implement the same logical stage. Expand or collapse branches so that a downstream LLM Agent can compare them without inferring hidden steps.
+   - **No hidden-step ambiguity rule (CRITICAL):** do not allow a phase node to visually imply that an internal operation is skipped when that operation is actually executed inside a composite helper. If a composite helper contains operations that are shown explicitly in an alternative branch, either:
+      - expand the composite helper to expose those operations in the same phase, or
+      - collapse the alternative branch to the same semantic level,
+        choosing the representation that maximizes branch readability and preserves the primary execution flow.
+   - **Wrapper-function rule (CRITICAL):** a composite internal function MAY appear as a single visible phase only if its internal operations are not separately exposed elsewhere in parallel or sibling branches of the same logical decision region. If they are exposed elsewhere, the composite function MUST be expanded enough to remove ambiguity.
+   - **Join readability rule (CRITICAL):** place joins only after branches have been normalized to a comparable semantic granularity. A join MUST NOT merge branches where one path still hides decision-relevant internal operations that are shown in another path.
+   - **Skipped-work rule (CRITICAL):** represent intentionally skipped work explicitly only when the source code emits or enforces a real skip condition. Do not create an apparent skip merely by collapsing one branch more aggressively than another.
    - Before writing the file, perform a strict internal audit cross-referencing the generated flowchart, the runtime model from Step 3, and the original source code.
+   - The internal audit MUST explicitly verify:
+      - every decision node has sibling branches rendered at comparable semantic granularity;
+      - no branch appears to omit an operation that is actually executed inside a composite helper;
+      - every visible skip corresponds to a real code-level skip or bypass condition;
+      - every join occurs only after branch normalization.
    - Mermaid generation rules:
       - Write the final output strictly enclosed within ` ```mermaid ` and ` ``` ` fences.
       - Use a vertical layout (`graph TD`).
