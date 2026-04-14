@@ -2,7 +2,6 @@
 
 ## Use Mermaid Live Editors:
 - [https://mermaid.live/](https://mermaid.live/)
-- [https://mermaid.ai/play](https://mermaid.ai/play) (B&W version)
 
 ## Source Code
 

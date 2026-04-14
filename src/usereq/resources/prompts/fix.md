@@ -2,16 +2,16 @@
 description: "Fix a defect without changing the requirements"
 argument-hint: "Description of the defect/bug to fix"
 usage: >
-  Select this prompt when behavior is wrong relative to already-existing requirement IDs in %%DOC_PATH%%/REQUIREMENTS.md (a defect), and the intent is to restore compliance without changing the SRS. Use a test-first evidence-oriented flow when relevant unit-test suites exist: analyze defect -> create one failing reproducer unit test -> implement the smallest safe fix -> verify reproducer success with requirement evidence, static analysis, and conditional execution of existing unit tests via language-specific test-suite priority policy. Then update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md, and commit. Do NOT select if the requested outcome changes requirements/behavior (use /req-change or /req-new), if the goal is structural/performance improvement with no behavioral change (use /req-refactor), or if the primary task is satisfying a set of uncovered requirement IDs (use /req-cover or /req-implement).
+  Select this prompt when behavior is wrong relative to already-existing requirement IDs in %%DOC_PATH%%/REQUIREMENTS.md (a defect), and the intent is to restore compliance without changing the SRS. Use a test-first evidence-oriented flow when relevant unit-test suites exist, analyze defect -> create one failing reproducer unit test -> implement the smallest safe fix -> verify reproducer success with requirement evidence, static analysis, and conditional execution of existing unit tests via language-specific test-suite priority policy. Then update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md, and commit. Do NOT select if the requested outcome changes requirements/behavior (use /req-change or /req-new), if the goal is structural/performance improvement with no behavioral change (use /req-refactor), or if the primary task is satisfying a set of uncovered requirement IDs (use /req-cover or /req-implement).
 ---
 
 # Fix a defect without changing the requirements
 
 ## Purpose
-Restore required behavior by diagnosing and fixing a defect while keeping the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) unchanged, so downstream LLM Agents can treat the fix as a semantics-correcting change rather than a requirements change.
+Restore required behavior by diagnosing and fixing a defect while keeping the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) unchanged, so downstream LLM Agents MUST treat the fix as a semantics-correcting change rather than a requirements change.
 
 ## Scope
-In scope: reproduce/triage the defect with concrete evidence and prefer a evidence-oriented test-first flow when relevant unit-test suites exist (analyze defect -> create one failing reproducer unit test -> design and implement smallest safe fix under %%SRC_PATHS%% -> verify reproducer passes with requirement evidence, static analysis, and conditional execution of existing unit tests via language-specific test-suite priority policy), with fallback to analyze -> implement fix -> verify only when no relevant suite exists, building that test is too costly, or one-test defect isolation is not feasible; then update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing requirements, adding new features, or refactoring beyond what is necessary to implement the fix safely.
+In scope: reproduce/triage the defect with concrete evidence and prefer an evidence-oriented test-first flow when relevant unit-test suites exist (analyze defect -> create one failing reproducer unit test -> design and implement smallest safe fix under %%SRC_PATHS%% -> verify reproducer passes with requirement evidence, static analysis, and conditional execution of existing unit tests via language-specific test-suite priority policy), with fallback to analyze -> implement fix -> verify only when no relevant suite exists, building that test is too costly, or one-test defect isolation is not feasible; then update `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, and commit. Out of scope: editing requirements, adding new features, or refactoring beyond what is necessary to implement the fix safely.
 
 
 ## Professional Personas
@@ -53,7 +53,8 @@ In scope: reproduce/triage the defect with concrete evidence and prefer a eviden
 - All newly written or edited content MUST be in English. Do NOT translate existing text outside the minimal change surface required by this workflow; if you detect non-English text elsewhere, report it in **Evidence** instead of rewriting it.
 - Prioritize backward compatibility. Do not introduce breaking changes; preserve existing interfaces, data formats, and features.
 - If maintaining compatibility would require migrations/auto-upgrades conversion logic, report the conflict instead of implementing, and then terminate the execution.
-- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
+- If `.venv/bin/python` exists in the project root, use it for Python executions (eg, `PYTHONPATH=src .venv/bin/python -m <program name>`).
+- Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
 

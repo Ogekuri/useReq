@@ -2,13 +2,13 @@
 description: "Write a REFERENCES.md using the project's source code"
 argument-hint: "No arguments utilized by the prompt logic"
 usage: >
-  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/REFERENCES.md: when that file is missing/outdated and you need to regenerate the repository navigation/index from evidence (entrypoints, modules, dependencies) and commit that doc change. Do NOT select if any other file (requirements, workflow, source, tests) must change; use /req-change, /req-new, /req-fix, /req-refactor, /req-cover, /req-implement, /req-create, or /req-recreate for those workflows. Do NOT select for read-only analysis/audits (use /req-analyze or /req-check).
+  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/REFERENCES.md, when that file is missing/outdated and you need to regenerate the repository navigation/index from evidence (entrypoints, modules, dependencies) and commit that doc change. Do NOT select if any other file (requirements, workflow, source, tests) must change; use /req-change, /req-new, /req-fix, /req-refactor, /req-cover, /req-implement, /req-create, or /req-recreate for those workflows. Do NOT select for read-only analysis/audits (use /req-analyze or /req-check).
 ---
 
 # Write a REFERENCES.md using the project's source code
 
 ## Purpose
-Maintain a machine-usable reference index (`%%DOC_PATH%%/REFERENCES.md`) derived from repository evidence so downstream LLM Agents can quickly discover entrypoints, modules, dependencies, and other navigational anchors during SRS-driven work.
+Maintain a machine-usable reference index (`%%DOC_PATH%%/REFERENCES.md`) derived from repository evidence so downstream LLM Agents MUST quickly discover entrypoints, modules, dependencies, and other navigational anchors during SRS-driven work.
 
 ## Scope
 In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in English (following the prompt’s `req --references` workflow) and commit that doc change. Out of scope: changes to requirements, workflow docs, source code, or tests.
@@ -40,7 +40,8 @@ In scope: generate/update only `%%DOC_PATH%%/REFERENCES.md` in English (followin
 
 ## Behavior
 - Do not perform unrelated edits.
-- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
+- If `.venv/bin/python` exists in the project root, use it for Python executions (eg, `PYTHONPATH=src .venv/bin/python -m <program name>`).
+- Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update `%%DOC_PATH%%/REFERENCES.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 

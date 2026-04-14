@@ -2,13 +2,13 @@
 description: "Produce an analysis report"
 argument-hint: "Description of the analysis/investigation to perform"
 usage: >
-  Select this prompt if you need a read-only, evidence-backed investigation/triage of the current state (SRS in %%DOC_PATH%%/REQUIREMENTS.md, runtime model in %%DOC_PATH%%/WORKFLOW.md, references in %%DOC_PATH%%/REFERENCES.md, and code under %%SRC_PATHS%%) to answer a question or decide which follow-up workflow to run. Use when you must NOT change any files and the deliverable is an analysis report with concrete evidence pointers. Do NOT select if you must: (a) produce an OK/FAIL verdict for every requirement ID (use /req-check), (b) modify requirements (use /req-new or /req-change), (c) implement code/tests (use /req-fix, /req-refactor, /req-cover, /req-implement), or (d) regenerate only WORKFLOW/REFERENCES docs (use /req-workflow or /req-references).
+  Select this prompt if you need a read-only, evidence-backed investigation/triage of the current state (SRS in %%DOC_PATH%%/REQUIREMENTS.md, runtime model in %%DOC_PATH%%/WORKFLOW.md, references in %%DOC_PATH%%/REFERENCES.md, and code under %%SRC_PATHS%%) to answer a question or decide which follow-up workflow to run. Use when you must NOT change any files and the deliverable is an analysis report with concrete evidence pointers. Do NOT select if you must, (a) produce an OK/FAIL verdict for every requirement ID (use /req-check), (b) modify requirements (use /req-new or /req-change), (c) implement code/tests (use /req-fix, /req-refactor, /req-cover, /req-implement), or (d) regenerate only WORKFLOW/REFERENCES docs (use /req-workflow or /req-references).
 ---
 
 # Produce an analysis report
 
 ## Purpose
-Enable evidence-backed reasoning about a request or investigation by grounding conclusions in the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`), the runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`), references (`%%DOC_PATH%%/REFERENCES.md`), and the actual implementation, so downstream LLM Agents can choose the correct follow-up workflow with minimal re-discovery.
+Enable evidence-backed reasoning about a request or investigation by grounding conclusions in the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`), the runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`), references (`%%DOC_PATH%%/REFERENCES.md`), and the actual implementation, so downstream LLM Agents MUST choose the correct follow-up workflow with minimal re-discovery.
 
 ## Scope
 In scope: read-only analysis of the above documents plus source under %%SRC_PATHS%% (and tests only as evidence when explicitly needed), including tool-assisted extraction; output is an analysis report with concrete evidence (paths/line numbers). Out of scope: any repository modification (requirements/code/tests/docs), generating patches, or applying fixes.
@@ -36,7 +36,8 @@ In scope: read-only analysis of the above documents plus source under %%SRC_PATH
 - Do NOT create or modify tests in this workflow.
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
 - Allowed git commands in this workflow (read-only only): `git status`, `git diff`, `git ls-files`, `git grep`, `git rev-parse`, `git branch --show-current`. Do NOT run any other git commands.
-- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
+- If `.venv/bin/python` exists in the project root, use it for Python executions (eg, `PYTHONPATH=src .venv/bin/python -m <program name>`).
+- Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read files as needed (read-only only; e.g., `cat`, `sed -n`, `head`, `tail`, `rg`, `less`). Do NOT use in-place editing flags (e.g., `-i`, `perl -pi`) in this workflow.
 
 

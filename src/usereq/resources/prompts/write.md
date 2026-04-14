@@ -8,7 +8,7 @@ usage: >
 # Produce a Software Requirements Specification draft based on the User Request description
 
 ## Purpose
-Capture the user's intent as an SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) suitable for automated, SRS-driven development (requirements → design → implementation → verification), so downstream LLM Agents can implement the system without inventing unstated requirements.
+Capture the user's intent as an SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) suitable for automated, SRS-driven development (requirements → design → implementation → verification), so downstream LLM Agents MUST implement the system without inventing unstated requirements.
 
 ## Scope
 In scope: author/update only `%%DOC_PATH%%/REQUIREMENTS.md` from [User Request](#users-request) in English, using explicit Assumptions for missing details and the canonical template structure. Out of scope: using repository source code as evidence, changing any other project file, generating workflow/references docs, or committing code changes.

@@ -2,13 +2,13 @@
 description: "Write a WORKFLOW.md using the project's source code"
 argument-hint: "No arguments utilized by the prompt logic"
 usage: >
-  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/WORKFLOW.md: when it is missing/outdated and you need to regenerate the runtime/workflow model (processes/threads, internal call-traces, communication edges) from evidence in %%SRC_PATHS%% and commit that doc change. Do NOT select if you will change requirements, source code, or tests; choose /req-change, /req-new, /req-fix, /req-refactor, /req-cover, /req-implement, /req-create, or /req-recreate as appropriate. Do NOT select for read-only analysis/audits (use /req-analyze or /req-check).
+  Select this prompt ONLY for docs-maintenance of %%DOC_PATH%%/WORKFLOW.md, when it is missing/outdated and you need to regenerate the runtime/workflow model (processes/threads, internal call-traces, communication edges) from evidence in %%SRC_PATHS%% and commit that doc change. Do NOT select if you will change requirements, source code, or tests; choose /req-change, /req-new, /req-fix, /req-refactor, /req-cover, /req-implement, /req-create, or /req-recreate as appropriate. Do NOT select for read-only analysis/audits (use /req-analyze or /req-check).
 ---
 
 # Write a WORKFLOW.md using the project's source code
 
 ## Purpose
-Maintain an LLM-oriented runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`) derived from repository evidence so downstream LLM Agents can reason about execution units, communication edges, and internal call-traces during SRS-driven design/implementation.
+Maintain an LLM-oriented runtime/workflow model (`%%DOC_PATH%%/WORKFLOW.md`) derived from repository evidence so downstream LLM Agents MUST reason about execution units, communication edges, and internal call-traces during SRS-driven design/implementation.
 
 ## Scope
 In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite only `%%DOC_PATH%%/WORKFLOW.md` in English only, following the mandated schema, then commit that doc change. Out of scope: changes to requirements, references, source code, or tests.
@@ -46,7 +46,8 @@ In scope: static analysis of source under %%SRC_PATHS%% to generate/overwrite on
 ## Behavior
 - Write the `%%DOC_PATH%%/WORKFLOW.md` document in English.
 - Do not perform unrelated edits.
-- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
+- If `.venv/bin/python` exists in the project root, use it for Python executions (eg, `PYTHONPATH=src .venv/bin/python -m <program name>`).
+- Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...), but only to read project files and to write/update `%%DOC_PATH%%/WORKFLOW.md`. Avoid in-place edits on any other path. Prefer read-only commands for analysis.
 
 

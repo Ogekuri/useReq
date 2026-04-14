@@ -2,13 +2,13 @@
 description: "Update the requirements and implement the corresponding changes"
 argument-hint: "Description of the requirements changes to implement"
 usage: >
-  Select this prompt if and only if the request requires changing existing requirements/behavior: you must edit/replace/remove existing requirement IDs in %%DOC_PATH%%/REQUIREMENTS.md (not just append), then implement the corresponding code/tests under %%SRC_PATHS%% and %%TEST_PATH%% with verification and traceability, and update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md. Do NOT select if the SRS must remain unchanged (use /req-fix, /req-refactor, /req-cover, or /req-implement). Do NOT select if the change is strictly additive/backwards-compatible and can be expressed only by appending new requirement IDs (use /req-new). Do NOT select for read-only auditing/triage (use /req-check or /req-analyze) or docs-only maintenance (use /req-workflow or /req-references).
+  Select this prompt if and only if the request requires changing existing requirements/behavior, you must edit/replace/remove existing requirement IDs in %%DOC_PATH%%/REQUIREMENTS.md (not just append), then implement the corresponding code/tests under %%SRC_PATHS%% and %%TEST_PATH%% with verification and traceability, and update %%DOC_PATH%%/WORKFLOW.md and %%DOC_PATH%%/REFERENCES.md. Do NOT select if the SRS must remain unchanged (use /req-fix, /req-refactor, /req-cover, or /req-implement). Do NOT select if the change is strictly additive/backwards-compatible and can be expressed only by appending new requirement IDs (use /req-new). Do NOT select for read-only auditing/triage (use /req-check or /req-analyze) or docs-only maintenance (use /req-workflow or /req-references).
 ---
 
 # Update the requirements and implement the corresponding changes
 
 ## Purpose
-Evolve existing system behavior safely by first updating the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) to encode the requested change, then implementing and verifying the corresponding code/test deltas with strict traceability to requirement IDs so downstream LLM Agents can reason over the change deterministically.
+Evolve existing system behavior safely by first updating the normative SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) to encode the requested change, then implementing and verifying the corresponding code/test deltas with strict traceability to requirement IDs so downstream LLM Agents MUST reason over the change deterministically.
 
 ## Scope
 In scope: patch-style edits to `%%DOC_PATH%%/REQUIREMENTS.md`, an implementation plan, code/test changes under %%SRC_PATHS%% and %%TEST_PATH%%, verification via static analysis (`req --here --static-check`), requirements evidence checks, and conditional execution of existing unit tests using language-specific test-suite priority policy, and updates to `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md`, ending with a clean git commit. Out of scope: work that keeps requirements unchanged (use `/req-fix`, `/req-refactor`, or `/req-cover`), and any implementation not justified by the updated requirements.
@@ -50,7 +50,8 @@ In scope: patch-style edits to `%%DOC_PATH%%/REQUIREMENTS.md`, an implementation
 - All newly written or edited content MUST be in English. Do NOT translate existing text outside the minimal change surface required by this workflow; if you detect non-English text elsewhere, report it in **Evidence** instead of rewriting it.
 - Prefer clean implementation over legacy support. Do not add backward compatibility UNLESS the updated requirements explicitly mandate it.
 - Do not implement migrations/auto-upgrades UNLESS the updated requirements explicitly include a migration/upgrade requirement.
-- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
+- If `.venv/bin/python` exists in the project root, use it for Python executions (eg, `PYTHONPATH=src .venv/bin/python -m <program name>`).
+- Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read/write/delete files as needed (e.g., `cat`, `sed`, `perl -pi`, `printf > file`, `rm -f`, ...). Prefer read-only commands for analysis.
 
 
@@ -231,7 +232,6 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
          - Set `<COMPONENT>` to the most specific component, module, or function affected. If multiple areas are touched, choose the primary one. If you cannot identify a unique component, use `core`.
          - Set `<DESCRIPTION>` to a short, clear summary in **English language** of what changed, including (when applicable) updates to: requirements/specs, source code, tests. Use present tense, avoid vague wording, and keep it under ~80 characters if possible.
          - Set `<BREAKING>` to `!` if a breaking change was implemented (a modification to an API, library, or system that breaks backward compatibility, causing dependent client applications or code to fail or behave incorrectly), set empty otherwise.
-         - Include main features added, requirements changes or implementation's summary on multi-line commit comment (maximum 10 lines).
          - Include main features added, requirements changes, or a bug-fix description adding a multi-line comment (maximum 10 lines).
          - Do not include the 'Co-authored-by' trailer or any AI attribution. A GPG-signed commit is not required.
    - Confirm the repo is clean with `req --git-check`. If the command returns an error code or prints any text containing "ERROR", override the final line with EXACTLY "WARNING: Change request completed with unclean git repository!".

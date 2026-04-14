@@ -1,6 +1,6 @@
 ---
 description: "Run the requirements check"
-argument-hint: "Optional: context to focus the audit (can be empty)"
+argument-hint: "Optional, context to focus the audit (can be empty)"
 usage: >
   Select this prompt if you need a complete, repository-read-only compliance audit that outputs an OK/FAIL verdict for EVERY requirement ID in %%DOC_PATH%%/REQUIREMENTS.md, backed by concrete code evidence and static-analysis evidence. Use after requirements/code changes to measure coverage and to produce a gap list + implementation-only technical report when FAILs exist. Do NOT select if you will modify any files (requirements/code/docs) or implement fixes; downstream implementation should be done via /req-cover (small set of uncovered IDs), /req-implement (large/greenfield gaps), /req-fix, /req-refactor, /req-new, or /req-change depending on intent.
 ---
@@ -8,7 +8,7 @@ usage: >
 # Run the requirements check
 
 ## Purpose
-Provide an evidence-backed compliance audit by running static analysis and mapping every requirement in the SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) to concrete implementation evidence, so downstream LLM Agents can decide whether coverage work is required and where to apply it.
+Provide an evidence-backed compliance audit by running static analysis and mapping every requirement in the SRS (`%%DOC_PATH%%/REQUIREMENTS.md`) to concrete implementation evidence, so downstream LLM Agents MUST decide whether coverage work is required and where to apply it.
 
 ## Scope
 In scope: read `%%DOC_PATH%%/REQUIREMENTS.md` (and related docs), run static analysis evidence (`req --here --static-check`) as evidence, mark ALL requirements as OK/FAIL with proof, and (only when FAILs exist) produce an implementation-only, patch-oriented technical report. Out of scope: any file modification (requirements/code/tests/docs) or applying fixes.
@@ -35,7 +35,8 @@ In scope: read `%%DOC_PATH%%/REQUIREMENTS.md` (and related docs), run static ana
 - Only analyze the code and static-analysis execution results and present the results; make no changes.
 - Do NOT create or modify tests in this workflow.
 - Report facts: for each finding include file paths and, when useful, line numbers or short code excerpts.
-- Use the repository's existing language-specific environment/toolchain to execute code and tests; do NOT create new environments unless explicitly requested by the user. For Python, prefer Astral `uv` (`uv run`, `uvx`) when available, then fall back to the repository's existing `.venv` (if present). For other ecosystems (e.g., Node.js, Rust, C/C++), use the project's standard commands.
+- If `.venv/bin/python` exists in the project root, use it for Python executions (eg, `PYTHONPATH=src .venv/bin/python -m <program name>`).
+- Non-Python tooling should use the project's standard commands.
 - Use filesystem/shell tools to read files as needed (read-only only; e.g., `cat`, `sed -n`, `head`, `tail`, `rg`, `less`).
 
 
@@ -140,7 +141,7 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
 1. **CRITICAL**: Check `%%DOC_PATH%%/REQUIREMENTS.md`, `%%DOC_PATH%%/WORKFLOW.md` and `%%DOC_PATH%%/REFERENCES.md` file presence
    - Check required docs presence with `req --docs-check`. If the command returns an error code or prints any text containing "ERROR", OUTPUT exactly "ERROR: Required docs check failed!", and then terminate the execution.
 2. Run static analysis, check requirements coverage and generate **Implementation Delta**
-   - Run `req --here --static-check` to verify the current state. Do not modify repository files during this check. Record the static-check result as evidence for the final analysis report.
+   - Run `req --here --static-check` to verify the current state. Do not modify repository files during this check. Record the static-check result as evidence for the final analysis report. If output is exactly `Error: no source files found in configured directories.`, treat it as successful no-source completion and continue.
    - Read `%%DOC_PATH%%/REQUIREMENTS.md` and cross-reference with the source code from %%SRC_PATHS%%, %%TEST_PATH%% to check ALL requirements, but use progressive disclosure: provide full evidence only for `FAIL` items and a compact pointer-only index for `OK` items. For each requirement, use tools (e.g., `git grep`, `find`, `ls`) to locate the relevant source code files used as evidence, read only the identified files to verify compliance and do not assume compliance without locating the specific code implementation.
       - For each requirement, report `OK` if satisfied or `FAIL` if not.
       - Do not mark a requirement as `OK` without code evidence; for `OK` items provide only a compact pointer (file path + symbol + line range). For each requirement, provide a concise evidence pointer (file path + symbol + line range) excerpts only for `FAIL` requirements or when requirement is architectural, structural, or negative (e.g., "MUST NOT ..."). For such high-level requirements, cite the specific file paths or directory structures that prove compliance. Line ranges MUST be obtained from tooling output (e.g., `nl -ba` / `sed -n`) and MUST NOT be estimated. If evidence is missing, you MUST report `FAIL`. Do not assume implicit behavior.
