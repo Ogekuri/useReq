@@ -180,18 +180,39 @@ Create internally a *check-list* for the **Global Roadmap** including all the nu
    - Deduce actual control flow, branching, and joins from the code analyzed in Step 3.
    - **Granularity consistency rule (CRITICAL):** maintain the same abstraction level across sibling branches that originate from the same decision node. If one branch exposes internal sub-operations of a composite internal function, then every sibling branch at that same decision depth MUST expose the equivalent internal sub-operations needed for semantic comparison; conversely, if one branch remains collapsed as a composite phase, sibling branches MUST NOT mix in a lower-level expansion unless that lower-level expansion is required in all sibling branches.
    - **Comparability rule (CRITICAL):** the flowchart MUST make branch-to-branch equivalence explicit. Do not represent one branch as a wrapper function and another branch as the wrapper’s internal steps when both branches implement the same logical stage. Expand or collapse branches so that a downstream LLM Agent can compare them without inferring hidden steps.
-   - **No hidden-step ambiguity rule (CRITICAL):** do not allow a phase node to visually imply that an internal operation is skipped when that operation is actually executed inside a composite helper. If a composite helper contains operations that are shown explicitly in an alternative branch, either:
-      - expand the composite helper to expose those operations in the same phase, or
+   - **Mandatory-entry vs optional-effect rule (CRITICAL):** explicitly distinguish between:
+      - mandatory stage entry: the caller always invokes the helper or stage wrapper;
+      - optional stage effect: the invoked helper may internally return the input unchanged, bypass its principal work, or otherwise behave as pass-through.
+     A helper that is always called MUST NOT be rendered as an unconditional application phase when its internal logic can disable the actual effect.
+   - **Decision-hoisting rule (CRITICAL):** when the first semantically relevant branch is internal to a composite helper, the flowchart MUST extract that branch outside the helper and render it as an explicit decision diamond using the real code condition expressed in strict pseudo-code.
+   - **Optional-wrapper detection heuristic (CRITICAL):** the agent MUST actively inspect composite helpers and wrappers for internal optional-work branches, including patterns such as:
+      - `if <mode> is None`
+      - `if not <enabled_flag>`
+      - enum or selector values such as `disable`
+      - early returns such as `return stage_input`, `return input_rgb`, or `return image_rgb_float`
+      - diagnostic messages indicating `disabled` or `pass-through`
+   - **Enable-state wrapper rule (CRITICAL):** if a composite helper contains enable-state validation and can bypass its principal work, the flowchart MUST render that condition as an explicit decision node even when the helper call itself is always executed. Wrappers with enable-state validation plus pass-through MUST NOT remain collapsed into a single phase node when the hidden decision changes the semantic meaning of the flow.
+   - **No hidden-step ambiguity rule (CRITICAL):** do not allow a phase node to visually imply that an internal operation is skipped when that operation is actually executed inside a composite helper, or to imply unconditional work when that helper can internally bypass the work. If a composite helper contains operations that are shown explicitly in an alternative branch, or contains the first relevant bypass condition for that logical stage, either:
+      - expand the composite helper to expose those operations and the bypass decision in the same decision region, or
       - collapse the alternative branch to the same semantic level,
-        choosing the representation that maximizes branch readability and preserves the primary execution flow.
-   - **Wrapper-function rule (CRITICAL):** a composite internal function MAY appear as a single visible phase only if its internal operations are not separately exposed elsewhere in parallel or sibling branches of the same logical decision region. If they are exposed elsewhere, the composite function MUST be expanded enough to remove ambiguity.
-   - **Join readability rule (CRITICAL):** place joins only after branches have been normalized to a comparable semantic granularity. A join MUST NOT merge branches where one path still hides decision-relevant internal operations that are shown in another path.
-   - **Skipped-work rule (CRITICAL):** represent intentionally skipped work explicitly only when the source code emits or enforces a real skip condition. Do not create an apparent skip merely by collapsing one branch more aggressively than another.
-   - Before writing the file, perform a strict internal audit cross-referencing the generated flowchart, the runtime model from Step 3, and the original source code.
+        choosing the representation that maximizes branch readability and preserves the primary execution flow without hiding branch semantics.
+   - **Optional-stage representation rule (CRITICAL):** for a helper with mandatory stage entry and optional stage effect, the flowchart MUST show both semantic outcomes:
+      - disabled or bypass branch: render an explicit pass-through path to the next step;
+      - enabled branch: render either the phase node that actually applies the effect or a coherent expansion of its internal sub-steps.
+   - **Wrapper-function rule (CRITICAL):** a composite internal function MAY appear as a single visible phase only if its internal operations are not separately exposed elsewhere in parallel or sibling branches of the same logical decision region and it does not hide a decision that changes whether the stage effect is applied. If those operations are exposed elsewhere, or if such a decision exists, the composite function MUST be expanded enough to remove ambiguity.
+   - **Join readability rule (CRITICAL):** place joins only after branches have been normalized to a comparable semantic granularity and after enabled and disabled branches have actually reconverged. A join MUST NOT merge branches where one path still hides decision-relevant internal operations that are shown in another path.
+   - **Skipped-work rule (CRITICAL):** represent intentionally skipped work explicitly only when the source code emits or enforces a real skip condition. Do not create an apparent skip merely by collapsing one branch more aggressively than another. Real pass-through branches MUST be rendered as explicit bypasses.
+   - **Lexical signal check (CRITICAL):** before finalizing the flowchart, cross-check `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md` for signal terms such as `optional`, `disabled`, `pass-through`, `enable-state validation`, `when omitted`, and `disable`; when those terms correspond to an analyzed stage or helper, ensure the flowchart reflects the same optionality semantics with visible decision and bypass structure.
+   - **Normative category example (CRITICAL):** "A helper always invoked by the caller but internally bypassed by an enable/disable selector MUST be rendered as a decision region, not as an unconditional application phase."
+   - Before writing the file, perform a strict internal audit cross-referencing the generated flowchart, the runtime model from Step 3, the original source code, and the lexical signals found in `%%DOC_PATH%%/REQUIREMENTS.md` and `%%DOC_PATH%%/WORKFLOW.md`.
    - The internal audit MUST explicitly verify:
       - every decision node has sibling branches rendered at comparable semantic granularity;
+      - every optional stage with mandatory stage entry has a visible decision node;
+      - every real pass-through is represented as an explicit bypass;
       - no branch appears to omit an operation that is actually executed inside a composite helper;
+      - no composite helper hides a decision that changes the stage effect;
       - every visible skip corresponds to a real code-level skip or bypass condition;
+      - no join occurs before enabled and disabled branches reconverge;
       - every join occurs only after branch normalization.
    - Mermaid generation rules:
       - Write the final output strictly enclosed within ` ```mermaid ` and ` ``` ` fences.
