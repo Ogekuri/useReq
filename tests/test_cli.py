@@ -469,6 +469,36 @@ class TestCLI(unittest.TestCase):
             "Pi SKILL.md content must match GitHub SKILL.md content for same prompt",
         )
 
+    def test_flowchart_resources_created(self) -> None:
+        """SRS-371, SRS-374: flowchart prompt must generate provider resources."""
+        expected_paths = [
+            self.TEST_DIR / ".codex" / "prompts" / "req-flowchart.md",
+            self.TEST_DIR / ".codex" / "skills" / "req-flowchart" / "SKILL.md",
+            self.TEST_DIR / ".github" / "agents" / "req-flowchart.agent.md",
+            self.TEST_DIR / ".github" / "prompts" / "req-flowchart.prompt.md",
+            self.TEST_DIR / ".claude" / "agents" / "req-flowchart.md",
+            self.TEST_DIR / ".claude" / "commands" / "req" / "flowchart.md",
+            self.TEST_DIR / ".gemini" / "commands" / "req" / "flowchart.toml",
+            self.TEST_DIR / ".kiro" / "agents" / "req-flowchart.json",
+            self.TEST_DIR / ".kiro" / "prompts" / "req-flowchart.md",
+            self.TEST_DIR / ".opencode" / "agent" / "req-flowchart.md",
+            self.TEST_DIR / ".opencode" / "command" / "req-flowchart.md",
+            self.TEST_DIR / ".pi" / "prompts" / "req-flowchart.prompt.md",
+            self.TEST_DIR / ".pi" / "skills" / "req-flowchart" / "SKILL.md",
+        ]
+        for path in expected_paths:
+            self.assertTrue(path.is_file(), f"The file {path} must exist")
+
+        flowchart_prompt = (
+            self.TEST_DIR / ".github" / "prompts" / "req-flowchart.prompt.md"
+        )
+        flowchart_content = flowchart_prompt.read_text(encoding="utf-8")
+        self.assertIn("FLOWCHART.md", flowchart_content)
+        self.assertIn(
+            "Write a FLOWCHART.md using the project's source code",
+            flowchart_content,
+        )
+
     def test_gemini_toml_files_created(self) -> None:
         """REQ-005: Verifies TOML files generation in .gemini/commands/req-"""
         gemini_req = self.TEST_DIR / ".gemini" / "commands" / "req"
@@ -1921,6 +1951,42 @@ class TestBundledModelsReadmeMapping(unittest.TestCase):
     def test_models_legacy_json_readme_matches_write(self) -> None:
         """SRS-085: models-legacy.json keeps readme model/mode aligned with write."""
         self._assert_readme_matches_write(
+            cli.RESOURCE_ROOT / "common" / "models-legacy.json"
+        )
+
+
+class TestBundledModelsFlowchartMapping(unittest.TestCase):
+    """Verifies packaged model configs align flowchart prompt with workflow."""
+
+    def _assert_flowchart_matches_workflow(self, config_file: Path) -> None:
+        payload = json.loads(config_file.read_text(encoding="utf-8"))
+        for provider, provider_cfg in payload.items():
+            prompts = (provider_cfg or {}).get("prompts") or {}
+            if not isinstance(prompts, dict) or "workflow" not in prompts:
+                continue
+            workflow_cfg = prompts.get("workflow")
+            flowchart_cfg = prompts.get("flowchart")
+            self.assertIsInstance(
+                workflow_cfg, dict, f"{provider}.prompts.workflow must exist"
+            )
+            self.assertIsInstance(
+                flowchart_cfg, dict, f"{provider}.prompts.flowchart must exist"
+            )
+            self.assertEqual(
+                flowchart_cfg,
+                workflow_cfg,
+                f"{provider}.prompts.flowchart must match workflow config",
+            )
+
+    def test_models_json_flowchart_matches_workflow(self) -> None:
+        """SRS-372, SRS-373: models.json keeps flowchart aligned with workflow."""
+        self._assert_flowchart_matches_workflow(
+            cli.RESOURCE_ROOT / "common" / "models.json"
+        )
+
+    def test_models_legacy_json_flowchart_matches_workflow(self) -> None:
+        """SRS-372, SRS-373: models-legacy.json keeps flowchart aligned with workflow."""
+        self._assert_flowchart_matches_workflow(
             cli.RESOURCE_ROOT / "common" / "models-legacy.json"
         )
 

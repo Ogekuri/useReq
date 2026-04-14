@@ -75,6 +75,7 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
   | `readme` | Write `README.md` from user-visible implementation evidence |
   | `references` | Write a `REFERENCES.md` using the project's source code |
   | `workflow` | Write a `WORKFLOW.md` using the project's source code |
+  | `flowchart` | Write a `FLOWCHART.md` using the project's source code |
 
 
 ## Default Workflow
@@ -102,6 +103,7 @@ Here the typical project's tree, except for `.req` directory you can configurare
 ├── .req/
 │   └── useReq/req files
 ├── docs/
+│   ├── FLOWCHART.md
 │   ├── REQUIREMENTS.md
 │   ├── REFERENCES.md
 │   └── WORKFLOW.md
@@ -160,7 +162,7 @@ req \
 ```
 2. Use `/req-write` or `/req-create` to create requirements
 3. Use `/req-implement` to implement source-code from requirements, or `/req-cover` to cover new requirements (documentation).
-4. Use `/req-workflow` and/or `/req-references` to update project's documentation.
+4. Use `/req-workflow`, `/req-flowchart`, and/or `/req-references` to update project's documentation.
 5. Start to use `/req-change`, `/req-new`, and `/req-fix`.
 
 ### Usage
@@ -407,7 +409,7 @@ The prompt-name mappings below are also reused for generated skill artifacts whe
 | --- | --- | --- |
 | `analyze`, `check` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_only` |
 | `create`, `readme`, `recreate`, `write` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_write` |
-| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `GPT-5.3-Codex (copilot)` | `read_write` |
+| `change`, `cover`, `fix`, `flowchart`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `GPT-5.3-Codex (copilot)` | `read_write` |
 
 ### GitHub Copilot
 
@@ -422,7 +424,7 @@ The prompt-name mappings below are also reused for generated skill artifacts whe
 | --- | --- | --- |
 | `analyze`, `check` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_only` |
 | `create`, `readme`, `recreate`, `write` | `Gemini 3.1 Pro (Preview) (copilot)` | `read_write` |
-| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `GPT-5.3-Codex (copilot)` | `read_write` |
+| `change`, `cover`, `fix`, `flowchart`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `GPT-5.3-Codex (copilot)` | `read_write` |
 
 ### Claude Code
 
@@ -436,7 +438,7 @@ The prompt-name mappings below are also reused for generated skill artifacts whe
 | Prompts | Model | Mode |
 | --- | --- | --- |
 | `analyze`, `check` | `haiku` | `read_only` |
-| `create`, `readme`, `recreate`, `workflow`, `write` | `haiku` | `read_write` |
+| `create`, `flowchart`, `readme`, `recreate`, `workflow`, `write` | `haiku` | `read_write` |
 | `change`, `new` | `sonnet` | `read_write` |
 | `cover`, `fix`, `implement`, `refactor`, `renumber` | `opus` | `read_write` |
 
@@ -452,7 +454,7 @@ The prompt-name mappings below are also reused for generated skill artifacts whe
 | Prompts | Model | Mode |
 | --- | --- | --- |
 | `analyze`, `check` | `claude-haiku-4.5` | `read_only` |
-| `create`, `readme`, `recreate`, `workflow`, `write` | `claude-haiku-4.5` | `read_write` |
+| `create`, `flowchart`, `readme`, `recreate`, `workflow`, `write` | `claude-haiku-4.5` | `read_write` |
 | `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber` | `claude-sonnet-4.5` | `read_write` |
 
 ### OpenCode CLI
@@ -467,7 +469,7 @@ Models depend on the user's provider; the bundled configuration uses GitHub-host
 | --- | --- | --- |
 | `analyze`, `check` | `github-copilot/gemini-3.1-pro-preview` | `read_only` |
 | `create`, `readme`, `recreate`, `write` | `github-copilot/gemini-3.1-pro-preview` | `read_write` |
-| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `github-copilot/claude-opus-4.6` | `read_write` |
+| `change`, `cover`, `fix`, `flowchart`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `github-copilot/claude-opus-4.6` | `read_write` |
 
 ### OpenAI Codex CLI
 
@@ -482,7 +484,7 @@ Models depend on the user's provider; the bundled configuration uses GitHub-host
 | --- | --- | --- |
 | `analyze`, `check` | `gpt-5.3-codex` | `read_only` |
 | `create`, `readme`, `recreate`, `write` | `gpt-5.2` | `read_write` |
-| `change`, `cover`, `fix`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `gpt-5.3-codex` | `read_write` |
+| `change`, `cover`, `fix`, `flowchart`, `implement`, `new`, `refactor`, `renumber`, `workflow` | `gpt-5.3-codex` | `read_write` |
 
 ### Gemini CLI
 

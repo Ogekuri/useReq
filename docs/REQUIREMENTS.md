@@ -130,6 +130,8 @@ No explicit performance optimizations identified.
 - **SRS-368**: MUST set `SKILL.md` YAML `name` to `req-<prompt_name>` and `description` to the YAML-escaped output of `extract_skill_description(prompt_frontmatter)`.
 - **SRS-369**: MUST emit `SKILL.md` YAML `model` and tool-restriction fields according to `legacy`, `enable-models`, `enable-tools`, and provider-specific serialization rules.
 - **SRS-370**: MUST emit provider `pi` `SKILL.md` tool restrictions as `allowed-tools: <space-delimited tools>` and MUST NOT emit a `tools` key.
+- **SRS-371**: MUST implement the following behavior: When `src/usereq/resources/prompts/flowchart.md` exists, provider resource generation MUST emit `req-flowchart` artifacts for every enabled provider/artifact combination supported by packaged prompt templates.
+- **SRS-372**: MUST implement the following behavior: In `src/usereq/resources/common/models.json` and `src/usereq/resources/common/models-legacy.json`, every provider prompt map that defines `workflow` MUST also define `flowchart` with identical prompt configuration.
 
 - **SRS-353**: MUST implement the following behavior: Provider `pi` prompt installation MUST use the same generation and naming procedure as provider `github`, and MUST write prompt files under `.pi/prompts`.
 
@@ -200,6 +202,8 @@ No explicit performance optimizations identified.
 - **SRS-294**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that `Modules Installed` renders one module-entry line per active `--provider` artifact item using `artifact` without options or `artifact:options` when applicable options exist.
 - **SRS-297**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that each `Modules Installed` line preserves parsed artifact-local option order and appended applicable provider-option order, and emits only `artifact` when no options apply.
 - **SRS-298**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that `Modules Installed` does not wrap module-entry lines and widths include the longest rendered module-entry line.
+- **SRS-373**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that bundled common model files keep `flowchart` prompt configuration aligned with `workflow`.
+- **SRS-374**: MUST implement the following behavior: The project MUST include unit tests in `tests/test_cli.py` verifying that a CLI installation generates representative `req-flowchart` prompt, agent, command, and skill artifacts from the packaged `flowchart.md` template.
 
 ## 5. Static Code Analysis Requirements
 
