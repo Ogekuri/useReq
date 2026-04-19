@@ -1,3 +1,33 @@
+<div align="center">
+  <table width="100%">
+    <tr>
+      <td align="center" style="padding: 20px; border: 2px solid #d73a49; background-color: #ffeef0; border-radius: 8px;">
+        <h2 style="color: #d73a49; margin-top: 0;">⚠️ PROJECT MOVED TO PI-CLI ⚠️</h2>
+        <p style="font-size: 16px; color: #24292e;">
+          This project is no longer maintained here. The SRS-driven development workflow has been migrated and is now available as a <strong>dedicated extension for the pi CLI</strong>.
+        </p>
+        <p style="font-size: 16px; color: #24292e;">
+          This move provides <strong>greater control over prompts</strong> and integration with the full suite of <a href="https://shittycodingagent.ai/">pi.dev</a> tools.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #d73a49; margin: 20px 0;">
+        <h3 style="color: #d73a49;">How to Install</h3>
+        <p style="font-size: 15px; color: #24292e;">
+          You can install the extension via <strong>NPM</strong> by following the instructions here:
+        </p>
+        <a href="https://www.npmjs.com/package/pi-usereq" style="text-decoration: none;">
+          <img src="https://img.shields.io/badge/NPM-pi--usereq-red?style=for-the-badge&logo=npm" alt="NPM Package" />
+        </a>
+        <p style="margin-top: 15px;">
+          <a href="https://www.npmjs.com/package/pi-usereq" style="color: #0366d6; font-weight: bold; text-decoration: underline;">
+            View Installation Guide on NPM
+          </a>
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
 # useReq/req (0.65.0)
 
 <p align="center">
@@ -29,8 +59,6 @@ This allows them to be run both as a Python package (installed as <b>req</b>, <b
 ⚠️ <strong>IMPORTANT NOTICE</strong>: Created itself with <a href="https://github.com/Ogekuri/useReq"><strong>useReq/req</strong></a> 🤖✨ ⚠️<br>
 <br>
 <p>
-
-
 
 ## Requirements
 
